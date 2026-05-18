@@ -1,0 +1,376 @@
+@import "./reset.css";
+@import "./tokens.css";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse 90% 70% at 8% 15%, color-mix(in srgb, var(--sky) 32%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 90% at 92% 85%, color-mix(in srgb, var(--beige) 38%, transparent), transparent 50%);
+  background-size: 160% 160%;
+  animation: mesh-drift 20s ease-in-out infinite alternate;
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes mesh-drift {
+  0% { background-position: 0% 0%, 100% 0%, 50% 100%, 100% 100%; }
+  50% { background-position: 8% 12%, 92% 8%, 48% 92%, 85% 80%; }
+  100% { background-position: 15% 5%, 85% 15%, 45% 85%, 90% 70%; }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Layout ─── */
+.page-shell {
+  /* Wider horizontal margins for homepage */
+  padding-inline: clamp(24px, 6vw, 80px);
+  padding-block: clamp(24px, 4vw, 48px);
+}
+
+.app-page {
+  /* No padding — dashboard is edge-to-edge */
+}
+
+/* ─── Typography ─── */
+h1, h2, h3, p {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--step-4);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+h2 {
+  font-size: var(--step-3);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: var(--step-2);
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* ─── Hero ─── */
+.hero {
+  padding-block: clamp(80px, 12vw, 140px);
+  /* No inline padding — .page-shell handles it */
+}
+
+.hero__copy {
+  max-width: 56ch;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--space-5);
+}
+
+.lead {
+  margin-top: var(--space-5);
+  font-size: var(--step-1);
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 44ch;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+}
+
+/* ─── Buttons ─── */
+.button {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: var(--border);
+  padding-inline: var(--space-6);
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: var(--step-0);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--duration-fast);
+}
+
+.button:hover {
+  background: var(--surface);
+}
+
+.button--ink {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+.button--ink:hover {
+  background: var(--ink-secondary);
+}
+
+.button--paper {
+  background: transparent;
+  color: var(--ink);
+}
+
+.button--paper:hover {
+  background: var(--surface);
+}
+
+.button--sky {
+  background: var(--sky);
+  color: var(--ink);
+}
+
+.button--sky:hover {
+  background: var(--sky-strong);
+  color: var(--white);
+}
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ─── Features ─── */
+.features {
+  margin-top: clamp(64px, 10vw, 120px);
+  padding-top: clamp(48px, 6vw, 80px);
+  border-top: var(--border);
+  /* No inline padding — .page-shell handles it */
+}
+
+.features__header {
+  margin-bottom: var(--space-7);
+}
+
+.features__header h2 {
+  margin-bottom: var(--space-3);
+}
+
+.features__header p {
+  color: var(--muted);
+  max-width: 46ch;
+  font-size: var(--step-1);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.features-grid article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: var(--border);
+}
+
+.features-grid .number {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--sky-strong);
+  font-weight: 700;
+}
+
+.features-grid h3 {
+  font-size: var(--step-2);
+}
+
+.features-grid p {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: var(--step-0);
+}
+
+/* ─── CTA ─── */
+.cta-section {
+  margin-top: clamp(64px, 10vw, 120px);
+  padding-block: clamp(48px, 6vw, 80px);
+  border-top: var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-6);
+  /* No inline padding — .page-shell handles it */
+}
+
+.cta-section h2 {
+  margin-bottom: var(--space-2);
+}
+
+.cta-section p {
+  color: var(--muted);
+  max-width: 40ch;
+  font-size: var(--step-1);
+}
+
+/* ─── Auth Modal ─── */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 10, 10, 0.45);
+  padding: var(--space-5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base);
+}
+
+.auth-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--white);
+  padding: var(--space-6);
+  border: var(--border);
+  transform: translateY(8px);
+  transition: transform var(--duration-base);
+}
+
+.auth-overlay.is-open .auth-card {
+  transform: translateY(0);
+}
+
+/* ─── Skeleton ─── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.skeleton {
+  background: var(--line-light);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* ─── App Frame — edge to edge, no padding ─── */
+.app-frame {
+  border: 0;
+  background: var(--white);
+  min-height: calc(100vh - 60px);
+}
+
+/* ─── Locked State ─── */
+.locked {
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: var(--space-4);
+  min-height: 40vh;
+  padding: var(--space-6);
+}
+
+.locked .kicker {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.locked h1 {
+  font-size: var(--step-3);
+  line-height: 1.1;
+}
+
+.locked p {
+  color: var(--muted);
+}
+
+.locked a,
+.locked button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: var(--border);
+  background: var(--ink);
+  color: var(--white);
+  padding-inline: var(--space-5);
+  font-weight: 700;
+  font-size: var(--step-0);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.locked a:hover,
+.locked button:hover {
+  background: var(--ink-secondary);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1040px) {
+  h1 {
+    font-size: clamp(2.8rem, 9vw, 5rem);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-grid article {
+    border-top: var(--border);
+    padding-top: var(--space-5);
+  }
+
+  .cta-section {
+    flex-direction: column;
+    text-align: start;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero__actions {
+    display: grid;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  .auth-card {
+    padding: var(--space-5);
+  }
+}

@@ -1,0 +1,87 @@
+<script lang="ts">
+  let {
+    kicker = "HomeBody",
+    title,
+    subtitle,
+    actions,
+  }: {
+    kicker?: string;
+    title: string;
+    subtitle: string;
+    actions?: import("svelte").Snippet;
+  } = $props();
+</script>
+
+<div class="locked">
+  <p class="kicker">{kicker}</p>
+  <h1>{title}</h1>
+  <p>{subtitle}</p>
+  {#if actions}
+    <div class="locked__actions">
+      {@render actions()}
+    </div>
+  {/if}
+</div>
+
+<style>
+  .locked {
+    display: grid;
+    place-content: center;
+    text-align: center;
+    gap: var(--space-4);
+    max-width: 520px;
+    width: 100%;
+    padding: var(--space-7) var(--space-6);
+    border: var(--border);
+    background: var(--white);
+  }
+
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: var(--step-3);
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  p {
+    color: var(--muted);
+    max-width: 40ch;
+    margin: 0;
+  }
+
+  .locked__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-2);
+  }
+
+  .locked__actions :global(a),
+  .locked__actions :global(button) {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: var(--border);
+    background: var(--ink);
+    color: var(--white);
+    padding-inline: var(--space-5);
+    font-weight: 700;
+    font-size: var(--step--1);
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .locked__actions :global(a:hover),
+  .locked__actions :global(button:hover) {
+    background: var(--ink-secondary);
+  }
+</style>

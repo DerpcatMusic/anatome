@@ -1,0 +1,1 @@
+import"./IR7L6Deb.js";import{d as e,i as t,t as n}from"./OFq3flSA.js";function r(r,i,a={}){let o=t();return e(()=>o.isAuthenticated,async e=>e?await n(r,i):a.initialValue??null,{initialValue:a.initialValue??null})}export{r as t};

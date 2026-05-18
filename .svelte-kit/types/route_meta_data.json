@@ -1,0 +1,46 @@
+{
+	"/(app)": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/": [
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/calendar": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/callback": [
+		"src/routes/callback/+page.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/dashboard": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/live-room": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/live": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/onboarding": [
+		"src/routes/onboarding/+page.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/profile": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/videos": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/watch": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	]
+}

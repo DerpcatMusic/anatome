@@ -1,0 +1,115 @@
+/* ─── Shared component utilities ───
+ * Extracted from LiveStudioShell, InstructorVideoManager, and other shells
+ * to eliminate duplicated <style> blocks.
+ */
+
+/* Form field */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-weight: 800;
+  font-size: var(--step-0);
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+/* Inputs */
+input,
+textarea {
+  min-height: 46px;
+  border: var(--border);
+  background: var(--white);
+  color: var(--ink);
+  padding: var(--space-3);
+  font: inherit;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Button base */
+.btn {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  border: var(--border);
+  padding-inline: var(--space-5);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--duration-fast);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn--ink {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.btn--ink:hover {
+  background: var(--ink-secondary);
+}
+
+.btn--sky {
+  background: var(--sky);
+  color: var(--ink);
+}
+
+.btn--sky:hover {
+  background: var(--sky-strong);
+  color: var(--white);
+}
+
+.btn--danger {
+  background: #fef2f2;
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.btn--danger:hover {
+  background: #fee2e2;
+}
+
+.btn--ghost {
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.btn--ghost:hover {
+  background: var(--surface);
+}
+
+.btn--ghost.danger {
+  color: #b42318;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.btn--ghost.danger:hover {
+  background: #fee2e2;
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

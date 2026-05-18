@@ -1,0 +1,1 @@
+export const env={"PUBLIC_CONVEX_CLIENT_URL":"https://honorable-woodpecker-450.eu-west-1.convex.cloud"}
