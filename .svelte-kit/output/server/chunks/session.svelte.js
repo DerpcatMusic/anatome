@@ -1,6 +1,7 @@
 import "./index-server.js";
 import "./dev.js";
 import { r as on } from "./events.js";
+import "./context.js";
 import { ConvexHttpClient } from "convex/browser";
 import { anyApi, componentsGeneric } from "convex/server";
 //#region node_modules/runed/dist/internal/configurable-globals.js
@@ -502,26 +503,13 @@ async function authQuery(query, args) {
 		}
 	}
 }
-async function verifyMagicLinkCode(code) {
-	storeTokens((await null.action(api.auth.signIn, {
-		provider: "email",
-		params: { code }
-	})).tokens ?? null);
-	await redirectAfterAuth();
-}
-async function redirectAfterAuth() {
-	if (!state.isAuthenticated) {
-		window.location.assign("/");
-		return;
-	}
+async function signOut() {
+	const tokenToSignOut = tokenStore.current;
+	storeTokens(null);
 	try {
-		const dashboard = await authQuery(api.users.dashboard, {});
-		if (dashboard?.role) setCachedRole(dashboard.role);
-		if (dashboard?.needsOnboarding) window.location.assign("/onboarding");
-		else window.location.assign("/dashboard");
-	} catch {
-		window.location.assign("/dashboard");
-	}
+		if (tokenToSignOut !== null) await withTimeout(makeHttpClient(tokenToSignOut).action(api.auth.signOut, {}), "Sign-out timed out");
+	} catch {}
+	window.location.assign("/");
 }
 //#endregion
-export { verifyMagicLinkCode as a, setCachedRole as i, getCachedRole as n, api as o, initAuth as r, resource as s, authQuery as t };
+export { signOut as a, resource as c, setCachedRole as i, getCachedRole as n, storeTokens as o, initAuth as r, api as s, authQuery as t };

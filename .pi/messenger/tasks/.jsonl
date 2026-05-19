@@ -1,0 +1,3 @@
+{"taskId":"task-1","type":"created","timestamp":"2026-05-18T11:33:38.208Z","channel":"design","payload":{"title":"Auth flow audit","content":"Review Convex auth implementation: password flow, session handling, edge cases","dependsOn":[],"createdBy":"SageArrow"}}
+{"taskId":"task-2","type":"created","timestamp":"2026-05-18T11:33:38.211Z","channel":"design","payload":{"title":"Onboarding UX polish","content":"Pilates onboarding flow: reduce friction, add progress indicators","dependsOn":[],"createdBy":"SageArrow"}}
+{"taskId":"task-3","type":"created","timestamp":"2026-05-18T11:33:38.214Z","channel":"design","payload":{"title":"Hebrew RTL design system","content":"Ensure all components work properly in Hebrew RTL layout","dependsOn":[],"createdBy":"SageArrow"}}

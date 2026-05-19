@@ -1,5 +1,5 @@
 <script lang="ts">
-  import OnboardingShell from "../../components/app/OnboardingShell.svelte";
+  import OnboardingShell from "$features/onboarding/components/OnboardingShell.svelte";
 </script>
 
 <main class="app-page">

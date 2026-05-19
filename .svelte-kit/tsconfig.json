@@ -2,10 +2,22 @@
 	"compilerOptions": {
 		"paths": {
 			"$components": [
-				"../src/components"
+				"../src/lib/components"
 			],
 			"$components/*": [
-				"../src/components/*"
+				"../src/lib/components/*"
+			],
+			"$features": [
+				"../src/lib/features"
+			],
+			"$features/*": [
+				"../src/lib/features/*"
+			],
+			"$convex": [
+				"../convex"
+			],
+			"$convex/*": [
+				"../convex/*"
 			],
 			"$lib": [
 				"../src/lib"

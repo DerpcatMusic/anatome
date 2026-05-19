@@ -1,0 +1,7 @@
+{"_meta":true,"v":1,"id":"design","type":"named","createdAt":"2026-05-18T11:33:27.267Z","createdBy":"SageArrow","sessionId":"019e3add-791d-7671-a164-5682c37f7872"}
+{"ts":"2026-05-18T11:33:38.208Z","type":"task.start","agent":"SageArrow","target":"task-1","preview":"created Auth flow audit","channel":"design"}
+{"ts":"2026-05-18T11:33:38.211Z","type":"task.start","agent":"SageArrow","target":"task-2","preview":"created Onboarding UX polish","channel":"design"}
+{"ts":"2026-05-18T11:33:38.214Z","type":"task.start","agent":"SageArrow","target":"task-3","preview":"created Hebrew RTL design system","channel":"design"}
+{"ts":"2026-05-18T11:33:47.387Z","type":"message","agent":"SageArrow","target":"to:#memory","preview":"HomeBody project bootstrapped. Channels: #frontend #backend #design. Main agent: SageArrow.","channel":"design"}
+{"ts":"2026-05-18T11:35:35.838Z","type":"message","agent":"SageArrow","target":"SageDragon","preview":"Scan src/components/ for any hardcoded LTR assumptions. Check CSS text-align, flex directions, and margin/padding that might break in RTL.","channel":"design"}
+{"ts":"2026-05-18T11:35:35.840Z","type":"message","agent":"SageArrow","target":"SwiftTiger","preview":"Hey, start by reading convex/auth.ts and convex/users.ts. Report back what you find.","channel":"design"}

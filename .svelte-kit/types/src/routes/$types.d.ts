@@ -11,7 +11,7 @@ type EnsureDefined<T> = T extends null | undefined ? {} : T;
 type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
 export type Snapshot<T = any> = Kit.Snapshot<T>;
 type PageParentData = EnsureDefined<LayoutData>;
-type LayoutRouteId = RouteId | "/" | "/(app)/calendar" | "/(app)/dashboard" | "/(app)/live" | "/(app)/live-room" | "/(app)/profile" | "/(app)/videos" | "/(app)/watch" | "/callback" | "/onboarding" | null
+type LayoutRouteId = RouteId | "/" | "/(app)/calendar" | "/(app)/dashboard" | "/(app)/live" | "/(app)/live-room" | "/(app)/one-on-one" | "/(app)/profile" | "/(app)/studio/videos" | "/(app)/videos" | "/(app)/watch" | "/(app)/אזור-אישי" | "/(app)/אחד-על-אחד" | "/(app)/וידאו" | "/(app)/חדר-לייב" | "/(app)/לוח" | "/(app)/סטודיו/וידאו" | "/(app)/סטודיו/לייב" | "/(app)/פרופיל" | "/(app)/צפייה" | "/callback" | "/onboarding" | "/התאמה" | null
 type LayoutParams = RouteParams & {  }
 type LayoutParentData = EnsureDefined<{}>;
 

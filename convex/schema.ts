@@ -125,7 +125,7 @@ export default defineSchema({
   liveJoinEvents: defineTable({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),
-    role: v.union(v.literal("customer"), v.literal("instructor")),
+    role: v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin")),
     result: v.union(v.literal("allowed"), v.literal("denied")),
     reason: v.string(),
     createdAt: v.number(),
@@ -146,6 +146,56 @@ export default defineSchema({
     .index("by_status_and_sendAt", ["status", "sendAt"])
     .index("by_reservationId", ["reservationId"])
     .index("by_liveClassId", ["liveClassId"]),
+
+  oneOnOneAvailabilityRules: defineTable({
+    instructorUserId: v.id("users"),
+    weekday: v.number(),
+    startMinute: v.number(),
+    endMinute: v.number(),
+    slotMinutes: v.number(),
+    bufferMinutes: v.number(),
+    timezone: v.string(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_instructorUserId_and_weekday", ["instructorUserId", "weekday"])
+    .index("by_isActive_and_weekday", ["isActive", "weekday"]),
+
+  oneOnOneAvailabilityExceptions: defineTable({
+    instructorUserId: v.id("users"),
+    startsAt: v.number(),
+    endsAt: v.number(),
+    kind: v.union(v.literal("blocked"), v.literal("extra_open")),
+    note: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_instructorUserId_and_startsAt", ["instructorUserId", "startsAt"])
+    .index("by_startsAt", ["startsAt"]),
+
+  oneOnOneRequests: defineTable({
+    customerUserId: v.id("users"),
+    instructorUserId: v.id("users"),
+    requestedStartsAt: v.number(),
+    requestedEndsAt: v.number(),
+    note: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("rejected"),
+      v.literal("cancelled"),
+      v.literal("expired"),
+    ),
+    creditBucketId: v.id("creditBuckets"),
+    liveClassId: v.optional(v.id("liveClasses")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    decidedAt: v.optional(v.number()),
+  })
+    .index("by_customerUserId_and_createdAt", ["customerUserId", "createdAt"])
+    .index("by_instructorUserId_and_status_and_requestedStartsAt", ["instructorUserId", "status", "requestedStartsAt"])
+    .index("by_status_and_requestedStartsAt", ["status", "requestedStartsAt"])
+    .index("by_instructorUserId_and_requestedStartsAt", ["instructorUserId", "requestedStartsAt"]),
 
   videos: defineTable({
     title: v.string(),
@@ -191,6 +241,18 @@ export default defineSchema({
     .index("by_userId_and_videoId", ["userId", "videoId"])
     .index("by_userId_and_creditBucketId_and_videoId", ["userId", "creditBucketId", "videoId"])
     .index("by_creditBucketId", ["creditBucketId"]),
+
+  videoProgress: defineTable({
+    videoId: v.id("videos"),
+    userId: v.id("users"),
+    currentTimeSeconds: v.number(),
+    durationSeconds: v.number(),
+    percentWatched: v.number(),
+    completed: v.boolean(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId_and_videoId", ["userId", "videoId"])
+    .index("by_userId_and_updatedAt", ["userId", "updatedAt"]),
 
   memberProfiles: defineTable({
     userId: v.id("users"),

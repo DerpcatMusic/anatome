@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CallbackHandler from "../../components/auth/CallbackHandler.svelte";
+  import CallbackHandler from "$features/auth/components/CallbackHandler.svelte";
 </script>
 
 <main class="page-shell">

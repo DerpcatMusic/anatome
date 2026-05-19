@@ -1,0 +1,27 @@
+{
+  "name": "SageArrow",
+  "pid": 227999,
+  "sessionId": "019e3add-791d-7671-a164-5682c37f7872",
+  "cwd": "/home/derpcat/projects/homebody",
+  "model": "harness",
+  "startedAt": "2026-05-18T11:33:16.984Z",
+  "gitBranch": "master",
+  "isHuman": false,
+  "session": {
+    "toolCalls": 0,
+    "tokens": 0,
+    "filesModified": []
+  },
+  "activity": {
+    "lastActivityAt": "2026-05-18T11:33:16.984Z"
+  },
+  "currentChannel": "design",
+  "sessionChannel": "happy-lion",
+  "joinedChannels": [
+    "memory",
+    "happy-lion",
+    "frontend",
+    "backend",
+    "design"
+  ]
+}

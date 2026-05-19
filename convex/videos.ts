@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { api } from "./_generated/api";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { requireAppProfile, requireRole, requireUserId } from "./lib/authz";
 import { equipmentListValidator } from "./lib/validators";
@@ -147,6 +148,50 @@ export const selectForWeek = mutation({
       creditBucketId: bucket._id,
       selectedAt: now,
       accessEndsAt: Math.min(bucket.periodEnd, video.availableUntil),
+    });
+  },
+});
+
+export const updateProgress = mutation({
+  args: {
+    videoId: v.id("videos"),
+    currentTimeSeconds: v.number(),
+    durationSeconds: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    await ctx.runQuery(api.videos.getViewerPlayback, { videoId: args.videoId });
+
+    const durationSeconds = Math.max(0, args.durationSeconds);
+    const currentTimeSeconds = Math.max(0, Math.min(args.currentTimeSeconds, durationSeconds || args.currentTimeSeconds));
+    const percentWatched = durationSeconds > 0 ? Math.min(100, (currentTimeSeconds / durationSeconds) * 100) : 0;
+    const completed = percentWatched >= 90;
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("videoProgress")
+      .withIndex("by_userId_and_videoId", (q) => q.eq("userId", userId).eq("videoId", args.videoId))
+      .unique();
+
+    if (existing !== null) {
+      await ctx.db.patch(existing._id, {
+        currentTimeSeconds,
+        durationSeconds,
+        percentWatched,
+        completed: existing.completed || completed,
+        updatedAt: now,
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("videoProgress", {
+      videoId: args.videoId,
+      userId,
+      currentTimeSeconds,
+      durationSeconds,
+      percentWatched,
+      completed,
+      updatedAt: now,
     });
   },
 });

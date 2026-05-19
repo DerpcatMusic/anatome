@@ -1,9 +1,59 @@
-import { H as attr, U as escape_html, a as derived, n as attr_class, o as ensure_array_like, u as html } from "./dev.js";
-import { o as api } from "./session.svelte.js";
-import { t as Button } from "./Button.js";
+import { U as attr, W as escape_html, a as derived, i as bind_props, n as attr_class, o as ensure_array_like, r as attr_style, u as html } from "./dev.js";
+import { n as routePath } from "./context.js";
+import { n as useConvexClient } from "./client.svelte.js";
+import { s as api } from "./session.svelte.js";
 import { t as Notice } from "./Notice.js";
-import { f as goalOptions, i as equipmentLabel, l as experienceOptions, o as equipmentOptions, s as experienceLabel, u as goalLabel } from "./labels.js";
-//#region src/components/icons/EquipmentIcon.svelte
+import { t as useI18n } from "./runes.svelte.js";
+import { t as Button } from "./Button.js";
+import { d as goalLabel, i as equipmentLabel, l as experienceOptions, o as equipmentOptions, p as goalOptions, s as experienceLabel } from "./labels.js";
+//#region src/lib/features/app/components/AppSkeleton.svelte
+function AppSkeleton($$renderer, $$props) {
+	let { title = true, lines = 2, width = "60%" } = $$props;
+	$$renderer.push(`<div class="loading svelte-4wdaoi">`);
+	if (title) {
+		$$renderer.push("<!--[0-->");
+		$$renderer.push(`<div class="skeleton skeleton--title svelte-4wdaoi"></div>`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--> <!--[-->`);
+	const each_array = ensure_array_like(Array.from({ length: lines }));
+	for (let i = 0, $$length = each_array.length; i < $$length; i++) {
+		each_array[i];
+		$$renderer.push(`<div class="skeleton skeleton--text svelte-4wdaoi"${attr_style(i === lines - 1 ? `width: ${width};` : void 0)}></div>`);
+	}
+	$$renderer.push(`<!--]--></div>`);
+}
+//#endregion
+//#region src/lib/features/app/components/AppLocked.svelte
+function AppLocked($$renderer, $$props) {
+	let { kicker = "HomeBody", title, subtitle, actions } = $$props;
+	$$renderer.push(`<div class="locked svelte-17fcklh"><p class="kicker svelte-17fcklh">${escape_html(kicker)}</p> <h1 class="svelte-17fcklh">${escape_html(title)}</h1> <p class="svelte-17fcklh">${escape_html(subtitle)}</p> `);
+	if (actions) {
+		$$renderer.push("<!--[0-->");
+		$$renderer.push(`<div class="locked__actions svelte-17fcklh">`);
+		actions($$renderer);
+		$$renderer.push(`<!----></div>`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--></div>`);
+}
+//#endregion
+//#region src/lib/features/onboarding/components/steps/ExperienceStep.svelte
+function ExperienceStep($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { experience = void 0 } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<div class="options svelte-1n930o"><!--[-->`);
+		const each_array = ensure_array_like(experienceOptions);
+		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+			let [val, title] = each_array[$$index];
+			const desc = val === "new" ? t.onboarding.experience.newDesc() : val === "some" ? t.onboarding.experience.someDesc() : t.onboarding.experience.steadyDesc();
+			$$renderer.push(`<label${attr_class("option svelte-1n930o", void 0, { "selected": experience === val })}><input type="radio"${attr("checked", experience === val, true)}${attr("value", val)} class="svelte-1n930o"/> <span class="option__title svelte-1n930o">${escape_html(title)}</span> <span class="option__desc svelte-1n930o">${escape_html(desc)}</span></label>`);
+		}
+		$$renderer.push(`<!--]--></div>`);
+		bind_props($$props, { experience });
+	});
+}
+//#endregion
+//#region src/lib/components/icons/EquipmentIcon.svelte
 function EquipmentIcon($$renderer, $$props) {
 	let { name } = $$props;
 	const icons = {
@@ -21,27 +71,94 @@ function EquipmentIcon($$renderer, $$props) {
 	$$renderer.push(`<svg viewBox="0 0 64 64" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${html(svgContent())}</svg>`);
 }
 //#endregion
-//#region src/components/app/OnboardingForm.svelte
+//#region src/lib/features/onboarding/components/steps/EquipmentStep.svelte
+function EquipmentStep($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { equipment = void 0 } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<div class="equip-grid svelte-7wc14w"><!--[-->`);
+		const each_array = ensure_array_like(equipmentOptions);
+		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+			let [value, label] = each_array[$$index];
+			$$renderer.push(`<label${attr_class("equip-card svelte-7wc14w", void 0, { "selected": equipment.includes(value) })}><input type="checkbox"${attr("checked", equipment.includes(value), true)} class="svelte-7wc14w"/> `);
+			EquipmentIcon($$renderer, { name: value });
+			$$renderer.push(`<!----> <span class="svelte-7wc14w">${escape_html(label)}</span></label>`);
+		}
+		$$renderer.push(`<!--]--></div> `);
+		if (equipment.length === 0) {
+			$$renderer.push("<!--[0-->");
+			Notice($$renderer, {
+				tone: "neutral",
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(t.onboarding.equipment.emptyWarning())}`);
+				},
+				$$slots: { default: true }
+			});
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { equipment });
+	});
+}
+//#endregion
+//#region src/lib/features/onboarding/components/steps/GoalsStep.svelte
+function GoalsStep($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { goals = void 0 } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<div class="chips svelte-vptto8"><!--[-->`);
+		const each_array = ensure_array_like(goalOptions);
+		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+			let [value, label] = each_array[$$index];
+			$$renderer.push(`<label${attr_class("chip svelte-vptto8", void 0, { "selected": goals.includes(value) })}><input type="checkbox"${attr("checked", goals.includes(value), true)} class="svelte-vptto8"/> <span class="svelte-vptto8">${escape_html(label)}</span></label>`);
+		}
+		$$renderer.push(`<!--]--></div> `);
+		if (goals.length === 0) {
+			$$renderer.push("<!--[0-->");
+			Notice($$renderer, {
+				tone: "neutral",
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(t.onboarding.goals.emptyWarning())}`);
+				},
+				$$slots: { default: true }
+			});
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { goals });
+	});
+}
+//#endregion
+//#region src/lib/features/onboarding/components/steps/NotesStep.svelte
+function NotesStep($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { notes = void 0 } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<label class="notes-wrap svelte-1566ibt"><textarea maxlength="600"${attr("placeholder", t.onboarding.notes.placeholder())} rows="5" class="svelte-1566ibt">`);
+		const $$body = escape_html(notes);
+		if ($$body) $$renderer.push(`${$$body}`);
+		$$renderer.push(`</textarea> <span class="char-count svelte-1566ibt">${escape_html(t.misc.charCount({ count: notes.length }))}</span></label>`);
+		bind_props($$props, { notes });
+	});
+}
+//#endregion
+//#region src/lib/features/onboarding/components/steps/SummaryStep.svelte
+function SummaryStep($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { experience, equipment, goals } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<div class="summary-box svelte-1h1kiqw"><p class="summary-box__title svelte-1h1kiqw">${escape_html(t.onboarding.summary.boxTitle())}</p> <div class="summary-box__row svelte-1h1kiqw"><span class="svelte-1h1kiqw">${escape_html(t.onboarding.summary.experience())}</span><span class="svelte-1h1kiqw">${escape_html(experienceLabel(experience))}</span></div> <div class="summary-box__row svelte-1h1kiqw"><span class="svelte-1h1kiqw">${escape_html(t.onboarding.summary.equipment())}</span><span class="svelte-1h1kiqw">${escape_html(equipment.map(equipmentLabel).join(", "))}</span></div> <div class="summary-box__row svelte-1h1kiqw"><span class="svelte-1h1kiqw">${escape_html(t.onboarding.summary.goals())}</span><span class="svelte-1h1kiqw">${escape_html(goals.map(goalLabel).join(", "))}</span></div></div>`);
+	});
+}
+//#endregion
+//#region src/lib/features/onboarding/components/OnboardingForm.svelte
 function OnboardingForm($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { redirectTo, initialProfile, mode = "onboarding" } = $$props;
+		const { t } = useI18n();
 		const steps = [
-			{
-				id: "experience",
-				label: "ניסיון"
-			},
-			{
-				id: "equipment",
-				label: "ציוד"
-			},
-			{
-				id: "goals",
-				label: "מטרות"
-			},
-			{
-				id: "notes",
-				label: "סיום"
-			}
+			{ id: "experience" },
+			{ id: "equipment" },
+			{ id: "goals" },
+			{ id: "notes" }
 		];
 		let stepIndex = 0;
 		let equipment = ["mat"];
@@ -54,8 +171,11 @@ function OnboardingForm($$renderer, $$props) {
 		const currentStep = derived(() => steps[stepIndex]);
 		const isFirst = derived(() => stepIndex === 0);
 		const isLast = derived(() => stepIndex === steps.length - 1);
-		const stepTitle = derived(() => currentStep().id === "experience" ? "כמה ניסיון יש לך?" : currentStep().id === "equipment" ? "מה יש לך בבית?" : currentStep().id === "goals" ? "מה המטרות שלך?" : "משהו שחשוב שנדע?");
-		const stepSubtitle = derived(() => currentStep().id === "experience" ? "אין תשובה לא נכונה. נתחיל ממשהו פשוט." : currentStep().id === "equipment" ? "נתאים שיעורים לפי מה שיש לך זמין." : currentStep().id === "goals" ? "אפשר לבחור כמה — זו לא התחייבות." : "אופציונלי. המדריכה תראה את זה לפני השיעור הראשון.");
+		function getStepLabel(id) {
+			return id === "experience" ? t.onboarding.stepLabels.experience() : id === "equipment" ? t.onboarding.stepLabels.equipment() : id === "goals" ? t.onboarding.stepLabels.goals() : t.onboarding.stepLabels.notes();
+		}
+		const stepTitle = derived(() => currentStep().id === "experience" ? t.onboarding.experience.title() : currentStep().id === "equipment" ? t.onboarding.equipment.title() : currentStep().id === "goals" ? t.onboarding.goals.title() : t.onboarding.notes.title());
+		const stepSubtitle = derived(() => currentStep().id === "experience" ? t.onboarding.experience.subtitle() : currentStep().id === "equipment" ? t.onboarding.equipment.subtitle() : currentStep().id === "goals" ? t.onboarding.goals.subtitle() : t.onboarding.notes.subtitle());
 		const canProceed = derived(() => currentStep().id === "equipment" ? equipment.length > 0 : currentStep().id === "goals" ? goals.length > 0 : true);
 		function next() {
 			if (!canProceed()) return;
@@ -66,148 +186,151 @@ function OnboardingForm($$renderer, $$props) {
 			pending = true;
 			error = "";
 			try {
-				await null.mutation(api.users.completeOnboarding, {
+				await useConvexClient().mutation(api.users.completeOnboarding, {
 					equipment,
 					experience,
 					goals,
 					notes
 				});
 				submitted = true;
-				const target = redirectTo ?? "/dashboard";
+				const target = redirectTo ?? routePath("dashboard");
 				setTimeout(() => window.location.assign(target), 800);
 			} catch (reason) {
-				error = reason instanceof Error ? reason.message : "לא הצלחנו לשמור כרגע. נסי שוב.";
+				error = reason instanceof Error ? reason.message : t.onboarding.saveError();
 				pending = false;
 			}
 		}
-		if (submitted) {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="success svelte-5w81rd"><div class="success-mark svelte-5w81rd">✦</div> <h2 class="svelte-5w81rd">${escape_html(mode === "edit" ? "הפרופיל עודכן" : "ההתאמה נשמרה")}</h2> <p class="svelte-5w81rd">${escape_html(mode === "edit" ? "מעבירים אותך חזרה..." : "מעבירים אותך לאזור האישי...")}</p></div>`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div class="onboarding svelte-5w81rd"><div class="panel panel--question svelte-5w81rd"><div class="panel__inner svelte-5w81rd">`);
-			if (mode === "onboarding") {
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			if (submitted) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="progress-dots svelte-5w81rd"><!--[-->`);
-				const each_array = ensure_array_like(steps);
-				for (let i = 0, $$length = each_array.length; i < $$length; i++) {
-					let step = each_array[i];
-					$$renderer.push(`<button${attr_class("dot svelte-5w81rd", void 0, {
-						"active": i === stepIndex,
-						"done": i < stepIndex
-					})}${attr("disabled", i > stepIndex, true)} type="button"${attr("aria-label", step.label)}></button>`);
-				}
-				$$renderer.push(`<!--]--></div>`);
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <div class="question svelte-5w81rd"><span class="question__num svelte-5w81rd">${escape_html(String(stepIndex + 1).padStart(2, "0"))}</span> <h1 class="svelte-5w81rd">${escape_html(stepTitle())}</h1> <p class="svelte-5w81rd">${escape_html(stepSubtitle())}</p></div></div></div> <div class="panel panel--form svelte-5w81rd"><div class="panel__inner svelte-5w81rd"><div class="form-body svelte-5w81rd">`);
-			if (currentStep().id === "experience") {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="options svelte-5w81rd"><!--[-->`);
-				const each_array_1 = ensure_array_like(experienceOptions);
-				for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-					let [val, title] = each_array_1[$$index_1];
-					const desc = val === "new" ? "מעולם לא עשיתי פילאטיס, או שזה נשמע לי כמו שפה זרה" : val === "some" ? "עשיתי כמה שיעורים פה ושם, אני מכירה את הבסיס" : "פילאטיס הוא חלק משגרת השבוע שלי";
-					$$renderer.push(`<label${attr_class("option svelte-5w81rd", void 0, { "selected": experience === val })}><input type="radio"${attr("checked", experience === val, true)}${attr("value", val)} class="svelte-5w81rd"/> <span class="option__title svelte-5w81rd">${escape_html(title)}</span> <span class="option__desc svelte-5w81rd">${escape_html(desc)}</span></label>`);
-				}
-				$$renderer.push(`<!--]--></div>`);
-			} else if (currentStep().id === "equipment") {
-				$$renderer.push("<!--[1-->");
-				$$renderer.push(`<div class="equip-grid svelte-5w81rd"><!--[-->`);
-				const each_array_2 = ensure_array_like(equipmentOptions);
-				for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
-					let [value, label] = each_array_2[$$index_2];
-					$$renderer.push(`<label${attr_class("equip-card svelte-5w81rd", void 0, { "selected": equipment.includes(value) })}><input type="checkbox"${attr("checked", equipment.includes(value), true)} class="svelte-5w81rd"/> `);
-					EquipmentIcon($$renderer, { name: value });
-					$$renderer.push(`<!----> <span class="svelte-5w81rd">${escape_html(label)}</span></label>`);
-				}
-				$$renderer.push(`<!--]--></div> `);
-				if (equipment.length === 0) {
+				$$renderer.push(`<div class="success svelte-j1vmuv"><div class="success-mark svelte-j1vmuv">✦</div> <h2 class="svelte-j1vmuv">${escape_html(mode === "edit" ? t.onboarding.success.editTitle() : t.onboarding.success.title())}</h2> <p class="svelte-j1vmuv">${escape_html(mode === "edit" ? t.onboarding.success.editSubtitle() : t.onboarding.success.subtitle())}</p></div>`);
+			} else {
+				$$renderer.push("<!--[-1-->");
+				$$renderer.push(`<div class="onboarding svelte-j1vmuv"><div class="panel panel--question svelte-j1vmuv"><div class="panel__inner svelte-j1vmuv">`);
+				if (mode === "onboarding") {
+					$$renderer.push("<!--[0-->");
+					$$renderer.push(`<div class="progress-dots svelte-j1vmuv"><!--[-->`);
+					const each_array = ensure_array_like(steps);
+					for (let i = 0, $$length = each_array.length; i < $$length; i++) {
+						let step = each_array[i];
+						$$renderer.push(`<button${attr_class("dot svelte-j1vmuv", void 0, {
+							"active": i === stepIndex,
+							"done": i < stepIndex
+						})}${attr("disabled", i > stepIndex, true)} type="button"${attr("aria-label", getStepLabel(step.id))}></button>`);
+					}
+					$$renderer.push(`<!--]--></div>`);
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]--> <div class="question svelte-j1vmuv"><span class="question__num svelte-j1vmuv">${escape_html(String(stepIndex + 1).padStart(2, "0"))}</span> <h1 class="svelte-j1vmuv">${escape_html(stepTitle())}</h1> <p class="svelte-j1vmuv">${escape_html(stepSubtitle())}</p></div></div></div> <div class="panel panel--form svelte-j1vmuv"><div class="panel__inner svelte-j1vmuv"><div class="form-body svelte-j1vmuv">`);
+				if (currentStep().id === "experience") {
+					$$renderer.push("<!--[0-->");
+					ExperienceStep($$renderer, {
+						get experience() {
+							return experience;
+						},
+						set experience($$value) {
+							experience = $$value;
+							$$settled = false;
+						}
+					});
+				} else if (currentStep().id === "equipment") {
+					$$renderer.push("<!--[1-->");
+					EquipmentStep($$renderer, {
+						get equipment() {
+							return equipment;
+						},
+						set equipment($$value) {
+							equipment = $$value;
+							$$settled = false;
+						}
+					});
+				} else if (currentStep().id === "goals") {
+					$$renderer.push("<!--[2-->");
+					GoalsStep($$renderer, {
+						get goals() {
+							return goals;
+						},
+						set goals($$value) {
+							goals = $$value;
+							$$settled = false;
+						}
+					});
+				} else if (currentStep().id === "notes") {
+					$$renderer.push("<!--[3-->");
+					NotesStep($$renderer, {
+						get notes() {
+							return notes;
+						},
+						set notes($$value) {
+							notes = $$value;
+							$$settled = false;
+						}
+					});
+					$$renderer.push(`<!----> `);
+					SummaryStep($$renderer, {
+						experience,
+						equipment,
+						goals
+					});
+					$$renderer.push(`<!---->`);
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]--> `);
+				if (error) {
 					$$renderer.push("<!--[0-->");
 					Notice($$renderer, {
-						tone: "neutral",
+						tone: "danger",
 						children: ($$renderer) => {
-							$$renderer.push(`<!---->בחרי לפחות פריט אחד כדי שנוכל להתאים שיעורים.`);
+							$$renderer.push(`<!---->${escape_html(error)}`);
 						},
 						$$slots: { default: true }
 					});
 				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]-->`);
-			} else if (currentStep().id === "goals") {
-				$$renderer.push("<!--[2-->");
-				$$renderer.push(`<div class="chips svelte-5w81rd"><!--[-->`);
-				const each_array_3 = ensure_array_like(goalOptions);
-				for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
-					let [value, label] = each_array_3[$$index_3];
-					$$renderer.push(`<label${attr_class("chip svelte-5w81rd", void 0, { "selected": goals.includes(value) })}><input type="checkbox"${attr("checked", goals.includes(value), true)} class="svelte-5w81rd"/> <span class="svelte-5w81rd">${escape_html(label)}</span></label>`);
-				}
-				$$renderer.push(`<!--]--></div> `);
-				if (goals.length === 0) {
+				$$renderer.push(`<!--]--></div> <div class="form-footer svelte-j1vmuv">`);
+				if (!isFirst()) {
 					$$renderer.push("<!--[0-->");
-					Notice($$renderer, {
-						tone: "neutral",
+					$$renderer.push(`<button class="back-btn svelte-j1vmuv" type="button"${attr("disabled", pending, true)}>${escape_html(t.onboarding.nav.back())}</button>`);
+				} else {
+					$$renderer.push("<!--[-1-->");
+					$$renderer.push(`<span class="svelte-j1vmuv"></span>`);
+				}
+				$$renderer.push(`<!--]--> `);
+				if (isLast()) {
+					$$renderer.push("<!--[0-->");
+					Button($$renderer, {
+						type: "button",
+						tone: "ink",
+						disabled: pending || !canProceed(),
+						onclick: submit,
 						children: ($$renderer) => {
-							$$renderer.push(`<!---->בחרי לפחות מטרה אחת כדי שנוכל להתאים שיעורים.`);
+							$$renderer.push(`<!---->${escape_html(pending ? t.onboarding.nav.submitPending() : mode === "edit" ? t.onboarding.nav.submitEdit() : t.onboarding.nav.submit())}`);
 						},
 						$$slots: { default: true }
 					});
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]-->`);
-			} else if (currentStep().id === "notes") {
-				$$renderer.push("<!--[3-->");
-				$$renderer.push(`<label class="notes-wrap svelte-5w81rd"><textarea maxlength="600" placeholder="למשל: כאב גב תחתון, אחרי ניתוח קיסרי, מגבלות ברך..." rows="5" class="svelte-5w81rd">`);
-				const $$body = escape_html(notes);
-				if ($$body) $$renderer.push(`${$$body}`);
-				$$renderer.push(`</textarea> <span class="char-count svelte-5w81rd">${escape_html(0)}/600</span></label> <div class="summary-box svelte-5w81rd"><p class="summary-box__title svelte-5w81rd">סיכום</p> <div class="summary-box__row svelte-5w81rd"><span class="svelte-5w81rd">ניסיון</span><span class="svelte-5w81rd">${escape_html(experienceLabel(experience))}</span></div> <div class="summary-box__row svelte-5w81rd"><span class="svelte-5w81rd">ציוד</span><span class="svelte-5w81rd">${escape_html(equipment.map(equipmentLabel).join(", "))}</span></div> <div class="summary-box__row svelte-5w81rd"><span class="svelte-5w81rd">מטרות</span><span class="svelte-5w81rd">${escape_html(goals.map(goalLabel).join(", "))}</span></div></div>`);
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> `);
-			if (error) {
-				$$renderer.push("<!--[0-->");
-				Notice($$renderer, {
-					tone: "danger",
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(error)}`);
-					},
-					$$slots: { default: true }
-				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--></div> <div class="form-footer svelte-5w81rd">`);
-			if (!isFirst()) {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<button class="back-btn svelte-5w81rd" type="button"${attr("disabled", pending, true)}>← חזרה</button>`);
-			} else {
-				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<span class="svelte-5w81rd"></span>`);
+				} else {
+					$$renderer.push("<!--[-1-->");
+					Button($$renderer, {
+						type: "button",
+						tone: "ink",
+						disabled: !canProceed(),
+						onclick: next,
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->${escape_html(t.onboarding.nav.next())}`);
+						},
+						$$slots: { default: true }
+					});
+				}
+				$$renderer.push(`<!--]--></div></div></div></div>`);
 			}
-			$$renderer.push(`<!--]--> `);
-			if (isLast()) {
-				$$renderer.push("<!--[0-->");
-				Button($$renderer, {
-					type: "button",
-					tone: "ink",
-					disabled: pending || !canProceed(),
-					onclick: submit,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(pending ? "שומרים..." : mode === "edit" ? "שמור שינויים ✦" : "לשמור ולהתחיל ✦")}`);
-					},
-					$$slots: { default: true }
-				});
-			} else {
-				$$renderer.push("<!--[-1-->");
-				Button($$renderer, {
-					type: "button",
-					tone: "ink",
-					disabled: !canProceed(),
-					onclick: next,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->המשך →`);
-					},
-					$$slots: { default: true }
-				});
-			}
-			$$renderer.push(`<!--]--></div></div></div></div>`);
+			$$renderer.push(`<!--]-->`);
 		}
-		$$renderer.push(`<!--]-->`);
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 	});
 }
 //#endregion
-export { OnboardingForm as t };
+export { AppLocked as n, AppSkeleton as r, OnboardingForm as t };

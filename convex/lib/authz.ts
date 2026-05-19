@@ -81,3 +81,11 @@ export function requireRole(profile: Doc<"appProfiles">, roles: Role[]) {
     throw new Error("Unauthorized");
   }
 }
+
+export function requireCustomer(profile: Doc<"appProfiles">) {
+  requireRole(profile, ["customer"]);
+}
+
+export function requireInstructorOrAdmin(profile: Doc<"appProfiles">) {
+  requireRole(profile, ["instructor", "admin"]);
+}

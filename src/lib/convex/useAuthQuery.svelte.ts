@@ -1,5 +1,5 @@
 import { resource } from "runed";
-import { authQuery, initAuth } from "../auth/session.svelte";
+import { authQuery, initAuth } from "$lib/auth/session.svelte";
 import type { FunctionReference } from "convex/server";
 
 export function useAuthQuery<Query extends FunctionReference<"query">>(

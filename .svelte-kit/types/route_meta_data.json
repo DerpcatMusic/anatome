@@ -31,7 +31,21 @@
 		"src/routes/onboarding/+page.js",
 		"src/routes/+layout.js"
 	],
+	"/(app)/one-on-one": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
 	"/(app)/profile": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/robots.txt": [
+		"src/routes/robots.txt/+server.ts"
+	],
+	"/sitemap.xml": [
+		"src/routes/sitemap.xml/+server.ts"
+	],
+	"/(app)/studio/videos": [
 		"src/routes/(app)/+layout.js",
 		"src/routes/+layout.js"
 	],
@@ -40,6 +54,48 @@
 		"src/routes/+layout.js"
 	],
 	"/(app)/watch": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/אזור-אישי": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/אחד-על-אחד": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/התאמה": [
+		"src/routes/התאמה/+page.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/וידאו": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/חדר-לייב": [
+		"src/routes/(app)/חדר-לייב/+layout.js",
+		"src/routes/+layout.js",
+		"src/routes/(app)/חדר-לייב/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/לוח": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/סטודיו/וידאו": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/סטודיו/לייב": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/פרופיל": [
+		"src/routes/(app)/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/(app)/צפייה": [
 		"src/routes/(app)/+layout.js",
 		"src/routes/+layout.js"
 	]

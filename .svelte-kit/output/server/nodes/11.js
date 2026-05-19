@@ -1,10 +1,8 @@
-import * as universal from '../entries/pages/callback/_page.js';
+
 
 export const index = 11;
 let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/callback/_page.svelte.js')).default;
-export { universal };
-export const universal_id = "src/routes/callback/+page.js";
-export const imports = ["_app/immutable/nodes/11.DGMyv3H7.js","_app/immutable/chunks/IR7L6Deb.js","_app/immutable/chunks/OFq3flSA.js","_app/immutable/chunks/CP97kCR3.js"];
-export const stylesheets = ["_app/immutable/assets/11.Ctdrq6j4.css"];
+export const component = async () => component_cache ??= (await import('../entries/pages/(app)/studio/videos/_page.svelte.js')).default;
+export const imports = ["_app/immutable/nodes/11.DuEu0e8y.js","_app/immutable/chunks/Co9uX_hQ.js","_app/immutable/chunks/CCi4sbZS.js","_app/immutable/chunks/CGGEpbdl.js","_app/immutable/chunks/Qm08L-pF.js","_app/immutable/chunks/BKu15lNO.js","_app/immutable/chunks/BSuc4Zc4.js","_app/immutable/chunks/BkIXOTwn.js","_app/immutable/chunks/MPUMm7ks.js","_app/immutable/chunks/CCgQUC7U.js","_app/immutable/chunks/ebOOqPET.js"];
+export const stylesheets = ["_app/immutable/assets/EquipmentPicker.CFRlzLKO.css","_app/immutable/assets/Notice.cHHkOXRm.css","_app/immutable/assets/PageShell.jAlgFMIq.css","_app/immutable/assets/InstructorVideoManager.fm7DSRFa.css"];
 export const fonts = [];

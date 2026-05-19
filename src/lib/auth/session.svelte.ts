@@ -1,8 +1,9 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
 import { PersistedState } from "runed";
-import { api } from "../../../convex/_generated/api";
-import { convex } from "../convex/client";
+import { api } from "$convex/_generated/api";
+import { convex } from "$lib/convex/client";
+import { routePath } from "$lib/i18n/context";
 
 type Tokens = {
   token: string;
@@ -256,12 +257,12 @@ async function redirectAfterAuth() {
     const dashboard = await authQuery(api.users.dashboard, {});
     if (dashboard?.role) setCachedRole(dashboard.role);
     if (dashboard?.needsOnboarding) {
-      window.location.assign("/onboarding");
+      window.location.assign(routePath("onboarding"));
     } else {
-      window.location.assign("/dashboard");
+      window.location.assign(routePath("dashboard"));
     }
   } catch {
-    window.location.assign("/dashboard");
+    window.location.assign(routePath("dashboard"));
   }
 }
 

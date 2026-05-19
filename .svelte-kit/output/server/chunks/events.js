@@ -1,4 +1,4 @@
-import { A as queue_micro_task, Z as define_property, f as active_effect, g as set_active_reaction, h as set_active_effect, p as active_reaction, v as without_reactive_context } from "./dev.js";
+import { A as queue_micro_task, Q as define_property, f as active_effect, g as set_active_reaction, h as set_active_effect, p as active_reaction, v as without_reactive_context } from "./dev.js";
 //#region node_modules/svelte/src/internal/client/dom/elements/events.js
 /**
 * Used on elements, as a map of event type -> event handler,

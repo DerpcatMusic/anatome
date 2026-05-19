@@ -1,0 +1,36 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /calendar
+Disallow: /one-on-one
+Disallow: /videos
+Disallow: /live
+Disallow: /live-room
+Disallow: /profile
+Disallow: /watch
+Disallow: /onboarding
+Disallow: /callback
+Disallow: /_app
+Disallow: /200.html
+Disallow: /*?*
+Allow: /$
+Allow: /sitemap.xml
+Allow: /robots.txt
+
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard
+Disallow: /calendar
+Disallow: /one-on-one
+Disallow: /videos
+Disallow: /live
+Disallow: /live-room
+Disallow: /profile
+Disallow: /watch
+Disallow: /onboarding
+Disallow: /callback
+Disallow: /_app
+Disallow: /200.html
+
+Sitemap: https://homebody.fitness/sitemap.xml
+
+Crawl-delay: 1

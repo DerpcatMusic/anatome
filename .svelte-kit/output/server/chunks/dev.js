@@ -715,6 +715,77 @@ function safe_equals(value) {
 	return !safe_not_equal(value, this.v);
 }
 //#endregion
+//#region node_modules/svelte/src/internal/shared/clone.js
+/** @import { Snapshot } from './types' */
+/**
+* In dev, we keep track of which properties could not be cloned. In prod
+* we don't bother, but we keep a dummy array around so that the
+* signature stays the same
+* @type {string[]}
+*/
+var empty = [];
+/**
+* @template T
+* @param {T} value
+* @param {boolean} [skip_warning]
+* @param {boolean} [no_tojson]
+* @returns {Snapshot<T>}
+*/
+function snapshot(value, skip_warning = false, no_tojson = false) {
+	return clone(value, /* @__PURE__ */ new Map(), "", empty, null, no_tojson);
+}
+/**
+* @template T
+* @param {T} value
+* @param {Map<T, Snapshot<T>>} cloned
+* @param {string} path
+* @param {string[]} paths
+* @param {null | T} [original] The original value, if `value` was produced from a `toJSON` call
+* @param {boolean} [no_tojson]
+* @returns {Snapshot<T>}
+*/
+function clone(value, cloned, path, paths, original = null, no_tojson = false) {
+	if (typeof value === "object" && value !== null) {
+		var unwrapped = cloned.get(value);
+		if (unwrapped !== void 0) return unwrapped;
+		if (value instanceof Map) return new Map(value);
+		if (value instanceof Set) return new Set(value);
+		if (is_array(value)) {
+			var copy = Array(value.length);
+			cloned.set(value, copy);
+			if (original !== null) cloned.set(original, copy);
+			for (var i = 0; i < value.length; i += 1) {
+				var element = value[i];
+				if (i in value) copy[i] = clone(element, cloned, path, paths, null, no_tojson);
+			}
+			return copy;
+		}
+		if (get_prototype_of(value) === object_prototype) {
+			/** @type {Snapshot<any>} */
+			copy = {};
+			cloned.set(value, copy);
+			if (original !== null) cloned.set(original, copy);
+			for (var key of Object.keys(value)) copy[key] = clone(value[key], cloned, path, paths, null, no_tojson);
+			return copy;
+		}
+		if (value instanceof Date) return structuredClone(value);
+		if (typeof value.toJSON === "function" && !no_tojson) return clone(
+			/** @type {T & { toJSON(): any } } */
+			value.toJSON(),
+			cloned,
+			path,
+			paths,
+			value
+		);
+	}
+	if (value instanceof EventTarget) return value;
+	try {
+		return structuredClone(value);
+	} catch (e) {
+		return value;
+	}
+}
+//#endregion
 //#region node_modules/svelte/src/internal/client/context.js
 /** @import { ComponentContext, DevStackEntry, Effect } from '#client' */
 /** @type {ComponentContext | null} */
@@ -4120,4 +4191,4 @@ function get_user_code_location() {
 	return get_stack().filter((line) => line.trim().startsWith("at ")).map((line) => line.replace(/\((.*):\d+:\d+\)$/, (_, file) => `(${file})`)).join("\n");
 }
 //#endregion
-export { run as $, queue_micro_task as A, state_proxy_unmount as B, init_operations as C, flushSync as D, boundary as E, hydrating as F, get_render_context as G, attr as H, set_hydrate_node as I, LEGACY_PROPS as J, async_mode_flag as K, set_hydrating as L, pop as M, push as N, readable as O, hydrate_node as P, noop as Q, hydration_mismatch as R, get_next_sibling as S, set as T, escape_html as U, hydration_failed as V, HYDRATION_ERROR as W, array_from as X, STATE_SYMBOL as Y, define_property as Z, component_root as _, derived as a, ssr_context as at, create_text as b, render as c, lifecycle_function_unavailable as ct, is_passive_event as d, createContext as et, active_effect as f, set_active_reaction as g, set_active_effect as h, bind_props as i, setContext as it, component_context as j, writable as k, stringify as l, experimental_async_required as lt, get as m, attr_class as n, getContext as nt, ensure_array_like as o, hydratable_clobbering as ot, active_reaction as p, getAbortSignal as q, attr_style as r, hasContext as rt, head as s, hydratable_serialization_failed as st, get_user_code_location as t, getAllContexts as tt, html as u, without_reactive_context as v, mutable_source as w, get_first_child as x, clear_text_content as y, lifecycle_double_unmount as z };
+export { noop as $, queue_micro_task as A, lifecycle_double_unmount as B, init_operations as C, flushSync as D, boundary as E, hydrate_node as F, HYDRATION_ERROR as G, hydration_failed as H, hydrating as I, getAbortSignal as J, get_render_context as K, set_hydrate_node as L, pop as M, push as N, readable as O, snapshot as P, define_property as Q, set_hydrating as R, get_next_sibling as S, set as T, attr as U, state_proxy_unmount as V, escape_html as W, STATE_SYMBOL as X, LEGACY_PROPS as Y, array_from as Z, component_root as _, derived as a, setContext as at, create_text as b, render as c, hydratable_serialization_failed as ct, is_passive_event as d, run as et, active_effect as f, set_active_reaction as g, set_active_effect as h, bind_props as i, hasContext as it, component_context as j, writable as k, stringify as l, lifecycle_function_unavailable as lt, get as m, attr_class as n, getAllContexts as nt, ensure_array_like as o, ssr_context as ot, active_reaction as p, async_mode_flag as q, attr_style as r, getContext as rt, head as s, hydratable_clobbering as st, get_user_code_location as t, createContext as tt, html as u, experimental_async_required as ut, without_reactive_context as v, mutable_source as w, get_first_child as x, clear_text_content as y, hydration_mismatch as z };

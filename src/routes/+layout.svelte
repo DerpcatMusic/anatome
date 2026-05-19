@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../styles/global.css';
 	import { PUBLIC_CONVEX_CLIENT_URL } from '$env/static/public';
 	import { setupConvex, useConvexClient } from 'convex-svelte';
 	import { getAccessToken } from '$lib/auth/session.svelte';

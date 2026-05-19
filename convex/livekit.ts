@@ -1,6 +1,6 @@
 "use node";
 
-import { AccessToken, TrackSource, type VideoGrant } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient, TrackSource, type VideoGrant } from "livekit-server-sdk";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
@@ -27,6 +27,31 @@ function requireLiveKitEnv() {
   return { apiKey, apiSecret, wsUrl };
 }
 
+function httpUrlForLiveKit(wsUrl: string) {
+  return wsUrl.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
+}
+
+async function ensureLiveKitRoom(
+  apiKey: string,
+  apiSecret: string,
+  wsUrl: string,
+  roomName: string,
+  metadata: Record<string, unknown>,
+  maxParticipants: number,
+) {
+  const roomClient = new RoomServiceClient(httpUrlForLiveKit(wsUrl), apiKey, apiSecret);
+  const existing = await roomClient.listRooms([roomName]);
+  if (existing.length > 0) return;
+
+  await roomClient.createRoom({
+    name: roomName,
+    emptyTimeout: 60,
+    departureTimeout: 20,
+    maxParticipants,
+    metadata: JSON.stringify(metadata),
+  });
+}
+
 export const issueJoinToken = action({
   args: {
     liveClassId: v.id("liveClasses"),
@@ -38,17 +63,42 @@ export const issueJoinToken = action({
     wsUrl: string;
     token: string;
     roomName: string;
-    participantRole: "instructor" | "customer";
+    participantRole: "instructor" | "customer" | "admin";
+    joinClosesAt: number;
   }> => {
     const { apiKey, apiSecret, wsUrl } = requireLiveKitEnv();
     const join: {
       userId: Id<"users">;
       displayName: string;
       roomName: string;
-      participantRole: "instructor" | "customer";
+      participantRole: "instructor" | "customer" | "admin";
+      liveClassId: Id<"liveClasses">;
+      liveClassType: "group_live" | "one_on_one";
+      startsAt: number;
+      endsAt: number;
+      joinClosesAt: number;
+      capacity: number;
     } = await ctx.runMutation(internal.liveClasses.prepareJoin, {
       liveClassId: args.liveClassId,
     });
+    const isInstructor = join.participantRole === "instructor" || join.participantRole === "admin";
+
+    await ensureLiveKitRoom(
+      apiKey,
+      apiSecret,
+      wsUrl,
+      join.roomName,
+      {
+        liveClassId: join.liveClassId,
+        type: join.liveClassType,
+        startsAt: join.startsAt,
+        endsAt: join.endsAt,
+        joinClosesAt: join.joinClosesAt,
+        layout: join.liveClassType === "one_on_one" ? "one_on_one" : "instructor_spotlight",
+        instructorPriority: true,
+      },
+      Math.max(2, join.capacity + 1),
+    );
 
     const identity: string = `${join.participantRole}_${join.userId}`;
     const token = new AccessToken(apiKey, apiSecret, {
@@ -58,7 +108,7 @@ export const issueJoinToken = action({
     });
 
     const grant: VideoGrant =
-      join.participantRole === "instructor"
+      isInstructor
         ? {
             room: join.roomName,
             roomJoin: true,
@@ -89,6 +139,7 @@ export const issueJoinToken = action({
       token: await token.toJwt(),
       roomName: join.roomName,
       participantRole: join.participantRole,
+      joinClosesAt: join.joinClosesAt,
     };
   },
 });

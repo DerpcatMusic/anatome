@@ -29,7 +29,7 @@ declare module "$app/types" {
 	type MatcherParam<M> = M extends (param : string) => param is (infer U extends string) ? U : string;
 
 	export interface AppTypes {
-		RouteId(): "/(app)" | "/" | "/(app)/calendar" | "/callback" | "/(app)/dashboard" | "/(app)/live-room" | "/(app)/live" | "/onboarding" | "/(app)/profile" | "/(app)/videos" | "/(app)/watch";
+		RouteId(): "/(app)" | "/" | "/(app)/calendar" | "/callback" | "/(app)/dashboard" | "/(app)/live-room" | "/(app)/live" | "/onboarding" | "/(app)/one-on-one" | "/(app)/profile" | "/robots.txt" | "/sitemap.xml" | "/(app)/studio" | "/(app)/studio/live" | "/(app)/studio/videos" | "/(app)/videos" | "/(app)/watch" | "/(app)/אזור-אישי" | "/(app)/אחד-על-אחד" | "/התאמה" | "/(app)/וידאו" | "/(app)/חדר-לייב" | "/(app)/לוח" | "/(app)/סטודיו" | "/(app)/סטודיו/וידאו" | "/(app)/סטודיו/לייב" | "/(app)/פרופיל" | "/(app)/צפייה";
 		RouteParams(): {
 			
 		};
@@ -42,11 +42,28 @@ declare module "$app/types" {
 			"/(app)/live-room": Record<string, never>;
 			"/(app)/live": Record<string, never>;
 			"/onboarding": Record<string, never>;
+			"/(app)/one-on-one": Record<string, never>;
 			"/(app)/profile": Record<string, never>;
+			"/robots.txt": Record<string, never>;
+			"/sitemap.xml": Record<string, never>;
+			"/(app)/studio": Record<string, never>;
+			"/(app)/studio/live": Record<string, never>;
+			"/(app)/studio/videos": Record<string, never>;
 			"/(app)/videos": Record<string, never>;
-			"/(app)/watch": Record<string, never>
+			"/(app)/watch": Record<string, never>;
+			"/(app)/אזור-אישי": Record<string, never>;
+			"/(app)/אחד-על-אחד": Record<string, never>;
+			"/התאמה": Record<string, never>;
+			"/(app)/וידאו": Record<string, never>;
+			"/(app)/חדר-לייב": Record<string, never>;
+			"/(app)/לוח": Record<string, never>;
+			"/(app)/סטודיו": Record<string, never>;
+			"/(app)/סטודיו/וידאו": Record<string, never>;
+			"/(app)/סטודיו/לייב": Record<string, never>;
+			"/(app)/פרופיל": Record<string, never>;
+			"/(app)/צפייה": Record<string, never>
 		};
-		Pathname(): "/" | "/calendar" | "/callback" | "/dashboard" | "/live-room" | "/live" | "/onboarding" | "/profile" | "/videos" | "/watch";
+		Pathname(): "/" | "/calendar" | "/callback" | "/dashboard" | "/live-room" | "/live" | "/onboarding" | "/one-on-one" | "/profile" | "/robots.txt" | "/sitemap.xml" | "/studio/videos" | "/videos" | "/watch" | "/אזור-אישי" | "/אחד-על-אחד" | "/התאמה" | "/וידאו" | "/חדר-לייב" | "/לוח" | "/סטודיו/וידאו" | "/סטודיו/לייב" | "/פרופיל" | "/צפייה";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): "/_redirects" | "/favicon.ico" | "/favicon.svg" | string & {};
 	}

@@ -1,0 +1,196 @@
+<script lang="ts">
+  import {
+    experienceLabelMap as experienceLabels,
+    equipmentLabelMap as equipmentLabels,
+    goalLabelMap as goalLabels,
+    fmtList,
+  } from "$lib/labels";
+  import { useI18n } from "$lib/i18n/runes.svelte";
+  import { routePath } from "$lib/i18n/context";
+
+  type StaffProfile = {
+    displayName?: string | null;
+    credentials?: string | null;
+    certificateDocument?: string | null;
+    insuranceDocument?: string | null;
+  };
+
+  type CustomerProfile = {
+    experience: string;
+    equipment: string[];
+    goals: string[];
+    notes?: string | null;
+  };
+
+  let {
+    isStaff,
+    appProfile,
+    profile,
+  }: {
+    isStaff: boolean;
+    appProfile?: StaffProfile | null;
+    profile?: CustomerProfile | null;
+  } = $props();
+
+  const { t } = useI18n();
+</script>
+
+{#if isStaff && appProfile}
+  <div class="profile-summary">
+    <div class="profile-summary__header">
+      <p class="profile-summary__kicker">{t.dashboard.staffProfile.title()}</p>
+      <a href={routePath("profile")} class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+    </div>
+    <div class="profile-summary__grid">
+      <div class="profile-summary__cell">
+        <span class="profile-summary__label">{t.dashboard.staffProfile.name()}</span>
+        <span class="profile-summary__value">{appProfile.displayName || "—"}</span>
+      </div>
+      {#if appProfile.credentials}
+        <div class="profile-summary__cell profile-summary__cell--wide">
+          <span class="profile-summary__label">{t.dashboard.staffProfile.credentials()}</span>
+          <span class="profile-summary__value">{appProfile.credentials}</span>
+        </div>
+      {/if}
+    </div>
+
+    <div class="compliance-bar">
+      <div class="compliance-item" class:compliance--ok={appProfile.certificateDocument}>
+        <span class="compliance-dot">{appProfile.certificateDocument ? "●" : "○"}</span>
+        <span>{t.dashboard.staffProfile.certificate()}</span>
+      </div>
+      <div class="compliance-item" class:compliance--ok={appProfile.insuranceDocument}>
+        <span class="compliance-dot">{appProfile.insuranceDocument ? "●" : "○"}</span>
+        <span>{t.dashboard.staffProfile.insurance()}</span>
+      </div>
+    </div>
+  </div>
+{:else if !isStaff && profile}
+  <div class="profile-summary">
+    <div class="profile-summary__header">
+      <p class="profile-summary__kicker">{t.dashboard.customerProfile.title()}</p>
+      <a href={routePath("profile")} class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+    </div>
+
+    <div class="profile-summary__grid">
+      <div class="profile-summary__cell">
+        <span class="profile-summary__label">{t.dashboard.profile.experience()}</span>
+        <span class="profile-summary__value">{experienceLabels[profile.experience] ?? profile.experience}</span>
+      </div>
+      <div class="profile-summary__cell">
+        <span class="profile-summary__label">{t.dashboard.profile.equipment()}</span>
+        <span class="profile-summary__value">{fmtList(profile.equipment, equipmentLabels)}</span>
+      </div>
+      <div class="profile-summary__cell">
+        <span class="profile-summary__label">{t.dashboard.profile.goals()}</span>
+        <span class="profile-summary__value">{fmtList(profile.goals, goalLabels)}</span>
+      </div>
+      {#if profile.notes && profile.notes.trim().length > 0}
+        <div class="profile-summary__cell profile-summary__cell--wide">
+          <span class="profile-summary__label">{t.dashboard.profile.notes()}</span>
+          <span class="profile-summary__value">{profile.notes}</span>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+<style>
+  .profile-summary {
+    border: var(--border);
+    padding: var(--space-6);
+    background: var(--white);
+  }
+
+  .profile-summary__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border);
+  }
+
+  .profile-summary__kicker {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .profile-summary__edit {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--sky-strong);
+    text-decoration: none;
+    transition: color var(--duration-fast);
+  }
+
+  .profile-summary__edit:hover { color: var(--ink); }
+
+  .profile-summary__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+
+  .profile-summary__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .profile-summary__cell--wide { grid-column: 1 / -1; }
+
+  .profile-summary__label {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+
+  .profile-summary__value {
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .compliance-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: var(--border);
+  }
+
+  .compliance-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .compliance-dot {
+    font-size: var(--step-0);
+    line-height: 1;
+    color: var(--line-light);
+  }
+
+  .compliance--ok .compliance-dot {
+    color: #188038;
+  }
+
+  .compliance--ok {
+    color: var(--ink);
+  }
+
+  @media (max-width: 820px) {
+    .profile-summary__grid { grid-template-columns: 1fr; }
+  }
+</style>

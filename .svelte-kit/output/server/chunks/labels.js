@@ -34,6 +34,9 @@ function experienceLabel(id) {
 function goalLabel(id) {
 	return goalLabelMap[id] ?? id;
 }
+function fmtList(arr, labels) {
+	return arr.map((v) => labels[v] ?? v).filter(Boolean).join(", ") || "—";
+}
 function classTypeLabel(type) {
 	return type === "one_on_one" ? "1:1 אישי" : "לייב קבוצתי";
 }
@@ -44,4 +47,4 @@ function durationLabel(seconds) {
 	return `${Math.round(seconds / 60)} דקות`;
 }
 //#endregion
-export { equipmentLabelMap as a, experienceLabelMap as c, goalLabelMap as d, goalOptions as f, equipmentLabel as i, experienceOptions as l, creditLabel as n, equipmentOptions as o, durationLabel as r, experienceLabel as s, classTypeLabel as t, goalLabel as u };
+export { equipmentLabelMap as a, experienceLabelMap as c, goalLabel as d, goalLabelMap as f, equipmentLabel as i, experienceOptions as l, creditLabel as n, equipmentOptions as o, goalOptions as p, durationLabel as r, experienceLabel as s, classTypeLabel as t, fmtList as u };

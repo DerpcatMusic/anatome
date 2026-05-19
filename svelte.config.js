@@ -10,10 +10,12 @@ const config = {
 			precompress: false
 		}),
 		prerender: {
-			entries: ['/']
+			entries: ['/', '/sitemap.xml', '/robots.txt']
 		},
 		alias: {
-			$components: 'src/components'
+			$components: 'src/lib/components',
+			$features: 'src/lib/features',
+			$convex: 'convex',
 		}
 	}
 };

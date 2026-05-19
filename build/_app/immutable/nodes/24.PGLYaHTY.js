@@ -1,0 +1,1 @@
+import{D as e,dt as t,k as n,mt as r,q as i}from"../chunks/Co9uX_hQ.js";import"../chunks/CCi4sbZS.js";import"../chunks/CGGEpbdl.js";import{t as a}from"../chunks/DEDNSdYc.js";var o=r({prerender:()=>!1}),s=n(`<main class="app-page"><!></main>`);function c(n){var r=s();a(i(r),{}),t(r),e(n,r)}export{c as component,o as universal};
