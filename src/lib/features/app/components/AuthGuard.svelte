@@ -16,7 +16,7 @@
   const auth = initAuth();
 
   // Fetch the real profile from the backend instead of trusting localStorage
-  const profileQuery = useQuery(api.appProfiles.viewer, () =>
+  const profileQuery = useQuery(api.profiles.viewer.get, () =>
     auth.isAuthenticated ? {} : "skip"
   );
 

@@ -84,7 +84,7 @@
     editError = "";
     submitting = true;
     try {
-      await client.mutation(api.instructorLive.rescheduleLiveClass, {
+      await client.mutation(api.live.class.reschedule, {
         liveClassId: activeEditClass._id,
         startsAt: data.startsAt,
         durationMinutes: data.durationMinutes,
@@ -109,7 +109,7 @@
     editError = "";
     submitting = true;
     try {
-      await client.mutation(api.instructorLive.cancelLiveClass, {
+      await client.mutation(api.live.class.cancel, {
         liveClassId: activeEditClass._id,
       });
       activeEditClass = null;
@@ -127,7 +127,7 @@
 
     const durationMinutes = Math.round((newEndsAt - newStartsAt) / (1000 * 60));
     try {
-      await client.mutation(api.instructorLive.rescheduleLiveClass, {
+      await client.mutation(api.live.class.reschedule, {
         liveClassId,
         startsAt: newStartsAt,
         durationMinutes,

@@ -1,7 +1,6 @@
 import "../../chunks/index-server.js";
 import { a as bind_props, c as ensure_array_like, et as attr, g as html, l as head, nt as escape_html, o as derived } from "../../chunks/dev.js";
 import { t as SITE } from "../../chunks/config.js";
-import { n as routePath } from "../../chunks/context.js";
 import { a as signOut, f as useConvexClient, r as initAuth, s as api } from "../../chunks/session.svelte.js";
 import { p as Portal } from "../../chunks/scroll-lock.js";
 import { n as Dialog, r as Dialog_overlay, t as Dialog_content } from "../../chunks/dialog-content.js";
@@ -553,7 +552,7 @@ function LoggedInState($$renderer, $$props) {
 		$$renderer.push(`<div class="auth-state svelte-1si2n1d"><div class="auth-state__text svelte-1si2n1d"><p class="kicker svelte-1si2n1d">${escape_html(t.auth.loggedIn.kicker())}</p> <h2 class="svelte-1si2n1d">${escape_html(t.auth.loggedIn.title())}</h2> <p class="intro svelte-1si2n1d">${escape_html(t.auth.loggedIn.subtitle())}</p></div> `);
 		Button_1($$renderer, {
 			tone: "ink",
-			href: routePath("dashboard"),
+			href: "/u/dashboard",
 			children: ($$renderer) => {
 				$$renderer.push(`<!---->${escape_html(t.auth.loggedIn.cta())}`);
 			},

@@ -37,10 +37,15 @@ export const get = query({
       .order("desc")
       .take(50);
 
-    for (const reservation of reservations) {
+    const liveClasses = await Promise.all(
+      reservations.map((r) => ctx.db.get(r.liveClassId)),
+    );
+
+    for (let i = 0; i < reservations.length; i++) {
+      const reservation = reservations[i];
       if (reservation.status !== "reserved" && reservation.status !== "joined")
         continue;
-      const liveClass = await ctx.db.get(reservation.liveClassId);
+      const liveClass = liveClasses[i];
       if (liveClass === null) continue;
       if (liveClass.status === "ended" || liveClass.status === "cancelled")
         continue;

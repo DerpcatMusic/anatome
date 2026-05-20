@@ -15,7 +15,7 @@ export const getViewerPlaybackToken = action({
   handler: async (ctx, args): Promise<SignedPlayback> => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Authentication required");
-    const result: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.getAuthorizedPlaybackVideo, {
+    const result: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.playback.getAuthorizedVideo, {
       userId,
       videoId: args.videoId,
     });

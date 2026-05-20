@@ -1,5 +1,4 @@
 import "../../chunks/dev.js";
-import { n as routePath } from "../../chunks/context.js";
 import { a as signOut, d as setupConvex, f as useConvexClient, m as PUBLIC_CONVEX_CLIENT_URL, r as initAuth } from "../../chunks/session.svelte.js";
 import { t as Button_1 } from "../../chunks/Button.js";
 //#region src/lib/components/layout/Navbar.svelte
@@ -18,7 +17,7 @@ function Navbar($$renderer, $$props) {
 			Button_1($$renderer, {
 				tone: "sky",
 				size: "sm",
-				onclick: () => window.location.assign(routePath("dashboard")),
+				onclick: () => window.location.assign("/u/dashboard"),
 				children: ($$renderer) => {
 					$$renderer.push(`<!---->אזור אישי`);
 				},

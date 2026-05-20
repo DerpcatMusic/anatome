@@ -1,9 +1,8 @@
-import { r as onDestroy } from "./index-server.js";
+import "./index-server.js";
 import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id } from "./dev.js";
 import "./events.js";
-import { n as routePath } from "./context.js";
 import { f as useConvexClient, n as getCachedRole, r as initAuth, s as api } from "./session.svelte.js";
-import { B as getDataChecked, F as boolToStr, H as getDataTransitionAttrs, J as Context, K as watch, L as boolToTrueOrUndef, P as boolToEmptyStrOrUndef, Q as mergeProps, R as createBitsAttrs, Y as attachRef, at as simpleBox, c as createId, f as isElement, it as boxWith, l as noop$1, m as isFocusVisible, z as getAriaChecked } from "./arrays.js";
+import { G as watch, I as boolToTrueOrUndef, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, P as boolToStr, R as getAriaChecked, V as getDataTransitionAttrs, Z as mergeProps, at as boxWith, c as createId, d as isElement, l as noop, lt as simpleBox, p as isFocusVisible, q as Context, z as getDataChecked } from "./arrays.js";
 import { m as PresenceManager, p as Portal } from "./scroll-lock.js";
 import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
 import { i as DOMContext } from "./use-id.js";
@@ -80,7 +79,7 @@ function Meter($$renderer, $$props) {
 //#region node_modules/bits-ui/dist/bits/popover/components/popover.svelte
 function Popover($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { open = false, onOpenChange = noop$1, onOpenChangeComplete = noop$1, children } = $$props;
+		let { open = false, onOpenChange = noop, onOpenChangeComplete = noop, children } = $$props;
 		PopoverRootState.create({
 			open: boxWith(() => open, (v) => {
 				open = v;
@@ -245,7 +244,7 @@ function Switch_input($$renderer, $$props) {
 function Switch($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const uid = props_id($$renderer);
-		let { child, children, ref = null, id = createId(uid), disabled = false, required = false, checked = false, value = "on", name = void 0, type = "button", onCheckedChange = noop$1, $$slots, $$events, ...restProps } = $$props;
+		let { child, children, ref = null, id = createId(uid), disabled = false, required = false, checked = false, value = "on", name = void 0, type = "button", onCheckedChange = noop, $$slots, $$events, ...restProps } = $$props;
 		const rootState = SwitchRootState.create({
 			checked: boxWith(() => checked, (v) => {
 				checked = v;
@@ -899,7 +898,7 @@ var TooltipContentState = class TooltipContentState {
 //#region node_modules/bits-ui/dist/bits/tooltip/components/tooltip.svelte
 function Tooltip($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { open = false, triggerId = null, onOpenChange = noop$1, onOpenChangeComplete = noop$1, disabled, delayDuration, disableCloseOnTriggerClick, disableHoverableContent, ignoreNonKeyboardFocus, tether, children } = $$props;
+		let { open = false, triggerId = null, onOpenChange = noop, onOpenChangeComplete = noop, disabled, delayDuration, disableCloseOnTriggerClick, disableHoverableContent, ignoreNonKeyboardFocus, tether, children } = $$props;
 		const rootState = TooltipRootState.create({
 			open: boxWith(() => open, (v) => {
 				open = v;
@@ -939,7 +938,7 @@ function Tooltip($$renderer, $$props) {
 function Tooltip_content($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const uid = props_id($$renderer);
-		let { children, child, id = createId(uid), ref = null, side = "top", sideOffset = 0, align = "center", avoidCollisions = true, arrowPadding = 0, sticky = "partial", strategy, hideWhenDetached = false, customAnchor, collisionPadding = 0, onInteractOutside = noop$1, onEscapeKeydown = noop$1, forceMount = false, style, $$slots, $$events, ...restProps } = $$props;
+		let { children, child, id = createId(uid), ref = null, side = "top", sideOffset = 0, align = "center", avoidCollisions = true, arrowPadding = 0, sticky = "partial", strategy, hideWhenDetached = false, customAnchor, collisionPadding = 0, onInteractOutside = noop, onEscapeKeydown = noop, forceMount = false, style, $$slots, $$events, ...restProps } = $$props;
 		const contentState = TooltipContentState.create({
 			id: boxWith(() => id),
 			ref: boxWith(() => ref, (v) => ref = v),
@@ -1121,8 +1120,8 @@ var LiveRoom = class {
 	};
 	trackStats = [];
 	activeSpeakerIdentity = null;
-	showParticipants = true;
-	showChat = true;
+	showParticipants = false;
+	showChat = false;
 	showQualityPanel = false;
 	statsTimer = null;
 	participantDebounceTimer = null;
@@ -1524,7 +1523,6 @@ var LiveRoom = class {
 	}
 	startStatsTimer() {
 		if (this.statsTimer !== null) return;
-		this.refreshStreamStats();
 		this.statsTimer = window.setInterval(() => {
 			if (this.showQualityPanel) this.refreshStreamStats();
 		}, 5e3);
@@ -1802,13 +1800,25 @@ var LiveRoom = class {
 		this.status = "checking";
 		this.error = "";
 		try {
-			await this.client.mutation(api.instructorLive.startLive, { liveClassId });
+			await this.client.mutation(api.live.class.start, { liveClassId });
 			await this.loadToken();
 			if (this.status === "ready") await this.enterRoom(publishAvailableDevices);
 		} catch (reason) {
 			console.error("[LiveKit] Start live failed:", reason);
 			this.error = reason instanceof Error ? reason.message : i18n.t.live.room.startLiveError();
 			this.status = "error";
+		}
+	}
+	async endLive() {
+		const liveClassId = this.getClassId();
+		if (liveClassId === null) return;
+		try {
+			await this.client.mutation(api.live.class.end, { liveClassId });
+			this.destroy();
+			window.location.assign("/i/live");
+		} catch (reason) {
+			console.error("[LiveKit] End live failed:", reason);
+			this.mediaError = reason instanceof Error ? reason.message : i18n.t.live.room.endLiveError();
 		}
 	}
 	async loadToken() {
@@ -1825,7 +1835,7 @@ var LiveRoom = class {
 		this.error = "";
 		this.mediaError = "";
 		try {
-			const joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+			const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
 			this.joinInfo = joinInfo;
 			this.startExpiryTimer(joinInfo.joinClosesAt);
 			this.status = "ready";
@@ -2099,13 +2109,6 @@ function PreConnectSettings($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
-		const instructorResolutionOptions = [{
-			value: "1080p",
-			label: "1080p"
-		}, {
-			value: "720p",
-			label: "720p"
-		}];
 		const customerResolutionOptions = [{
 			value: "720p",
 			label: "720p"
@@ -2113,192 +2116,15 @@ function PreConnectSettings($$renderer, $$props) {
 			value: "360p",
 			label: "360p"
 		}];
-		const codecOptions = [
-			{
-				value: "h264",
-				label: "H.264"
-			},
-			{
-				value: "vp8",
-				label: "VP8"
-			},
-			{
-				value: "vp9",
-				label: "VP9"
-			},
-			{
-				value: "av1",
-				label: "AV1"
-			}
-		];
-		const bitrateOptions = [
-			{
-				value: 2.5,
-				label: "2.5 Mbps"
-			},
-			{
-				value: 4.5,
-				label: "4.5 Mbps"
-			},
-			{
-				value: 6,
-				label: "6 Mbps"
-			},
-			{
-				value: 8,
-				label: "8 Mbps"
-			}
-		];
-		const framerateOptions = [
-			{
-				value: 24,
-				label: "24 fps"
-			},
-			{
-				value: 30,
-				label: "30 fps"
-			},
-			{
-				value: 60,
-				label: "60 fps"
-			}
-		];
-		const audioOptions = [
-			{
-				value: "speech",
-				label: "דיבור"
-			},
-			{
-				value: "music",
-				label: "תנועה"
-			},
-			{
-				value: "musicStereo",
-				label: "סטריאו"
-			},
-			{
-				value: "musicHighQuality",
-				label: "Hi-Fi"
-			},
-			{
-				value: "musicHighQualityStereo",
-				label: "Hi-Fi סטריאו"
-			}
-		];
-		const priorityOptions = [
-			{
-				value: "maintain-framerate",
-				label: "תנועה חלקה"
-			},
-			{
-				value: "maintain-resolution",
-				label: "תמונה חדה"
-			},
-			{
-				value: "balanced",
-				label: "מאוזן"
-			}
-		];
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
 			$$renderer.push(`<section class="settings-panel svelte-arx5f7"${attr("aria-label", t.live.room.settingsTitle())}><div class="settings-panel__head svelte-arx5f7"><span class="svelte-arx5f7">${escape_html(t.live.room.settingsTitle())}</span> <strong class="svelte-arx5f7">${escape_html(room.isInstructorRoom ? t.live.preConnect.qualityTitle() : t.live.preConnect.devicesCheckTitle())}</strong></div> <div class="settings-panel__grid svelte-arx5f7">`);
 			if (room.isInstructorRoom) {
 				$$renderer.push("<!--[0-->");
-				Select_1($$renderer, {
-					label: t.live.preConnect.resolutionLabel(),
-					options: instructorResolutionOptions,
-					get value() {
-						return room.selectedResolution;
-					},
-					set value($$value) {
-						room.selectedResolution = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Select_1($$renderer, {
-					label: t.live.preConnect.codecLabel(),
-					options: codecOptions,
-					get value() {
-						return room.selectedCodec;
-					},
-					set value($$value) {
-						room.selectedCodec = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Select_1($$renderer, {
-					label: t.live.preConnect.bitrateLabel(),
-					options: bitrateOptions,
-					get value() {
-						return room.selectedBitrateMbps;
-					},
-					set value($$value) {
-						room.selectedBitrateMbps = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Select_1($$renderer, {
-					label: t.live.preConnect.framerateLabel(),
-					options: framerateOptions,
-					get value() {
-						return room.selectedFramerate;
-					},
-					set value($$value) {
-						room.selectedFramerate = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Select_1($$renderer, {
-					label: t.live.preConnect.audioLabel(),
-					options: audioOptions,
-					get value() {
-						return room.selectedAudioPreset;
-					},
-					set value($$value) {
-						room.selectedAudioPreset = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Select_1($$renderer, {
-					label: t.live.preConnect.priorityLabel(),
-					options: priorityOptions,
-					get value() {
-						return room.degradationPreference;
-					},
-					set value($$value) {
-						room.degradationPreference = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> <div class="settings-panel__toggles svelte-arx5f7">`);
-				Switch_1($$renderer, {
-					label: t.live.preConnect.simulcastLabel(),
-					get checked() {
-						return room.simulcastEnabled;
-					},
-					set checked($$value) {
-						room.simulcastEnabled = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> `);
-				Switch_1($$renderer, {
-					label: t.live.preConnect.stereoLabel(),
-					get checked() {
-						return room.forceStereo;
-					},
-					set checked($$value) {
-						room.forceStereo = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----></div>`);
+				$$renderer.push(`<div class="preset-row svelte-arx5f7"><button type="button"${attr_class("preset-btn svelte-arx5f7", void 0, { "preset-btn--active": room.selectedResolution === "720p" && room.selectedBitrateMbps === 4.5 })}><span class="preset-btn__title svelte-arx5f7">סטנדרטי</span> <span class="preset-btn__desc svelte-arx5f7">720p · 4.5 Mbps</span></button> <button type="button"${attr_class("preset-btn svelte-arx5f7", void 0, { "preset-btn--active": room.selectedResolution === "1080p" && room.selectedBitrateMbps === 6 })}><span class="preset-btn__title svelte-arx5f7">איכות גבוהה</span> <span class="preset-btn__desc svelte-arx5f7">1080p · 6 Mbps</span></button> <button type="button"${attr_class("preset-btn svelte-arx5f7", void 0, { "preset-btn--active": room.selectedCodec === "vp9" && room.selectedBitrateMbps === 2.5 })}><span class="preset-btn__title svelte-arx5f7">רוחב פס נמוך</span> <span class="preset-btn__desc svelte-arx5f7">720p · 2.5 Mbps</span></button></div> <button type="button" class="advanced-toggle svelte-arx5f7"><span class="material-symbols-rounded" aria-hidden="true">${escape_html("expand_more")}</span> <span>הגדרות מתקדמות</span></button> `);
+				$$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]-->`);
 			} else {
 				$$renderer.push("<!--[-1-->");
 				Select_1($$renderer, {
@@ -2451,7 +2277,7 @@ function PreConnectOverlay($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
-		const backHref = derived(() => room.isInstructorRoom ? routePath("studioLive") : routePath("customerCalendar"));
+		const backHref = derived(() => room.isInstructorRoom ? "/i/live" : "/u/calendar");
 		const isPrep = derived(() => room.status === "prep");
 		const isReady = derived(() => room.status === "ready" && room.joinInfo && room.connectionState === "idle");
 		const showSetup = derived(() => isPrep() || isReady());
@@ -2481,7 +2307,7 @@ function PreConnectOverlay($$renderer, $$props) {
 						PreConnectState($$renderer, {
 							title: t.live.preConnect.missingTitle(),
 							actionLabel: t.live.preConnect.missingCta(),
-							actionHref: routePath("customerCalendar")
+							actionHref: "/u/calendar"
 						});
 					} else if (room.status === "error") {
 						$$renderer.push("<!--[3-->");
@@ -2492,7 +2318,7 @@ function PreConnectOverlay($$renderer, $$props) {
 							actionLabel: t.live.preConnect.retry(),
 							onAction: () => room.loadToken(),
 							secondaryLabel: t.live.preConnect.backCalendar(),
-							secondaryHref: routePath("customerCalendar")
+							secondaryHref: "/u/calendar"
 						});
 					} else if (showSetup()) {
 						$$renderer.push("<!--[4-->");
@@ -2730,40 +2556,131 @@ function Tooltip_1($$renderer, $$props) {
 	}
 }
 //#endregion
+//#region src/lib/features/live/components/room/LeaveModal.svelte
+function LeaveModal($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { room, open = false } = $$props;
+		const backHref = derived(() => room.isInstructorRoom ? "/i/live" : "/u/calendar");
+		function onLeave() {
+			open = false;
+			room.destroy();
+			window.location.href = backHref();
+		}
+		async function onEndLive() {
+			open = false;
+			await room.endLive();
+		}
+		if (open) {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<div class="leave-modal-backdrop svelte-1hgbduj" role="dialog" aria-modal="true" aria-label="יציאה מהחדר"><div class="leave-modal svelte-1hgbduj"><h2 class="svelte-1hgbduj">${escape_html(room.isInstructorRoom ? "סיום שידור" : "יציאה מהחדר")}</h2> <p class="svelte-1hgbduj">${escape_html(room.isInstructorRoom ? "האם לסיים את השידור לכל המשתתפות?" : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח.")}</p> <div class="leave-modal__actions svelte-1hgbduj">`);
+			if (room.isInstructorRoom) {
+				$$renderer.push("<!--[0-->");
+				Button_1($$renderer, {
+					tone: "danger",
+					size: "md",
+					onclick: onEndLive,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->סיום שידור`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----> `);
+				Button_1($$renderer, {
+					tone: "paper",
+					size: "md",
+					onclick: onLeave,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->יציאה בלבד`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!---->`);
+			} else {
+				$$renderer.push("<!--[-1-->");
+				Button_1($$renderer, {
+					tone: "ink",
+					size: "md",
+					onclick: onLeave,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->יציאה מהחדר`);
+					},
+					$$slots: { default: true }
+				});
+			}
+			$$renderer.push(`<!--]--> `);
+			Button_1($$renderer, {
+				tone: "ghost",
+				size: "sm",
+				onclick: () => {
+					open = false;
+				},
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->ביטול`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div></div></div>`);
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { open });
+	});
+}
+//#endregion
 //#region src/lib/features/live/components/room/RoomHeader.svelte
 function RoomHeader($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
-		const backHref = derived(() => room.isInstructorRoom ? routePath("studioLive") : routePath("customerCalendar"));
-		$$renderer.push(`<header class="lr-header lr-glass"><div class="lr-header__group"><a${attr("href", backHref())} class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></a> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": room.connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(room.connectionLabel)}</span></div> `);
-		Tooltip_1($$renderer, {
-			label: t.live.room.participantsTitle(),
-			children: ($$renderer) => {
-				$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(room.participants.length)}</span></button>`);
-			},
-			$$slots: { default: true }
-		});
-		$$renderer.push(`<!----></div> <div class="lr-header__group">`);
-		if (room.isInstructorRoom) {
-			$$renderer.push("<!--[0-->");
+		let showLeaveModal = false;
+		derived(() => room.isInstructorRoom ? "/i/live" : "/u/calendar");
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			LeaveModal($$renderer, {
+				room,
+				get open() {
+					return showLeaveModal;
+				},
+				set open($$value) {
+					showLeaveModal = $$value;
+					$$settled = false;
+				}
+			});
+			$$renderer.push(`<!----> <header class="lr-header lr-glass"><div class="lr-header__group"><button type="button" class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></button> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": room.connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(room.connectionLabel)}</span></div> `);
 			Tooltip_1($$renderer, {
-				label: t.live.stats.title(),
+				label: t.live.room.participantsTitle(),
 				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="hb-button hb-button--icon"${attr("aria-label", t.live.stats.title())}><span class="material-symbols-rounded" aria-hidden="true">monitoring</span></button>`);
+					$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(room.participants.length)}</span></button>`);
 				},
 				$$slots: { default: true }
 			});
-		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--> `);
-		Tooltip_1($$renderer, {
-			label: t.live.room.leave(),
-			children: ($$renderer) => {
-				$$renderer.push(`<button type="button" class="hb-button hb-button--icon-danger"${attr("aria-label", t.live.room.leave())}><span class="material-symbols-rounded" aria-hidden="true">logout</span></button>`);
-			},
-			$$slots: { default: true }
-		});
-		$$renderer.push(`<!----></div></header>`);
+			$$renderer.push(`<!----></div> <div class="lr-header__group">`);
+			if (room.isInstructorRoom) {
+				$$renderer.push("<!--[0-->");
+				Tooltip_1($$renderer, {
+					label: t.live.stats.title(),
+					children: ($$renderer) => {
+						$$renderer.push(`<button type="button" class="hb-button hb-button--icon"${attr("aria-label", t.live.stats.title())}><span class="material-symbols-rounded" aria-hidden="true">monitoring</span></button>`);
+					},
+					$$slots: { default: true }
+				});
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> `);
+			Tooltip_1($$renderer, {
+				label: t.live.room.leave(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="hb-button hb-button--icon-danger"${attr("aria-label", t.live.room.leave())}><span class="material-symbols-rounded" aria-hidden="true">logout</span></button>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div></header>`);
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 	});
 }
 //#endregion
@@ -3238,47 +3155,80 @@ function QualityPanel($$renderer, $$props) {
 function LiveRoomShell($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const room = new LiveRoom(useConvexClient());
-		onDestroy(() => {
-			room.destroy();
-		});
 		if (room.auth.isLoading || room.status === "checking") {
 			$$renderer.push("<!--[0-->");
 			PreConnectOverlay($$renderer, { room });
-		} else if (room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error" || room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
+		} else if (room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error") {
 			$$renderer.push("<!--[1-->");
 			PreConnectOverlay($$renderer, { room });
-		} else if (room.connectionState !== "idle") {
+		} else if (room.connectionState === "disconnected") {
 			$$renderer.push("<!--[2-->");
-			Tooltip_provider($$renderer, {
-				delayDuration: 160,
+			$$renderer.push(`<div class="disconnect-overlay svelte-8bmq7k"><div class="disconnect-card svelte-8bmq7k"><span class="material-symbols-rounded svelte-8bmq7k" aria-hidden="true">wifi_off</span> <h2 class="svelte-8bmq7k">החיבור נותק</h2> <p class="svelte-8bmq7k">ניתן לנסות להתחבר שוב או לצאת מהחדר.</p> <div class="disconnect-actions svelte-8bmq7k">`);
+			Button_1($$renderer, {
+				tone: "ink",
+				size: "md",
+				onclick: () => room.reconnect(),
 				children: ($$renderer) => {
-					$$renderer.push(`<div class="lr-room">`);
-					RoomHeader($$renderer, { room });
-					$$renderer.push(`<!----> <div class="lr-room__body">`);
-					VideoStage($$renderer, { room });
-					$$renderer.push(`<!----> `);
-					ParticipantSidebar($$renderer, { room });
-					$$renderer.push(`<!----> `);
-					RoomChat($$renderer, { room });
-					$$renderer.push(`<!----></div> `);
-					if (room.mediaError) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<div class="lr-media-error" role="alert">${escape_html(room.mediaError)}</div>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> `);
-					ControlBar($$renderer, { room });
-					$$renderer.push(`<!----> `);
-					QualityPanel($$renderer, { room });
-					$$renderer.push(`<!----> <div class="lr-audio-sink" aria-hidden="true"><!--[-->`);
-					const each_array = ensure_array_like(room.audioTiles);
-					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-						each_array[$$index];
-						$$renderer.push(`<div></div>`);
-					}
-					$$renderer.push(`<!--]--></div></div>`);
+					$$renderer.push(`<!---->התחברות מחדש`);
 				},
 				$$slots: { default: true }
 			});
+			$$renderer.push(`<!----> `);
+			Button_1($$renderer, {
+				tone: "ghost",
+				size: "sm",
+				onclick: () => {
+					room.destroy();
+					window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
+				},
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->יציאה`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div></div></div>`);
+		} else if (room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
+			$$renderer.push("<!--[3-->");
+			PreConnectOverlay($$renderer, { room });
+		} else if (room.connectionState !== "idle") {
+			$$renderer.push("<!--[4-->");
+			if (Tooltip_provider) {
+				$$renderer.push("<!--[-->");
+				Tooltip_provider($$renderer, {
+					delayDuration: 160,
+					children: ($$renderer) => {
+						$$renderer.push(`<div class="lr-room">`);
+						RoomHeader($$renderer, { room });
+						$$renderer.push(`<!----> <div class="lr-room__body">`);
+						VideoStage($$renderer, { room });
+						$$renderer.push(`<!----> `);
+						ParticipantSidebar($$renderer, { room });
+						$$renderer.push(`<!----> `);
+						RoomChat($$renderer, { room });
+						$$renderer.push(`<!----></div> `);
+						if (room.mediaError) {
+							$$renderer.push("<!--[0-->");
+							$$renderer.push(`<div class="lr-media-error" role="alert">${escape_html(room.mediaError)}</div>`);
+						} else $$renderer.push("<!--[-1-->");
+						$$renderer.push(`<!--]--> `);
+						ControlBar($$renderer, { room });
+						$$renderer.push(`<!----> `);
+						QualityPanel($$renderer, { room });
+						$$renderer.push(`<!----> <div class="lr-audio-sink" aria-hidden="true"><!--[-->`);
+						const each_array = ensure_array_like(room.audioTiles);
+						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+							each_array[$$index];
+							$$renderer.push(`<div></div>`);
+						}
+						$$renderer.push(`<!--]--></div></div>`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});

@@ -13,7 +13,7 @@
   import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
 
-  type CalendarClass = FunctionReturnType<typeof api.customerLive.listCalendarRange>[number];
+  type CalendarClass = FunctionReturnType<typeof api.live.calendar.listRange>[number];
 
   const dayMs = 24 * 60 * 60 * 1000;
   const rangeStart = startOfToday();
@@ -25,7 +25,7 @@
   const auth = initAuth();
   const client = useConvexClient();
 
-  const query = useQuery(api.customerLive.listCalendarRange, () => auth.isAuthenticated ? {
+  const query = useQuery(api.live.calendar.listRange, () => auth.isAuthenticated ? {
     from: rangeStart,
     to: rangeStart + 14 * dayMs,
   } : "skip");
@@ -108,7 +108,7 @@
     actionId = liveClassId;
     actionError = "";
     try {
-      await client.mutation(api.customerLive.reserve, { liveClassId });
+      await client.mutation(api.live.reservation.reserve, { liveClassId });
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : t.calendar.error.reserve();
     } finally {
@@ -120,7 +120,7 @@
     actionId = liveClassId;
     actionError = "";
     try {
-      await client.mutation(api.customerLive.cancelReservation, { liveClassId });
+      await client.mutation(api.live.reservation.cancel, { liveClassId });
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : t.calendar.error.cancel();
     } finally {

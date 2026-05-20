@@ -1,1 +1,0 @@
-import{Pt as e,Rt as t,V as n,lt as r,z as i}from"../chunks/Cfx3GPPx.js";import"../chunks/CCi4sbZS.js";import"../chunks/BSh82o-3.js";import{t as a}from"../chunks/B764jvJB.js";var o=t({prerender:()=>!1}),s=n(`<main class="app-page"><!></main>`);function c(t){var n=s();a(r(n),{}),e(n),i(t,n)}export{c as component,o as universal};

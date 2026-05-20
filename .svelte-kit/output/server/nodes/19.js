@@ -2,7 +2,7 @@
 
 export const index = 19;
 let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/(app)/סטודיו/וידאו/_page.svelte.js')).default;
-export const imports = ["_app/immutable/nodes/19.CH6OcpCO.js","_app/immutable/chunks/Cfx3GPPx.js","_app/immutable/chunks/CsuUi-v4.js","_app/immutable/chunks/Cncd85Oh.js","_app/immutable/chunks/CrKkhWgS.js","_app/immutable/chunks/ZKwhz_W3.js","_app/immutable/chunks/CyXTeU80.js","_app/immutable/chunks/Z6JZHJRj.js","_app/immutable/chunks/CCi4sbZS.js","_app/immutable/chunks/CGeTKPHw.js","_app/immutable/chunks/D_kpTzVF.js","_app/immutable/chunks/D1d6CeqK.js","_app/immutable/chunks/BrTCZNw5.js","_app/immutable/chunks/BSh82o-3.js","_app/immutable/chunks/Llyelnnm.js","_app/immutable/chunks/BMMEt30h.js","_app/immutable/chunks/DRcuIIF0.js","_app/immutable/chunks/_D--XA0k.js","_app/immutable/chunks/C6fybkgp2.js","_app/immutable/chunks/Bwqz-U2V2.js","_app/immutable/chunks/H7wzBbGU.js","_app/immutable/chunks/CqQ8KjnG2.js"];
-export const stylesheets = ["_app/immutable/assets/ScrollArea.QE5ZuEV4.css","_app/immutable/assets/Select.CV-KWLNP.css","_app/immutable/assets/EquipmentPicker.BEAjaTux.css","_app/immutable/assets/Notice.DLRT_-Qh.css","_app/immutable/assets/PageShell.Dx_29Ai9.css","_app/immutable/assets/InstructorVideoManager.UcgXO8lQ.css"];
+export const component = async () => component_cache ??= (await import('../entries/pages/(app)/u/calendar/_page.svelte.js')).default;
+export const imports = ["_app/immutable/nodes/19.bY9bDKzt.js","_app/immutable/chunks/Dkwdqk_L.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/BjEmGT3O.js","_app/immutable/chunks/CALdEjO0.js","_app/immutable/chunks/D5ElF3d9.js","_app/immutable/chunks/CCq77Bte.js","_app/immutable/chunks/DCbV68uA.js","_app/immutable/chunks/DJ4RyLIz.js","_app/immutable/chunks/qCpTV9sU.js","_app/immutable/chunks/CuOZrXZT.js","_app/immutable/chunks/D5TglNO2.js","_app/immutable/chunks/DuznwvqE.js","_app/immutable/chunks/Cby09Fr0.js"];
+export const stylesheets = ["_app/immutable/assets/Notice.DLRT_-Qh.css","_app/immutable/assets/19.Bm4UdB1L.css"];
 export const fonts = [];

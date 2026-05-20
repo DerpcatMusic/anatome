@@ -3,13 +3,13 @@ import { n as routePath } from "../../../chunks/context.js";
 //#region src/routes/robots.txt/+server.ts
 var prerender = true;
 var DISALLOWED = [
-	routePath("dashboard"),
-	routePath("customerCalendar"),
-	routePath("customerOneOnOne"),
-	routePath("customerVideos"),
-	routePath("studioLive"),
+	"/u/dashboard",
+	"/u/calendar",
+	"/u/one-on-one",
+	"/u/videos",
+	"/i/live",
 	routePath("liveRoom"),
-	routePath("profile"),
+	"/u/profile",
 	routePath("watch"),
 	routePath("onboarding"),
 	"/callback",

@@ -1,7 +1,6 @@
 import "./index-server.js";
 import { U as snapshot, o as derived, xt as setContext, yt as getContext } from "./dev.js";
 import { r as on } from "./events.js";
-import "./context.js";
 import { ConvexClient, ConvexHttpClient } from "convex/browser";
 import { anyApi, componentsGeneric, getFunctionName } from "convex/server";
 import { convexToJson } from "convex/values";

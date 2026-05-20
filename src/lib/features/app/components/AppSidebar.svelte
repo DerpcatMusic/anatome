@@ -36,7 +36,7 @@
     ],
   };
 
-  const nextLiveQuery = useQuery(api.liveClasses.myNextLiveClass, () => auth.isAuthenticated ? {} : "skip");
+  const nextLiveQuery = useQuery(api.live.next.get, () => auth.isAuthenticated ? {} : "skip");
   const nextLive = $derived(nextLiveQuery.data ?? null);
   const showLiveTab = $derived(nextLive !== null && nextLive.status !== "ended" && nextLive.status !== "cancelled");
 

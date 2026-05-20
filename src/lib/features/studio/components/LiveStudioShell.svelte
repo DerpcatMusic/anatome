@@ -13,8 +13,8 @@
   import LiveClassModalShell from "$features/live/components/LiveClassModalShell.svelte";
   import type { Equipment } from "$lib/labels";
 
-  type LiveClass = FunctionReturnType<typeof api.instructorLive.listMine>[number];
-  type ViewerProfile = FunctionReturnType<typeof api.appProfiles.viewer>;
+  type LiveClass = FunctionReturnType<typeof api.live.class.listMine>[number];
+  type ViewerProfile = FunctionReturnType<typeof api.profiles.viewer.get>;
 
   let profile = $state<ViewerProfile | null>(null);
   let classes = $state<LiveClass[]>([]);
@@ -47,13 +47,13 @@
     loading = true;
     error = "";
     try {
-      profile = await authQuery(api.appProfiles.viewer, {});
+      profile = await authQuery(api.profiles.viewer.get, {});
       if (profile === null || (profile.role !== "admin" && profile.role !== "instructor")) {
         window.location.assign("/calendar");
         return;
       }
       setCachedRole(profile.role);
-      classes = (await authQuery(api.instructorLive.listMine, {})) ?? [];
+      classes = (await authQuery(api.live.class.listMine, {})) ?? [];
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לטעון את אזור הלייב.";
     } finally {
@@ -71,7 +71,7 @@
     error = "";
     actionId = "create";
     try {
-      await client.mutation(api.instructorLive.createLiveClass, {
+      await client.mutation(api.live.class.create, {
         title,
         description,
         type: liveType,
@@ -97,7 +97,7 @@
     actionId = liveClassId;
     error = "";
     try {
-      await client.mutation(api.instructorLive.startLive, { liveClassId });
+      await client.mutation(api.live.class.start, { liveClassId });
       await load();
       window.location.assign(liveRoomHref(liveClassId));
     } catch (reason) {
@@ -111,7 +111,7 @@
     actionId = liveClassId;
     error = "";
     try {
-      await client.mutation(api.instructorLive.endLive, { liveClassId });
+      await client.mutation(api.live.class.end, { liveClassId });
       await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לסיים את הלייב.";

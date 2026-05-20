@@ -1,5 +1,4 @@
 import { nt as escape_html } from "./dev.js";
-import { n as routePath } from "./context.js";
 import { p as useQuery, r as initAuth, s as api } from "./session.svelte.js";
 import { t as Notice } from "./Notice.js";
 import { t as useI18n } from "./runes.svelte.js";
@@ -9,7 +8,7 @@ function OnboardingShell($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const auth = initAuth();
 		const { t } = useI18n();
-		useQuery(api.users.dashboard, () => auth.isAuthenticated ? {} : "skip");
+		useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : "skip");
 		let status = "checking";
 		let error = "";
 		$$renderer.push(`<section class="onboarding-page svelte-jqmm53">`);
@@ -47,7 +46,7 @@ function OnboardingShell($$renderer, $$props) {
 		} else {
 			$$renderer.push("<!--[-1-->");
 			$$renderer.push(`<div class="onboarding-page__child svelte-jqmm53">`);
-			OnboardingForm($$renderer, { redirectTo: routePath("dashboard") });
+			OnboardingForm($$renderer, { redirectTo: "/u/dashboard" });
 			$$renderer.push(`<!----></div>`);
 		}
 		$$renderer.push(`<!--]--></section>`);

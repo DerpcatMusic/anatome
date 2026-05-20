@@ -10,7 +10,7 @@
   import Select from "$components/ui/Select.svelte";
 
   const auth = initAuth();
-  const profileQuery = useQuery(api.appProfiles.viewer, () => auth.isAuthenticated ? {} : "skip");
+  const profileQuery = useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
   const role = $derived(profileQuery.data?.role ?? "customer");
   const isStaff = $derived(role === "instructor" || role === "admin");
 
@@ -24,7 +24,7 @@
     () => auth.isAuthenticated && !isStaff,
     async (enabled) => {
       if (!enabled) return [];
-      return await authQuery(api.customerOneOnOne.listAvailableSlots, range);
+      return await authQuery(api.oneOnOne.customer.listAvailableSlots, range);
     }
   );
 
@@ -32,7 +32,7 @@
     () => auth.isAuthenticated && !isStaff,
     async (enabled) => {
       if (!enabled) return [];
-      return await authQuery(api.customerOneOnOne.listMine, {});
+      return await authQuery(api.oneOnOne.customer.listMine, {});
     }
   );
 
@@ -40,7 +40,7 @@
     () => auth.isAuthenticated && isStaff,
     async (enabled) => {
       if (!enabled) return [];
-      return await authQuery(api.instructorOneOnOne.listRequests, {});
+      return await authQuery(api.oneOnOne.instructor.listRequests, {});
     }
   );
 
@@ -48,7 +48,7 @@
     () => auth.isAuthenticated && isStaff,
     async (enabled) => {
       if (!enabled) return [];
-      return await authQuery(api.instructorOneOnOne.listAvailability, {});
+      return await authQuery(api.oneOnOne.instructor.listAvailability, {});
     }
   );
 
@@ -85,7 +85,7 @@
     actionId = String(slot.startsAt);
     actionError = "";
     try {
-      await client.mutation(api.customerOneOnOne.requestSlot, { ...slot, note });
+      await client.mutation(api.oneOnOne.customer.requestSlot, { ...slot, note });
       note = "";
       await Promise.all([slotsResource.refetch(), mineResource.refetch()]);
     } catch (reason) {
@@ -99,7 +99,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await client.mutation(api.customerOneOnOne.cancelRequest, { requestId });
+      await client.mutation(api.oneOnOne.customer.cancelRequest, { requestId });
       await mineResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לבטל.";
@@ -112,7 +112,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await client.mutation(api.instructorOneOnOne.approveRequest, { requestId });
+      await client.mutation(api.oneOnOne.instructor.approveRequest, { requestId });
       await requestsResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לאשר.";
@@ -125,7 +125,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await client.mutation(api.instructorOneOnOne.rejectRequest, { requestId });
+      await client.mutation(api.oneOnOne.instructor.rejectRequest, { requestId });
       await requestsResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לדחות.";
@@ -138,7 +138,7 @@
     actionId = "availability";
     actionError = "";
     try {
-      await client.mutation(api.instructorOneOnOne.setAvailabilityRule, {
+      await client.mutation(api.oneOnOne.instructor.setAvailabilityRule, {
         weekday,
         startMinute: startHour * 60,
         endMinute: endHour * 60,

@@ -420,6 +420,7 @@ var localeTranslations = { he: {
 			fallbackName: "HomeBody",
 			tokenError: "לא הצלחנו לפתוח את חדר הלייב.",
 			startLiveError: "לא הצלחנו להתחיל את הלייב.",
+			endLiveError: "לא הצלחנו לסיים את הלייב.",
 			screenShareError: "לא הצלחנו לשתף מסך.",
 			back: "חזרה",
 			close: "סגור",

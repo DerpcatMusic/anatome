@@ -65,7 +65,7 @@ export const issueJoin = action({
       endsAt: number;
       joinClosesAt: number;
       capacity: number;
-    } = await ctx.runMutation(internal.liveClasses.prepareJoin, {
+    } = await ctx.runMutation(internal.live.room.prepareJoin, {
       liveClassId: args.liveClassId,
     });
     const isInstructor = join.participantRole === "instructor" || join.participantRole === "admin";

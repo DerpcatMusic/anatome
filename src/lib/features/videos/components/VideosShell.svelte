@@ -17,7 +17,7 @@
   type CategoryGroup = LibraryData["categoryGroups"][number];
 
   const auth = initAuth();
-  const profileQuery = useQuery(api.appProfiles.viewer, () => auth.isAuthenticated ? {} : "skip");
+  const profileQuery = useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
   const role = $derived(profileQuery.data?.role ?? "customer");
   const isStaff = $derived(role === "instructor" || role === "admin");
   const client = useConvexClient();

@@ -8,7 +8,7 @@
   import InstructorActions from "./InstructorActions.svelte";
   import ProfileSummary from "./ProfileSummary.svelte";
 
-  type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard>>;
+  type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
 
   let { profile, liveAlert, role, appProfile }: {
     profile: DashboardData["profile"];

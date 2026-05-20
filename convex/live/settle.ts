@@ -15,8 +15,13 @@ export const settle = internalMutation({
       )
       .take(200);
 
-    for (const reservation of reservations) {
-      const bucket = await ctx.db.get(reservation.creditBucketId);
+    const buckets = await Promise.all(
+      reservations.map((r) => ctx.db.get(r.creditBucketId)),
+    );
+
+    for (let i = 0; i < reservations.length; i++) {
+      const reservation = reservations[i];
+      const bucket = buckets[i];
       if (bucket === null) continue;
 
       if (reservation.creditKind === "live") {

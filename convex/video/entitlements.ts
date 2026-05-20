@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireUserId } from "../lib/authz";
-import { getCurrentCreditBucket } from "../lib/credits";
+import { getCurrentCreditBucket } from "../credits/lib";
 
 export const listMyEntitlements = query({
   args: {},

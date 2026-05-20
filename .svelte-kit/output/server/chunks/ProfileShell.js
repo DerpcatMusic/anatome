@@ -10,11 +10,11 @@ function ProfileShell($$renderer, $$props) {
 		const auth = initAuth();
 		const dashboardResource = resource(() => auth.isAuthenticated, async (isAuthenticated) => {
 			if (!isAuthenticated) return null;
-			return await authQuery(api.users.dashboard, {});
+			return await authQuery(api.users.dashboard.get, {});
 		});
 		const appProfileResource = resource(() => auth.isAuthenticated, async (isAuthenticated) => {
 			if (!isAuthenticated) return null;
-			return await authQuery(api.appProfiles.viewer, {});
+			return await authQuery(api.profiles.viewer.get, {});
 		});
 		const role = derived(() => dashboardResource.current?.role ?? null);
 		const isStaff = derived(() => role() === "instructor" || role() === "admin");
@@ -48,7 +48,7 @@ function ProfileShell($$renderer, $$props) {
 			saveError = "";
 			saveSuccess = false;
 			try {
-				await client.mutation(api.appProfiles.updateInstructorProfile, {
+				await client.mutation(api.profiles.update.instructorProfile, {
 					displayName: `${instructorName.trim()} ${instructorSurname.trim()}`.trim(),
 					credentials: instructorCredentials.trim(),
 					certificateDocument: certificateDataUrl || void 0,

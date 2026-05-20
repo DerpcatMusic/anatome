@@ -111,7 +111,7 @@
     error = "";
     try {
       const client = useConvexClient();
-      await client.mutation(api.users.completeOnboarding, {
+      await client.mutation(api.users.onboarding.complete, {
         equipment, experience, goals, notes,
       });
       submitted = true;

@@ -3,9 +3,9 @@ import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
-crons.interval("process live reminder queue", { minutes: 5 }, internal.liveReminders.processDue);
-crons.interval("expire live rooms", { minutes: 1 }, internal.livekit.expireDueRooms, {});
-crons.interval("auto start live classes", { minutes: 1 }, internal.liveClasses.autoStartDueLiveClasses, {});
-crons.interval("expire stale 1:1 requests", { hours: 1 }, internal.customerOneOnOne.expireStaleOneOnOneRequests, {});
+crons.interval("process live reminder queue", { minutes: 5 }, internal.liveReminders.process.due);
+crons.interval("expire live rooms", { minutes: 1 }, internal.livekit.rooms.expireDue, {});
+crons.interval("auto start live classes", { minutes: 1 }, internal.live.cron.autoStart, {});
+crons.interval("expire stale 1:1 requests", { hours: 1 }, internal.oneOnOne.cron.expireStale, {});
 
 export default crons;

@@ -142,4 +142,4 @@ function fork() {
 async function tick() {}
 async function settled() {}
 //#endregion
-export { unmount as a, tick as i, mount as n, hydratable as o, onDestroy as r, index_server_exports as t };
+export { hydratable as a, unmount as i, mount as n, tick as r, index_server_exports as t };

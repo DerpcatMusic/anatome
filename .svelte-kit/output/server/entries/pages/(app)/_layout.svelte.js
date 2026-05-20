@@ -1,58 +1,70 @@
 import { c as ensure_array_like, et as attr, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../chunks/dev.js";
-import { n as routePath, t as liveRoomHref } from "../../../chunks/context.js";
-import { n as getCachedRole, p as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
+import { t as liveRoomHref } from "../../../chunks/context.js";
+import { p as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
 import { t as page } from "../../../chunks/state.js";
+import { n as setAppContext, t as getAppContext } from "../../../chunks/appContext.js";
 //#region src/lib/features/app/components/AppSidebar.svelte
 function AppSidebar($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { role: roleProp } = $$props;
 		const auth = initAuth();
-		const role = derived(() => roleProp ?? getCachedRole() ?? "customer");
-		const isStaff = derived(() => role() === "instructor" || role() === "admin");
-		const customerNav = [
-			{
-				href: routePath("dashboard"),
-				label: "סקירה"
-			},
-			{
-				href: routePath("customerCalendar"),
-				label: "לוח לייבים"
-			},
-			{
-				href: routePath("customerOneOnOne"),
-				label: "1:1 אישי"
-			},
-			{
-				href: routePath("customerVideos"),
-				label: "וידאו"
-			},
-			{
-				href: routePath("profile"),
-				label: "פרופיל פילאטיס"
-			}
-		];
-		const staffNav = [
-			{
-				href: routePath("dashboard"),
-				label: "סקירה"
-			},
-			{
-				href: routePath("studioLive"),
-				label: "סטודיו לייב"
-			},
-			{
-				href: routePath("studioVideos"),
-				label: "ניהול וידאו"
-			},
-			{
-				href: routePath("profile"),
-				label: "פרופיל מדריכה"
-			}
-		];
-		const nextLiveQuery = useQuery(api.liveClasses.myNextLiveClass, () => auth.isAuthenticated ? {} : "skip");
+		const ctx = getAppContext();
+		const prefix = derived(() => {
+			const path = page.url.pathname;
+			if (path.startsWith("/i/")) return "/i";
+			if (path.startsWith("/u/")) return "/u";
+			return ctx.role === "instructor" || ctx.role === "admin" ? "/i" : "/u";
+		});
+		const isInstructorPrefix = derived(() => prefix() === "/i");
+		const navMap = {
+			"/u": [
+				{
+					href: "/u/dashboard",
+					label: "סקירה"
+				},
+				{
+					href: "/u/calendar",
+					label: "לוח לייבים"
+				},
+				{
+					href: "/u/one-on-one",
+					label: "1:1 אישי"
+				},
+				{
+					href: "/u/videos",
+					label: "וידאו"
+				},
+				{
+					href: "/u/profile",
+					label: "פרופיל פילאטיס"
+				}
+			],
+			"/i": [
+				{
+					href: "/i/dashboard",
+					label: "סקירה"
+				},
+				{
+					href: "/i/live",
+					label: "סטודיו לייב"
+				},
+				{
+					href: "/i/videos",
+					label: "ניהול וידאו"
+				},
+				{
+					href: "/i/one-on-one",
+					label: "ניהול 1:1"
+				},
+				{
+					href: "/i/profile",
+					label: "פרופיל מדריכה"
+				}
+			]
+		};
+		const nextLiveQuery = useQuery(api.live.next.get, () => auth.isAuthenticated ? {} : "skip");
 		const nextLive = derived(() => nextLiveQuery.data ?? null);
 		const showLiveTab = derived(() => nextLive() !== null && nextLive().status !== "ended" && nextLive().status !== "cancelled");
-		const baseNav = derived(() => isStaff() ? staffNav : customerNav);
+		const baseNav = derived(() => navMap[prefix()] ?? navMap["/u"]);
 		const navItems = derived(() => showLiveTab() ? [{
 			href: liveRoomHref(nextLive().classId),
 			label: "LIVE",
@@ -60,13 +72,13 @@ function AppSidebar($$renderer, $$props) {
 		}, ...baseNav()] : baseNav());
 		const currentPath = derived(() => page.url.pathname);
 		function isCurrent(href) {
-			if (href.startsWith(routePath("liveRoom"))) return currentPath() === routePath("liveRoom");
+			if (href.startsWith("/live-room")) return currentPath() === "/live-room";
 			return currentPath() === href;
 		}
-		$$renderer.push(`<aside class="sidebar svelte-1uyw6j7" aria-label="ניווט אזור אישי"><div class="sidebar__brand svelte-1uyw6j7"><span class="sidebar__tagline svelte-1uyw6j7">${escape_html(isStaff() ? "סטודיו" : "אזור אישי")}</span> `);
-		if (isStaff()) {
+		$$renderer.push(`<aside class="sidebar svelte-1uyw6j7" aria-label="ניווט אזור אישי"><div class="sidebar__brand svelte-1uyw6j7"><span class="sidebar__tagline svelte-1uyw6j7">${escape_html(isInstructorPrefix() ? "סטודיו" : "אזור אישי")}</span> `);
+		if (isInstructorPrefix() && ctx.role) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<span${attr_class(`role-badge role-badge--${stringify(role())}`, "svelte-1uyw6j7")}>${escape_html(role() === "admin" ? "Admin" : "Instructor")}</span>`);
+			$$renderer.push(`<span${attr_class(`role-badge role-badge--${stringify(ctx.role)}`, "svelte-1uyw6j7")}>${escape_html(ctx.role === "admin" ? "Admin" : "Instructor")}</span>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]--></div> <div class="sidebar__account svelte-1uyw6j7">`);
 		if (auth.isAuthenticated) {
@@ -93,9 +105,9 @@ function AppSidebar($$renderer, $$props) {
 //#endregion
 //#region src/lib/features/app/components/AppLayout.svelte
 function AppLayout($$renderer, $$props) {
-	let { children, role } = $$props;
+	let { children } = $$props;
 	$$renderer.push(`<div class="app-layout svelte-1vr0tfx">`);
-	AppSidebar($$renderer, { role });
+	AppSidebar($$renderer, {});
 	$$renderer.push(`<!----> <main class="app-main svelte-1vr0tfx">`);
 	children($$renderer);
 	$$renderer.push(`<!----></main></div>`);
@@ -103,13 +115,21 @@ function AppLayout($$renderer, $$props) {
 //#endregion
 //#region src/routes/(app)/+layout.svelte
 function _layout($$renderer, $$props) {
-	let { children } = $$props;
-	AppLayout($$renderer, {
-		children: ($$renderer) => {
-			children($$renderer);
-			$$renderer.push(`<!---->`);
-		},
-		$$slots: { default: true }
+	$$renderer.component(($$renderer) => {
+		let { children } = $$props;
+		const auth = initAuth();
+		useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
+		setAppContext({
+			role: null,
+			isLoading: true
+		});
+		AppLayout($$renderer, {
+			children: ($$renderer) => {
+				children($$renderer);
+				$$renderer.push(`<!---->`);
+			},
+			$$slots: { default: true }
+		});
 	});
 }
 //#endregion

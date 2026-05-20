@@ -21,7 +21,6 @@ export const listLibrary = query({
       .withIndex("by_isActive_and_sortOrder", (q) => q.eq("isActive", true))
       .order("asc")
       .take(100);
-    const categoryRows = await ctx.db.query("videoCategoryVideos").take(1000);
     const videos = await ctx.db
       .query("videos")
       .withIndex("by_status", (q) => q.eq("status", "published"))
@@ -29,20 +28,25 @@ export const listLibrary = query({
       .take(200);
     const videoById = new Map(videos.map((video) => [video._id, video]));
     const ownedById = new Set(entitlements.map((e) => e.videoId));
-    const categoryGroups = categories.map((category) => {
-      const items = categoryRows
-        .filter((row) => row.categoryId === category._id)
-        .sort((a, b) => a.sortOrder - b.sortOrder)
+
+    // Fetch category associations per category using index (scalable)
+    const categoryGroups = [];
+    for (const category of categories) {
+      const rows = await ctx.db
+        .query("videoCategoryVideos")
+        .withIndex("by_categoryId_and_sortOrder", (q) => q.eq("categoryId", category._id))
+        .order("asc")
+        .take(50);
+      const items = rows
         .map((row) => videoById.get(row.videoId))
         .filter((video): video is (typeof videos)[number] => Boolean(video))
         .map((video) => ({ ...video, owned: ownedById.has(video._id) }));
-      return { category, items };
-    });
+      categoryGroups.push({ category, items });
+    }
     return {
       isStaff,
       videos: videos.map((video) => ({ ...video, owned: owned.has(video._id) })),
       categories,
-      categoryRows,
       categoryGroups,
     };
   },

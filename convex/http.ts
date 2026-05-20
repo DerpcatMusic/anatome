@@ -80,7 +80,7 @@ http.route({
         return new Response("Invalid webhook", { status: 400 });
       }
 
-      const result = await ctx.runMutation(internal.livekitAttendance.handleWebhookEvent, {
+      const result = await ctx.runMutation(internal.livekitAttendance.events.handleWebhook, {
         roomName: validated.roomName,
         identity: validated.identity,
         event: validated.event,

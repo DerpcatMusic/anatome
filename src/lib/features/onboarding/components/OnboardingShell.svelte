@@ -12,7 +12,7 @@
   const auth = initAuth();
   const { t } = useI18n();
 
-  const dashboardQuery = useQuery(api.users.dashboard, () => auth.isAuthenticated ? {} : 'skip');
+  const dashboardQuery = useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : 'skip');
 
   let status = $state<"checking" | "locked" | "ready" | "done" | "error">("checking");
   let error = $state("");

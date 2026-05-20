@@ -27,12 +27,12 @@ export const requestUpload = action({
   handler: async (ctx, args): Promise<{ videoId: Id<"videos">; uploadUrl: string }> => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Authentication required");
-    const profile = await ctx.runQuery(internal.videoInternal.getAppProfile, { userId });
+    const profile = await ctx.runQuery(internal.videoInternal.profile.getAppProfile, { userId });
     if (profile === null || (profile.role !== "instructor" && profile.role !== "admin")) throw new Error("Unauthorized");
     if (args.title.trim().length < 3) throw new Error("Title is too short");
     if (args.categoryIds.length === 0) throw new Error("At least one category is required");
 
-    const videoId: Id<"videos"> = await ctx.runMutation(internal.videoInternal.createDraft, {
+    const videoId: Id<"videos"> = await ctx.runMutation(internal.videoInternal.draft.create, {
       title: args.title.trim(),
       description: args.description.trim(),
       requiredEquipment: args.requiredEquipment,
@@ -56,7 +56,7 @@ export const requestUpload = action({
       cors_origin: getCorsOrigin(),
     });
     if (!upload.url) throw new Error("Mux did not return an upload URL");
-    await ctx.runMutation(internal.videoInternal.attachMuxUpload, {
+    await ctx.runMutation(internal.videoInternal.draft.attachMuxUpload, {
       videoId,
       muxUploadId: upload.id,
       instructorUserId: userId,
@@ -71,10 +71,10 @@ export const requestUpload = action({
 export const handleMuxWebhook = internalAction({
   args: { muxUploadId: v.string(), muxAssetId: v.string(), duration: v.number(), thumbnailUrl: v.optional(v.string()), status: v.union(v.literal("ready"), v.literal("errored")) },
   handler: async (ctx, args) => {
-    const upload = await ctx.runQuery(internal.videoInternal.findUploadByMuxId, { muxUploadId: args.muxUploadId });
+    const upload = await ctx.runQuery(internal.videoInternal.upload.findByMuxId, { muxUploadId: args.muxUploadId });
     if (upload === null) return;
     if (args.status === "errored") {
-      await ctx.runMutation(internal.videoInternal.markUploadErrored, { uploadId: upload._id });
+      await ctx.runMutation(internal.videoInternal.upload.markErrored, { uploadId: upload._id });
       return;
     }
     let playbackId: string | undefined;
@@ -83,10 +83,10 @@ export const handleMuxWebhook = internalAction({
       playbackId = playback.id;
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : String(reason);
-      await ctx.runMutation(internal.videoInternal.markUploadErrored, { uploadId: upload._id, errorMessage: message });
+      await ctx.runMutation(internal.videoInternal.upload.markErrored, { uploadId: upload._id, errorMessage: message });
       throw reason;
     }
-    await ctx.runMutation(internal.videoInternal.finalizeUpload, {
+    await ctx.runMutation(internal.videoInternal.upload.finalize, {
       uploadId: upload._id,
       muxAssetId: args.muxAssetId,
       durationSeconds: args.duration,

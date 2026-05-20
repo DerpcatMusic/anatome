@@ -8,7 +8,7 @@
   import { initAuth } from "$lib/auth/session.svelte";
 
   const auth = initAuth();
-  const query = useQuery(api.users.dashboard, () => auth.isAuthenticated ? {} : "skip");
+  const query = useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : "skip");
 </script>
 
 {#if query.isLoading}

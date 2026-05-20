@@ -1,1 +1,2 @@
-export { default as component } from "../../../../src/routes/(app)/לוח/+page.svelte";
+import * as universal from "../../../../src/routes/(app)/studio/videos/+page.ts";
+export { universal };

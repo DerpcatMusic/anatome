@@ -1,5 +1,4 @@
 import { a as bind_props, c as ensure_array_like, et as attr, n as attr_class, nt as escape_html, o as derived, r as attr_style } from "./dev.js";
-import { n as routePath } from "./context.js";
 import { f as useConvexClient, s as api } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { n as EquipmentIcon, r as Checkbox_1, t as RadioGroup_1 } from "./RadioGroup.js";
@@ -215,14 +214,14 @@ function OnboardingForm($$renderer, $$props) {
 			pending = true;
 			error = "";
 			try {
-				await useConvexClient().mutation(api.users.completeOnboarding, {
+				await useConvexClient().mutation(api.users.onboarding.complete, {
 					equipment,
 					experience,
 					goals,
 					notes
 				});
 				submitted = true;
-				const target = redirectTo ?? routePath("dashboard");
+				const target = redirectTo ?? "/u/dashboard";
 				setTimeout(() => window.location.assign(target), 800);
 			} catch (reason) {
 				error = reason instanceof Error ? reason.message : t.onboarding.saveError();

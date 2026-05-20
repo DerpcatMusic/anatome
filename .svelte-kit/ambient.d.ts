@@ -141,7 +141,6 @@ declare module '$env/static/private' {
 	export const KITTY_INSTALLATION_DIR: string;
 	export const npm_node_execpath: string;
 	export const LC_NUMERIC: string;
-	export const OLDPWD: string;
 	export const HYPRCURSOR_SIZE: string;
 	export const npm_package_engines_node: string;
 	export const NODE_ENV: string;
@@ -335,7 +334,6 @@ declare module '$env/dynamic/private' {
 		KITTY_INSTALLATION_DIR: string;
 		npm_node_execpath: string;
 		LC_NUMERIC: string;
-		OLDPWD: string;
 		HYPRCURSOR_SIZE: string;
 		npm_package_engines_node: string;
 		NODE_ENV: string;

@@ -11,7 +11,7 @@ export const getViewerPlayback = query({
   args: { videoId: v.id("videos") },
   handler: async (ctx, args): Promise<ViewerPlayback> => {
     const userId = await requireUserId(ctx);
-    const result: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.getAuthorizedPlaybackVideo, {
+    const result: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.playback.getAuthorizedVideo, {
       videoId: args.videoId,
       userId,
     });
@@ -24,7 +24,7 @@ export const updateProgress = mutation({
   args: { videoId: v.id("videos"), currentTimeSeconds: v.number(), durationSeconds: v.number() },
   handler: async (ctx, args): Promise<Id<"videoProgress">> => {
     const userId = await requireUserId(ctx);
-    const access: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.getAuthorizedPlaybackVideo, { videoId: args.videoId, userId });
+    const access: ViewerPlayback | null = await ctx.runQuery(internal.videoInternal.playback.getAuthorizedVideo, { videoId: args.videoId, userId });
     if (access === null) throw new Error("Access denied");
     const durationSeconds = Math.max(0, args.durationSeconds);
     const currentTimeSeconds = Math.max(0, Math.min(args.currentTimeSeconds, durationSeconds || args.currentTimeSeconds));

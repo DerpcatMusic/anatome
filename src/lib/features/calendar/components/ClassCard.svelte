@@ -7,7 +7,7 @@
   import { classTypeLabel, creditLabel } from "$lib/labels";
   import { liveRoomHref } from "$lib/i18n/context";
 
-  type CalendarClass = FunctionReturnType<typeof api.customerLive.listCalendarRange>[number];
+  type CalendarClass = FunctionReturnType<typeof api.live.calendar.listRange>[number];
 
   let {
     item,

@@ -1,11 +1,11 @@
 User-agent: *
-Disallow: /dashboard
-Disallow: /calendar
-Disallow: /one-on-one
-Disallow: /videos
-Disallow: /live
+Disallow: /u/dashboard
+Disallow: /u/calendar
+Disallow: /u/one-on-one
+Disallow: /u/videos
+Disallow: /i/live
 Disallow: /live-room
-Disallow: /profile
+Disallow: /u/profile
 Disallow: /watch
 Disallow: /onboarding
 Disallow: /callback
@@ -18,13 +18,13 @@ Allow: /robots.txt
 
 User-agent: Googlebot
 Allow: /
-Disallow: /dashboard
-Disallow: /calendar
-Disallow: /one-on-one
-Disallow: /videos
-Disallow: /live
+Disallow: /u/dashboard
+Disallow: /u/calendar
+Disallow: /u/one-on-one
+Disallow: /u/videos
+Disallow: /i/live
 Disallow: /live-room
-Disallow: /profile
+Disallow: /u/profile
 Disallow: /watch
 Disallow: /onboarding
 Disallow: /callback

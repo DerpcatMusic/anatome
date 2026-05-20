@@ -36,29 +36,6 @@
       "_dev.js"
     ]
   },
-  "_CalendarShell.BDKvYSTj.css": {
-    "file": "_app/immutable/assets/CalendarShell.BDKvYSTj.css",
-    "src": "_CalendarShell.BDKvYSTj.css"
-  },
-  "_CalendarShell.js": {
-    "file": "chunks/CalendarShell.js",
-    "name": "CalendarShell",
-    "imports": [
-      "_session.svelte.js",
-      "_Button.js",
-      "_calendar-prev-button.js",
-      "_use-id.js",
-      "_arrays.js",
-      "_dev.js",
-      "_Notice.js",
-      "_context.js",
-      "_runes.svelte.js",
-      "_labels.js"
-    ],
-    "css": [
-      "_app/immutable/assets/CalendarShell.BDKvYSTj.css"
-    ]
-  },
   "_EquipmentPicker.BEAjaTux.css": {
     "file": "_app/immutable/assets/EquipmentPicker.BEAjaTux.css",
     "src": "_EquipmentPicker.BEAjaTux.css"
@@ -92,6 +69,7 @@
       "_Select.js",
       "_popper-layer-force-mount.js",
       "_arrays.js",
+      "_roving-focus-group.js",
       "_dev.js",
       "_EquipmentPicker.js",
       "_Notice.js",
@@ -102,9 +80,9 @@
       "_app/immutable/assets/InstructorVideoManager.DFEP4s1x.css"
     ]
   },
-  "_LiveRoomShell.Du9VfcfJ.css": {
-    "file": "_app/immutable/assets/LiveRoomShell.Du9VfcfJ.css",
-    "src": "_LiveRoomShell.Du9VfcfJ.css"
+  "_LiveRoomShell.Fu51oXyW.css": {
+    "file": "_app/immutable/assets/LiveRoomShell.Fu51oXyW.css",
+    "src": "_LiveRoomShell.Fu51oXyW.css"
   },
   "_LiveRoomShell.js": {
     "file": "chunks/LiveRoomShell.js",
@@ -124,42 +102,10 @@
       "_dev.js",
       "_events.js",
       "_Notice.js",
-      "_context.js",
       "_runes.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/LiveRoomShell.Du9VfcfJ.css"
-    ]
-  },
-  "_LiveStudioShell.Br9XaEiK.css": {
-    "file": "_app/immutable/assets/LiveStudioShell.Br9XaEiK.css",
-    "src": "_LiveStudioShell.Br9XaEiK.css"
-  },
-  "_LiveStudioShell.js": {
-    "file": "chunks/LiveStudioShell.js",
-    "name": "LiveStudioShell",
-    "imports": [
-      "_index-server.js",
-      "_session.svelte.js",
-      "_Button.js",
-      "_calendar-prev-button.js",
-      "_RadioGroup.js",
-      "_dialog-content.js",
-      "_scroll-lock.js",
-      "_popover-trigger.js",
-      "_use-id.js",
-      "_popper-layer-force-mount.js",
-      "_arrays.js",
-      "_svelte-resize-observer.svelte.js",
-      "_dev.js",
-      "_events.js",
-      "_EquipmentPicker.js",
-      "_PageShell.js",
-      "_context.js",
-      "_labels.js"
-    ],
-    "css": [
-      "_app/immutable/assets/LiveStudioShell.Br9XaEiK.css"
+      "_app/immutable/assets/LiveRoomShell.Fu51oXyW.css"
     ]
   },
   "_Notice.DLRT_-Qh.css": {
@@ -189,7 +135,6 @@
       "_RadioGroup.js",
       "_dev.js",
       "_Notice.js",
-      "_context.js",
       "_runes.svelte.js",
       "_labels.js"
     ],
@@ -209,7 +154,6 @@
       "_dev.js",
       "_Notice.js",
       "_OnboardingForm.js",
-      "_context.js",
       "_runes.svelte.js"
     ],
     "css": [
@@ -275,6 +219,7 @@
     "imports": [
       "_hidden-input.js",
       "_arrays.js",
+      "_roving-focus-group.js",
       "_dev.js"
     ]
   },
@@ -319,43 +264,12 @@
       "_app/immutable/assets/Select.CV-KWLNP.css"
     ]
   },
-  "_VideosShell.DsqPHMLq.css": {
-    "file": "_app/immutable/assets/VideosShell.DsqPHMLq.css",
-    "src": "_VideosShell.DsqPHMLq.css"
-  },
-  "_VideosShell.js": {
-    "file": "chunks/VideosShell.js",
-    "name": "VideosShell",
+  "_appContext.js": {
+    "file": "chunks/appContext.js",
+    "name": "appContext",
     "imports": [
-      "_session.svelte.js",
-      "_InstructorVideoManager.js",
-      "_Button.js",
-      "_dev.js",
-      "_Notice.js",
-      "_PageShell.js",
-      "_context.js",
-      "_labels.js"
-    ],
-    "css": [
-      "_app/immutable/assets/VideosShell.DsqPHMLq.css"
-    ]
-  },
-  "_WatchShell.CsZfh72B.css": {
-    "file": "_app/immutable/assets/WatchShell.CsZfh72B.css",
-    "src": "_WatchShell.CsZfh72B.css"
-  },
-  "_WatchShell.js": {
-    "file": "chunks/WatchShell.js",
-    "name": "WatchShell",
-    "imports": [
-      "_session.svelte.js",
-      "_dev.js",
-      "_Notice.js",
-      "_context.js",
-      "_labels.js"
-    ],
-    "css": [
-      "_app/immutable/assets/WatchShell.CsZfh72B.css"
+      "_index-server.js",
+      "_dev.js"
     ]
   },
   "_arrays.js": {
@@ -377,6 +291,18 @@
       "_use-id.js",
       "_arrays.js",
       "_sr-only-styles.js",
+      "_dev.js"
+    ]
+  },
+  "_client.js": {
+    "file": "chunks/client.js",
+    "name": "client",
+    "imports": [
+      "_index-server.js",
+      "_environment.js",
+      "_internal.js",
+      "_exports.js",
+      "_shared.js",
       "_dev.js"
     ]
   },
@@ -460,6 +386,13 @@
       "_events.js"
     ]
   },
+  "_navigation.js": {
+    "file": "chunks/navigation.js",
+    "name": "navigation",
+    "imports": [
+      "_client.js"
+    ]
+  },
   "_popover-trigger.js": {
     "file": "chunks/popover-trigger.js",
     "name": "popover-trigger",
@@ -484,6 +417,14 @@
       "_dev.js"
     ]
   },
+  "_roving-focus-group.js": {
+    "file": "chunks/roving-focus-group.js",
+    "name": "roving-focus-group",
+    "imports": [
+      "_arrays.js",
+      "_dev.js"
+    ]
+  },
   "_runes.svelte.js": {
     "file": "chunks/runes.svelte.js",
     "name": "runes.svelte",
@@ -499,6 +440,7 @@
       "_session.svelte.js",
       "_use-id.js",
       "_arrays.js",
+      "_roving-focus-group.js",
       "_dev.js",
       "_events.js"
     ]
@@ -509,8 +451,7 @@
     "imports": [
       "_index-server.js",
       "_dev.js",
-      "_events.js",
-      "_context.js"
+      "_events.js"
     ]
   },
   "_shared.js": {
@@ -532,10 +473,7 @@
     "name": "state",
     "imports": [
       "_index-server.js",
-      "_environment.js",
-      "_internal.js",
-      "_exports.js",
-      "_shared.js",
+      "_client.js",
       "_dev.js"
     ]
   },
@@ -613,30 +551,112 @@
       "_session.svelte.js",
       "_state.js",
       "_dev.js",
+      "_appContext.js",
       "_context.js"
     ],
     "css": [
       "_app/immutable/assets/_layout.lg7M5yhs.css"
     ]
   },
-  "src/routes/(app)/calendar/+page.svelte": {
-    "file": "entries/pages/(app)/calendar/_page.svelte.js",
-    "name": "entries/pages/(app)/calendar/_page.svelte",
-    "src": "src/routes/(app)/calendar/+page.svelte",
+  "src/routes/(app)/calendar/+page.ts": {
+    "file": "entries/pages/(app)/calendar/_page.ts.js",
+    "name": "entries/pages/(app)/calendar/_page.ts",
+    "src": "src/routes/(app)/calendar/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/dashboard/+page.ts": {
+    "file": "entries/pages/(app)/dashboard/_page.ts.js",
+    "name": "entries/pages/(app)/dashboard/_page.ts",
+    "src": "src/routes/(app)/dashboard/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/i/+layout.js": {
+    "file": "entries/pages/(app)/i/_layout.js",
+    "name": "entries/pages/(app)/i/_layout",
+    "src": "src/routes/(app)/i/+layout.js",
+    "isEntry": true
+  },
+  "src/routes/(app)/i/+layout.svelte": {
+    "file": "entries/pages/(app)/i/_layout.svelte.js",
+    "name": "entries/pages/(app)/i/_layout.svelte",
+    "src": "src/routes/(app)/i/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_CalendarShell.js",
-      "_dev.js"
+      "_navigation.js",
+      "_dev.js",
+      "_appContext.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_layout.BkjAaIr8.css"
     ]
   },
-  "src/routes/(app)/dashboard/+page.svelte": {
-    "file": "entries/pages/(app)/dashboard/_page.svelte.js",
-    "name": "entries/pages/(app)/dashboard/_page.svelte",
-    "src": "src/routes/(app)/dashboard/+page.svelte",
+  "src/routes/(app)/i/dashboard/+page.svelte": {
+    "file": "entries/pages/(app)/i/dashboard/_page.svelte.js",
+    "name": "entries/pages/(app)/i/dashboard/_page.svelte",
+    "src": "src/routes/(app)/i/dashboard/+page.svelte",
     "isEntry": true,
     "imports": [
       "_dev.js",
       "_AppShell.js"
+    ]
+  },
+  "src/routes/(app)/i/live/+page.svelte": {
+    "file": "entries/pages/(app)/i/live/_page.svelte.js",
+    "name": "entries/pages/(app)/i/live/_page.svelte",
+    "src": "src/routes/(app)/i/live/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_index-server.js",
+      "_session.svelte.js",
+      "_Button.js",
+      "_calendar-prev-button.js",
+      "_RadioGroup.js",
+      "_dialog-content.js",
+      "_scroll-lock.js",
+      "_popover-trigger.js",
+      "_use-id.js",
+      "_popper-layer-force-mount.js",
+      "_arrays.js",
+      "_svelte-resize-observer.svelte.js",
+      "_dev.js",
+      "_events.js",
+      "_EquipmentPicker.js",
+      "_PageShell.js",
+      "_context.js",
+      "_labels.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.Br9XaEiK.css"
+    ]
+  },
+  "src/routes/(app)/i/one-on-one/+page.svelte": {
+    "file": "entries/pages/(app)/i/one-on-one/_page.svelte.js",
+    "name": "entries/pages/(app)/i/one-on-one/_page.svelte",
+    "src": "src/routes/(app)/i/one-on-one/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js",
+      "_OneOnOneShell.js"
+    ]
+  },
+  "src/routes/(app)/i/profile/+page.svelte": {
+    "file": "entries/pages/(app)/i/profile/_page.svelte.js",
+    "name": "entries/pages/(app)/i/profile/_page.svelte",
+    "src": "src/routes/(app)/i/profile/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js",
+      "_ProfileShell.js"
+    ]
+  },
+  "src/routes/(app)/i/videos/+page.svelte": {
+    "file": "entries/pages/(app)/i/videos/_page.svelte.js",
+    "name": "entries/pages/(app)/i/videos/_page.svelte",
+    "src": "src/routes/(app)/i/videos/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_InstructorVideoManager.js",
+      "_dev.js"
     ]
   },
   "src/routes/(app)/live-room/+page.svelte": {
@@ -649,55 +669,124 @@
       "_dev.js"
     ]
   },
-  "src/routes/(app)/live/+page.svelte": {
-    "file": "entries/pages/(app)/live/_page.svelte.js",
-    "name": "entries/pages/(app)/live/_page.svelte",
-    "src": "src/routes/(app)/live/+page.svelte",
+  "src/routes/(app)/live/+page.ts": {
+    "file": "entries/pages/(app)/live/_page.ts.js",
+    "name": "entries/pages/(app)/live/_page.ts",
+    "src": "src/routes/(app)/live/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/one-on-one/+page.ts": {
+    "file": "entries/pages/(app)/one-on-one/_page.ts.js",
+    "name": "entries/pages/(app)/one-on-one/_page.ts",
+    "src": "src/routes/(app)/one-on-one/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/profile/+page.ts": {
+    "file": "entries/pages/(app)/profile/_page.ts.js",
+    "name": "entries/pages/(app)/profile/_page.ts",
+    "src": "src/routes/(app)/profile/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/studio/videos/+page.ts": {
+    "file": "entries/pages/(app)/studio/videos/_page.ts.js",
+    "name": "entries/pages/(app)/studio/videos/_page.ts",
+    "src": "src/routes/(app)/studio/videos/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/(app)/u/+layout.js": {
+    "file": "entries/pages/(app)/u/_layout.js",
+    "name": "entries/pages/(app)/u/_layout",
+    "src": "src/routes/(app)/u/+layout.js",
+    "isEntry": true
+  },
+  "src/routes/(app)/u/+layout.svelte": {
+    "file": "entries/pages/(app)/u/_layout.svelte.js",
+    "name": "entries/pages/(app)/u/_layout.svelte",
+    "src": "src/routes/(app)/u/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_LiveStudioShell.js",
-      "_dev.js"
+      "_navigation.js",
+      "_dev.js",
+      "_appContext.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_layout.WZkJq0Ta.css"
     ]
   },
-  "src/routes/(app)/one-on-one/+page.svelte": {
-    "file": "entries/pages/(app)/one-on-one/_page.svelte.js",
-    "name": "entries/pages/(app)/one-on-one/_page.svelte",
-    "src": "src/routes/(app)/one-on-one/+page.svelte",
+  "src/routes/(app)/u/calendar/+page.svelte": {
+    "file": "entries/pages/(app)/u/calendar/_page.svelte.js",
+    "name": "entries/pages/(app)/u/calendar/_page.svelte",
+    "src": "src/routes/(app)/u/calendar/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_session.svelte.js",
+      "_Button.js",
+      "_calendar-prev-button.js",
+      "_use-id.js",
+      "_arrays.js",
+      "_dev.js",
+      "_Notice.js",
+      "_context.js",
+      "_runes.svelte.js",
+      "_labels.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.Bm4UdB1L.css"
+    ]
+  },
+  "src/routes/(app)/u/dashboard/+page.svelte": {
+    "file": "entries/pages/(app)/u/dashboard/_page.svelte.js",
+    "name": "entries/pages/(app)/u/dashboard/_page.svelte",
+    "src": "src/routes/(app)/u/dashboard/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js",
+      "_AppShell.js"
+    ]
+  },
+  "src/routes/(app)/u/one-on-one/+page.svelte": {
+    "file": "entries/pages/(app)/u/one-on-one/_page.svelte.js",
+    "name": "entries/pages/(app)/u/one-on-one/_page.svelte",
+    "src": "src/routes/(app)/u/one-on-one/+page.svelte",
     "isEntry": true,
     "imports": [
       "_dev.js",
       "_OneOnOneShell.js"
     ]
   },
-  "src/routes/(app)/profile/+page.svelte": {
-    "file": "entries/pages/(app)/profile/_page.svelte.js",
-    "name": "entries/pages/(app)/profile/_page.svelte",
-    "src": "src/routes/(app)/profile/+page.svelte",
+  "src/routes/(app)/u/profile/+page.svelte": {
+    "file": "entries/pages/(app)/u/profile/_page.svelte.js",
+    "name": "entries/pages/(app)/u/profile/_page.svelte",
+    "src": "src/routes/(app)/u/profile/+page.svelte",
     "isEntry": true,
     "imports": [
       "_dev.js",
       "_ProfileShell.js"
     ]
   },
-  "src/routes/(app)/studio/videos/+page.svelte": {
-    "file": "entries/pages/(app)/studio/videos/_page.svelte.js",
-    "name": "entries/pages/(app)/studio/videos/_page.svelte",
-    "src": "src/routes/(app)/studio/videos/+page.svelte",
+  "src/routes/(app)/u/videos/+page.svelte": {
+    "file": "entries/pages/(app)/u/videos/_page.svelte.js",
+    "name": "entries/pages/(app)/u/videos/_page.svelte",
+    "src": "src/routes/(app)/u/videos/+page.svelte",
     "isEntry": true,
     "imports": [
+      "_session.svelte.js",
       "_InstructorVideoManager.js",
-      "_dev.js"
+      "_Button.js",
+      "_dev.js",
+      "_Notice.js",
+      "_PageShell.js",
+      "_labels.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DsqPHMLq.css"
     ]
   },
-  "src/routes/(app)/videos/+page.svelte": {
-    "file": "entries/pages/(app)/videos/_page.svelte.js",
-    "name": "entries/pages/(app)/videos/_page.svelte",
-    "src": "src/routes/(app)/videos/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_VideosShell.js"
-    ]
+  "src/routes/(app)/videos/+page.ts": {
+    "file": "entries/pages/(app)/videos/_page.ts.js",
+    "name": "entries/pages/(app)/videos/_page.ts",
+    "src": "src/routes/(app)/videos/+page.ts",
+    "isEntry": true
   },
   "src/routes/(app)/watch/+page.svelte": {
     "file": "entries/pages/(app)/watch/_page.svelte.js",
@@ -705,39 +794,32 @@
     "src": "src/routes/(app)/watch/+page.svelte",
     "isEntry": true,
     "imports": [
+      "_session.svelte.js",
       "_dev.js",
-      "_WatchShell.js"
+      "_Notice.js",
+      "_labels.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.CsZfh72B.css"
     ]
   },
-  "src/routes/(app)/אזור-אישי/+page.svelte": {
-    "file": "entries/pages/(app)/אזור-אישי/_page.svelte.js",
-    "name": "entries/pages/(app)/אזור-אישי/_page.svelte",
-    "src": "src/routes/(app)/אזור-אישי/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_AppShell.js"
-    ]
+  "src/routes/(app)/אזור-אישי/+page.ts": {
+    "file": "entries/pages/(app)/אזור-אישי/_page.ts.js",
+    "name": "entries/pages/(app)/אזור-אישי/_page.ts",
+    "src": "src/routes/(app)/אזור-אישי/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/אחד-על-אחד/+page.svelte": {
-    "file": "entries/pages/(app)/אחד-על-אחד/_page.svelte.js",
-    "name": "entries/pages/(app)/אחד-על-אחד/_page.svelte",
-    "src": "src/routes/(app)/אחד-על-אחד/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_OneOnOneShell.js"
-    ]
+  "src/routes/(app)/אחד-על-אחד/+page.ts": {
+    "file": "entries/pages/(app)/אחד-על-אחד/_page.ts.js",
+    "name": "entries/pages/(app)/אחד-על-אחד/_page.ts",
+    "src": "src/routes/(app)/אחד-על-אחד/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/וידאו/+page.svelte": {
-    "file": "entries/pages/(app)/וידאו/_page.svelte.js",
-    "name": "entries/pages/(app)/וידאו/_page.svelte",
-    "src": "src/routes/(app)/וידאו/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_VideosShell.js"
-    ]
+  "src/routes/(app)/וידאו/+page.ts": {
+    "file": "entries/pages/(app)/וידאו/_page.ts.js",
+    "name": "entries/pages/(app)/וידאו/_page.ts",
+    "src": "src/routes/(app)/וידאו/+page.ts",
+    "isEntry": true
   },
   "src/routes/(app)/חדר-לייב/+layout.js": {
     "file": "entries/pages/(app)/חדר-לייב/_layout.js",
@@ -764,55 +846,35 @@
       "_dev.js"
     ]
   },
-  "src/routes/(app)/לוח/+page.svelte": {
-    "file": "entries/pages/(app)/לוח/_page.svelte.js",
-    "name": "entries/pages/(app)/לוח/_page.svelte",
-    "src": "src/routes/(app)/לוח/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_CalendarShell.js",
-      "_dev.js"
-    ]
+  "src/routes/(app)/לוח/+page.ts": {
+    "file": "entries/pages/(app)/לוח/_page.ts.js",
+    "name": "entries/pages/(app)/לוח/_page.ts",
+    "src": "src/routes/(app)/לוח/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/סטודיו/וידאו/+page.svelte": {
-    "file": "entries/pages/(app)/סטודיו/וידאו/_page.svelte.js",
-    "name": "entries/pages/(app)/סטודיו/וידאו/_page.svelte",
-    "src": "src/routes/(app)/סטודיו/וידאו/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_InstructorVideoManager.js",
-      "_dev.js"
-    ]
+  "src/routes/(app)/סטודיו/וידאו/+page.ts": {
+    "file": "entries/pages/(app)/סטודיו/וידאו/_page.ts.js",
+    "name": "entries/pages/(app)/סטודיו/וידאו/_page.ts",
+    "src": "src/routes/(app)/סטודיו/וידאו/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/סטודיו/לייב/+page.svelte": {
-    "file": "entries/pages/(app)/סטודיו/לייב/_page.svelte.js",
-    "name": "entries/pages/(app)/סטודיו/לייב/_page.svelte",
-    "src": "src/routes/(app)/סטודיו/לייב/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_LiveStudioShell.js",
-      "_dev.js"
-    ]
+  "src/routes/(app)/סטודיו/לייב/+page.ts": {
+    "file": "entries/pages/(app)/סטודיו/לייב/_page.ts.js",
+    "name": "entries/pages/(app)/סטודיו/לייב/_page.ts",
+    "src": "src/routes/(app)/סטודיו/לייב/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/פרופיל/+page.svelte": {
-    "file": "entries/pages/(app)/פרופיל/_page.svelte.js",
-    "name": "entries/pages/(app)/פרופיל/_page.svelte",
-    "src": "src/routes/(app)/פרופיל/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_ProfileShell.js"
-    ]
+  "src/routes/(app)/פרופיל/+page.ts": {
+    "file": "entries/pages/(app)/פרופיל/_page.ts.js",
+    "name": "entries/pages/(app)/פרופיל/_page.ts",
+    "src": "src/routes/(app)/פרופיל/+page.ts",
+    "isEntry": true
   },
-  "src/routes/(app)/צפייה/+page.svelte": {
-    "file": "entries/pages/(app)/צפייה/_page.svelte.js",
-    "name": "entries/pages/(app)/צפייה/_page.svelte",
-    "src": "src/routes/(app)/צפייה/+page.svelte",
-    "isEntry": true,
-    "imports": [
-      "_dev.js",
-      "_WatchShell.js"
-    ]
+  "src/routes/(app)/צפייה/+page.ts": {
+    "file": "entries/pages/(app)/צפייה/_page.ts.js",
+    "name": "entries/pages/(app)/צפייה/_page.ts",
+    "src": "src/routes/(app)/צפייה/+page.ts",
+    "isEntry": true
   },
   "src/routes/+layout.js": {
     "file": "entries/pages/_layout.js",
@@ -828,11 +890,10 @@
     "imports": [
       "_session.svelte.js",
       "_Button.js",
-      "_dev.js",
-      "_context.js"
+      "_dev.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.Dho2K477.css"
+      "_app/immutable/assets/_layout.DiFDPZqc.css"
     ]
   },
   "src/routes/+page.svelte": {
@@ -849,7 +910,6 @@
       "_scroll-lock.js",
       "_dev.js",
       "_Notice.js",
-      "_context.js",
       "_runes.svelte.js",
       "_config.js"
     ],
@@ -870,8 +930,7 @@
     "isEntry": true,
     "imports": [
       "_session.svelte.js",
-      "_dev.js",
-      "_context.js"
+      "_dev.js"
     ],
     "css": [
       "_app/immutable/assets/_page.BE0nr9Kh.css"

@@ -1,8 +1,12 @@
 
 
 export const index = 18;
-let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/(app)/לוח/_page.svelte.js')).default;
-export const imports = ["_app/immutable/nodes/18.T-7YPBSj.js","_app/immutable/chunks/Cfx3GPPx.js","_app/immutable/chunks/BTqgTKvB.js","_app/immutable/chunks/Cncd85Oh.js","_app/immutable/chunks/DtrKD2xp.js","_app/immutable/chunks/CyXTeU80.js","_app/immutable/chunks/Z6JZHJRj.js","_app/immutable/chunks/BrTCZNw5.js","_app/immutable/chunks/CCi4sbZS.js","_app/immutable/chunks/CGeTKPHw.js","_app/immutable/chunks/RDgxbUlx2.js","_app/immutable/chunks/H7wzBbGU.js","_app/immutable/chunks/Bwqz-U2V2.js","_app/immutable/chunks/BSh82o-3.js"];
-export const stylesheets = ["_app/immutable/assets/Notice.DLRT_-Qh.css","_app/immutable/assets/CalendarShell.BDKvYSTj.css"];
+export const universal = {
+  "prerender": false,
+  "ssr": false,
+  "load": null
+};
+export const universal_id = "src/routes/(app)/studio/videos/+page.ts";
+export const imports = ["_app/immutable/nodes/18.CrYL2ACC.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/BBuUb5GP.js","_app/immutable/chunks/BVopJGLV.js"];
+export const stylesheets = [];
 export const fonts = [];

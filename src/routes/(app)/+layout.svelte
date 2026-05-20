@@ -8,7 +8,7 @@
 	let { children } = $props();
 
 	const auth = initAuth();
-	const profileQuery = useQuery(api.appProfiles.viewer, () =>
+	const profileQuery = useQuery(api.profiles.viewer.get, () =>
 		auth.isAuthenticated ? {} : "skip"
 	);
 

@@ -80,10 +80,10 @@ value: (onfulfilled, onrejected) => {
 //#region .svelte-kit/generated/root.svelte
 function Root($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { stores, page, constructors, components = [], form, data_0 = null, data_1 = null, data_2 = null } = $$props;
+		let { stores, page, constructors, components = [], form, data_0 = null, data_1 = null, data_2 = null, data_3 = null } = $$props;
 		setContext("__svelte__", stores);
 		stores.page.set(page);
-		const Pyramid_2 = derived(() => constructors[2]);
+		const Pyramid_3 = derived(() => constructors[3]);
 		if (constructors[1]) {
 			$$renderer.push("<!--[0-->");
 			const Pyramid_0 = constructors[0];
@@ -104,18 +104,53 @@ function Root($$renderer, $$props) {
 									form,
 									params: page.params,
 									children: ($$renderer) => {
-										if (Pyramid_2()) {
-											$$renderer.push("<!--[-->");
-											Pyramid_2()($$renderer, {
-												data: data_2,
-												form,
-												params: page.params
-											});
-											$$renderer.push("<!--]-->");
+										if (constructors[3]) {
+											$$renderer.push("<!--[0-->");
+											const Pyramid_2 = constructors[2];
+											if (Pyramid_2) {
+												$$renderer.push("<!--[-->");
+												Pyramid_2($$renderer, {
+													data: data_2,
+													form,
+													params: page.params,
+													children: ($$renderer) => {
+														if (Pyramid_3()) {
+															$$renderer.push("<!--[-->");
+															Pyramid_3()($$renderer, {
+																data: data_3,
+																form,
+																params: page.params
+															});
+															$$renderer.push("<!--]-->");
+														} else {
+															$$renderer.push("<!--[!-->");
+															$$renderer.push("<!--]-->");
+														}
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
 										} else {
-											$$renderer.push("<!--[!-->");
-											$$renderer.push("<!--]-->");
+											$$renderer.push("<!--[-1-->");
+											const Pyramid_2 = constructors[2];
+											if (Pyramid_2) {
+												$$renderer.push("<!--[-->");
+												Pyramid_2($$renderer, {
+													data: data_2,
+													form,
+													params: page.params
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
 										}
+										$$renderer.push(`<!--]-->`);
 									},
 									$$slots: { default: true }
 								});
@@ -202,7 +237,7 @@ var options = {
 		app: ({ head, body, assets, nonce, env }) => "<!doctype html>\n<html lang=\"he\" dir=\"rtl\">\n	<head>\n		<meta charset=\"utf-8\" />\n		<link rel=\"icon\" href=\"" + assets + "/favicon.svg\" />\n		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n		<meta name=\"theme-color\" content=\"#faf8f3\" />\n		" + head + "\n	</head>\n	<body data-sveltekit-preload-data=\"hover\">\n		<div style=\"display: contents\">" + body + "</div>\n	</body>\n</html>\n",
 		error: ({ status, message }) => "<!doctype html>\n<html lang=\"en\">\n	<head>\n		<meta charset=\"utf-8\" />\n		<title>" + message + "</title>\n\n		<style>\n			body {\n				--bg: white;\n				--fg: #222;\n				--divider: #ccc;\n				background: var(--bg);\n				color: var(--fg);\n				font-family:\n					system-ui,\n					-apple-system,\n					BlinkMacSystemFont,\n					'Segoe UI',\n					Roboto,\n					Oxygen,\n					Ubuntu,\n					Cantarell,\n					'Open Sans',\n					'Helvetica Neue',\n					sans-serif;\n				display: flex;\n				align-items: center;\n				justify-content: center;\n				height: 100vh;\n				margin: 0;\n			}\n\n			.error {\n				display: flex;\n				align-items: center;\n				max-width: 32rem;\n				margin: 0 1rem;\n			}\n\n			.status {\n				font-weight: 200;\n				font-size: 3rem;\n				line-height: 1;\n				position: relative;\n				top: -0.05rem;\n			}\n\n			.message {\n				border-left: 1px solid var(--divider);\n				padding: 0 0 0 1rem;\n				margin: 0 0 0 1rem;\n				min-height: 2.5rem;\n				display: flex;\n				align-items: center;\n			}\n\n			.message h1 {\n				font-weight: 400;\n				font-size: 1em;\n				margin: 0;\n			}\n\n			@media (prefers-color-scheme: dark) {\n				body {\n					--bg: #222;\n					--fg: #ddd;\n					--divider: #666;\n				}\n			}\n		</style>\n	</head>\n	<body>\n		<div class=\"error\">\n			<span class=\"status\">" + status + "</span>\n			<div class=\"message\">\n				<h1>" + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
 	},
-	version_hash: "120ptlp"
+	version_hash: "a37evn"
 };
 async function get_hooks() {
 	let handle;

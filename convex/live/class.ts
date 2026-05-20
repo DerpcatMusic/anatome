@@ -73,38 +73,52 @@ export const create = mutation({
     title: v.string(),
     description: v.string(),
     type: classType,
-    instructorUserId: v.id("users"),
     startsAt: v.number(),
-    endsAt: v.number(),
-    joinOpensAt: v.number(),
-    joinClosesAt: v.number(),
+    durationMinutes: v.number(),
+    joinOpensMinutesBefore: v.number(),
     capacity: v.number(),
     requiredEquipment: equipmentListValidator,
-    creditKind,
-    creditCost: v.number(),
-    status: v.union(v.literal("draft"), v.literal("scheduled")),
   },
   handler: async (ctx, args) => {
-    const actorUserId = await requireUserId(ctx);
-    const actorProfile = await requireAppProfile(ctx, actorUserId);
-    requireRole(actorProfile, ["admin"]);
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireRole(profile, ["instructor", "admin"]);
 
-    const instructorProfile = await requireAppProfile(ctx, args.instructorUserId);
-    requireRole(instructorProfile, ["instructor", "admin"]);
-
-    if (args.capacity < 1) throw new Error("Capacity must be positive");
-    validateClassCreditModel(args.type, args.creditKind, args.creditCost);
-    if (args.startsAt >= args.endsAt)
-      throw new Error("Class start must be before end");
-    if (args.joinOpensAt > args.joinClosesAt)
-      throw new Error("Join window is invalid");
-    if (args.requiredEquipment.length === 0)
-      throw new Error("At least one equipment item is required");
+    if (args.title.trim().length < 3) throw new Error("Class title is too short");
+    if (args.durationMinutes < 15 || args.durationMinutes > 180) {
+      throw new Error("Duration must be between 15 and 180 minutes");
+    }
+    const maxCapacity = args.type === "one_on_one" ? 1 : 12;
+    if (args.capacity < 1 || args.capacity > maxCapacity) {
+      throw new Error(args.type === "one_on_one" ? "1:1 capacity must be 1" : "Capacity must be between 1 and 12");
+    }
+    if (args.requiredEquipment.length === 0) throw new Error("At least one equipment item is required");
+    if (args.joinOpensMinutesBefore < 0 || args.joinOpensMinutesBefore > 60) {
+      throw new Error("Join opens must be between 0 and 60 minutes before start");
+    }
 
     const now = Date.now();
+    const endsAt = args.startsAt + args.durationMinutes * 60 * 1000;
+    const joinOpensAt = args.startsAt - args.joinOpensMinutesBefore * 60 * 1000;
+    const joinClosesAt = endsAt;
+
+    if (args.startsAt <= now - 5 * 60 * 1000) throw new Error("Can only schedule future classes");
+
     return await ctx.db.insert("liveClasses", {
-      ...args,
+      title: args.title.trim(),
+      description: args.description.trim(),
+      type: args.type,
+      instructorUserId: userId,
+      startsAt: args.startsAt,
+      endsAt,
+      joinOpensAt,
+      joinClosesAt,
+      capacity: args.capacity,
+      requiredEquipment: args.requiredEquipment,
+      creditKind: args.type === "one_on_one" ? "oneOnOne" : "live",
+      creditCost: 1,
       seatsTaken: 0,
+      status: "scheduled",
       createdAt: now,
       updatedAt: now,
     });
@@ -375,5 +389,20 @@ export const cancel = mutation({
     }
 
     return args.liveClassId;
+  },
+});
+
+export const listMine = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireRole(profile, ["instructor", "admin"]);
+
+    return await ctx.db
+      .query("liveClasses")
+      .withIndex("by_instructorUserId_and_startsAt", (q) => q.eq("instructorUserId", userId))
+      .order("desc")
+      .take(50);
   },
 });

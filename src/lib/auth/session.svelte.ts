@@ -255,7 +255,7 @@ async function redirectAfterAuth() {
   }
 
   try {
-    const dashboard = await authQuery(api.users.dashboard, {});
+    const dashboard = await authQuery(api.users.dashboard.get, {});
     if (dashboard?.role) setCachedRole(dashboard.role);
     if (dashboard?.needsOnboarding) {
       window.location.assign("/onboarding");

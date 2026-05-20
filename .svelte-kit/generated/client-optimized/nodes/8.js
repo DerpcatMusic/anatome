@@ -1,1 +1,2 @@
-export { default as component } from "../../../../src/routes/(app)/live-room/+page.svelte";
+import * as universal from "../../../../src/routes/(app)/dashboard/+page.ts";
+export { universal };

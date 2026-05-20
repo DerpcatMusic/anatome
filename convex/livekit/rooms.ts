@@ -9,7 +9,7 @@ export const expireDue = internalAction({
   args: {},
   handler: async (ctx): Promise<{ expiredClasses: number; deletedRooms: number }> => {
     const result: { expiredRoomNames: string[] } = await ctx.runMutation(
-      internal.liveClasses.expireDueLiveClasses,
+      internal.live.cron.expire,
       { now: Date.now() },
     );
 

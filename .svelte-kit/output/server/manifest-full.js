@@ -10,7 +10,7 @@ return {
 	assets: new Set(["_redirects","favicon.ico","favicon.svg"]),
 	mimeTypes: {".svg":"image/svg+xml"},
 	_: {
-		client: {start:"_app/immutable/entry/start.C2yyclou.js",app:"_app/immutable/entry/app.DhFbvJ_9.js",imports:["_app/immutable/entry/start.C2yyclou.js","_app/immutable/chunks/C61G5_fo.js","_app/immutable/chunks/Cfx3GPPx.js","_app/immutable/entry/app.DhFbvJ_9.js","_app/immutable/chunks/Cfx3GPPx.js","_app/immutable/chunks/9OMuMABi.js","_app/immutable/chunks/CCi4sbZS.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.HAvO9Js4.js",app:"_app/immutable/entry/app.DGX8FBB5.js",imports:["_app/immutable/entry/start.HAvO9Js4.js","_app/immutable/chunks/DQnJaRO0.js","_app/immutable/chunks/BVopJGLV.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/entry/app.DGX8FBB5.js","_app/immutable/chunks/DFaIazTc.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/DCbV68uA.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
@@ -37,7 +37,19 @@ return {
 			__memo(() => import('./nodes/22.js')),
 			__memo(() => import('./nodes/23.js')),
 			__memo(() => import('./nodes/24.js')),
-			__memo(() => import('./nodes/25.js'))
+			__memo(() => import('./nodes/25.js')),
+			__memo(() => import('./nodes/26.js')),
+			__memo(() => import('./nodes/27.js')),
+			__memo(() => import('./nodes/28.js')),
+			__memo(() => import('./nodes/29.js')),
+			__memo(() => import('./nodes/30.js')),
+			__memo(() => import('./nodes/31.js')),
+			__memo(() => import('./nodes/32.js')),
+			__memo(() => import('./nodes/33.js')),
+			__memo(() => import('./nodes/34.js')),
+			__memo(() => import('./nodes/35.js')),
+			__memo(() => import('./nodes/36.js')),
+			__memo(() => import('./nodes/37.js'))
 		],
 		remotes: {
 			
@@ -47,63 +59,98 @@ return {
 				id: "/",
 				pattern: /^\/$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 4 },
+				page: { layouts: [0,], errors: [1,], leaf: 6 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/calendar",
 				pattern: /^\/calendar\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 5 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 7 },
 				endpoint: null
 			},
 			{
 				id: "/callback",
 				pattern: /^\/callback\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 23 },
+				page: { layouts: [0,], errors: [1,], leaf: 35 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/dashboard",
 				pattern: /^\/dashboard\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 6 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 8 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/i/dashboard",
+				pattern: /^\/i\/dashboard\/?$/,
+				params: [],
+				page: { layouts: [0,2,3,], errors: [1,,,], leaf: 9 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/i/live",
+				pattern: /^\/i\/live\/?$/,
+				params: [],
+				page: { layouts: [0,2,3,], errors: [1,,,], leaf: 10 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/i/one-on-one",
+				pattern: /^\/i\/one-on-one\/?$/,
+				params: [],
+				page: { layouts: [0,2,3,], errors: [1,,,], leaf: 11 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/i/profile",
+				pattern: /^\/i\/profile\/?$/,
+				params: [],
+				page: { layouts: [0,2,3,], errors: [1,,,], leaf: 12 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/i/videos",
+				pattern: /^\/i\/videos\/?$/,
+				params: [],
+				page: { layouts: [0,2,3,], errors: [1,,,], leaf: 13 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/live-room",
 				pattern: /^\/live-room\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 8 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 15 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/live",
 				pattern: /^\/live\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 7 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 14 },
 				endpoint: null
 			},
 			{
 				id: "/onboarding",
 				pattern: /^\/onboarding\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 24 },
+				page: { layouts: [0,], errors: [1,], leaf: 36 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/one-on-one",
 				pattern: /^\/one-on-one\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 9 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 16 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/profile",
 				pattern: /^\/profile\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 10 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 17 },
 				endpoint: null
 			},
 			{
@@ -124,91 +171,126 @@ return {
 				id: "/(app)/studio/videos",
 				pattern: /^\/studio\/videos\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 11 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 18 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/u/calendar",
+				pattern: /^\/u\/calendar\/?$/,
+				params: [],
+				page: { layouts: [0,2,4,], errors: [1,,,], leaf: 19 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/u/dashboard",
+				pattern: /^\/u\/dashboard\/?$/,
+				params: [],
+				page: { layouts: [0,2,4,], errors: [1,,,], leaf: 20 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/u/one-on-one",
+				pattern: /^\/u\/one-on-one\/?$/,
+				params: [],
+				page: { layouts: [0,2,4,], errors: [1,,,], leaf: 21 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/u/profile",
+				pattern: /^\/u\/profile\/?$/,
+				params: [],
+				page: { layouts: [0,2,4,], errors: [1,,,], leaf: 22 },
+				endpoint: null
+			},
+			{
+				id: "/(app)/u/videos",
+				pattern: /^\/u\/videos\/?$/,
+				params: [],
+				page: { layouts: [0,2,4,], errors: [1,,,], leaf: 23 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/videos",
 				pattern: /^\/videos\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 12 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 24 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/watch",
 				pattern: /^\/watch\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 13 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 25 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/אזור-אישי",
 				pattern: /^\/אזור-אישי\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 14 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 26 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/אחד-על-אחד",
 				pattern: /^\/אחד-על-אחד\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 15 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 27 },
 				endpoint: null
 			},
 			{
 				id: "/התאמה",
 				pattern: /^\/התאמה\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 25 },
+				page: { layouts: [0,], errors: [1,], leaf: 37 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/וידאו",
 				pattern: /^\/וידאו\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 16 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 28 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/חדר-לייב",
 				pattern: /^\/חדר-לייב\/?$/,
 				params: [],
-				page: { layouts: [0,3,], errors: [1,,], leaf: 17 },
+				page: { layouts: [0,5,], errors: [1,,], leaf: 29 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/לוח",
 				pattern: /^\/לוח\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 18 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 30 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/סטודיו/וידאו",
 				pattern: /^\/סטודיו\/וידאו\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 19 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 31 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/סטודיו/לייב",
 				pattern: /^\/סטודיו\/לייב\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 20 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 32 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/פרופיל",
 				pattern: /^\/פרופיל\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 21 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 33 },
 				endpoint: null
 			},
 			{
 				id: "/(app)/צפייה",
 				pattern: /^\/צפייה\/?$/,
 				params: [],
-				page: { layouts: [0,2,], errors: [1,,], leaf: 22 },
+				page: { layouts: [0,2,], errors: [1,,], leaf: 34 },
 				endpoint: null
 			}
 		],

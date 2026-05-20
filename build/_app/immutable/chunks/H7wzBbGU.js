@@ -1,1 +1,0 @@
-import{A as e,It as t,Pt as n,V as r,lt as i,o as a,rt as o,y as s,z as c}from"./Cfx3GPPx.js";import"./CCi4sbZS.js";var l=r(`<p><!></p>`);function u(r,u){let d=a(u,`tone`,3,`neutral`);var f=l();e(i(f),()=>u.children??t),n(f),o(()=>s(f,1,`notice notice--${d()}`,`svelte-py96rb`)),c(r,f)}export{u as t};

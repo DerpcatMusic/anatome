@@ -1,16 +1,19 @@
 import "./index-server.js";
 //#region src/lib/i18n/context.ts
 var routes = {
-	dashboard: "/dashboard",
-	customerCalendar: "/calendar",
-	customerOneOnOne: "/one-on-one",
-	customerVideos: "/videos",
+	uDashboard: "/u/dashboard",
+	uCalendar: "/u/calendar",
+	uOneOnOne: "/u/one-on-one",
+	uVideos: "/u/videos",
+	uProfile: "/u/profile",
+	iDashboard: "/i/dashboard",
+	iLive: "/i/live",
+	iVideos: "/i/videos",
+	iOneOnOne: "/i/one-on-one",
+	iProfile: "/i/profile",
 	watch: "/watch",
-	profile: "/profile",
-	onboarding: "/onboarding",
 	liveRoom: "/live-room",
-	studioLive: "/live",
-	studioVideos: "/studio/videos"
+	onboarding: "/onboarding"
 };
 function routePath(key, locale = "he") {
 	return routes[key];

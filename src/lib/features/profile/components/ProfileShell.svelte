@@ -16,7 +16,7 @@
     () => auth.isAuthenticated,
     async (isAuthenticated) => {
       if (!isAuthenticated) return null;
-      return await authQuery(api.users.dashboard, {});
+      return await authQuery(api.users.dashboard.get, {});
     }
   );
 
@@ -24,7 +24,7 @@
     () => auth.isAuthenticated,
     async (isAuthenticated) => {
       if (!isAuthenticated) return null;
-      return await authQuery(api.appProfiles.viewer, {});
+      return await authQuery(api.profiles.viewer.get, {});
     }
   );
 
@@ -119,7 +119,7 @@
     saveError = "";
     saveSuccess = false;
     try {
-      await client.mutation(api.appProfiles.updateInstructorProfile, {
+      await client.mutation(api.profiles.update.instructorProfile, {
         displayName: `${instructorName.trim()} ${instructorSurname.trim()}`.trim(),
         credentials: instructorCredentials.trim(),
         certificateDocument: certificateDataUrl || undefined,

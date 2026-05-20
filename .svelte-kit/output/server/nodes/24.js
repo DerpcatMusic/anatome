@@ -1,10 +1,12 @@
-import * as universal from '../entries/pages/onboarding/_page.js';
+
 
 export const index = 24;
-let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/onboarding/_page.svelte.js')).default;
-export { universal };
-export const universal_id = "src/routes/onboarding/+page.js";
-export const imports = ["_app/immutable/nodes/24.B5ETAHIb.js","_app/immutable/chunks/Cfx3GPPx.js","_app/immutable/chunks/CCi4sbZS.js","_app/immutable/chunks/BSh82o-3.js","_app/immutable/chunks/B764jvJB.js","_app/immutable/chunks/Cncd85Oh.js","_app/immutable/chunks/RDgxbUlx2.js","_app/immutable/chunks/H7wzBbGU.js","_app/immutable/chunks/DkcKPv-A2.js","_app/immutable/chunks/CGeTKPHw.js","_app/immutable/chunks/D_kpTzVF.js","_app/immutable/chunks/D1d6CeqK.js","_app/immutable/chunks/Z6JZHJRj.js","_app/immutable/chunks/BrTCZNw5.js","_app/immutable/chunks/Bwqz-U2V2.js"];
-export const stylesheets = ["_app/immutable/assets/Notice.DLRT_-Qh.css","_app/immutable/assets/OnboardingForm.BxJ28Gsi.css","_app/immutable/assets/OnboardingShell.CBQyazNE.css"];
+export const universal = {
+  "prerender": false,
+  "ssr": false,
+  "load": null
+};
+export const universal_id = "src/routes/(app)/videos/+page.ts";
+export const imports = ["_app/immutable/nodes/24.-bbu1uxD.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/BBuUb5GP.js","_app/immutable/chunks/BVopJGLV.js"];
+export const stylesheets = [];
 export const fonts = [];

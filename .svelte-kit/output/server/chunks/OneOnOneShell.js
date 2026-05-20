@@ -1,5 +1,5 @@
 import { c as ensure_array_like, et as attr, nt as escape_html, o as derived } from "./dev.js";
-import { c as resource, f as useConvexClient, n as getCachedRole, r as initAuth, s as api, t as authQuery } from "./session.svelte.js";
+import { c as resource, f as useConvexClient, p as useQuery, r as initAuth, s as api, t as authQuery } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { t as Select_1 } from "./Select.js";
 import { t as Notice } from "./Notice.js";
@@ -8,7 +8,8 @@ import { t as PageShell } from "./PageShell.js";
 function OneOnOneShell($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const auth = initAuth();
-		const role = derived(() => getCachedRole() ?? "customer");
+		const profileQuery = useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
+		const role = derived(() => profileQuery.data?.role ?? "customer");
 		const isStaff = derived(() => role() === "instructor" || role() === "admin");
 		const range = derived(() => {
 			const from = Date.now();
@@ -19,19 +20,19 @@ function OneOnOneShell($$renderer, $$props) {
 		});
 		const slotsResource = resource(() => auth.isAuthenticated && !isStaff(), async (enabled) => {
 			if (!enabled) return [];
-			return await authQuery(api.customerOneOnOne.listAvailableSlots, range());
+			return await authQuery(api.oneOnOne.customer.listAvailableSlots, range());
 		});
 		const mineResource = resource(() => auth.isAuthenticated && !isStaff(), async (enabled) => {
 			if (!enabled) return [];
-			return await authQuery(api.customerOneOnOne.listMine, {});
+			return await authQuery(api.oneOnOne.customer.listMine, {});
 		});
 		const requestsResource = resource(() => auth.isAuthenticated && isStaff(), async (enabled) => {
 			if (!enabled) return [];
-			return await authQuery(api.instructorOneOnOne.listRequests, {});
+			return await authQuery(api.oneOnOne.instructor.listRequests, {});
 		});
 		const availabilityResource = resource(() => auth.isAuthenticated && isStaff(), async (enabled) => {
 			if (!enabled) return [];
-			return await authQuery(api.instructorOneOnOne.listAvailability, {});
+			return await authQuery(api.oneOnOne.instructor.listAvailability, {});
 		});
 		const dateFormatter = new Intl.DateTimeFormat("he-IL", {
 			weekday: "short",
@@ -84,7 +85,7 @@ function OneOnOneShell($$renderer, $$props) {
 			actionId = String(slot.startsAt);
 			actionError = "";
 			try {
-				await client.mutation(api.customerOneOnOne.requestSlot, {
+				await client.mutation(api.oneOnOne.customer.requestSlot, {
 					...slot,
 					note
 				});
@@ -100,7 +101,7 @@ function OneOnOneShell($$renderer, $$props) {
 			actionId = requestId;
 			actionError = "";
 			try {
-				await client.mutation(api.customerOneOnOne.cancelRequest, { requestId });
+				await client.mutation(api.oneOnOne.customer.cancelRequest, { requestId });
 				await mineResource.refetch();
 			} catch (reason) {
 				actionError = reason instanceof Error ? reason.message : "לא הצלחנו לבטל.";
@@ -112,7 +113,7 @@ function OneOnOneShell($$renderer, $$props) {
 			actionId = requestId;
 			actionError = "";
 			try {
-				await client.mutation(api.instructorOneOnOne.approveRequest, { requestId });
+				await client.mutation(api.oneOnOne.instructor.approveRequest, { requestId });
 				await requestsResource.refetch();
 			} catch (reason) {
 				actionError = reason instanceof Error ? reason.message : "לא הצלחנו לאשר.";
@@ -124,7 +125,7 @@ function OneOnOneShell($$renderer, $$props) {
 			actionId = requestId;
 			actionError = "";
 			try {
-				await client.mutation(api.instructorOneOnOne.rejectRequest, { requestId });
+				await client.mutation(api.oneOnOne.instructor.rejectRequest, { requestId });
 				await requestsResource.refetch();
 			} catch (reason) {
 				actionError = reason instanceof Error ? reason.message : "לא הצלחנו לדחות.";
@@ -136,7 +137,7 @@ function OneOnOneShell($$renderer, $$props) {
 			actionId = "availability";
 			actionError = "";
 			try {
-				await client.mutation(api.instructorOneOnOne.setAvailabilityRule, {
+				await client.mutation(api.oneOnOne.instructor.setAvailabilityRule, {
 					weekday,
 					startMinute: startHour * 60,
 					endMinute: endHour * 60,

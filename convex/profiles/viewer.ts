@@ -1,7 +1,7 @@
-import { mutation } from "../_generated/server";
+import { query } from "../_generated/server";
 import { requireUserId } from "../lib/authz";
 
-export const get = mutation({
+export const get = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);

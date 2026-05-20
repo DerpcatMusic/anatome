@@ -1,5 +1,4 @@
 import { nt as escape_html } from "../../../chunks/dev.js";
-import { n as routePath } from "../../../chunks/context.js";
 import { f as useConvexClient, o as storeTokens, s as api } from "../../../chunks/session.svelte.js";
 //#region src/lib/features/auth/components/CallbackHandler.svelte
 function CallbackHandler($$renderer, $$props) {
@@ -18,7 +17,7 @@ function CallbackHandler($$renderer, $$props) {
 					provider: "email",
 					params: { code }
 				})).tokens ?? null);
-				window.location.assign(routePath("dashboard"));
+				window.location.assign("/u/dashboard");
 			} catch (err) {
 				console.error("Magic link failed:", err);
 				error = "הקוד פג תוקף או כבר נוצל. נסי להתחבר שוב.";

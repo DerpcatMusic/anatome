@@ -6,12 +6,12 @@
   import Notice from "$components/ui/Notice.svelte";
   import Select from "$components/ui/Select.svelte";
 
-  type Request = FunctionReturnType<typeof api.instructorOneOnOne.listRequests>[number];
-  type Rule = FunctionReturnType<typeof api.instructorOneOnOne.listAvailability>[number];
+  type Request = FunctionReturnType<typeof api.oneOnOne.instructor.listRequests>[number];
+  type Rule = FunctionReturnType<typeof api.oneOnOne.instructor.listAvailability>[number];
 
   const client = useConvexClient();
-  const requestsQuery = useQuery(api.instructorOneOnOne.listRequests, {});
-  const availabilityQuery = useQuery(api.instructorOneOnOne.listAvailability, {});
+  const requestsQuery = useQuery(api.oneOnOne.instructor.listRequests, {});
+  const availabilityQuery = useQuery(api.oneOnOne.instructor.listAvailability, {});
 
   const requests = $derived(requestsQuery.data ?? []);
   const rules = $derived(availabilityQuery.data ?? []);
@@ -64,7 +64,7 @@
     action = "availability";
     error = "";
     try {
-      await client.mutation(api.instructorOneOnOne.setAvailabilityRule, {
+      await client.mutation(api.oneOnOne.instructor.setAvailabilityRule, {
         weekday,
         startMinute: minutesFromTime(startTime),
         endMinute: minutesFromTime(endTime),
@@ -83,7 +83,7 @@
     action = rule._id;
     error = "";
     try {
-      await client.mutation(api.instructorOneOnOne.setAvailabilityRule, {
+      await client.mutation(api.oneOnOne.instructor.setAvailabilityRule, {
         ruleId: rule._id,
         weekday: rule.weekday,
         startMinute: rule.startMinute,
@@ -103,7 +103,7 @@
     action = request._id;
     error = "";
     try {
-      await client.mutation(api.instructorOneOnOne.approveRequest, { requestId: request._id });
+      await client.mutation(api.oneOnOne.instructor.approveRequest, { requestId: request._id });
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לאשר בקשה.";
     } finally {
@@ -115,7 +115,7 @@
     action = request._id;
     error = "";
     try {
-      await client.mutation(api.instructorOneOnOne.rejectRequest, { requestId: request._id });
+      await client.mutation(api.oneOnOne.instructor.rejectRequest, { requestId: request._id });
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לדחות בקשה.";
     } finally {

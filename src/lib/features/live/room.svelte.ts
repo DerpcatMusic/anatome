@@ -856,7 +856,7 @@ export class LiveRoom {
     this.status = "checking";
     this.error = "";
     try {
-      await this.client.mutation(api.instructorLive.startLive, { liveClassId });
+      await this.client.mutation(api.live.class.start, { liveClassId });
       await this.loadToken();
       if (this.status as string === "ready") {
         await this.enterRoom(publishAvailableDevices);
@@ -872,7 +872,7 @@ export class LiveRoom {
     const liveClassId = this.getClassId();
     if (liveClassId === null) return;
     try {
-      await this.client.mutation(api.instructorLive.endLive, { liveClassId });
+      await this.client.mutation(api.live.class.end, { liveClassId });
       this.destroy();
       window.location.assign("/i/live");
     } catch (reason) {
@@ -896,7 +896,7 @@ export class LiveRoom {
     this.error = "";
     this.mediaError = "";
     try {
-      const joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+      const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
       this.joinInfo = joinInfo;
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.status = "ready";
