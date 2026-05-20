@@ -1,24 +1,33 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
 
-  let { room }: { room: LiveRoom } = $props();
+  let {
+    previewStream,
+    hasPreviewCamera,
+  }: {
+    previewStream: MediaStream | null;
+    hasPreviewCamera: boolean;
+  } = $props();
+
   const { t } = useI18n();
 
   let videoEl = $state<HTMLVideoElement | null>(null);
 
   // Use video-only stream for preview — never attach audio tracks to prevent echo
   $effect(() => {
-    if (videoEl && room.previewStream) {
-      const videoOnly = new MediaStream(room.previewStream.getVideoTracks());
+    if (videoEl && previewStream) {
+      const videoOnly = new MediaStream(previewStream.getVideoTracks());
       videoEl.srcObject = videoOnly;
       videoEl.muted = true;
+      return () => {
+        if (videoEl) videoEl.srcObject = null;
+      };
     }
   });
 </script>
 
 <section class="preview-panel" aria-label={t.live.preConnect.title()}>
-  {#if room.hasPreviewCamera}
+  {#if hasPreviewCamera}
     <div class="preview-panel__video">
       <video bind:this={videoEl} autoplay playsinline muted></video>
     </div>

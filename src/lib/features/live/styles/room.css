@@ -251,8 +251,8 @@
 .lr-control__arrow {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background: transparent;
   border: none;

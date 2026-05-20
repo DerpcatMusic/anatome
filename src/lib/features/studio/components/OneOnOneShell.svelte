@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from "$components/ui/Button.svelte";
-  import { resource } from "runed";
+  import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
@@ -64,6 +64,8 @@
   let actionId = $state<string | null>(null);
   let actionError = $state("");
   let note = $state("");
+  let noteEl = $state<HTMLTextAreaElement | null>(null);
+  const noteAutosize = new TextareaAutosize({ element: () => noteEl ?? undefined, input: () => note });
   let weekday = $state(0);
   let startHour = $state(9);
   let endHour = $state(12);
@@ -218,7 +220,7 @@
     {#if slotsResource.error}<Notice tone="danger">{slotsResource.error.message}</Notice>{/if}
     <label class="note-field">
       <span>הערה למדריכה</span>
-      <textarea bind:value={note} maxlength="500" rows="3" placeholder="מטרות, מגבלות, או משהו שכדאי לדעת"></textarea>
+      <textarea bind:value={note} bind:this={noteEl} maxlength="500" placeholder="מטרות, מגבלות, או משהו שכדאי לדעת"></textarea>
     </label>
 
     <div class="one-grid">

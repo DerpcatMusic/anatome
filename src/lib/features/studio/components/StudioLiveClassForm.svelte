@@ -7,6 +7,7 @@
   import Slider from "$components/ui/Slider.svelte";
   import FormSection from "$features/app/components/FormSection.svelte";
   import type { Equipment } from "$lib/labels";
+  import { TextareaAutosize } from "runed";
   import { CalendarDate, toCalendarDateTime, parseDate, parseTime } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
 
@@ -41,6 +42,8 @@
 
   let dateValue = $state<DateValue | undefined>(undefined);
   let timeValue = $state("09:00");
+  let descEl = $state<HTMLTextAreaElement | null>(null);
+  const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => description });
 
   // Computed end time display
   const endTimeDisplay = $derived.by(() => {
@@ -66,20 +69,18 @@
     }
   }
 
-  // Sync startsAtLocal → dateValue + timeValue
+  // Initialize from startsAtLocal when it changes externally
+  let previousStartsAtLocal = $state(startsAtLocal);
   $effect(() => {
-    if (!startsAtLocal) return;
-    const [datePart, timePart] = startsAtLocal.split("T");
+    const current = startsAtLocal;
+    if (current === previousStartsAtLocal) return;
+    previousStartsAtLocal = current;
+    if (!current) return;
+    const [datePart, timePart] = current.split("T");
     if (!datePart || !timePart) return;
     try {
-      const parsedDate = parseDate(datePart);
-      if (!dateValue || parsedDate.toString() !== dateValue.toString()) {
-        dateValue = parsedDate;
-      }
-      const trimmedTime = timePart.slice(0, 5);
-      if (timeValue !== trimmedTime) {
-        timeValue = trimmedTime;
-      }
+      dateValue = parseDate(datePart);
+      timeValue = timePart.slice(0, 5);
     } catch {
       // Safe fallback
     }
@@ -90,7 +91,8 @@
   <div class="studio-form-columns">
     <!-- Left Column: Scheduling -->
     <div class="studio-form-column">
-      <FormSection title="תאריך ושעה">
+      <div class="column-fill">
+        <FormSection title="תאריך ושעה">
         <DatePicker label="תאריך" bind:value={dateValue} onchange={updateStartsAtLocal} />
 
         <div class="time-row">
@@ -106,11 +108,13 @@
           <span class="duration-badge">{durationMinutes} דק׳</span>
         </div>
       </FormSection>
+      </div>
     </div>
 
     <!-- Right Column: Settings -->
     <div class="studio-form-column">
-      <FormSection title="הגדרות שיעור">
+      <div class="column-fill">
+        <FormSection title="הגדרות שיעור">
         <RadioGroup class="live-type-switch" bind:value={liveType} options={liveTypeOptions} />
 
         <div class="hb-input-field">
@@ -120,7 +124,7 @@
 
         <div class="hb-input-field">
           <span class="hb-input-field__label">תיאור</span>
-          <textarea class="hb-textarea" bind:value={description} rows="3" maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
+          <textarea class="hb-textarea" bind:value={description} bind:this={descEl} maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
         </div>
 
         <div class="sliders-stack">
@@ -136,6 +140,7 @@
           {/if}
         </div>
       </FormSection>
+      </div>
     </div>
   </div>
 
@@ -170,8 +175,9 @@
     min-width: 0;
   }
 
-  .studio-form-column > :global(.form-section) {
+  .column-fill {
     flex: 1;
+    min-width: 0;
   }
 
   .time-row {
@@ -225,19 +231,6 @@
     flex-shrink: 0;
   }
 
-  :global(.live-type-switch) {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  :global(.live-type-switch .hb-choice) {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-width: 0;
-    padding: var(--space-4);
-  }
 
   .sliders-stack {
     display: flex;

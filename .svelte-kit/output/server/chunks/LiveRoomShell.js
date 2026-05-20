@@ -1,7 +1,7 @@
 import "./index-server.js";
 import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id } from "./dev.js";
 import "./events.js";
-import { f as useConvexClient, n as getCachedRole, r as initAuth, s as api } from "./session.svelte.js";
+import { f as useDebounce, g as useConvexClient, l as ScrollState, n as getCachedRole, r as initAuth, s as api } from "./session.svelte.js";
 import { G as watch, I as boolToTrueOrUndef, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, P as boolToStr, R as getAriaChecked, V as getDataTransitionAttrs, Z as mergeProps, at as boxWith, c as createId, d as isElement, l as noop, lt as simpleBox, p as isFocusVisible, q as Context, z as getDataChecked } from "./arrays.js";
 import { m as PresenceManager, p as Portal } from "./scroll-lock.js";
 import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
@@ -1124,7 +1124,7 @@ var LiveRoom = class {
 	showChat = false;
 	showQualityPanel = false;
 	statsTimer = null;
-	participantDebounceTimer = null;
+	debouncedRefreshParticipants = useDebounce(() => this._refreshParticipants(), 80);
 	expiryTimer = null;
 	clockTimer = null;
 	nowMs = Date.now();
@@ -1186,7 +1186,7 @@ var LiveRoom = class {
 	set audioTiles($$value) {
 		return this.#audioTiles($$value);
 	}
-	#screenShareTiles = derived(() => this.videoTiles.filter((t) => t.source === "screen_share"));
+	#screenShareTiles = derived(() => this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share"));
 	get screenShareTiles() {
 		return this.#screenShareTiles();
 	}
@@ -1200,28 +1200,33 @@ var LiveRoom = class {
 	set hasScreenShare($$value) {
 		return this.#hasScreenShare($$value);
 	}
-	#instructorVideos = derived(() => this.videoTiles.filter((tile) => tile.isInstructor && tile.source !== "screen_share").sort(this.tileSort));
+	#instructorVideos = derived(() => this.mediaTiles.filter((tile) => tile.kind === "video" && tile.isInstructor && tile.source !== "screen_share").sort(this.tileSort));
 	get instructorVideos() {
 		return this.#instructorVideos();
 	}
 	set instructorVideos($$value) {
 		return this.#instructorVideos($$value);
 	}
-	#studentVideos = derived(() => this.videoTiles.filter((tile) => !tile.isInstructor).sort(this.tileSort));
+	#studentVideos = derived(() => this.mediaTiles.filter((tile) => tile.kind === "video" && !tile.isInstructor).sort(this.tileSort));
 	get studentVideos() {
 		return this.#studentVideos();
 	}
 	set studentVideos($$value) {
 		return this.#studentVideos($$value);
 	}
-	#primaryInstructorVideo = derived(() => this.hasScreenShare ? this.screenShareTiles[0] : this.instructorVideos.find((t) => !t.isLocal) ?? this.instructorVideos[0] ?? null);
+	#primaryInstructorVideo = derived(() => {
+		const screenShares = this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share");
+		if (screenShares.length > 0) return screenShares[0];
+		const instructors = this.mediaTiles.filter((t) => t.kind === "video" && t.isInstructor && t.source !== "screen_share").sort(this.tileSort);
+		return instructors.find((t) => !t.isLocal) ?? instructors[0] ?? null;
+	});
 	get primaryInstructorVideo() {
 		return this.#primaryInstructorVideo();
 	}
 	set primaryInstructorVideo($$value) {
 		return this.#primaryInstructorVideo($$value);
 	}
-	#selfVideo = derived(() => this.videoTiles.find((tile) => tile.isLocal && tile.source !== "screen_share") ?? null);
+	#selfVideo = derived(() => this.mediaTiles.find((tile) => tile.kind === "video" && tile.isLocal && tile.source !== "screen_share") ?? null);
 	get selfVideo() {
 		return this.#selfVideo();
 	}
@@ -1406,11 +1411,7 @@ var LiveRoom = class {
 		});
 	}
 	refreshParticipants() {
-		if (this.participantDebounceTimer !== null) window.clearTimeout(this.participantDebounceTimer);
-		this.participantDebounceTimer = window.setTimeout(() => {
-			this._refreshParticipants();
-			this.participantDebounceTimer = null;
-		}, 80);
+		this.debouncedRefreshParticipants();
 	}
 	_refreshParticipants() {
 		if (this._room === null) return;
@@ -2051,10 +2052,10 @@ function PreConnectFrame($$renderer, $$props) {
 //#region src/lib/features/live/components/room/PreConnectPreview.svelte
 function PreConnectPreview($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
+		let { previewStream, hasPreviewCamera } = $$props;
 		const { t } = useI18n();
 		$$renderer.push(`<section class="preview-panel svelte-1tsbpt6"${attr("aria-label", t.live.preConnect.title())}>`);
-		if (room.hasPreviewCamera) {
+		if (hasPreviewCamera) {
 			$$renderer.push("<!--[0-->");
 			$$renderer.push(`<div class="preview-panel__video svelte-1tsbpt6"><video autoplay="" playsinline="" muted="" class="svelte-1tsbpt6"></video></div>`);
 		} else {
@@ -2369,12 +2370,18 @@ function PreConnectOverlay($$renderer, $$props) {
 									$$slots: { default: true }
 								});
 								$$renderer.push(`<!----></div></aside> <div class="entry-console__main svelte-ikmx6e">`);
-								PreConnectPreview($$renderer, { room });
+								PreConnectPreview($$renderer, {
+									previewStream: room.previewStream,
+									hasPreviewCamera: room.hasPreviewCamera
+								});
 								$$renderer.push(`<!----></div></div>`);
 							} else {
 								$$renderer.push("<!--[-1-->");
 								$$renderer.push(`<div class="customer-connect svelte-ikmx6e"><div class="customer-connect__preview svelte-ikmx6e">`);
-								PreConnectPreview($$renderer, { room });
+								PreConnectPreview($$renderer, {
+									previewStream: room.previewStream,
+									hasPreviewCamera: room.hasPreviewCamera
+								});
 								$$renderer.push(`<!----></div> <div class="customer-connect__tools svelte-ikmx6e">`);
 								if (room.videoDevices.length > 1) {
 									$$renderer.push("<!--[0-->");
@@ -2559,21 +2566,11 @@ function Tooltip_1($$renderer, $$props) {
 //#region src/lib/features/live/components/room/LeaveModal.svelte
 function LeaveModal($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room, open = false } = $$props;
-		const backHref = derived(() => room.isInstructorRoom ? "/i/live" : "/u/calendar");
-		function onLeave() {
-			open = false;
-			room.destroy();
-			window.location.href = backHref();
-		}
-		async function onEndLive() {
-			open = false;
-			await room.endLive();
-		}
+		let { isInstructorRoom, open = false, onLeave, onEndLive } = $$props;
 		if (open) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="leave-modal-backdrop svelte-1hgbduj" role="dialog" aria-modal="true" aria-label="יציאה מהחדר"><div class="leave-modal svelte-1hgbduj"><h2 class="svelte-1hgbduj">${escape_html(room.isInstructorRoom ? "סיום שידור" : "יציאה מהחדר")}</h2> <p class="svelte-1hgbduj">${escape_html(room.isInstructorRoom ? "האם לסיים את השידור לכל המשתתפות?" : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח.")}</p> <div class="leave-modal__actions svelte-1hgbduj">`);
-			if (room.isInstructorRoom) {
+			$$renderer.push(`<div class="leave-modal-backdrop svelte-1hgbduj" role="dialog" aria-modal="true" aria-label="יציאה מהחדר"><div class="leave-modal svelte-1hgbduj"><h2 class="svelte-1hgbduj">${escape_html(isInstructorRoom ? "סיום שידור" : "יציאה מהחדר")}</h2> <p class="svelte-1hgbduj">${escape_html(isInstructorRoom ? "האם לסיים את השידור לכל המשתתפות?" : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח.")}</p> <div class="leave-modal__actions svelte-1hgbduj">`);
+			if (isInstructorRoom && onEndLive) {
 				$$renderer.push("<!--[0-->");
 				Button_1($$renderer, {
 					tone: "danger",
@@ -2629,15 +2626,16 @@ function LeaveModal($$renderer, $$props) {
 //#region src/lib/features/live/components/room/RoomHeader.svelte
 function RoomHeader($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
+		let { connectionState, connectionLabel, participantCount, isInstructorRoom, showQualityPanel, showParticipants, onToggleParticipants, onToggleQualityPanel, onLeave, onEndLive } = $$props;
 		const { t } = useI18n();
 		let showLeaveModal = false;
-		derived(() => room.isInstructorRoom ? "/i/live" : "/u/calendar");
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
 			LeaveModal($$renderer, {
-				room,
+				isInstructorRoom,
+				onLeave,
+				onEndLive,
 				get open() {
 					return showLeaveModal;
 				},
@@ -2646,16 +2644,16 @@ function RoomHeader($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----> <header class="lr-header lr-glass"><div class="lr-header__group"><button type="button" class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></button> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": room.connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(room.connectionLabel)}</span></div> `);
+			$$renderer.push(`<!----> <header class="lr-header lr-glass"><div class="lr-header__group"><button type="button" class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></button> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(connectionLabel)}</span></div> `);
 			Tooltip_1($$renderer, {
 				label: t.live.room.participantsTitle(),
 				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(room.participants.length)}</span></button>`);
+					$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(participantCount)}</span></button>`);
 				},
 				$$slots: { default: true }
 			});
 			$$renderer.push(`<!----></div> <div class="lr-header__group">`);
-			if (room.isInstructorRoom) {
+			if (isInstructorRoom) {
 				$$renderer.push("<!--[0-->");
 				Tooltip_1($$renderer, {
 					label: t.live.stats.title(),
@@ -2687,43 +2685,49 @@ function RoomHeader($$renderer, $$props) {
 //#region src/lib/features/live/components/room/VideoStage.svelte
 function VideoStage($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
+		let { isInstructorRoom, videoTiles, screenShareTiles, hasScreenShare, activeSpeakerIdentity, tileSort, primaryInstructorVideo, selfVideo } = $$props;
 		const { t } = useI18n();
 		$$renderer.push(`<main class="lr-stage">`);
-		if (room.isInstructorRoom) {
+		if (isInstructorRoom) {
 			$$renderer.push("<!--[0-->");
-			if (room.hasScreenShare) {
+			if (hasScreenShare) {
 				$$renderer.push("<!--[0-->");
 				$$renderer.push(`<div class="spotlight-layout svelte-1ows5l0"><div class="spotlight-main svelte-1ows5l0"><!--[-->`);
-				const each_array = ensure_array_like(room.screenShareTiles);
+				const each_array = ensure_array_like(screenShareTiles);
 				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 					let tile = each_array[$$index];
 					$$renderer.push(`<figure class="lr-tile"><div class="lr-tile__video"></div> <span class="lr-badge lr-badge--screen">${escape_html(t.live.room.screenShare())}</span> <figcaption class="lr-tile__name">${escape_html(tile.name)}</figcaption></figure>`);
 				}
 				$$renderer.push(`<!--]--></div> <div class="spotlight-strip svelte-1ows5l0"><!--[-->`);
-				const each_array_1 = ensure_array_like(room.videoTiles.filter((t) => t.source !== "screen_share").sort(room.tileSort));
+				const each_array_1 = ensure_array_like(videoTiles.filter((t) => t.source !== "screen_share").sort(tileSort));
 				for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
 					let tile = each_array_1[$$index_1];
 					$$renderer.push(`<figure${attr_class("lr-tile", void 0, {
 						"lr-tile--self": tile.isLocal,
-						"lr-tile--speaking": tile.identity === room.activeSpeakerIdentity
+						"lr-tile--speaking": tile.identity === activeSpeakerIdentity
 					})}><div class="lr-tile__video"></div> <figcaption class="lr-tile__name">${escape_html(tile.name)}</figcaption></figure>`);
 				}
 				$$renderer.push(`<!--]--></div></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="lr-grid"${attr_style(`--grid-cols: ${stringify(room.gridCols())}`)}>`);
-				if (room.videoTiles.length === 0) {
+				$$renderer.push(`<div class="lr-grid"${attr_style(`--grid-cols: ${stringify((() => {
+					const count = videoTiles.length;
+					if (count <= 1) return 1;
+					if (count <= 4) return 2;
+					if (count <= 9) return 3;
+					return 4;
+				})())}`)}>`);
+				if (videoTiles.length === 0) {
 					$$renderer.push("<!--[0-->");
 					$$renderer.push(`<div class="lr-stage__empty">${escape_html(t.live.room.waitingForCameras())}</div>`);
 				} else $$renderer.push("<!--[-1-->");
 				$$renderer.push(`<!--]--> <!--[-->`);
-				const each_array_2 = ensure_array_like(room.videoTiles.sort(room.tileSort));
+				const each_array_2 = ensure_array_like(videoTiles.sort(tileSort));
 				for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
 					let tile = each_array_2[$$index_2];
 					$$renderer.push(`<figure${attr_class("lr-tile", void 0, {
 						"lr-tile--self": tile.isLocal,
-						"lr-tile--speaking": tile.identity === room.activeSpeakerIdentity
+						"lr-tile--speaking": tile.identity === activeSpeakerIdentity
 					})}><div class="lr-tile__video"></div> `);
 					if (tile.source === "screen_share") {
 						$$renderer.push("<!--[0-->");
@@ -2737,22 +2741,22 @@ function VideoStage($$renderer, $$props) {
 		} else {
 			$$renderer.push("<!--[-1-->");
 			$$renderer.push(`<div class="student-stage svelte-1ows5l0">`);
-			if (room.primaryInstructorVideo) {
+			if (primaryInstructorVideo) {
 				$$renderer.push("<!--[0-->");
 				$$renderer.push(`<figure class="student-main svelte-1ows5l0"><div class="lr-tile__video"></div> `);
-				if (room.primaryInstructorVideo.source === "screen_share") {
+				if (primaryInstructorVideo.source === "screen_share") {
 					$$renderer.push("<!--[0-->");
 					$$renderer.push(`<span class="lr-badge lr-badge--screen">${escape_html(t.live.room.screenShare())}</span>`);
 				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> <figcaption class="lr-tile__name">${escape_html(room.primaryInstructorVideo.name)}</figcaption></figure>`);
+				$$renderer.push(`<!--]--> <figcaption class="lr-tile__name">${escape_html(primaryInstructorVideo.name)}</figcaption></figure>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
 				$$renderer.push(`<div class="lr-stage__empty">${escape_html(t.live.room.waitingForInstructor())}</div>`);
 			}
 			$$renderer.push(`<!--]--> `);
-			if (room.selfVideo) {
+			if (selfVideo) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<figure class="student-pip svelte-1ows5l0"><div class="lr-tile__video"></div> <figcaption class="lr-tile__name">${escape_html(room.selfVideo.name)}</figcaption></figure>`);
+				$$renderer.push(`<figure class="student-pip svelte-1ows5l0"><div class="lr-tile__video"></div> <figcaption class="lr-tile__name">${escape_html(selfVideo.name)}</figcaption></figure>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--></div>`);
 		}
@@ -2763,16 +2767,16 @@ function VideoStage($$renderer, $$props) {
 //#region src/lib/features/live/components/room/ParticipantSidebar.svelte
 function ParticipantSidebar($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
+		let { open, participants, onClose } = $$props;
 		const { t } = useI18n();
-		if (room.showParticipants) {
+		if (open) {
 			$$renderer.push("<!--[0-->");
 			$$renderer.push(`<aside class="lr-panel lr-glass lr-panel--participants"${attr("aria-label", t.live.room.participantsTitle())}><div class="lr-panel__header"><h3>${escape_html(t.live.room.participantsTitle())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> `);
 			ScrollArea_1($$renderer, {
 				class: "lr-panel__scroll",
 				children: ($$renderer) => {
 					$$renderer.push(`<div class="lr-participant-list"><!--[-->`);
-					const each_array = ensure_array_like(room.participants);
+					const each_array = ensure_array_like(participants);
 					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 						let p = each_array[$$index];
 						$$renderer.push(`<div${attr_class("lr-participant", void 0, {
@@ -2809,17 +2813,20 @@ function ParticipantSidebar($$renderer, $$props) {
 //#region src/lib/features/live/components/room/RoomChat.svelte
 function RoomChat($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
+		let { open, messages, draft = "", onSend, onClose } = $$props;
 		const { t } = useI18n();
-		if (room.showChat) {
+		let scrollEl = null;
+		const scroll = new ScrollState({ element: () => scrollEl });
+		const showScrollButton = derived(() => !scroll.arrived.bottom);
+		if (open) {
 			$$renderer.push("<!--[0-->");
 			$$renderer.push(`<aside class="lr-chat lr-glass svelte-1ss84dm"${attr("aria-label", t.live.room.chatTitle())}><div class="lr-panel__header"><h3>${escape_html(t.live.room.chatTitle())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> <div class="lr-chat__scroll svelte-1ss84dm"><div class="lr-chat__list">`);
-			if (room.chatMessages.length === 0) {
+			if (messages.length === 0) {
 				$$renderer.push("<!--[0-->");
 				$$renderer.push(`<div class="lr-chat__empty">${escape_html(t.live.room.chatEmpty())}</div>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> <!--[-->`);
-			const each_array = ensure_array_like(room.chatMessages);
+			const each_array = ensure_array_like(messages);
 			for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 				let message = each_array[$$index];
 				$$renderer.push(`<article${attr_class("lr-chat-message", void 0, { "lr-chat-message--local": message.isLocal })}><div class="lr-chat-message__meta"><span>${escape_html(message.name)}</span> <time>${escape_html(new Intl.DateTimeFormat("he-IL", {
@@ -2828,13 +2835,16 @@ function RoomChat($$renderer, $$props) {
 				}).format(new Date(message.createdAt)))}</time></div> <p class="lr-chat-message__text">${escape_html(message.text)}</p></article>`);
 			}
 			$$renderer.push(`<!--]--></div></div> `);
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <form class="lr-chat__form"><input class="lr-chat__input"${attr("value", room.chatDraft)} maxlength="500"${attr("placeholder", t.live.room.chatPlaceholder())}${attr("aria-label", t.live.room.chatPlaceholder())}/> `);
+			if (showScrollButton()) {
+				$$renderer.push("<!--[0-->");
+				$$renderer.push(`<button type="button" class="lr-chat__scroll-btn svelte-1ss84dm"${attr("aria-label", t.live.room.newMessages())}><span class="material-symbols-rounded">arrow_downward</span></button>`);
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <form class="lr-chat__form"><input class="lr-chat__input"${attr("value", draft)} maxlength="500"${attr("placeholder", t.live.room.chatPlaceholder())}${attr("aria-label", t.live.room.chatPlaceholder())}/> `);
 			Button_1($$renderer, {
 				type: "submit",
 				tone: "ink",
 				size: "sm",
-				disabled: !room.chatDraft.trim(),
+				disabled: !draft.trim(),
 				children: ($$renderer) => {
 					$$renderer.push(`<!---->${escape_html(t.live.room.chatSend())}`);
 				},
@@ -2843,6 +2853,7 @@ function RoomChat($$renderer, $$props) {
 			$$renderer.push(`<!----></form></aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { draft });
 	});
 }
 //#endregion
@@ -3155,82 +3166,131 @@ function QualityPanel($$renderer, $$props) {
 function LiveRoomShell($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const room = new LiveRoom(useConvexClient());
-		if (room.auth.isLoading || room.status === "checking") {
-			$$renderer.push("<!--[0-->");
-			PreConnectOverlay($$renderer, { room });
-		} else if (room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error") {
-			$$renderer.push("<!--[1-->");
-			PreConnectOverlay($$renderer, { room });
-		} else if (room.connectionState === "disconnected") {
-			$$renderer.push("<!--[2-->");
-			$$renderer.push(`<div class="disconnect-overlay svelte-8bmq7k"><div class="disconnect-card svelte-8bmq7k"><span class="material-symbols-rounded svelte-8bmq7k" aria-hidden="true">wifi_off</span> <h2 class="svelte-8bmq7k">החיבור נותק</h2> <p class="svelte-8bmq7k">ניתן לנסות להתחבר שוב או לצאת מהחדר.</p> <div class="disconnect-actions svelte-8bmq7k">`);
-			Button_1($$renderer, {
-				tone: "ink",
-				size: "md",
-				onclick: () => room.reconnect(),
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->התחברות מחדש`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----> `);
-			Button_1($$renderer, {
-				tone: "ghost",
-				size: "sm",
-				onclick: () => {
-					room.destroy();
-					window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
-				},
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->יציאה`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div></div></div>`);
-		} else if (room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
-			$$renderer.push("<!--[3-->");
-			PreConnectOverlay($$renderer, { room });
-		} else if (room.connectionState !== "idle") {
-			$$renderer.push("<!--[4-->");
-			if (Tooltip_provider) {
-				$$renderer.push("<!--[-->");
-				Tooltip_provider($$renderer, {
-					delayDuration: 160,
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			if (room.auth.isLoading || room.status === "checking") {
+				$$renderer.push("<!--[0-->");
+				PreConnectOverlay($$renderer, { room });
+			} else if (room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error") {
+				$$renderer.push("<!--[1-->");
+				PreConnectOverlay($$renderer, { room });
+			} else if (room.connectionState === "disconnected") {
+				$$renderer.push("<!--[2-->");
+				$$renderer.push(`<div class="disconnect-overlay svelte-8bmq7k"><div class="disconnect-card svelte-8bmq7k"><span class="material-symbols-rounded svelte-8bmq7k" aria-hidden="true">wifi_off</span> <h2 class="svelte-8bmq7k">החיבור נותק</h2> <p class="svelte-8bmq7k">ניתן לנסות להתחבר שוב או לצאת מהחדר.</p> <div class="disconnect-actions svelte-8bmq7k">`);
+				Button_1($$renderer, {
+					tone: "ink",
+					size: "md",
+					onclick: () => room.reconnect(),
 					children: ($$renderer) => {
-						$$renderer.push(`<div class="lr-room">`);
-						RoomHeader($$renderer, { room });
-						$$renderer.push(`<!----> <div class="lr-room__body">`);
-						VideoStage($$renderer, { room });
-						$$renderer.push(`<!----> `);
-						ParticipantSidebar($$renderer, { room });
-						$$renderer.push(`<!----> `);
-						RoomChat($$renderer, { room });
-						$$renderer.push(`<!----></div> `);
-						if (room.mediaError) {
-							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<div class="lr-media-error" role="alert">${escape_html(room.mediaError)}</div>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--> `);
-						ControlBar($$renderer, { room });
-						$$renderer.push(`<!----> `);
-						QualityPanel($$renderer, { room });
-						$$renderer.push(`<!----> <div class="lr-audio-sink" aria-hidden="true"><!--[-->`);
-						const each_array = ensure_array_like(room.audioTiles);
-						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-							each_array[$$index];
-							$$renderer.push(`<div></div>`);
-						}
-						$$renderer.push(`<!--]--></div></div>`);
+						$$renderer.push(`<!---->התחברות מחדש`);
 					},
 					$$slots: { default: true }
 				});
-				$$renderer.push("<!--]-->");
-			} else {
-				$$renderer.push("<!--[!-->");
-				$$renderer.push("<!--]-->");
-			}
-		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]-->`);
+				$$renderer.push(`<!----> `);
+				Button_1($$renderer, {
+					tone: "ghost",
+					size: "sm",
+					onclick: () => {
+						room.destroy();
+						window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
+					},
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->יציאה`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----></div></div></div>`);
+			} else if (room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
+				$$renderer.push("<!--[3-->");
+				PreConnectOverlay($$renderer, { room });
+			} else if (room.connectionState !== "idle") {
+				$$renderer.push("<!--[4-->");
+				if (Tooltip_provider) {
+					$$renderer.push("<!--[-->");
+					Tooltip_provider($$renderer, {
+						delayDuration: 160,
+						children: ($$renderer) => {
+							$$renderer.push(`<div class="lr-room">`);
+							RoomHeader($$renderer, {
+								connectionState: room.connectionState,
+								connectionLabel: room.connectionLabel,
+								participantCount: room.participants.length,
+								isInstructorRoom: room.isInstructorRoom,
+								showQualityPanel: room.showQualityPanel,
+								showParticipants: room.showParticipants,
+								onToggleParticipants: () => room.showParticipants = !room.showParticipants,
+								onToggleQualityPanel: () => room.showQualityPanel = !room.showQualityPanel,
+								onLeave: () => {
+									room.destroy();
+									window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
+								},
+								onEndLive: room.isInstructorRoom ? () => room.endLive() : void 0
+							});
+							$$renderer.push(`<!----> <div class="lr-room__body">`);
+							VideoStage($$renderer, {
+								isInstructorRoom: room.isInstructorRoom,
+								videoTiles: room.videoTiles,
+								screenShareTiles: room.screenShareTiles,
+								hasScreenShare: room.hasScreenShare,
+								activeSpeakerIdentity: room.activeSpeakerIdentity,
+								tileSort: room.tileSort,
+								primaryInstructorVideo: room.primaryInstructorVideo,
+								selfVideo: room.selfVideo
+							});
+							$$renderer.push(`<!----> `);
+							ParticipantSidebar($$renderer, {
+								open: room.showParticipants,
+								participants: room.participants,
+								onClose: () => room.showParticipants = false
+							});
+							$$renderer.push(`<!----> `);
+							RoomChat($$renderer, {
+								open: room.showChat,
+								messages: room.chatMessages,
+								onSend: () => room.sendChatMessage(),
+								onClose: () => room.showChat = false,
+								get draft() {
+									return room.chatDraft;
+								},
+								set draft($$value) {
+									room.chatDraft = $$value;
+									$$settled = false;
+								}
+							});
+							$$renderer.push(`<!----></div> `);
+							if (room.mediaError) {
+								$$renderer.push("<!--[0-->");
+								$$renderer.push(`<div class="lr-media-error" role="alert">${escape_html(room.mediaError)}</div>`);
+							} else $$renderer.push("<!--[-1-->");
+							$$renderer.push(`<!--]--> `);
+							ControlBar($$renderer, { room });
+							$$renderer.push(`<!----> `);
+							QualityPanel($$renderer, { room });
+							$$renderer.push(`<!----> <div class="lr-audio-sink" aria-hidden="true"><!--[-->`);
+							const each_array = ensure_array_like(room.audioTiles);
+							for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+								each_array[$$index];
+								$$renderer.push(`<div></div>`);
+							}
+							$$renderer.push(`<!--]--></div></div>`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]-->`);
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 	});
 }
 //#endregion

@@ -2,19 +2,43 @@
   import { useI18n } from "$lib/i18n/runes.svelte";
   import Tooltip from "$components/ui/Tooltip.svelte";
   import LeaveModal from "./LeaveModal.svelte";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
+  import type { ConnectionState } from "$lib/features/live/types";
 
-  let { room }: { room: LiveRoom } = $props();
+  let {
+    connectionState,
+    connectionLabel,
+    participantCount,
+    isInstructorRoom,
+    showQualityPanel,
+    showParticipants,
+    onToggleParticipants,
+    onToggleQualityPanel,
+    onLeave,
+    onEndLive,
+  }: {
+    connectionState: ConnectionState;
+    connectionLabel: string;
+    participantCount: number;
+    isInstructorRoom: boolean;
+    showQualityPanel: boolean;
+    showParticipants: boolean;
+    onToggleParticipants: () => void;
+    onToggleQualityPanel: () => void;
+    onLeave: () => void;
+    onEndLive?: () => void;
+  } = $props();
+
   const { t } = useI18n();
 
   let showLeaveModal = $state(false);
-
-  const backHref = $derived(
-    room.isInstructorRoom ? "/i/live" : "/u/calendar"
-  );
 </script>
 
-<LeaveModal {room} bind:open={showLeaveModal} />
+<LeaveModal
+  {isInstructorRoom}
+  bind:open={showLeaveModal}
+  {onLeave}
+  {onEndLive}
+/>
 
 <header class="lr-header lr-glass">
   <div class="lr-header__group">
@@ -28,29 +52,29 @@
     </button>
     <div class="lr-header__divider"></div>
     <div class="lr-header__status">
-      <span class="lr-header__status-dot" class:lr-header__status-dot--on={room.connectionState === "connected"}></span>
-      <span class="lr-header__status-label">{room.connectionLabel}</span>
+      <span class="lr-header__status-dot" class:lr-header__status-dot--on={connectionState === "connected"}></span>
+      <span class="lr-header__status-label">{connectionLabel}</span>
     </div>
     <Tooltip label={t.live.room.participantsTitle()}>
       <button
         type="button"
         class="lr-header__pill"
-        onclick={() => room.showParticipants = !room.showParticipants}
+        onclick={onToggleParticipants}
         aria-label={t.live.room.participantsTitle()}
       >
         <span class="material-symbols-rounded" aria-hidden="true">people</span>
-        <span>{room.participants.length}</span>
+        <span>{participantCount}</span>
       </button>
     </Tooltip>
   </div>
 
   <div class="lr-header__group">
-    {#if room.isInstructorRoom}
+    {#if isInstructorRoom}
       <Tooltip label={t.live.stats.title()}>
         <button
           type="button"
           class="hb-button hb-button--icon"
-          onclick={() => room.showQualityPanel = !room.showQualityPanel}
+          onclick={onToggleQualityPanel}
           aria-label={t.live.stats.title()}
         >
           <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>

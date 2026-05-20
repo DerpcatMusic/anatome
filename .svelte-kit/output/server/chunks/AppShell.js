@@ -1,6 +1,6 @@
 import { et as attr, n as attr_class, nt as escape_html, o as derived } from "./dev.js";
 import { t as liveRoomHref } from "./context.js";
-import { a as signOut, p as useQuery, r as initAuth, s as api } from "./session.svelte.js";
+import { _ as useQuery, a as signOut, r as initAuth, s as api } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { t as useI18n } from "./runes.svelte.js";
 import { t as PageShell } from "./PageShell.js";

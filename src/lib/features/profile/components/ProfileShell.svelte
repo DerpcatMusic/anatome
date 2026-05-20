@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from "$components/ui/Button.svelte";
-  import { resource } from "runed";
+  import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
   import { useConvexClient } from "convex-svelte";
@@ -36,6 +36,8 @@
   let instructorName = $state("");
   let instructorSurname = $state("");
   let instructorCredentials = $state("");
+  let credentialsEl = $state<HTMLTextAreaElement | null>(null);
+  const credentialsAutosize = new TextareaAutosize({ element: () => credentialsEl ?? undefined, input: () => instructorCredentials });
   let certificateFile = $state<File | null>(null);
   let certificateDataUrl = $state("");
   let insuranceFile = $state<File | null>(null);
@@ -181,7 +183,7 @@
         <h3>הכשרות וביטוח</h3>
         <label class="field">
           <span class="field__label">תיאור הכשרות</span>
-          <textarea bind:value={instructorCredentials} rows="3" placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..."></textarea>
+          <textarea bind:value={instructorCredentials} bind:this={credentialsEl} placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..."></textarea>
         </label>
       </section>
 

@@ -1,4 +1,4 @@
-import "./index-server.js";
+import { r as tick } from "./index-server.js";
 import { U as snapshot, o as derived, xt as setContext, yt as getContext } from "./dev.js";
 import { r as on } from "./events.js";
 import { ConvexClient, ConvexHttpClient } from "convex/browser";
@@ -171,6 +171,141 @@ var ActiveElement = class {
 };
 new ActiveElement();
 //#endregion
+//#region node_modules/runed/dist/internal/utils/is.js
+function isFunction(value) {
+	return typeof value === "function";
+}
+//#endregion
+//#region node_modules/runed/dist/utilities/extract/extract.svelte.js
+function extract(value, defaultValue) {
+	if (isFunction(value)) {
+		const gotten = value();
+		if (gotten === void 0) return defaultValue;
+		return gotten;
+	}
+	if (value === void 0) return defaultValue;
+	return value;
+}
+//#endregion
+//#region node_modules/runed/dist/utilities/animation-frames/animation-frames.svelte.js
+var AnimationFrames = class {
+	#callback;
+	#fpsLimitOption = 0;
+	#fpsLimit = derived(() => extract(this.#fpsLimitOption) ?? 0);
+	#previousTimestamp = null;
+	#frame = null;
+	#fps = 0;
+	#running = false;
+	#window = defaultWindow;
+	constructor(callback, options = {}) {
+		if (options.window) this.#window = options.window;
+		this.#fpsLimitOption = options.fpsLimit;
+		this.#callback = callback;
+		this.start = this.start.bind(this);
+		this.stop = this.stop.bind(this);
+		this.toggle = this.toggle.bind(this);
+	}
+	#loop(timestamp) {
+		if (!this.#running || !this.#window) return;
+		if (this.#previousTimestamp === null) this.#previousTimestamp = timestamp;
+		const delta = timestamp - this.#previousTimestamp;
+		const fps = 1e3 / delta;
+		if (this.#fpsLimit() && fps > this.#fpsLimit()) {
+			this.#frame = this.#window.requestAnimationFrame(this.#loop.bind(this));
+			return;
+		}
+		this.#fps = fps;
+		this.#previousTimestamp = timestamp;
+		this.#callback({
+			delta,
+			timestamp
+		});
+		this.#frame = this.#window.requestAnimationFrame(this.#loop.bind(this));
+	}
+	start() {
+		if (!this.#window) return;
+		this.#running = true;
+		this.#previousTimestamp = 0;
+		this.#frame = this.#window.requestAnimationFrame(this.#loop.bind(this));
+	}
+	stop() {
+		if (!this.#frame || !this.#window) return;
+		this.#running = false;
+		this.#window.cancelAnimationFrame(this.#frame);
+		this.#frame = null;
+	}
+	toggle() {
+		this.#running ? this.stop() : this.start();
+	}
+	get fps() {
+		return !this.#running ? 0 : this.#fps;
+	}
+	get running() {
+		return this.#running;
+	}
+};
+//#endregion
+//#region node_modules/runed/dist/utilities/use-debounce/use-debounce.svelte.js
+function useDebounce(callback, wait) {
+	let context = null;
+	const wait$ = derived(() => extract(wait, 250));
+	function debounced(...args) {
+		if (context) {
+			if (context.timeout) clearTimeout(context.timeout);
+		} else {
+			let resolve;
+			let reject;
+			context = {
+				timeout: null,
+				runner: null,
+				promise: new Promise((res, rej) => {
+					resolve = res;
+					reject = rej;
+				}),
+				resolve,
+				reject
+			};
+		}
+		context.runner = async () => {
+			if (!context) return;
+			const ctx = context;
+			context = null;
+			try {
+				ctx.resolve(await callback.apply(this, args));
+			} catch (error) {
+				ctx.reject(error);
+			}
+		};
+		context.timeout = setTimeout(context.runner, wait$());
+		return context.promise;
+	}
+	debounced.cancel = async () => {
+		if (!context || context.timeout === null) {
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			if (!context || context.timeout === null) return;
+		}
+		clearTimeout(context.timeout);
+		context.reject("Cancelled");
+		context = null;
+	};
+	debounced.runScheduledNow = async () => {
+		if (!context || !context.timeout) {
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			if (!context || !context.timeout) return;
+		}
+		clearTimeout(context.timeout);
+		context.timeout = null;
+		await context.runner?.();
+	};
+	Object.defineProperty(debounced, "pending", {
+		enumerable: true,
+		get() {
+			return !!context?.timeout;
+		}
+	});
+	return debounced;
+}
+//#endregion
 //#region node_modules/runed/dist/utilities/watch/watch.svelte.js
 function runWatcher(sources, flush, effect, options = {}) {
 	const { lazy = false } = options;
@@ -185,6 +320,23 @@ watch.pre = watchPre;
 function watchOnce(source, effect) {}
 function watchOncePre(source, effect) {}
 watchOnce.pre = watchOncePre;
+//#endregion
+//#region node_modules/runed/dist/internal/utils/function.js
+function noop() {}
+//#endregion
+//#region node_modules/runed/dist/utilities/use-resize-observer/use-resize-observer.svelte.js
+function useResizeObserver(target, callback, options = {}) {
+	const { window = defaultWindow } = options;
+	derived(() => {
+		const value = extract(target);
+		return new Set(value ? Array.isArray(value) ? value : [value] : []);
+	});
+	const stop = () => {};
+	return { stop };
+}
+//#endregion
+//#region node_modules/runed/dist/utilities/use-event-listener/use-event-listener.svelte.js
+function useEventListener(_target, _events, handler, options) {}
 //#endregion
 //#region node_modules/runed/dist/utilities/persisted-state/persisted-state.svelte.js
 function getStorage(storageType, window) {
@@ -463,6 +615,324 @@ function resourcePre(source, fetcher, options) {
 }
 resource.pre = resourcePre;
 //#endregion
+//#region node_modules/runed/dist/utilities/scroll-state/scroll-state.svelte.js
+var ARRIVED_STATE_THRESHOLD_PIXELS = 1;
+var ScrollState = class {
+	#options;
+	#element = derived(() => extract(this.#options.element));
+	get element() {
+		return this.#element();
+	}
+	set element($$value) {
+		return this.#element($$value);
+	}
+	#idle = derived(() => extract(this.#options?.idle, 200));
+	get idle() {
+		return this.#idle();
+	}
+	set idle($$value) {
+		return this.#idle($$value);
+	}
+	#offset = derived(() => extract(this.#options.offset, {
+		left: 0,
+		right: 0,
+		top: 0,
+		bottom: 0
+	}));
+	get offset() {
+		return this.#offset();
+	}
+	set offset($$value) {
+		return this.#offset($$value);
+	}
+	#onScroll = derived(() => this.#options.onScroll ?? noop);
+	get onScroll() {
+		return this.#onScroll();
+	}
+	set onScroll($$value) {
+		return this.#onScroll($$value);
+	}
+	#onStop = derived(() => this.#options.onStop ?? noop);
+	get onStop() {
+		return this.#onStop();
+	}
+	set onStop($$value) {
+		return this.#onStop($$value);
+	}
+	#eventListenerOptions = derived(() => this.#options.eventListenerOptions ?? {
+		capture: false,
+		passive: true
+	});
+	get eventListenerOptions() {
+		return this.#eventListenerOptions();
+	}
+	set eventListenerOptions($$value) {
+		return this.#eventListenerOptions($$value);
+	}
+	#behavior = derived(() => extract(this.#options.behavior, "auto"));
+	get behavior() {
+		return this.#behavior();
+	}
+	set behavior($$value) {
+		return this.#behavior($$value);
+	}
+	#onError = derived(() => this.#options.onError ?? ((e) => {
+		console.error(e);
+	}));
+	get onError() {
+		return this.#onError();
+	}
+	set onError($$value) {
+		return this.#onError($$value);
+	}
+	internalX = 0;
+	internalY = 0;
+	#x = derived(() => this.internalX);
+	get x() {
+		return this.#x();
+	}
+	set x(v) {
+		this.scrollTo(v, void 0);
+	}
+	#y = derived(() => this.internalY);
+	get y() {
+		return this.#y();
+	}
+	set y(v) {
+		this.scrollTo(void 0, v);
+	}
+	isScrolling = false;
+	arrived = {
+		left: true,
+		right: false,
+		top: true,
+		bottom: false
+	};
+	directions = {
+		left: false,
+		right: false,
+		top: false,
+		bottom: false
+	};
+	progress = {
+		x: 0,
+		y: 0
+	};
+	constructor(options) {
+		this.#options = options;
+		this.#onScrollHandler, this.eventListenerOptions;
+		this.eventListenerOptions;
+		new AnimationFrames(() => this.setArrivedState());
+	}
+	/**
+	* Updates direction and edge arrival states based on the current scroll position.
+	* Takes into account writing mode, flex direction, and RTL layouts.
+	*/
+	setArrivedState = () => {
+		if (!window || !this.element) return;
+		const el = this.element?.document?.documentElement || this.element?.documentElement || this.element;
+		const { display, flexDirection, direction } = getComputedStyle(el);
+		const directionMultiplier = direction === "rtl" ? -1 : 1;
+		const scrollLeft = el.scrollLeft;
+		if (scrollLeft !== this.internalX) {
+			this.directions.left = scrollLeft < this.internalX;
+			this.directions.right = scrollLeft > this.internalX;
+		}
+		const left = scrollLeft * directionMultiplier <= (this.offset.left || 0);
+		const right = scrollLeft * directionMultiplier + el.clientWidth >= el.scrollWidth - (this.offset.right || 0) - ARRIVED_STATE_THRESHOLD_PIXELS;
+		if (display === "flex" && flexDirection === "row-reverse") {
+			this.arrived.left = right;
+			this.arrived.right = left;
+		} else {
+			this.arrived.left = left;
+			this.arrived.right = right;
+		}
+		this.internalX = scrollLeft;
+		let scrollTop = el.scrollTop;
+		if (this.element === window.document && !scrollTop) scrollTop = window.document.body.scrollTop;
+		if (scrollTop !== this.internalY) {
+			this.directions.top = scrollTop < this.internalY;
+			this.directions.bottom = scrollTop > this.internalY;
+		}
+		const top = scrollTop <= (this.offset.top || 0);
+		const bottom = scrollTop + el.clientHeight >= el.scrollHeight - (this.offset.bottom || 0) - ARRIVED_STATE_THRESHOLD_PIXELS;
+		/**
+		* reverse columns and rows behave exactly the other way around,
+		* bottom is treated as top and top is treated as the negative version of bottom
+		*/
+		if (display === "flex" && flexDirection === "column-reverse") {
+			this.arrived.top = bottom;
+			this.arrived.bottom = top;
+		} else {
+			this.arrived.top = top;
+			this.arrived.bottom = bottom;
+		}
+		const height = el.scrollHeight - (this.offset.bottom || 0);
+		this.progress.y = scrollTop / (height - el.clientHeight) * 100;
+		const width = el.scrollWidth - (this.offset.left || 0);
+		this.progress.x = Math.abs(scrollLeft / (width - el.clientWidth) * 100);
+		this.internalY = scrollTop;
+	};
+	#onScrollHandler = (e) => {
+		if (!window) return;
+		this.setArrivedState();
+		this.isScrolling = true;
+		this.onScrollEndDebounced(e);
+		this.onScroll(e);
+	};
+	/**
+	* Programmatically scroll to a specific position.
+	*/
+	scrollTo(x, y) {
+		if (!window) return;
+		(this.element instanceof Document ? window.document.body : this.element)?.scrollTo({
+			top: y ?? this.y,
+			left: x ?? this.x,
+			behavior: this.behavior
+		});
+		const scrollContainer = this.element?.document?.documentElement || this.element?.documentElement || this.element;
+		if (x != null) this.internalX = scrollContainer.scrollLeft;
+		if (y != null) this.internalY = scrollContainer.scrollTop;
+	}
+	/**
+	* Scrolls to the top of the element.
+	*/
+	scrollToTop() {
+		this.scrollTo(void 0, 0);
+	}
+	/**
+	* Scrolls to the bottom of the element.
+	*/
+	scrollToBottom() {
+		if (!window) return;
+		const scrollContainer = this.element?.document?.documentElement || this.element?.documentElement || this.element;
+		if (!scrollContainer) return;
+		this.scrollTo(void 0, scrollContainer.scrollHeight);
+	}
+	onScrollEnd = (e) => {
+		if (!this.isScrolling) return;
+		this.isScrolling = false;
+		this.directions.left = false;
+		this.directions.right = false;
+		this.directions.top = false;
+		this.directions.bottom = false;
+		this.onStop(e);
+	};
+	onScrollEndDebounced = useDebounce(this.onScrollEnd, () => this.idle);
+};
+//#endregion
+//#region node_modules/runed/dist/utilities/textarea-autosize/textarea-autosize.svelte.js
+var stylesToCopy = [
+	"box-sizing",
+	"width",
+	"padding-top",
+	"padding-right",
+	"padding-bottom",
+	"padding-left",
+	"border-top-width",
+	"border-right-width",
+	"border-bottom-width",
+	"border-left-width",
+	"font-family",
+	"font-size",
+	"font-weight",
+	"font-style",
+	"letter-spacing",
+	"text-indent",
+	"text-transform",
+	"line-height",
+	"word-spacing",
+	"word-wrap",
+	"word-break",
+	"white-space"
+];
+var TextareaAutosize = class {
+	#options;
+	#resizeTimeout = null;
+	#hiddenTextarea = null;
+	#element = derived(() => extract(this.#options.element));
+	get element() {
+		return this.#element();
+	}
+	set element($$value) {
+		return this.#element($$value);
+	}
+	#input = derived(() => extract(this.#options.input));
+	get input() {
+		return this.#input();
+	}
+	set input($$value) {
+		return this.#input($$value);
+	}
+	#styleProp = derived(() => extract(this.#options.styleProp, "height"));
+	get styleProp() {
+		return this.#styleProp();
+	}
+	set styleProp($$value) {
+		return this.#styleProp($$value);
+	}
+	#maxHeight = derived(() => extract(this.#options.maxHeight, void 0));
+	get maxHeight() {
+		return this.#maxHeight();
+	}
+	set maxHeight($$value) {
+		return this.#maxHeight($$value);
+	}
+	textareaHeight = 0;
+	textareaOldWidth = 0;
+	constructor(options) {
+		this.#options = options;
+		this.#createHiddenTextarea();
+		watch([() => this.input, () => this.element], () => {
+			(/* @__PURE__ */ tick()).then(() => this.triggerResize());
+		});
+		watch(() => this.textareaHeight, () => options?.onResize?.());
+		useResizeObserver(() => this.element, ([entry]) => {
+			if (!entry) return;
+			const { contentRect } = entry;
+			if (this.textareaOldWidth === contentRect.width) return;
+			this.textareaOldWidth = contentRect.width;
+			this.triggerResize();
+		});
+	}
+	#createHiddenTextarea() {
+		if (typeof window === "undefined") return;
+		this.#hiddenTextarea = document.createElement("textarea");
+		const style = this.#hiddenTextarea.style;
+		style.visibility = "hidden";
+		style.position = "absolute";
+		style.overflow = "hidden";
+		style.height = "0";
+		style.top = "0";
+		style.left = "-9999px";
+		document.body.appendChild(this.#hiddenTextarea);
+	}
+	#copyStyles() {
+		if (!this.element || !this.#hiddenTextarea) return;
+		const computed = window.getComputedStyle(this.element);
+		for (const style of stylesToCopy) this.#hiddenTextarea.style.setProperty(style, computed.getPropertyValue(style));
+		this.#hiddenTextarea.style.width = `${this.element.clientWidth}px`;
+	}
+	/**
+	* Recomputes the required height based on current content and applies it
+	* to the textarea. If `maxHeight` is exceeded, vertical scrolling is enabled.
+	*/
+	triggerResize = () => {
+		if (!this.element || !this.#hiddenTextarea) return;
+		this.#copyStyles();
+		this.#hiddenTextarea.value = this.input || "";
+		let newHeight = this.#hiddenTextarea.scrollHeight;
+		if (this.maxHeight && newHeight > this.maxHeight) {
+			newHeight = this.maxHeight;
+			this.element.style.overflowY = "auto";
+		} else this.element.style.overflowY = "hidden";
+		if (this.textareaHeight !== newHeight) {
+			this.textareaHeight = newHeight;
+			this.element.style[this.styleProp] = `${newHeight}px`;
+		}
+	};
+};
+//#endregion
 //#region convex/_generated/api.js
 /**
 * Generated `api` utility.
@@ -621,4 +1091,4 @@ async function signOut() {
 	window.location.assign("/");
 }
 //#endregion
-export { signOut as a, resource as c, setupConvex as d, useConvexClient as f, PUBLIC_MUX_ENV_KEY as h, setCachedRole as i, SvelteMap as l, PUBLIC_CONVEX_CLIENT_URL as m, getCachedRole as n, storeTokens as o, useQuery as p, initAuth as r, api as s, authQuery as t, createSubscriber as u };
+export { useQuery as _, signOut as a, TextareaAutosize as c, useEventListener as d, useDebounce as f, useConvexClient as g, setupConvex as h, setCachedRole as i, ScrollState as l, createSubscriber as m, getCachedRole as n, storeTokens as o, SvelteMap as p, initAuth as r, api as s, authQuery as t, resource as u, PUBLIC_CONVEX_CLIENT_URL as v, PUBLIC_MUX_ENV_KEY as y };

@@ -28,13 +28,5 @@
     gap: var(--space-3);
   }
 
-  .experience-options :global(.hb-choice) {
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-5);
-  }
 
-  .experience-options :global(.hb-choice__title) {
-    font-size: var(--step-1);
-  }
 </style>

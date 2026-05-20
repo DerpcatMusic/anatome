@@ -103,17 +103,7 @@
     max-height: calc(90vh - 72px);
   }
 
-  :global(.hb-dialog-content--wide) {
-    max-width: 920px !important;
-    width: 92% !important;
-  }
-
   @media (max-width: 52rem) {
-    :global(.hb-dialog-content--wide) {
-      width: 96% !important;
-      padding: var(--space-3) !important;
-    }
-
     .modal-body {
       padding: var(--space-3);
       max-height: calc(85vh - 64px);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Tooltip } from "bits-ui";
   import { useConvexClient } from "convex-svelte";
+  import { useEventListener } from "runed";
   import { LiveRoom } from "$lib/features/live/room.svelte";
   import { mountMedia } from "$lib/features/live/types";
   import Button from "$components/ui/Button.svelte";
@@ -39,13 +40,12 @@
     }
   }
 
+  useEventListener(window, 'keydown', onKeyDown);
+  useEventListener(window, 'beforeunload', onBeforeUnload);
+
   $effect(() => {
     void room.loadToken();
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('beforeunload', onBeforeUnload);
     return () => {
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('beforeunload', onBeforeUnload);
       room.destroy();
     };
   });
@@ -76,12 +76,45 @@
 {:else if room.connectionState !== "idle"}
   <Tooltip.Provider delayDuration={160}>
     <div class="lr-room">
-      <RoomHeader {room} />
+      <RoomHeader
+        connectionState={room.connectionState}
+        connectionLabel={room.connectionLabel}
+        participantCount={room.participants.length}
+        isInstructorRoom={room.isInstructorRoom}
+        showQualityPanel={room.showQualityPanel}
+        showParticipants={room.showParticipants}
+        onToggleParticipants={() => room.showParticipants = !room.showParticipants}
+        onToggleQualityPanel={() => room.showQualityPanel = !room.showQualityPanel}
+        onLeave={() => {
+          room.destroy();
+          window.location.href = room.isInstructorRoom ? '/i/live' : '/u/calendar';
+        }}
+        onEndLive={room.isInstructorRoom ? () => room.endLive() : undefined}
+      />
 
       <div class="lr-room__body">
-        <VideoStage {room} />
-        <ParticipantSidebar {room} />
-        <RoomChat {room} />
+        <VideoStage
+          isInstructorRoom={room.isInstructorRoom}
+          videoTiles={room.videoTiles}
+          screenShareTiles={room.screenShareTiles}
+          hasScreenShare={room.hasScreenShare}
+          activeSpeakerIdentity={room.activeSpeakerIdentity}
+          tileSort={room.tileSort}
+          primaryInstructorVideo={room.primaryInstructorVideo}
+          selfVideo={room.selfVideo}
+        />
+        <ParticipantSidebar
+          open={room.showParticipants}
+          participants={room.participants}
+          onClose={() => room.showParticipants = false}
+        />
+        <RoomChat
+          open={room.showChat}
+          messages={room.chatMessages}
+          bind:draft={room.chatDraft}
+          onSend={() => room.sendChatMessage()}
+          onClose={() => room.showChat = false}
+        />
       </div>
 
       {#if room.mediaError}

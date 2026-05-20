@@ -77,14 +77,14 @@
               </div>
             </aside>
             <div class="entry-console__main">
-              <PreConnectPreview {room} />
+              <PreConnectPreview previewStream={room.previewStream} hasPreviewCamera={room.hasPreviewCamera} />
             </div>
           </div>
         {:else}
           <!-- Customer: simple stacked layout -->
           <div class="customer-connect">
             <div class="customer-connect__preview">
-              <PreConnectPreview {room} />
+              <PreConnectPreview previewStream={room.previewStream} hasPreviewCamera={room.hasPreviewCamera} />
             </div>
             <div class="customer-connect__tools">
               {#if room.videoDevices.length > 1}
@@ -184,10 +184,6 @@
     min-height: 0;
   }
 
-  .customer-connect__preview :global(.preview-panel__video),
-  .customer-connect__preview :global(.preview-panel__empty) {
-    aspect-ratio: 16 / 9;
-  }
 
   .customer-connect__tools {
     display: grid;

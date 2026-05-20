@@ -1,5 +1,5 @@
 import "../../chunks/dev.js";
-import { a as signOut, d as setupConvex, f as useConvexClient, m as PUBLIC_CONVEX_CLIENT_URL, r as initAuth } from "../../chunks/session.svelte.js";
+import { a as signOut, g as useConvexClient, h as setupConvex, r as initAuth, v as PUBLIC_CONVEX_CLIENT_URL } from "../../chunks/session.svelte.js";
 import { t as Button_1 } from "../../chunks/Button.js";
 //#region src/lib/components/layout/Navbar.svelte
 function Navbar($$renderer, $$props) {

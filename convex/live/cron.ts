@@ -2,10 +2,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
-
-function roomNameForClass(liveClassId: Id<"liveClasses">) {
-  return `homebody_liveClass_${liveClassId}`;
-}
+import { roomNameForClass } from "../lib/live";
 
 export const autoStart = internalMutation({
   args: {},

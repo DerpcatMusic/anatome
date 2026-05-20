@@ -11,6 +11,8 @@ import {
 } from "../lib/oneOnOne";
 import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { MS, RULES } from "../lib/constants";
+import { checkRateLimit } from "../lib/rateLimit";
 
 export const listAvailableSlots = query({
   args: {
@@ -54,7 +56,7 @@ export const requestSlot = mutation({
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);
     requireCustomer(profile);
-    if (args.startsAt <= Date.now() + 2 * 60 * 60 * 1000) throw new Error("Slot is too soon");
+    if (args.startsAt <= Date.now() + MS.TWO_HOURS) throw new Error("Slot is too soon");
     if (args.endsAt <= args.startsAt) throw new Error("Invalid slot");
     if (!(await slotMatchesAvailability(ctx, args.instructorUserId, args.startsAt, args.endsAt))) {
       throw new Error("Slot is not available");
@@ -75,7 +77,7 @@ export const requestSlot = mutation({
       instructorUserId: args.instructorUserId,
       requestedStartsAt: args.startsAt,
       requestedEndsAt: args.endsAt,
-      note: args.note.trim().slice(0, 500),
+      note: args.note.trim().slice(0, RULES.MAX_NOTE_LENGTH),
       status: "pending",
       creditBucketId: bucket._id,
       createdAt: now,

@@ -46,8 +46,8 @@
 }
 
 .ec-event-resizer {
-  width: 20px;
-  height: 3px;
+  width: 44px;
+  height: 8px;
   background: var(--muted);
   border-radius: 2px;
   inset-block-end: 3px;

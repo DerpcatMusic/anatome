@@ -1,5 +1,6 @@
 <script lang="ts">
   import { useI18n } from '$lib/i18n/runes.svelte';
+  import { TextareaAutosize } from "runed";
 
   let {
     notes = $bindable(),
@@ -8,10 +9,12 @@
   } = $props();
 
   const { t } = useI18n();
+  let notesEl = $state<HTMLTextAreaElement | null>(null);
+  const notesAutosize = new TextareaAutosize({ element: () => notesEl ?? undefined, input: () => notes });
 </script>
 
 <label class="notes-wrap">
-  <textarea bind:value={notes} maxlength="600" placeholder={t.onboarding.notes.placeholder()} rows="5"></textarea>
+  <textarea bind:value={notes} bind:this={notesEl} maxlength="600" placeholder={t.onboarding.notes.placeholder()}></textarea>
   <span class="char-count">{t.misc.charCount({ count: notes.length })}</span>
 </label>
 

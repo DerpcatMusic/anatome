@@ -1,5 +1,5 @@
 import { nt as escape_html } from "./dev.js";
-import { p as useQuery, r as initAuth, s as api } from "./session.svelte.js";
+import { _ as useQuery, r as initAuth, s as api } from "./session.svelte.js";
 import { t as Notice } from "./Notice.js";
 import { t as useI18n } from "./runes.svelte.js";
 import { n as AppLocked, r as AppSkeleton, t as OnboardingForm } from "./OnboardingForm.js";

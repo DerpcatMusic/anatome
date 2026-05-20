@@ -56,7 +56,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_actorUserId_and_createdAt", ["actorUserId", "createdAt"])
-    .index("by_targetUserId_and_createdAt", ["targetUserId", "createdAt"]),
+    .index("by_targetUserId_and_createdAt", ["targetUserId", "createdAt"])
+    .index("by_action_and_createdAt", ["action", "createdAt"]),
 
   liveClasses: defineTable({
     title: v.string(),
@@ -85,7 +86,8 @@ export default defineSchema({
     .index("by_startsAt", ["startsAt"])
     .index("by_status_and_startsAt", ["status", "startsAt"])
     .index("by_status_and_joinClosesAt", ["status", "joinClosesAt"])
-    .index("by_instructorUserId_and_startsAt", ["instructorUserId", "startsAt"]),
+    .index("by_instructorUserId_and_startsAt", ["instructorUserId", "startsAt"])
+    .index("by_type_and_startsAt", ["type", "startsAt"]),
 
   liveRooms: defineTable({
     liveClassId: v.id("liveClasses"),
@@ -121,7 +123,8 @@ export default defineSchema({
     .index("by_liveClassId_and_userId", ["liveClassId", "userId"])
     .index("by_liveClassId_and_status", ["liveClassId", "status"])
     .index("by_userId_and_status", ["userId", "status"])
-    .index("by_userId_and_reservedAt", ["userId", "reservedAt"]),
+    .index("by_userId_and_reservedAt", ["userId", "reservedAt"])
+    .index("by_creditBucketId", ["creditBucketId"]),
 
   liveJoinEvents: defineTable({
     liveClassId: v.id("liveClasses"),
@@ -204,6 +207,7 @@ export default defineSchema({
     decidedAt: v.optional(v.number()),
   })
     .index("by_customerUserId_and_createdAt", ["customerUserId", "createdAt"])
+    .index("by_customerUserId_and_status", ["customerUserId", "status"])
     .index("by_instructorUserId_and_status_and_requestedStartsAt", ["instructorUserId", "status", "requestedStartsAt"])
     .index("by_status_and_requestedStartsAt", ["status", "requestedStartsAt"])
     .index("by_instructorUserId_and_requestedStartsAt", ["instructorUserId", "requestedStartsAt"]),
@@ -227,6 +231,7 @@ export default defineSchema({
     instructorUserId: v.optional(v.id("users")),
   })
     .index("by_status", ["status"])
+    .index("by_status_and_createdAt", ["status", "createdAt"])
     .index("by_instructorUserId_and_createdAt", ["instructorUserId", "createdAt"]),
 
   videoUploads: defineTable({
@@ -244,7 +249,8 @@ export default defineSchema({
   })
     .index("by_videoId", ["videoId"])
     .index("by_muxUploadId", ["muxUploadId"])
-    .index("by_instructorUserId", ["instructorUserId"]),
+    .index("by_instructorUserId", ["instructorUserId"])
+    .index("by_status", ["status"]),
 
   videoEntitlements: defineTable({
     videoId: v.id("videos"),
@@ -294,6 +300,14 @@ export default defineSchema({
   })
     .index("by_userId_and_videoId", ["userId", "videoId"])
     .index("by_userId_and_updatedAt", ["userId", "updatedAt"]),
+
+  rateLimits: defineTable({
+    userId: v.id("users"),
+    action: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_userId_and_action", ["userId", "action"])
+    .index("by_timestamp", ["timestamp"]),
 
   memberProfiles: defineTable({
     userId: v.id("users"),

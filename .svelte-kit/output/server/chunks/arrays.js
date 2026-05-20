@@ -2,7 +2,7 @@ import "./index-server.js";
 import { bt as hasContext, ht as run, o as derived, pt as noop$1, rt as ATTACHMENT_KEY, xt as setContext, yt as getContext } from "./dev.js";
 import { r as on } from "./events.js";
 import "./legacy-client.js";
-import { u as createSubscriber } from "./session.svelte.js";
+import { m as createSubscriber } from "./session.svelte.js";
 import { clsx } from "clsx";
 import parse from "style-to-object";
 //#region node_modules/svelte-toolbelt/dist/utils/is.js

@@ -1,61 +1,69 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import { ScrollState } from "runed";
   import Button from "$components/ui/Button.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
+  import type { ChatMessage } from "$lib/features/live/types";
 
-  let { room }: { room: LiveRoom } = $props();
+  let {
+    open,
+    messages,
+    draft = $bindable(""),
+    onSend,
+    onClose,
+  }: {
+    open: boolean;
+    messages: ChatMessage[];
+    draft?: string;
+    onSend: () => void;
+    onClose: () => void;
+  } = $props();
+
   const { t } = useI18n();
 
   let scrollEl = $state<HTMLDivElement | null>(null);
-  let showScrollButton = $state(false);
+  const scroll = new ScrollState({ element: () => scrollEl });
+  const showScrollButton = $derived(!scroll.arrived.bottom);
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
-    void room.sendChatMessage();
+    onSend();
   }
 
   function scrollToBottom() {
     if (scrollEl) {
       scrollEl.scrollTop = scrollEl.scrollHeight;
-      showScrollButton = false;
     }
   }
 
-  function onScroll() {
-    if (!scrollEl) return;
-    const nearBottom = scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 60;
-    showScrollButton = !nearBottom;
-  }
-
   $effect(() => {
-    const count = room.chatMessages.length;
-    if (count > 0 && !showScrollButton) {
+    const count = messages.length;
+    if (count > 0 && scroll.arrived.bottom) {
       void tick().then(scrollToBottom);
     }
   });
 </script>
 
-{#if room.showChat}
+{#if open}
   <aside class="lr-chat lr-glass" aria-label={t.live.room.chatTitle()}>
     <div class="lr-panel__header">
       <h3>{t.live.room.chatTitle()}</h3>
       <button
         type="button"
         class="hb-button hb-button--close"
-        onclick={() => room.showChat = false}
+        onclick={onClose}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
 
-    <div class="lr-chat__scroll" bind:this={scrollEl} onscroll={onScroll}>
+    <div class="lr-chat__scroll" bind:this={scrollEl}>
       <div class="lr-chat__list">
-        {#if room.chatMessages.length === 0}
+        {#if messages.length === 0}
           <div class="lr-chat__empty">{t.live.room.chatEmpty()}</div>
         {/if}
-        {#each room.chatMessages as message (message.id)}
+        {#each messages as message (message.id)}
           <article class="lr-chat-message" class:lr-chat-message--local={message.isLocal}>
             <div class="lr-chat-message__meta">
               <span>{message.name}</span>
@@ -81,12 +89,12 @@
     <form class="lr-chat__form" onsubmit={submit}>
       <input
         class="lr-chat__input"
-        bind:value={room.chatDraft}
+        bind:value={draft}
         maxlength="500"
         placeholder={t.live.room.chatPlaceholder()}
         aria-label={t.live.room.chatPlaceholder()}
       />
-      <Button type="submit" tone="ink" size="sm" disabled={!room.chatDraft.trim()}>
+      <Button type="submit" tone="ink" size="sm" disabled={!draft.trim()}>
         {t.live.room.chatSend()}
       </Button>
     </form>

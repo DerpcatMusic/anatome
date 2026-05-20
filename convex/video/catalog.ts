@@ -13,7 +13,7 @@ export const listLibrary = query({
     const entitlements = await ctx.db
       .query("videoEntitlements")
       .withIndex("by_userId_and_kind", (q) => q.eq("userId", userId).eq("kind", "macroflow"))
-      .take(500);
+      .take(200);
     const owned = new Set(entitlements.map((e) => e.videoId));
     const isStaff = profile !== null && (profile.role === "instructor" || profile.role === "admin");
     const categories = await ctx.db

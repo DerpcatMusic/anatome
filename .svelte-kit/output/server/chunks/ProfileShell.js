@@ -1,5 +1,5 @@
 import { et as attr, nt as escape_html, o as derived } from "./dev.js";
-import { c as resource, f as useConvexClient, r as initAuth, s as api, t as authQuery } from "./session.svelte.js";
+import { c as TextareaAutosize, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { t as Notice } from "./Notice.js";
 import { t as PageShell } from "./PageShell.js";
@@ -23,6 +23,11 @@ function ProfileShell($$renderer, $$props) {
 		let instructorName = "";
 		let instructorSurname = "";
 		let instructorCredentials = "";
+		let credentialsEl = null;
+		new TextareaAutosize({
+			element: () => credentialsEl ?? void 0,
+			input: () => instructorCredentials
+		});
 		let certificateFile = null;
 		let certificateDataUrl = "";
 		let insuranceFile = null;
@@ -134,7 +139,7 @@ function ProfileShell($$renderer, $$props) {
 							$$slots: { default: true }
 						});
 					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> <div class="instructor-form svelte-aafcxl"><section class="form-section svelte-aafcxl"><h3 class="svelte-aafcxl">פרטים אישיים</h3> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">שם פרטי</span> <input${attr("value", instructorName)} placeholder="שם" class="svelte-aafcxl"/></label> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">שם משפחה</span> <input${attr("value", instructorSurname)} placeholder="שם משפחה" class="svelte-aafcxl"/></label></section> <section class="form-section svelte-aafcxl"><h3 class="svelte-aafcxl">הכשרות וביטוח</h3> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">תיאור הכשרות</span> <textarea rows="3" placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..." class="svelte-aafcxl">`);
+					$$renderer.push(`<!--]--> <div class="instructor-form svelte-aafcxl"><section class="form-section svelte-aafcxl"><h3 class="svelte-aafcxl">פרטים אישיים</h3> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">שם פרטי</span> <input${attr("value", instructorName)} placeholder="שם" class="svelte-aafcxl"/></label> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">שם משפחה</span> <input${attr("value", instructorSurname)} placeholder="שם משפחה" class="svelte-aafcxl"/></label></section> <section class="form-section svelte-aafcxl"><h3 class="svelte-aafcxl">הכשרות וביטוח</h3> <label class="field svelte-aafcxl"><span class="field__label svelte-aafcxl">תיאור הכשרות</span> <textarea placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..." class="svelte-aafcxl">`);
 					const $$body = escape_html(instructorCredentials);
 					if ($$body) $$renderer.push(`${$$body}`);
 					$$renderer.push(`</textarea></label></section> <section class="form-section svelte-aafcxl"><h3 class="svelte-aafcxl">מסמכים משפטיים</h3> <div class="doc-upload svelte-aafcxl"><span class="field__label svelte-aafcxl">תעודת הכשרה</span> `);

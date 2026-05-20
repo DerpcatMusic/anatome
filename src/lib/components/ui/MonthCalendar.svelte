@@ -91,11 +91,7 @@
 </Calendar.Root>
 
 <style>
-  :global(.hb-calendar__day--with-dots) {
-    flex-direction: column;
-    gap: 2px;
-    padding-bottom: 4px;
-  }
+
 
   .day-number {
     line-height: 1;

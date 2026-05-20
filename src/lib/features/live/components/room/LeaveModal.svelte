@@ -1,40 +1,30 @@
 <script lang="ts">
   import Button from "$components/ui/Button.svelte";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
 
   let {
-    room,
+    isInstructorRoom,
     open = $bindable(false),
+    onLeave,
+    onEndLive,
   }: {
-    room: LiveRoom;
+    isInstructorRoom: boolean;
     open?: boolean;
+    onLeave: () => void;
+    onEndLive?: () => void;
   } = $props();
-
-  const backHref = $derived(room.isInstructorRoom ? "/i/live" : "/u/calendar");
-
-  function onLeave() {
-    open = false;
-    room.destroy();
-    window.location.href = backHref;
-  }
-
-  async function onEndLive() {
-    open = false;
-    await room.endLive();
-  }
 </script>
 
 {#if open}
   <div class="leave-modal-backdrop" role="dialog" aria-modal="true" aria-label="יציאה מהחדר">
     <div class="leave-modal">
-      <h2>{room.isInstructorRoom ? "סיום שידור" : "יציאה מהחדר"}</h2>
+      <h2>{isInstructorRoom ? "סיום שידור" : "יציאה מהחדר"}</h2>
       <p>
-        {room.isInstructorRoom
+        {isInstructorRoom
           ? "האם לסיים את השידור לכל המשתתפות?"
           : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח."}
       </p>
       <div class="leave-modal__actions">
-        {#if room.isInstructorRoom}
+        {#if isInstructorRoom && onEndLive}
           <Button tone="danger" size="md" onclick={onEndLive}>סיום שידור</Button>
           <Button tone="paper" size="md" onclick={onLeave}>יציאה בלבד</Button>
         {:else}

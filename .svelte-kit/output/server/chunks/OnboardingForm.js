@@ -1,5 +1,5 @@
 import { a as bind_props, c as ensure_array_like, et as attr, n as attr_class, nt as escape_html, o as derived, r as attr_style } from "./dev.js";
-import { f as useConvexClient, s as api } from "./session.svelte.js";
+import { c as TextareaAutosize, g as useConvexClient, s as api } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { n as EquipmentIcon, r as Checkbox_1, t as RadioGroup_1 } from "./RadioGroup.js";
 import { t as Notice } from "./Notice.js";
@@ -156,7 +156,12 @@ function NotesStep($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { notes = void 0 } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<label class="notes-wrap svelte-1566ibt"><textarea maxlength="600"${attr("placeholder", t.onboarding.notes.placeholder())} rows="5" class="svelte-1566ibt">`);
+		let notesEl = null;
+		new TextareaAutosize({
+			element: () => notesEl ?? void 0,
+			input: () => notes
+		});
+		$$renderer.push(`<label class="notes-wrap svelte-1566ibt"><textarea maxlength="600"${attr("placeholder", t.onboarding.notes.placeholder())} class="svelte-1566ibt">`);
 		const $$body = escape_html(notes);
 		if ($$body) $$renderer.push(`${$$body}`);
 		$$renderer.push(`</textarea> <span class="char-count svelte-1566ibt">${escape_html(t.misc.charCount({ count: notes.length }))}</span></label>`);

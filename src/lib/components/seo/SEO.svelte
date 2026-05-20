@@ -52,7 +52,7 @@
   const canonicalUrl = $derived(canonical ?? `${SITE.domain}${page.url.pathname}`);
   const ogImageUrl = $derived(ogImage.startsWith("http") ? ogImage : `${SITE.domain}${ogImage}`);
 
-  const robotsDirectives = $derived(() => {
+  const robotsDirectives = $derived.by(() => {
     const parts: string[] = [];
     if (noindex) parts.push("noindex");
     if (nofollow) parts.push("nofollow");
@@ -62,7 +62,7 @@
     return parts.join(", ");
   });
 
-  const allLd = $derived(() => {
+  const allLd = $derived.by(() => {
     const out: JsonLd[] = [];
     if (breadcrumbs) {
       out.push({
@@ -91,8 +91,8 @@
   <link rel="canonical" href={canonicalUrl} />
 
   <!-- Robots -->
-  <meta name="robots" content={robotsDirectives()} />
-  <meta name="googlebot" content={robotsDirectives()} />
+  <meta name="robots" content={robotsDirectives} />
+  <meta name="googlebot" content={robotsDirectives} />
 
   <!-- Language / Region -->
   <meta name="language" content={SITE.lang} />
@@ -146,7 +146,7 @@
 </svelte:head>
 
 <!-- JSON-LD structured data (body placement is valid per Google) -->
-{#each allLd() as item}
+{#each allLd as item}
   {@const json = JSON.stringify(item)}
   <!-- eslint-disable svelte/no-at-html-tags -->
   {@html `<script type="application/ld+json">${json}<\/script>`}

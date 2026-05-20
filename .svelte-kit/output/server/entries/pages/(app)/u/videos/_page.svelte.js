@@ -1,5 +1,5 @@
 import { c as ensure_array_like, et as attr, n as attr_class, nt as escape_html, o as derived } from "../../../../../chunks/dev.js";
-import { c as resource, f as useConvexClient, p as useQuery, r as initAuth, s as api, t as authQuery } from "../../../../../chunks/session.svelte.js";
+import { _ as useQuery, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "../../../../../chunks/session.svelte.js";
 import { t as InstructorVideoManager } from "../../../../../chunks/InstructorVideoManager.js";
 import { t as Button_1 } from "../../../../../chunks/Button.js";
 import { t as Notice } from "../../../../../chunks/Notice.js";
@@ -41,16 +41,16 @@ function VideosShell($$renderer, $$props) {
 		}
 		if (auth.isLoading) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="skeleton-shell svelte-odx7iz"><div class="skeleton skeleton--hero svelte-odx7iz"></div> <div class="skeleton-grid svelte-odx7iz"><div class="skeleton"></div> <div class="skeleton"></div> <div class="skeleton"></div></div></div>`);
+			$$renderer.push(`<div class="skeleton-shell"><div class="skeleton skeleton--hero"></div> <div class="skeleton-grid"><div class="skeleton"></div> <div class="skeleton"></div> <div class="skeleton"></div></div></div>`);
 		} else if (!auth.isAuthenticated) {
 			$$renderer.push("<!--[1-->");
-			$$renderer.push(`<div class="state-card svelte-odx7iz"><p class="eyebrow svelte-odx7iz">חשבון נעול</p> <h2>צריך להתחבר כדי לצפות בווידאו</h2> <a class="button-link svelte-odx7iz" href="/">כניסה</a></div>`);
+			$$renderer.push(`<div class="state-card"><p class="eyebrow">חשבון נעול</p> <h2>צריך להתחבר כדי לצפות בווידאו</h2> <a class="button-link" href="/">כניסה</a></div>`);
 		} else if (isStaff()) {
 			$$renderer.push("<!--[2-->");
 			InstructorVideoManager($$renderer, {});
 		} else if (libraryResource.error) {
 			$$renderer.push("<!--[3-->");
-			$$renderer.push(`<div class="state-card svelte-odx7iz">`);
+			$$renderer.push(`<div class="state-card">`);
 			Notice($$renderer, {
 				tone: "danger",
 				children: ($$renderer) => {
@@ -88,12 +88,12 @@ function VideosShell($$renderer, $$props) {
 							$$slots: { default: true }
 						});
 					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> <section class="hero svelte-odx7iz"><div class="hero-copy svelte-odx7iz"><p class="eyebrow svelte-odx7iz">גישה חדשה</p> <h2 class="svelte-odx7iz">הספרייה מאורגנת לפי קטגוריות ולא לפי שבוע</h2> <p class="svelte-odx7iz">השיעורים מוצגים עכשיו כרשת תוכן יציבה: בעלות קבועה ל-Macroflow, וגישה זמנית ל-Microflow לפי
-          מנוי פעיל.</p></div> <div class="hero-metrics svelte-odx7iz"><div class="svelte-odx7iz"><span class="svelte-odx7iz">${escape_html(ownedCount())}</span> <small class="svelte-odx7iz">שיעורי Macroflow בבעלותך</small></div> <div class="svelte-odx7iz"><span class="svelte-odx7iz">${escape_html(data().categoryGroups.length)}</span> <small class="svelte-odx7iz">קטגוריות פעילות</small></div></div></section> <div class="section-stack svelte-odx7iz"><!--[-->`);
+					$$renderer.push(`<!--]--> <section class="hero"><div class="hero-copy"><p class="eyebrow">גישה חדשה</p> <h2>הספרייה מאורגנת לפי קטגוריות ולא לפי שבוע</h2> <p>השיעורים מוצגים עכשיו כרשת תוכן יציבה: בעלות קבועה ל-Macroflow, וגישה זמנית ל-Microflow לפי
+          מנוי פעיל.</p></div> <div class="hero-metrics"><div><span>${escape_html(ownedCount())}</span> <small>שיעורי Macroflow בבעלותך</small></div> <div><span>${escape_html(data().categoryGroups.length)}</span> <small>קטגוריות פעילות</small></div></div></section> <div class="section-stack"><!--[-->`);
 					const each_array = ensure_array_like(data().categoryGroups);
 					for (let $$index_2 = 0, $$length = each_array.length; $$index_2 < $$length; $$index_2++) {
 						let group = each_array[$$index_2];
-						$$renderer.push(`<section class="category-panel svelte-odx7iz"><header class="category-head svelte-odx7iz"><div><p class="eyebrow svelte-odx7iz">${escape_html(categoryTitle(group))}</p> <h3 class="svelte-odx7iz">${escape_html(group.category.description ?? "קטגוריה אוצרה ידנית")}</h3></div> <span class="category-count svelte-odx7iz">${escape_html(group.items.length)}</span></header> `);
+						$$renderer.push(`<section class="category-panel"><header class="category-head"><div><p class="eyebrow">${escape_html(categoryTitle(group))}</p> <h3>${escape_html(group.category.description ?? "קטגוריה אוצרה ידנית")}</h3></div> <span class="category-count">${escape_html(group.items.length)}</span></header> `);
 						if (group.items.length === 0) {
 							$$renderer.push("<!--[0-->");
 							Notice($$renderer, {
@@ -105,28 +105,28 @@ function VideosShell($$renderer, $$props) {
 							});
 						} else {
 							$$renderer.push("<!--[-1-->");
-							$$renderer.push(`<div class="video-grid svelte-odx7iz"><!--[-->`);
+							$$renderer.push(`<div class="video-grid"><!--[-->`);
 							const each_array_1 = ensure_array_like(group.items);
 							for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
 								let item = each_array_1[$$index_1];
-								$$renderer.push(`<article${attr_class("video-card svelte-odx7iz", void 0, { "owned": item.owned })}><div class="thumb svelte-odx7iz">`);
+								$$renderer.push(`<article${attr_class("video-card", void 0, { "owned": item.owned })}><div class="thumb">`);
 								if (item.thumbnailUrl) {
 									$$renderer.push("<!--[0-->");
-									$$renderer.push(`<img${attr("src", item.thumbnailUrl)} alt="" loading="lazy" class="svelte-odx7iz"/>`);
+									$$renderer.push(`<img${attr("src", item.thumbnailUrl)} alt="" loading="lazy"/>`);
 								} else {
 									$$renderer.push("<!--[-1-->");
-									$$renderer.push(`<span class="thumb-placeholder svelte-odx7iz">${escape_html(durationLabel(item.durationSeconds))}</span>`);
+									$$renderer.push(`<span class="thumb-placeholder">${escape_html(durationLabel(item.durationSeconds))}</span>`);
 								}
-								$$renderer.push(`<!--]--></div> <div class="video-card__meta svelte-odx7iz"><p class="status svelte-odx7iz">${escape_html(videoStateLabel(item))}</p> <span class="duration svelte-odx7iz">${escape_html(durationLabel(item.durationSeconds))}</span></div> <h4 class="svelte-odx7iz">${escape_html(item.title)}</h4> <p class="desc svelte-odx7iz">${escape_html(item.description)}</p> <div class="tags svelte-odx7iz"><!--[-->`);
+								$$renderer.push(`<!--]--></div> <div class="video-card__meta"><p class="status">${escape_html(videoStateLabel(item))}</p> <span class="duration">${escape_html(durationLabel(item.durationSeconds))}</span></div> <h4>${escape_html(item.title)}</h4> <p class="desc">${escape_html(item.description)}</p> <div class="tags"><!--[-->`);
 								const each_array_2 = ensure_array_like(item.requiredEquipment);
 								for (let $$index = 0, $$length = each_array_2.length; $$index < $$length; $$index++) {
 									let equipment = each_array_2[$$index];
-									$$renderer.push(`<span class="svelte-odx7iz">${escape_html(equipmentLabel(equipment))}</span>`);
+									$$renderer.push(`<span>${escape_html(equipmentLabel(equipment))}</span>`);
 								}
-								$$renderer.push(`<!--]--></div> <div class="actions svelte-odx7iz">`);
+								$$renderer.push(`<!--]--></div> <div class="actions">`);
 								if (item.owned) {
 									$$renderer.push("<!--[0-->");
-									$$renderer.push(`<a${attr("href", `/watch?videoId=${item._id}`)} class="svelte-odx7iz">לצפות</a>`);
+									$$renderer.push(`<a${attr("href", `/watch?videoId=${item._id}`)}>לצפות</a>`);
 								} else {
 									$$renderer.push("<!--[-1-->");
 									Button_1($$renderer, {

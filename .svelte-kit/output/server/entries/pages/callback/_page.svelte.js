@@ -1,5 +1,5 @@
 import { nt as escape_html } from "../../../chunks/dev.js";
-import { f as useConvexClient, o as storeTokens, s as api } from "../../../chunks/session.svelte.js";
+import { g as useConvexClient, o as storeTokens, s as api } from "../../../chunks/session.svelte.js";
 //#region src/lib/features/auth/components/CallbackHandler.svelte
 function CallbackHandler($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { useEventListener } from "runed";
   import { Dialog } from "bits-ui";
   import "$lib/features/landing/landing.css";
   import SEO from "$components/seo/SEO.svelte";
@@ -49,16 +49,8 @@
     authOpen = true;
   }
 
-  onMount(() => {
-    const open = () => { authOpen = true; };
-    const close = () => { authOpen = false; };
-    window.addEventListener("homebody:auth-open", open);
-    window.addEventListener("homebody:auth-close", close);
-    return () => {
-      window.removeEventListener("homebody:auth-open", open);
-      window.removeEventListener("homebody:auth-close", close);
-    };
-  });
+  useEventListener(window, "homebody:auth-open", () => { authOpen = true; });
+  useEventListener(window, "homebody:auth-close", () => { authOpen = false; });
 
   /* ─── Structured Data (honest — no fake reviews) ─── */
   const pageUrl = SITE.domain;

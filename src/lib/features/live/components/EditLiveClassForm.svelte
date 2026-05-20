@@ -9,6 +9,7 @@
   import { durationLabel } from "$lib/labels";
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
+  import { TextareaAutosize } from "runed";
 
   type LiveClass = {
     _id: Id<"liveClasses">;
@@ -67,7 +68,9 @@
   // Form state
   let editTitle = $state("");
   let editDescription = $state("");
-  let editDate = $state("");
+  let descEl = $state<HTMLTextAreaElement | null>(null);
+  const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => editDescription });
+
   let editTime = $state("");
   let editDuration = $state(60);
   let editJoinOpens = $state(10);
@@ -75,36 +78,23 @@
   let editEquipment = $state<Equipment[]>([]);
 
   let editDateValue = $state<DateValue | undefined>(undefined);
+  const editDate = $derived(editDateValue ? editDateValue.toString() : "");
 
+  // Initialize form when liveClass changes (only when the class reference changes)
+  let previousClassId: Id<"liveClasses"> | undefined = undefined;
   $effect(() => {
-    if (!editDateValue) return;
-    editDate = editDateValue.toString();
-  });
-
-  $effect(() => {
-    if (!editDate) return;
-    try {
-      const parsed = parseDate(editDate);
-      if (!editDateValue || parsed.toString() !== editDateValue.toString()) {
-        editDateValue = parsed;
-      }
-    } catch {
-      // Safe fallback
-    }
-  });
-
-  // Sync when liveClass changes
-  $effect(() => {
+    const classId = liveClass._id;
+    if (classId === previousClassId) return;
+    previousClassId = classId;
     editTitle = liveClass.title;
     editDescription = liveClass.description || "";
-    editDate = formatLocalDate(liveClass.startsAt);
     editTime = formatLocalTime(liveClass.startsAt);
     editDuration = Math.round((liveClass.endsAt - liveClass.startsAt) / (1000 * 60));
     editJoinOpens = liveClass.joinOpensMinutesBefore ?? 10;
     editCapacity = liveClass.capacity;
     editEquipment = [...liveClass.requiredEquipment];
     try {
-      editDateValue = parseDate(editDate);
+      editDateValue = parseDate(formatLocalDate(liveClass.startsAt));
     } catch {
       editDateValue = undefined;
     }
@@ -181,7 +171,7 @@
 
       <div class="hb-input-field span-2">
         <span class="hb-input-field__label">תיאור</span>
-        <textarea class="hb-textarea" bind:value={editDescription} rows="2" disabled={submitting} maxlength="500"></textarea>
+        <textarea class="hb-textarea" bind:value={editDescription} bind:this={descEl} disabled={submitting} maxlength="500"></textarea>
       </div>
 
       <div class="form-row-split span-2">

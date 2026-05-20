@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+
   import Button from "$components/ui/Button.svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
@@ -132,7 +132,9 @@
     showCreateModal = true;
   }
 
-  onMount(() => void load());
+  $effect(() => {
+    void load();
+  });
 </script>
 
 <PageShell
@@ -208,13 +210,7 @@
     margin-block-end: var(--space-2);
   }
 
-  :global(.calendar-actions-header button) {
-    display: flex !important;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--step-0) !important;
-    padding: var(--space-2) var(--space-4) !important;
-  }
+
 
   .form-error {
     display: flex;

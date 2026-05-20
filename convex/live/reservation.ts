@@ -13,6 +13,8 @@ import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 import { missingRequiredEquipment } from "../lib/equipment";
+import { MS, RULES } from "../lib/constants";
+import { checkRateLimit } from "../lib/rateLimit";
 
 async function insertReminderEvents(
   ctx: MutationCtx,
@@ -58,6 +60,7 @@ export const reserve = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
+    await checkRateLimit(ctx, userId, "reservation");
     const profile = await requireAppProfile(ctx, userId);
     requireRole(profile, ["customer", "instructor", "admin"]);
 
@@ -101,10 +104,10 @@ export const reserve = mutation({
         q.eq("liveClassId", args.liveClassId),
       )
       .take(liveClass.capacity + 1);
-    const seatsTaken = allReservations.filter(
+    const activeCount = allReservations.filter(
       (r) => r.status === "reserved" || r.status === "joined",
     ).length;
-    if (seatsTaken >= liveClass.capacity) {
+    if (activeCount >= liveClass.capacity) {
       throw new Error("Class is full");
     }
 
@@ -134,7 +137,28 @@ export const reserve = mutation({
       creditsReserved: liveClass.creditCost,
       reservedAt: now,
     });
-    await ctx.db.patch(args.liveClassId, { seatsTaken: seatsTaken + 1 });
+    await ctx.db.patch(args.liveClassId, { seatsTaken: activeCount + 1 });
+
+    // Idempotency / race-condition defence: re-verify capacity after insert
+    const postCheck = await ctx.db
+      .query("liveReservations")
+      .withIndex("by_liveClassId_and_status", (q) =>
+        q.eq("liveClassId", args.liveClassId),
+      )
+      .collect();
+    const postActive = postCheck.filter((r) => r.status === "reserved" || r.status === "joined").length;
+    if (postActive > liveClass.capacity) {
+      // Rollback: we lost the race
+      if (liveClass.creditKind === "live") {
+        await releaseLiveCredits(ctx, bucket, liveClass.creditCost);
+      } else {
+        await releaseOneOnOneCredits(ctx, bucket, liveClass.creditCost);
+      }
+      await ctx.db.delete(reservationId);
+      await ctx.db.patch(args.liveClassId, { seatsTaken: Math.max(0, postActive - 1) });
+      throw new Error("Class is full");
+    }
+
     await insertReminderEvents(
       ctx,
       args.liveClassId,

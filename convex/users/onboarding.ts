@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { getOrCreateAppProfile } from "../lib/authz";
 import { equipmentListValidator, experienceValidator, goalsValidator } from "../lib/validators";
+import { RULES } from "../lib/constants";
 
 export const complete = mutation({
   args: {
@@ -23,7 +24,7 @@ export const complete = mutation({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
 
-    const cleanNotes = args.notes.trim().slice(0, 600);
+    const cleanNotes = args.notes.trim().slice(0, RULES.MAX_ONBOARDING_NOTES_LENGTH);
 
     if (existing !== null) {
       await ctx.db.patch(existing._id, {

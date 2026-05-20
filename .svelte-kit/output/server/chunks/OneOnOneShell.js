@@ -1,5 +1,5 @@
 import { c as ensure_array_like, et as attr, nt as escape_html, o as derived } from "./dev.js";
-import { c as resource, f as useConvexClient, p as useQuery, r as initAuth, s as api, t as authQuery } from "./session.svelte.js";
+import { _ as useQuery, c as TextareaAutosize, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
 import { t as Button_1 } from "./Button.js";
 import { t as Select_1 } from "./Select.js";
 import { t as Notice } from "./Notice.js";
@@ -45,6 +45,11 @@ function OneOnOneShell($$renderer, $$props) {
 		let actionId = null;
 		let actionError = "";
 		let note = "";
+		let noteEl = null;
+		new TextareaAutosize({
+			element: () => noteEl ?? void 0,
+			input: () => note
+		});
 		let weekday = 0;
 		let startHour = 9;
 		let endHour = 12;
@@ -246,7 +251,7 @@ function OneOnOneShell($$renderer, $$props) {
 								$$slots: { default: true }
 							});
 						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--> <label class="note-field svelte-yn17ts"><span>הערה למדריכה</span> <textarea maxlength="500" rows="3" placeholder="מטרות, מגבלות, או משהו שכדאי לדעת" class="svelte-yn17ts">`);
+						$$renderer.push(`<!--]--> <label class="note-field svelte-yn17ts"><span>הערה למדריכה</span> <textarea maxlength="500" placeholder="מטרות, מגבלות, או משהו שכדאי לדעת" class="svelte-yn17ts">`);
 						const $$body = escape_html(note);
 						if ($$body) $$renderer.push(`${$$body}`);
 						$$renderer.push(`</textarea></label> <div class="one-grid svelte-yn17ts"><section class="panel svelte-yn17ts"><h2 class="svelte-yn17ts">חלונות פנויים</h2> `);

@@ -4,6 +4,7 @@ import type { ConvexClient } from "convex/browser";
 import type { Room, TrackPublishDefaults } from "livekit-client";
 import { initAuth, getCachedRole } from "$lib/auth/session.svelte";
 import { useI18n } from "$lib/i18n/runes.svelte";
+import { useDebounce } from "runed";
 import type {
   ParticipantRole,
   RoomStatus,
@@ -66,7 +67,7 @@ export class LiveRoom {
   showChat = $state(false);
   showQualityPanel = $state(false);
   private statsTimer: number | null = null;
-  private participantDebounceTimer: number | null = null;
+  private debouncedRefreshParticipants = useDebounce(() => this._refreshParticipants(), 80);
   private expiryTimer: number | null = null;
   private clockTimer: number | null = null;
   private nowMs = $state(Date.now());
@@ -117,23 +118,26 @@ export class LiveRoom {
   });
   readonly videoTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "video"));
   readonly audioTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "audio"));
-  readonly screenShareTiles = $derived(this.videoTiles.filter((t) => t.source === "screen_share"));
+  readonly screenShareTiles = $derived(this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share"));
   readonly hasScreenShare = $derived(this.screenShareTiles.length > 0);
   readonly instructorVideos = $derived(
-    this.videoTiles
-      .filter((tile) => tile.isInstructor && tile.source !== "screen_share")
+    this.mediaTiles
+      .filter((tile) => tile.kind === "video" && tile.isInstructor && tile.source !== "screen_share")
       .sort(this.tileSort)
   );
   readonly studentVideos = $derived(
-    this.videoTiles.filter((tile) => !tile.isInstructor).sort(this.tileSort)
+    this.mediaTiles.filter((tile) => tile.kind === "video" && !tile.isInstructor).sort(this.tileSort)
   );
-  readonly primaryInstructorVideo = $derived(
-    this.hasScreenShare
-      ? this.screenShareTiles[0]
-      : this.instructorVideos.find((t) => !t.isLocal) ?? this.instructorVideos[0] ?? null
-  );
+  readonly primaryInstructorVideo = $derived.by(() => {
+    const screenShares = this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share");
+    if (screenShares.length > 0) return screenShares[0];
+    const instructors = this.mediaTiles
+      .filter((t) => t.kind === "video" && t.isInstructor && t.source !== "screen_share")
+      .sort(this.tileSort);
+    return instructors.find((t) => !t.isLocal) ?? instructors[0] ?? null;
+  });
   readonly selfVideo = $derived(
-    this.videoTiles.find((tile) => tile.isLocal && tile.source !== "screen_share") ?? null
+    this.mediaTiles.find((tile) => tile.kind === "video" && tile.isLocal && tile.source !== "screen_share") ?? null
   );
   readonly connectionLabel = $derived(
     this.connectionState === "connected"
@@ -324,13 +328,7 @@ export class LiveRoom {
   }
 
   refreshParticipants() {
-    if (this.participantDebounceTimer !== null) {
-      window.clearTimeout(this.participantDebounceTimer);
-    }
-    this.participantDebounceTimer = window.setTimeout(() => {
-      this._refreshParticipants();
-      this.participantDebounceTimer = null;
-    }, 80);
+    this.debouncedRefreshParticipants();
   }
 
   private _refreshParticipants() {

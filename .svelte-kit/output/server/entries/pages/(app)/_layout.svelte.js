@@ -1,6 +1,6 @@
 import { c as ensure_array_like, et as attr, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../chunks/dev.js";
 import { t as liveRoomHref } from "../../../chunks/context.js";
-import { p as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
+import { _ as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
 import { t as page } from "../../../chunks/state.js";
 import { n as setAppContext, t as getAppContext } from "../../../chunks/appContext.js";
 //#region src/lib/features/app/components/AppSidebar.svelte

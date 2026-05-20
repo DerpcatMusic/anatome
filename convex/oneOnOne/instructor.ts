@@ -32,7 +32,7 @@ export const listAvailability = query({
       const dayRules = await ctx.db
         .query("oneOnOneAvailabilityRules")
         .withIndex("by_instructorUserId_and_weekday", (q) => q.eq("instructorUserId", userId).eq("weekday", day))
-        .take(12);
+        .take(25);
       rules.push(...dayRules);
     }
     return rules.sort((a, b) => a.weekday - b.weekday || a.startMinute - b.startMinute);

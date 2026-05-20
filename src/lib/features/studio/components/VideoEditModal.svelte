@@ -2,6 +2,7 @@
   import { Dialog } from "bits-ui";
   import type { Id } from "$convex/_generated/dataModel";
   import Button from "$components/ui/Button.svelte";
+  import { TextareaAutosize } from "runed";
 
   interface Video {
     _id: Id<"videos">;
@@ -25,6 +26,8 @@
 
   let title = $state("");
   let description = $state("");
+  let descEl = $state<HTMLTextAreaElement | null>(null);
+  const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => description });
   let isSaving = $state(false);
 
   // Sync internal state when active video changes
@@ -73,7 +76,7 @@
 
           <label class="field">
             <span class="field__label">תיאור השיעור</span>
-            <textarea bind:value={description} rows="4" maxlength="500" disabled={isPending}></textarea>
+            <textarea bind:value={description} bind:this={descEl} maxlength="500" disabled={isPending}></textarea>
           </label>
 
           <div class="modal-actions">
@@ -90,93 +93,3 @@
   </Dialog.Portal>
 </Dialog.Root>
 
-<style>
-  :global(.edit-modal-backdrop) {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-4);
-    backdrop-filter: blur(2px);
-  }
-
-  :global(.edit-modal-card) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 101;
-    background: var(--white);
-    border: var(--border);
-    box-shadow: 8px 8px 0 var(--ink);
-    width: 100%;
-    max-width: 520px;
-    display: flex;
-    flex-direction: column;
-    animation: modalPop var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1);
-    direction: rtl;
-  }
-
-  :global(.edit-modal-card .modal-header) {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    border-bottom: var(--border);
-    padding: var(--space-4);
-  }
-
-  :global(.edit-modal-card .header-icon) {
-    font-size: var(--step-2);
-    color: var(--terra);
-  }
-
-  :global(.edit-modal-card .modal-title) {
-    margin: 0;
-    font-size: var(--step-1);
-    font-weight: 900;
-    flex: 1;
-  }
-
-  :global(.edit-modal-card .close-button) {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: var(--space-1);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color var(--duration-fast);
-  }
-
-  :global(.edit-modal-card .close-button:hover) {
-    color: var(--ink);
-  }
-
-  :global(.edit-modal-card .modal-form) {
-    padding: var(--space-5);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  :global(.edit-modal-card .modal-actions) {
-    display: flex;
-    gap: var(--space-2);
-    margin-top: var(--space-2);
-  }
-
-  @keyframes modalPop {
-    from {
-      transform: translate(-50%, -50%) scale(0.96) translateY(10px);
-      opacity: 0;
-    }
-    to {
-      transform: translate(-50%, -50%) scale(1) translateY(0);
-      opacity: 1;
-    }
-  }
-</style>

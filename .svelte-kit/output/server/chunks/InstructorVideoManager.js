@@ -1,5 +1,5 @@
 import { R as writable, a as bind_props, c as ensure_array_like, et as attr, f as spread_props, h as unsubscribe_stores, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, p as store_get, r as attr_style, u as props_id } from "./dev.js";
-import { c as resource, f as useConvexClient, l as SvelteMap, p as useQuery, r as initAuth, s as api, t as authQuery } from "./session.svelte.js";
+import { _ as useQuery, c as TextareaAutosize, g as useConvexClient, p as SvelteMap, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
 import { G as watch, I as boolToTrueOrUndef, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, P as boolToStr, X as raf, Y as loop, Z as mergeProps, at as boxWith, c as createId, l as noop, q as Context } from "./arrays.js";
 import { t as RovingFocusGroup } from "./roving-focus-group.js";
 import { c as MenuItemState, l as MenuMenuState, o as DropdownMenuTriggerState, p as Portal, s as MenuContentState, u as MenuRootState } from "./scroll-lock.js";
@@ -976,6 +976,11 @@ function VideoUploadForm($$renderer, $$props) {
 		let showAdvanced = false;
 		let title = "";
 		let description = "";
+		let descEl = null;
+		new TextareaAutosize({
+			element: () => descEl ?? void 0,
+			input: () => description
+		});
 		let requiredEquipment = ["mat"];
 		let accessKind = "macroflow";
 		let selectedCategoryIds = [];
@@ -1000,7 +1005,7 @@ function VideoUploadForm($$renderer, $$props) {
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
-			$$renderer.push(`<div class="video-upload-form svelte-15vosdj">`);
+			$$renderer.push(`<div class="video-upload-form">`);
 			if (uploadStatus === "ready") {
 				$$renderer.push("<!--[0-->");
 				Notice($$renderer, {
@@ -1012,7 +1017,7 @@ function VideoUploadForm($$renderer, $$props) {
 				});
 			} else if (uploadStatus === "processing") {
 				$$renderer.push("<!--[1-->");
-				$$renderer.push(`<div class="upload-processing-notice svelte-15vosdj"><span class="material-symbols-rounded spinner svelte-15vosdj">sync</span> <p>הקובץ הועלה בהצלחה. מעבדים בשרתי Mux...</p></div>`);
+				$$renderer.push(`<div class="upload-processing-notice"><span class="material-symbols-rounded spinner">sync</span> <p>הקובץ הועלה בהצלחה. מעבדים בשרתי Mux...</p></div>`);
 			} else if (uploadStatus === "error" || categoryError) {
 				$$renderer.push("<!--[2-->");
 				Notice($$renderer, {
@@ -1023,13 +1028,13 @@ function VideoUploadForm($$renderer, $$props) {
 					$$slots: { default: true }
 				});
 			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <form><div class="uploader-grid svelte-15vosdj"><div class="uploader-column svelte-15vosdj"><label${attr_class("file-drop svelte-15vosdj", void 0, { "has-file": Boolean(videoFile) })}><input type="file" accept="video/*"${attr("disabled", uploadStatus === "uploading", true)} class="svelte-15vosdj"/> `);
+			$$renderer.push(`<!--]--> <form><div class="uploader-grid"><div class="uploader-column"><label${attr_class("file-drop", void 0, { "has-file": Boolean(videoFile) })}><input type="file" accept="video/*"${attr("disabled", uploadStatus === "uploading", true)}/> `);
 			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<span class="material-symbols-rounded drop-icon svelte-15vosdj">video_library</span> <span class="drop-text svelte-15vosdj">גררי קובץ וידאו לכאן<br/><small class="svelte-15vosdj">או לחצי לבחירה מהמחשב</small></span>`);
+			$$renderer.push(`<span class="material-symbols-rounded drop-icon">video_library</span> <span class="drop-text">גררי קובץ וידאו לכאן<br/><small>או לחצי לבחירה מהמחשב</small></span>`);
 			$$renderer.push(`<!--]--></label> `);
 			if (uploadStatus === "uploading") {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="progress-container svelte-15vosdj"><div class="progress-meta svelte-15vosdj"><span>מעלה קובץ...</span> <span>${escape_html(uploadProgress)}%</span></div> `);
+				$$renderer.push(`<div class="progress-container"><div class="progress-meta"><span>מעלה קובץ...</span> <span>${escape_html(uploadProgress)}%</span></div> `);
 				Progress_1($$renderer, {
 					value: uploadProgress,
 					max: 100,
@@ -1037,7 +1042,7 @@ function VideoUploadForm($$renderer, $$props) {
 				});
 				$$renderer.push(`<!----></div>`);
 			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <div class="form-field-group svelte-15vosdj"><label class="form-field-label svelte-15vosdj" for="equipment"><span class="material-symbols-rounded svelte-15vosdj">fitness_center</span> ציוד נדרש לשיעור</label> `);
+			$$renderer.push(`<!--]--> <div class="form-field-group"><label class="form-field-label" for="equipment"><span class="material-symbols-rounded">fitness_center</span> ציוד נדרש לשיעור</label> `);
 			EquipmentPicker($$renderer, {
 				disabled: uploadStatus === "uploading",
 				get selected() {
@@ -1048,10 +1053,10 @@ function VideoUploadForm($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----></div></div> <div class="uploader-column svelte-15vosdj"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120" placeholder="למשל: יסודות הרפורמר למתחילות"${attr("disabled", uploadStatus === "uploading", true)}/></label> <label class="field"><span class="field__label">תיאור קצר</span> <textarea rows="3" maxlength="500" placeholder="ספרי למתאמנות מה נעשה בשיעור זה..."${attr("disabled", uploadStatus === "uploading", true)}>`);
+			$$renderer.push(`<!----></div></div> <div class="uploader-column"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120" placeholder="למשל: יסודות הרפורמר למתחילות"${attr("disabled", uploadStatus === "uploading", true)}/></label> <label class="field"><span class="field__label">תיאור קצר</span> <textarea maxlength="500" placeholder="ספרי למתאמנות מה נעשה בשיעור זה..."${attr("disabled", uploadStatus === "uploading", true)}>`);
 			const $$body = escape_html(description);
 			if ($$body) $$renderer.push(`${$$body}`);
-			$$renderer.push(`</textarea></label> <div class="form-field-group svelte-15vosdj"><label class="form-field-label svelte-15vosdj" for="access"><span class="material-symbols-rounded svelte-15vosdj">key</span> מודל גישה לספרייה</label> `);
+			$$renderer.push(`</textarea></label> <div class="form-field-group"><label class="form-field-label" for="access"><span class="material-symbols-rounded">key</span> מודל גישה לספרייה</label> `);
 			RadioGroup_1($$renderer, {
 				options: accessOptions,
 				orientation: "horizontal",
@@ -1064,7 +1069,7 @@ function VideoUploadForm($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----></div> <div class="form-field-group svelte-15vosdj"><label class="form-field-label svelte-15vosdj" for="categories"><span class="material-symbols-rounded svelte-15vosdj">folder_open</span> שיוך לקטגוריות <span class="count-badge svelte-15vosdj">${escape_html(selectedCategoryIds.length)}</span></label> `);
+			$$renderer.push(`<!----></div> <div class="form-field-group"><label class="form-field-label" for="categories"><span class="material-symbols-rounded">folder_open</span> שיוך לקטגוריות <span class="count-badge">${escape_html(selectedCategoryIds.length)}</span></label> `);
 			if (categories.length === 0) {
 				$$renderer.push("<!--[0-->");
 				Notice($$renderer, {
@@ -1076,15 +1081,15 @@ function VideoUploadForm($$renderer, $$props) {
 				});
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="category-grid svelte-15vosdj"><!--[-->`);
+				$$renderer.push(`<div class="category-grid"><!--[-->`);
 				const each_array = ensure_array_like(categories);
 				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 					let category = each_array[$$index];
-					$$renderer.push(`<button${attr_class("category-token svelte-15vosdj", void 0, { "selected": selectedCategoryIds.includes(category._id) })} type="button"${attr("disabled", uploadStatus === "uploading", true)}><span>${escape_html(category.name)}</span></button>`);
+					$$renderer.push(`<button${attr_class("category-token", void 0, { "selected": selectedCategoryIds.includes(category._id) })} type="button"${attr("disabled", uploadStatus === "uploading", true)}><span>${escape_html(category.name)}</span></button>`);
 				}
 				$$renderer.push(`<!--]--></div>`);
 			}
-			$$renderer.push(`<!--]--> <div class="new-category-input-row svelte-15vosdj"><input type="text"${attr("value", newCategoryName)} placeholder="שם קטגוריה חדשה..."${attr("disabled", creatingCategory || uploadStatus === "uploading", true)} class="svelte-15vosdj"/> `);
+			$$renderer.push(`<!--]--> <div class="new-category-input-row"><input type="text"${attr("value", newCategoryName)} placeholder="שם קטגוריה חדשה..."${attr("disabled", creatingCategory || uploadStatus === "uploading", true)}/> `);
 			Button_1($$renderer, {
 				tone: "paper",
 				type: "button",
@@ -1095,9 +1100,9 @@ function VideoUploadForm($$renderer, $$props) {
 				},
 				$$slots: { default: true }
 			});
-			$$renderer.push(`<!----></div></div> <div class="advanced-collapsible-wrapper svelte-15vosdj"><button type="button" class="advanced-toggle svelte-15vosdj"><span>הגדרות קידוד מתקדמות (Mux)</span> <span${attr_class("material-symbols-rounded arrow-icon svelte-15vosdj", void 0, { "rotated": showAdvanced })}>expand_more</span></button> `);
+			$$renderer.push(`<!----></div></div> <div class="advanced-collapsible-wrapper"><button type="button" class="advanced-toggle"><span>הגדרות קידוד מתקדמות (Mux)</span> <span${attr_class("material-symbols-rounded arrow-icon", void 0, { "rotated": showAdvanced })}>expand_more</span></button> `);
 			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--></div> <div class="submit-action-row svelte-15vosdj">`);
+			$$renderer.push(`<!--]--></div> <div class="submit-action-row">`);
 			Button_1($$renderer, {
 				tone: "ink",
 				type: "submit",
@@ -1436,6 +1441,11 @@ function VideoEditModal($$renderer, $$props) {
 		let { video, actionId = null, onClose, onSave } = $$props;
 		let title = "";
 		let description = "";
+		let descEl = null;
+		new TextareaAutosize({
+			element: () => descEl ?? void 0,
+			input: () => description
+		});
 		let isSaving = false;
 		const isPending = derived(() => actionId === video?._id || isSaving);
 		if (Dialog) {
@@ -1499,7 +1509,7 @@ function VideoEditModal($$renderer, $$props) {
 													$$renderer.push("<!--[!-->");
 													$$renderer.push("<!--]-->");
 												}
-												$$renderer.push(`</div> <form class="modal-form"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120"${attr("disabled", isPending(), true)}/></label> <label class="field"><span class="field__label">תיאור השיעור</span> <textarea rows="4" maxlength="500"${attr("disabled", isPending(), true)}>`);
+												$$renderer.push(`</div> <form class="modal-form"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120"${attr("disabled", isPending(), true)}/></label> <label class="field"><span class="field__label">תיאור השיעור</span> <textarea maxlength="500"${attr("disabled", isPending(), true)}>`);
 												const $$body = escape_html(description);
 												if ($$body) $$renderer.push(`${$$body}`);
 												$$renderer.push(`</textarea></label> <div class="modal-actions">`);

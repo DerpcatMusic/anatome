@@ -125,6 +125,13 @@
   --duration-base: 0.2s;
   --transition-bounce: transform 0.35s var(--ease-elastic), box-shadow 0.35s var(--ease-elastic), border-radius 0.55s var(--ease-elastic);
 
+  /* Breakpoints (mobile-first rem values) */
+  --bp-xs: 20rem;    /* 320px */
+  --bp-sm: 32rem;    /* 512px */
+  --bp-md: 48rem;    /* 768px */
+  --bp-lg: 64rem;    /* 1024px */
+  --bp-xl: 80rem;    /* 1280px */
+
   /* Layout grids */
   --subgrid-card-rows: subgrid;
   --subgrid-card-span: span 6;

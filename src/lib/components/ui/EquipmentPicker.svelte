@@ -66,10 +66,6 @@
     gap: var(--space-2);
   }
 
-  .equipment-grid :global(.hb-choice) {
-    min-height: 56px;
-    padding: var(--space-2) var(--space-3);
-  }
 
   .equipment-choice-content {
     display: flex;
@@ -89,10 +85,6 @@
     height: 28px;
   }
 
-  .icon-wrapper :global(svg) {
-    width: 100%;
-    height: 100%;
-  }
 
   .choice-label {
     font-size: var(--step--1);

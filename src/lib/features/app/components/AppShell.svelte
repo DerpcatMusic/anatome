@@ -108,7 +108,5 @@
     margin-top: var(--space-2);
   }
 
-  .locked__actions :global(.hb-button) {
-    min-height: 44px;
-  }
+
 </style>

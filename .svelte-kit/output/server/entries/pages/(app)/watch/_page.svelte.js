@@ -1,5 +1,5 @@
 import { et as attr, nt as escape_html, o as derived } from "../../../../chunks/dev.js";
-import { c as resource, f as useConvexClient, r as initAuth, s as api, t as authQuery } from "../../../../chunks/session.svelte.js";
+import { g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "../../../../chunks/session.svelte.js";
 import { t as Notice } from "../../../../chunks/Notice.js";
 import { i as equipmentLabel, r as durationLabel } from "../../../../chunks/labels.js";
 import "@mux/mux-player";

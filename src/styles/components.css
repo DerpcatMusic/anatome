@@ -121,3 +121,179 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   Extracted from Svelte components to eliminate :global() style leaks
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── VideoEditModal ─── */
+.edit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  backdrop-filter: blur(2px);
+}
+
+.edit-modal-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  background: var(--white);
+  border: var(--border);
+  box-shadow: 8px 8px 0 var(--ink);
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  animation: modalPop var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1);
+  direction: rtl;
+}
+
+.edit-modal-card .modal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: var(--border);
+  padding: var(--space-4);
+}
+
+.edit-modal-card .header-icon {
+  font-size: var(--step-2);
+  color: var(--terra);
+}
+
+.edit-modal-card .modal-title {
+  margin: 0;
+  font-size: var(--step-1);
+  font-weight: 900;
+  flex: 1;
+}
+
+.edit-modal-card .close-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast);
+}
+
+.edit-modal-card .close-button:hover {
+  color: var(--ink);
+}
+
+.edit-modal-card .modal-form {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.edit-modal-card .modal-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+@keyframes modalPop {
+  from {
+    transform: translate(-50%, -50%) scale(0.96) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ─── LiveClassModalShell ─── */
+.hb-dialog-content--wide {
+  max-width: 920px !important;
+  width: 92% !important;
+}
+
+@media (max-width: 52rem) {
+  .hb-dialog-content--wide {
+    width: 96% !important;
+    padding: var(--space-3) !important;
+  }
+}
+
+/* ─── StudioLiveClassForm ─── */
+.live-type-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.live-type-switch .hb-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+/* ─── AppShell ─── */
+.locked__actions .hb-button {
+  min-height: 44px;
+}
+
+/* ─── ClassCard ─── */
+.class-card__action button {
+  min-width: 100px;
+}
+
+/* ─── LiveStudioShell ─── */
+.calendar-actions-header button {
+  display: flex !important;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--step-0) !important;
+  padding: var(--space-2) var(--space-4) !important;
+}
+
+/* ─── PreConnectOverlay ─── */
+.customer-connect__preview .preview-panel__video,
+.customer-connect__preview .preview-panel__placeholder {
+  aspect-ratio: 16 / 9;
+}
+
+/* ─── ExperienceStep ─── */
+.experience-options .hb-choice {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+}
+
+.experience-options .hb-choice__title {
+  font-size: var(--step-1);
+}
+
+/* ─── EquipmentPicker ─── */
+.equipment-grid .hb-choice {
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.icon-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── MonthCalendar ─── */
+.hb-calendar__day--with-dots {
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 4px;
+}

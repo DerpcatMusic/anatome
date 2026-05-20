@@ -6,6 +6,7 @@ import { action } from "../_generated/server";
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { requireLiveKitEnv, httpUrlForLiveKit } from "../lib/livekitEnv";
+import { TTL } from "../lib/constants";
 
 async function ensureLiveKitRoom(
   apiKey: string,
@@ -20,13 +21,13 @@ async function ensureLiveKitRoom(
   const existing = await roomClient.listRooms([roomName]);
   if (existing.length > 0) return;
 
-  const emptyTimeout = Math.max(3600, Math.ceil((joinClosesAt - Date.now()) / 1000) + 600);
+  const emptyTimeout = Math.max(TTL.MIN_EMPTY_TIMEOUT_SECONDS, Math.ceil((joinClosesAt - Date.now()) / 1000) + TTL.EMPTY_ROOM_BUFFER_SECONDS);
 
   try {
     await roomClient.createRoom({
       name: roomName,
       emptyTimeout,
-      departureTimeout: 20,
+      departureTimeout: TTL.DEPARTURE_TIMEOUT_SECONDS,
       maxParticipants,
       metadata: JSON.stringify(metadata),
     });

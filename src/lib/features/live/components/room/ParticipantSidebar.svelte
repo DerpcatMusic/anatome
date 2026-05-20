@@ -2,20 +2,29 @@
   import Button from "$components/ui/Button.svelte";
   import ScrollArea from "$components/ui/ScrollArea.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
+  import type { ParticipantItem } from "$lib/features/live/types";
 
-  let { room }: { room: LiveRoom } = $props();
+  let {
+    open,
+    participants,
+    onClose,
+  }: {
+    open: boolean;
+    participants: ParticipantItem[];
+    onClose: () => void;
+  } = $props();
+
   const { t } = useI18n();
 </script>
 
-{#if room.showParticipants}
+{#if open}
   <aside class="lr-panel lr-glass lr-panel--participants" aria-label={t.live.room.participantsTitle()}>
     <div class="lr-panel__header">
       <h3>{t.live.room.participantsTitle()}</h3>
       <button
         type="button"
         class="hb-button hb-button--close"
-        onclick={() => room.showParticipants = false}
+        onclick={onClose}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>
@@ -23,7 +32,7 @@
     </div>
     <ScrollArea class="lr-panel__scroll">
       <div class="lr-participant-list">
-        {#each room.participants as p (p.identity)}
+        {#each participants as p (p.identity)}
           <div
             class="lr-participant"
             class:lr-participant--speaking={p.isSpeaking}

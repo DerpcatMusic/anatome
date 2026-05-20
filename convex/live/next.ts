@@ -1,5 +1,6 @@
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { MS } from "../lib/constants";
 
 export const get = query({
   args: {},
@@ -17,7 +18,7 @@ export const get = query({
       const next = await ctx.db
         .query("liveClasses")
         .withIndex("by_instructorUserId_and_startsAt", (q) =>
-          q.eq("instructorUserId", userId).gte("startsAt", now - 30 * 60_000),
+          q.eq("instructorUserId", userId).gte("startsAt", now - MS.THIRTY_MINUTES),
         )
         .order("asc")
         .take(1);

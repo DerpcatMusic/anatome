@@ -1,6 +1,6 @@
 import { a as bind_props, c as ensure_array_like, et as attr, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../../../chunks/dev.js";
 import { t as liveRoomHref } from "../../../../../chunks/context.js";
-import { f as useConvexClient, p as useQuery, r as initAuth, s as api } from "../../../../../chunks/session.svelte.js";
+import { _ as useQuery, g as useConvexClient, r as initAuth, s as api } from "../../../../../chunks/session.svelte.js";
 import { G as watch, Z as mergeProps, at as boxWith, l as noop } from "../../../../../chunks/arrays.js";
 import { n as resolveLocaleProp, t as useId } from "../../../../../chunks/use-id.js";
 import { t as Button_1 } from "../../../../../chunks/Button.js";

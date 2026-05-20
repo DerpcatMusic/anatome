@@ -6,6 +6,8 @@ import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import { equipmentListValidator } from "../lib/validators";
 import { missingRequiredEquipment } from "../lib/equipment";
+import { MS, RULES } from "../lib/constants";
+import { roomNameForClass } from "../lib/live";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 
@@ -22,10 +24,6 @@ function validateClassCreditModel(
     throw new Error("Group live must use live credits");
   if (type === "one_on_one" && kind !== "oneOnOne")
     throw new Error("1:1 live must use 1:1 credits");
-}
-
-function roomNameForClass(liveClassId: Id<"liveClasses">) {
-  return `homebody_liveClass_${liveClassId}`;
 }
 
 export const get = query({
@@ -85,12 +83,12 @@ export const create = mutation({
     requireRole(profile, ["instructor", "admin"]);
 
     if (args.title.trim().length < 3) throw new Error("Class title is too short");
-    if (args.durationMinutes < 15 || args.durationMinutes > 180) {
-      throw new Error("Duration must be between 15 and 180 minutes");
+    if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
+      throw new Error(`Duration must be between ${RULES.MIN_CLASS_DURATION_MINUTES} and ${RULES.MAX_CLASS_DURATION_MINUTES} minutes`);
     }
-    const maxCapacity = args.type === "one_on_one" ? 1 : 12;
+    const maxCapacity = args.type === "one_on_one" ? 1 : RULES.MAX_GROUP_CAPACITY;
     if (args.capacity < 1 || args.capacity > maxCapacity) {
-      throw new Error(args.type === "one_on_one" ? "1:1 capacity must be 1" : "Capacity must be between 1 and 12");
+      throw new Error(args.type === "one_on_one" ? "1:1 capacity must be 1" : `Capacity must be between 1 and ${RULES.MAX_GROUP_CAPACITY}`);
     }
     if (args.requiredEquipment.length === 0) throw new Error("At least one equipment item is required");
     if (args.joinOpensMinutesBefore < 0 || args.joinOpensMinutesBefore > 60) {
@@ -251,10 +249,10 @@ export const reschedule = mutation({
       throw new Error("Only scheduled classes can be rescheduled");
     }
 
-    if (args.durationMinutes < 15 || args.durationMinutes > 180) {
-      throw new Error("משך השיעור חייב להיות בין 15 ל-180 דקות");
+    if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
+      throw new Error(`משך השיעור חייב להיות בין ${RULES.MIN_CLASS_DURATION_MINUTES} ל-${RULES.MAX_CLASS_DURATION_MINUTES} דקות`);
     }
-    const maxCapacity = liveClass.type === "one_on_one" ? 1 : 12;
+    const maxCapacity = liveClass.type === "one_on_one" ? 1 : RULES.MAX_GROUP_CAPACITY;
     if (args.capacity < 1 || args.capacity > maxCapacity) {
       throw new Error("קיבולת לא תקינה");
     }
@@ -270,7 +268,7 @@ export const reschedule = mutation({
     const joinOpensAt = args.startsAt - args.joinOpensMinutesBefore * 60 * 1000;
     const joinClosesAt = endsAt;
 
-    if (args.startsAt <= now - 5 * 60 * 1000) {
+    if (args.startsAt <= now - MS.FIVE_MINUTES) {
       throw new Error("ניתן לתזמן שיעור רק לעתיד");
     }
 
@@ -301,9 +299,9 @@ export const reschedule = mutation({
 
       let newSendAt = args.startsAt;
       if (reminder.kind === "day_before") {
-        newSendAt = args.startsAt - 24 * 60 * 60 * 1000;
+        newSendAt = args.startsAt - MS.DAY;
       } else if (reminder.kind === "thirty_minutes") {
-        newSendAt = args.startsAt - 30 * 60 * 1000;
+        newSendAt = args.startsAt - MS.THIRTY_MINUTES;
       }
 
       if (newSendAt <= now) {

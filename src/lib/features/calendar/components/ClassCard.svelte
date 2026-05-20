@@ -255,9 +255,7 @@
     flex-shrink: 0;
   }
 
-  .class-card__action :global(button) {
-    min-width: 100px;
-  }
+
 
   @media (max-width: 680px) {
     .class-card {

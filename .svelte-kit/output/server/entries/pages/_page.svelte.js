@@ -1,7 +1,6 @@
-import "../../chunks/index-server.js";
 import { a as bind_props, c as ensure_array_like, et as attr, g as html, l as head, nt as escape_html, o as derived } from "../../chunks/dev.js";
 import { t as SITE } from "../../chunks/config.js";
-import { a as signOut, f as useConvexClient, r as initAuth, s as api } from "../../chunks/session.svelte.js";
+import { a as signOut, g as useConvexClient, r as initAuth, s as api } from "../../chunks/session.svelte.js";
 import { p as Portal } from "../../chunks/scroll-lock.js";
 import { n as Dialog, r as Dialog_overlay, t as Dialog_content } from "../../chunks/dialog-content.js";
 import { t as Button_1 } from "../../chunks/Button.js";
@@ -15,7 +14,7 @@ function SEO($$renderer, $$props) {
 		const fullTitle = derived(() => title.includes(SITE.name) ? title : `${title} | ${SITE.name}`);
 		const canonicalUrl = derived(() => canonical ?? `${SITE.domain}${page.url.pathname}`);
 		const ogImageUrl = derived(() => ogImage.startsWith("http") ? ogImage : `${SITE.domain}${ogImage}`);
-		const robotsDirectives = derived(() => () => {
+		const robotsDirectives = derived(() => {
 			const parts = [];
 			if (noindex) parts.push("noindex");
 			if (nofollow) parts.push("nofollow");
@@ -24,7 +23,7 @@ function SEO($$renderer, $$props) {
 			if (robotsMaxImagePreview) parts.push(`max-image-preview:${robotsMaxImagePreview}`);
 			return parts.join(", ");
 		});
-		const allLd = derived(() => () => {
+		const allLd = derived(() => {
 			const out = [];
 			if (breadcrumbs) out.push({
 				"@context": "https://schema.org",
@@ -43,7 +42,7 @@ function SEO($$renderer, $$props) {
 			$$renderer.title(($$renderer) => {
 				$$renderer.push(`<title>${escape_html(fullTitle())}</title>`);
 			});
-			$$renderer.push(`<meta name="description"${attr("content", description)}/> <meta name="keywords"${attr("content", keywords)}/> <link rel="canonical"${attr("href", canonicalUrl())}/> <meta name="robots"${attr("content", robotsDirectives()())}/> <meta name="googlebot"${attr("content", robotsDirectives()())}/> <meta name="language"${attr("content", SITE.lang)}/> <meta name="author"${attr("content", SITE.name)}/> <meta name="publisher"${attr("content", SITE.name)}/> <meta name="copyright"${attr("content", `© ${(/* @__PURE__ */ new Date()).getFullYear()} ${SITE.name}`)}/> <meta property="og:site_name"${attr("content", SITE.name)}/> <meta property="og:title"${attr("content", fullTitle())}/> <meta property="og:description"${attr("content", description)}/> <meta property="og:type"${attr("content", ogType)}/> <meta property="og:url"${attr("content", canonicalUrl())}/> <meta property="og:locale"${attr("content", SITE.locale)}/> <meta property="og:image"${attr("content", ogImageUrl())}/> <meta property="og:image:alt"${attr("content", fullTitle())}/> <meta name="twitter:card" content="summary_large_image"/> <meta name="twitter:site"${attr("content", SITE.twitterHandle)}/> <meta name="twitter:creator"${attr("content", SITE.twitterHandle)}/> <meta name="twitter:title"${attr("content", fullTitle())}/> <meta name="twitter:description"${attr("content", description)}/> <meta name="twitter:image"${attr("content", ogImageUrl())}/> <meta name="twitter:image:alt"${attr("content", fullTitle())}/> `);
+			$$renderer.push(`<meta name="description"${attr("content", description)}/> <meta name="keywords"${attr("content", keywords)}/> <link rel="canonical"${attr("href", canonicalUrl())}/> <meta name="robots"${attr("content", robotsDirectives())}/> <meta name="googlebot"${attr("content", robotsDirectives())}/> <meta name="language"${attr("content", SITE.lang)}/> <meta name="author"${attr("content", SITE.name)}/> <meta name="publisher"${attr("content", SITE.name)}/> <meta name="copyright"${attr("content", `© ${(/* @__PURE__ */ new Date()).getFullYear()} ${SITE.name}`)}/> <meta property="og:site_name"${attr("content", SITE.name)}/> <meta property="og:title"${attr("content", fullTitle())}/> <meta property="og:description"${attr("content", description)}/> <meta property="og:type"${attr("content", ogType)}/> <meta property="og:url"${attr("content", canonicalUrl())}/> <meta property="og:locale"${attr("content", SITE.locale)}/> <meta property="og:image"${attr("content", ogImageUrl())}/> <meta property="og:image:alt"${attr("content", fullTitle())}/> <meta name="twitter:card" content="summary_large_image"/> <meta name="twitter:site"${attr("content", SITE.twitterHandle)}/> <meta name="twitter:creator"${attr("content", SITE.twitterHandle)}/> <meta name="twitter:title"${attr("content", fullTitle())}/> <meta name="twitter:description"${attr("content", description)}/> <meta name="twitter:image"${attr("content", ogImageUrl())}/> <meta name="twitter:image:alt"${attr("content", fullTitle())}/> `);
 			if (article) {
 				$$renderer.push("<!--[0-->");
 				if (article.publishedTime) {
@@ -106,7 +105,7 @@ function SEO($$renderer, $$props) {
 			$$renderer.push(`<!--]--> <link rel="alternate" hreflang="x-default"${attr("href", SITE.domain)}/>`);
 		});
 		$$renderer.push(`<!--[-->`);
-		const each_array_2 = ensure_array_like(allLd()());
+		const each_array_2 = ensure_array_like(allLd());
 		for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
 			let item = each_array_2[$$index_2];
 			const json = JSON.stringify(item);

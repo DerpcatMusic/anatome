@@ -2,7 +2,7 @@ import { r as tick } from "../../../../../chunks/index-server.js";
 import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, gt as to_array, ht as run, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id, xt as setContext, yt as getContext } from "../../../../../chunks/dev.js";
 import "../../../../../chunks/events.js";
 import { t as liveRoomHref } from "../../../../../chunks/context.js";
-import { f as useConvexClient, i as setCachedRole, l as SvelteMap, s as api, t as authQuery } from "../../../../../chunks/session.svelte.js";
+import { c as TextareaAutosize, g as useConvexClient, i as setCachedRole, p as SvelteMap, s as api, t as authQuery } from "../../../../../chunks/session.svelte.js";
 import { C as ARROW_UP, F as boolToStrTrueOrUndef, G as watch, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, O as HOME, P as boolToStr, S as ARROW_RIGHT, Z as mergeProps, _ as isNull, a as isValidIndex, at as boxWith, b as ARROW_DOWN, c as createId, f as isElementOrSVGElement, l as noop$2, lt as simpleBox, m as isHTMLElement, q as Context, u as isBrowser, x as ARROW_LEFT } from "../../../../../chunks/arrays.js";
 import { p as Portal } from "../../../../../chunks/scroll-lock.js";
 import { i as Floating_layer } from "../../../../../chunks/popper-layer-force-mount.js";
@@ -5719,12 +5719,18 @@ function EditLiveClassForm($$renderer, $$props) {
 		}
 		let editTitle = "";
 		let editDescription = "";
+		let descEl = null;
+		new TextareaAutosize({
+			element: () => descEl ?? void 0,
+			input: () => editDescription
+		});
 		let editTime = "";
 		let editDuration = 60;
 		let editJoinOpens = 10;
 		let editCapacity = 12;
 		let editEquipment = [];
 		let editDateValue = void 0;
+		derived(() => editDateValue ? editDateValue.toString() : "");
 		const endTimeDisplay = derived(() => {
 			const [h, m] = editTime.split(":").map(Number);
 			const end = new Date(new Date(2e3, 0, 1, h, m).getTime() + editDuration * 6e4);
@@ -5750,7 +5756,7 @@ function EditLiveClassForm($$renderer, $$props) {
 				$$renderer.push(`<!----></div></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<form class="edit-form svelte-1kb5poz"><div class="form-grid svelte-1kb5poz"><div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", editTitle)} required=""${attr("disabled", submitting, true)} maxlength="120"/></div> <div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea" rows="2"${attr("disabled", submitting, true)} maxlength="500">`);
+				$$renderer.push(`<form class="edit-form svelte-1kb5poz"><div class="form-grid svelte-1kb5poz"><div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", editTitle)} required=""${attr("disabled", submitting, true)} maxlength="120"/></div> <div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea"${attr("disabled", submitting, true)} maxlength="500">`);
 				const $$body = escape_html(editDescription);
 				if ($$body) $$renderer.push(`${$$body}`);
 				$$renderer.push(`</textarea></div> <div class="form-row-split span-2 svelte-1kb5poz">`);
@@ -6139,6 +6145,11 @@ function StudioLiveClassForm($$renderer, $$props) {
 		}];
 		let dateValue = void 0;
 		let timeValue = "09:00";
+		let descEl = null;
+		new TextareaAutosize({
+			element: () => descEl ?? void 0,
+			input: () => description
+		});
 		const endTimeDisplay = derived(() => {
 			if (!startsAtLocal) return "--:--";
 			const [_, timePart] = startsAtLocal.split("T");
@@ -6158,7 +6169,7 @@ function StudioLiveClassForm($$renderer, $$props) {
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
-			$$renderer.push(`<form class="svelte-1hw0dn5"><div class="studio-form-columns svelte-1hw0dn5"><div class="studio-form-column svelte-1hw0dn5">`);
+			$$renderer.push(`<form class="svelte-1hw0dn5"><div class="studio-form-columns svelte-1hw0dn5"><div class="studio-form-column svelte-1hw0dn5"><div class="column-fill svelte-1hw0dn5">`);
 			FormSection($$renderer, {
 				title: "תאריך ושעה",
 				children: ($$renderer) => {
@@ -6203,7 +6214,7 @@ function StudioLiveClassForm($$renderer, $$props) {
 				},
 				$$slots: { default: true }
 			});
-			$$renderer.push(`<!----></div> <div class="studio-form-column svelte-1hw0dn5">`);
+			$$renderer.push(`<!----></div></div> <div class="studio-form-column svelte-1hw0dn5"><div class="column-fill svelte-1hw0dn5">`);
 			FormSection($$renderer, {
 				title: "הגדרות שיעור",
 				children: ($$renderer) => {
@@ -6218,7 +6229,7 @@ function StudioLiveClassForm($$renderer, $$props) {
 							$$settled = false;
 						}
 					});
-					$$renderer.push(`<!----> <div class="hb-input-field"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", title)} required="" maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי"/></div> <div class="hb-input-field"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea" rows="3" maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים...">`);
+					$$renderer.push(`<!----> <div class="hb-input-field"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", title)} required="" maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי"/></div> <div class="hb-input-field"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea" maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים...">`);
 					const $$body = escape_html(description);
 					if ($$body) $$renderer.push(`${$$body}`);
 					$$renderer.push(`</textarea></div> <div class="sliders-stack svelte-1hw0dn5">`);
@@ -6259,7 +6270,7 @@ function StudioLiveClassForm($$renderer, $$props) {
 				},
 				$$slots: { default: true }
 			});
-			$$renderer.push(`<!----></div></div> <div class="picker-section svelte-1hw0dn5">`);
+			$$renderer.push(`<!----></div></div></div> <div class="picker-section svelte-1hw0dn5">`);
 			EquipmentPicker($$renderer, {
 				label: "ציוד חובה לשיעור",
 				get selected() {
