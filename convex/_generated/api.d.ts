@@ -36,7 +36,6 @@ import type * as livekit_rooms from "../livekit/rooms.js";
 import type * as livekit_token from "../livekit/token.js";
 import type * as livekit_webhook from "../livekit/webhook.js";
 import type * as livekitAttendance_events from "../livekitAttendance/events.js";
-import type * as livekitWebhook from "../livekitWebhook.js";
 import type * as oneOnOne_cron from "../oneOnOne/cron.js";
 import type * as oneOnOne_customer from "../oneOnOne/customer.js";
 import type * as oneOnOne_instructor from "../oneOnOne/instructor.js";
@@ -97,7 +96,6 @@ declare const fullApi: ApiFromModules<{
   "livekit/token": typeof livekit_token;
   "livekit/webhook": typeof livekit_webhook;
   "livekitAttendance/events": typeof livekitAttendance_events;
-  livekitWebhook: typeof livekitWebhook;
   "oneOnOne/cron": typeof oneOnOne_cron;
   "oneOnOne/customer": typeof oneOnOne_customer;
   "oneOnOne/instructor": typeof oneOnOne_instructor;

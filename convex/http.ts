@@ -71,7 +71,7 @@ http.route({
     const authorization = request.headers.get("Authorization") ?? "";
 
     try {
-      const validated = await ctx.runAction(internal.livekitWebhook.validate, {
+      const validated = await ctx.runAction(internal.livekit.webhook.validate, {
         body,
         authorization,
       });
@@ -87,7 +87,7 @@ http.route({
       });
 
       if (validated.event === "participant_joined" && result.authorized === false) {
-        await ctx.runAction(internal.livekitWebhook.removeParticipant, {
+        await ctx.runAction(internal.livekit.webhook.removeParticipant, {
           roomName: validated.roomName,
           identity: validated.identity,
         });
