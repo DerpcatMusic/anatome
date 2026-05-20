@@ -1,25 +1,22 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import MonthCalendar from "$components/ui/MonthCalendar.svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
   import { useQuery, useConvexClient } from "convex-svelte";
-  import { initAuth, getCachedRole, setCachedRole } from "$lib/auth/session.svelte";
+  import { initAuth } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { routePath } from "$lib/i18n/context";
   import DayStrip from "./DayStrip.svelte";
   import ClassCard from "./ClassCard.svelte";
+  import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
+  import type { DateValue } from "@internationalized/date";
 
   type CalendarClass = FunctionReturnType<typeof api.customerLive.listCalendarRange>[number];
 
   const dayMs = 24 * 60 * 60 * 1000;
   const rangeStart = startOfToday();
-  const formatter = new Intl.DateTimeFormat("he-IL", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "Asia/Jerusalem",
-  });
 
   let selectedDay = $state(rangeStart);
   let actionId = $state<string | null>(null);
@@ -27,9 +24,6 @@
 
   const auth = initAuth();
   const client = useConvexClient();
-  const profileQuery = useQuery(api.appProfiles.viewer, () => auth.isAuthenticated ? {} : "skip");
-  const role = $derived(profileQuery.data?.role ?? getCachedRole());
-  const isStaff = $derived(role === "instructor" || role === "admin");
 
   const query = useQuery(api.customerLive.listCalendarRange, () => auth.isAuthenticated ? {
     from: rangeStart,
@@ -38,26 +32,74 @@
 
   const classes = $derived(query.data ?? []);
 
-  $effect(() => {
-    if (profileQuery.data?.role) setCachedRole(profileQuery.data.role);
-  });
-
   const days = $derived(
     Array.from({ length: 14 }, (_, index) => {
       const date = rangeStart + index * dayMs;
-      return { date, label: formatter.format(new Date(date)) };
+      return { date, label: "" };
     }),
   );
+
   const visibleClasses = $derived(
-    classes.filter((item) => {
+    classes.filter((item: CalendarClass) => {
       const startsAt = item.liveClass.startsAt;
       return startsAt >= selectedDay && startsAt < selectedDay + dayMs;
     }),
   );
 
+  // Event dots for the month calendar
+  const calendarEvents = $derived.by(() => {
+    const dayTones = new Map<number, "sky" | "terra" | "success" | "muted">();
+
+    for (const item of classes) {
+      const dayStart = Math.floor(item.liveClass.startsAt / dayMs) * dayMs;
+      const existing = dayTones.get(dayStart);
+      let tone: "sky" | "terra" | "success" | "muted" = "sky";
+
+      if (item.liveClass.status === "live") {
+        tone = "terra";
+      } else if (item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined") {
+        tone = "success";
+      } else if (item.seatsRemaining <= 0) {
+        tone = "muted";
+      }
+
+      // Priority: terra > success > sky > muted
+      const priority = { terra: 4, success: 3, sky: 2, muted: 1 };
+      if (!existing || priority[tone] > priority[existing]) {
+        dayTones.set(dayStart, tone);
+      }
+    }
+
+    const events: { date: DateValue; tone: "sky" | "terra" | "success" | "muted" }[] = [];
+    for (const [dayStart, tone] of dayTones) {
+      const d = new Date(dayStart);
+      events.push({
+        date: new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate()),
+        tone,
+      });
+    }
+    return events;
+  });
+
   function startOfToday() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  }
+
+  function timestampToDateValue(ts: number): DateValue {
+    const d = new Date(ts);
+    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  }
+
+  function dateValueToTimestamp(dv: DateValue): number {
+    return dv.toDate(getLocalTimeZone()).getTime();
+  }
+
+  let calendarValue = $derived(timestampToDateValue(selectedDay));
+
+  function onCalendarSelect(dv: DateValue | undefined) {
+    if (!dv) return;
+    selectedDay = dateValueToTimestamp(dv);
   }
 
   const { t } = useI18n();
@@ -95,39 +137,39 @@
   </div>
 {:else}
   <div class="calendar-page">
-    <div class="page-header">
+    <header class="page-header">
       <div>
         <p class="kicker">{t.calendar.kicker()}</p>
         <h1>{t.calendar.title()}</h1>
       </div>
-      <div class="page-header__actions">
-        {#if isStaff}
-          <a href={routePath("studioLive")} class="btn btn--primary">{t.calendar.studio()}</a>
-        {/if}
-        <button type="button" class="btn btn--ghost" onclick={() => { selectedDay = rangeStart; }}>
-          {t.calendar.today()}
-        </button>
-      </div>
-    </div>
-    <p class="description">{t.calendar.description()}</p>
+      <Button type="button" tone="paper" size="sm" onclick={() => { selectedDay = rangeStart; }}>
+        {t.calendar.today()}
+      </Button>
+    </header>
 
     {#if query.error || actionError}
       <Notice tone="danger">{query.error?.message ?? actionError}</Notice>
     {/if}
 
-    <DayStrip {days} {selectedDay} onSelect={(date) => { selectedDay = date; }} />
+    <div class="calendar-layout">
+      <div class="calendar-month">
+        <MonthCalendar value={calendarValue} onchange={onCalendarSelect} events={calendarEvents} />
+      </div>
 
-    <div class="agenda" aria-live="polite">
-      {#if visibleClasses.length === 0}
-        <div class="empty-agenda">
-          <p class="empty-agenda__kicker">{t.calendar.empty.kicker()}</p>
-          <p>{t.calendar.empty.text()}</p>
-        </div>
-      {:else}
-        {#each visibleClasses as item}
-          <ClassCard {item} {actionId} onReserve={reserve} onCancel={cancel} />
-        {/each}
-      {/if}
+      <DayStrip {days} {selectedDay} onSelect={(date) => { selectedDay = date; }} />
+
+      <div class="agenda" aria-live="polite">
+        {#if visibleClasses.length === 0}
+          <div class="empty-agenda">
+            <p class="empty-agenda__kicker">{t.calendar.empty.kicker()}</p>
+            <p>{t.calendar.empty.text()}</p>
+          </div>
+        {:else}
+          {#each visibleClasses as item}
+            <ClassCard {item} {actionId} onReserve={reserve} onCancel={cancel} />
+          {/each}
+        {/if}
+      </div>
     </div>
   </div>
 {/if}
@@ -136,41 +178,28 @@
   .calendar-page {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--space-4);
+  }
+
+  .calendar-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .calendar-month {
+    max-width: 340px;
+    background: var(--white);
+    border: var(--border);
+    padding: var(--space-3);
   }
 
   .page-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .page-header__actions {
-    display: flex;
-    align-items: center;
     gap: var(--space-3);
-  }
-
-  .btn--primary {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-    font: inherit;
-    font-weight: 800;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background var(--duration-fast);
-  }
-
-  .btn--primary:hover {
-    background: var(--ink-secondary);
+    flex-wrap: wrap;
   }
 
   .kicker {
@@ -188,35 +217,12 @@
     margin: 0;
   }
 
-  .description {
-    color: var(--muted);
-    line-height: 1.7;
-    max-width: 60ch;
-    margin: 0;
-  }
-
-  .btn--ghost {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    padding-inline: var(--space-5);
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-    transition: background var(--duration-fast);
-  }
-
-  .btn--ghost:hover {
-    background: var(--surface);
-  }
-
   .agenda {
-    display: grid;
-    gap: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--white);
+    border: var(--border);
   }
 
   .empty-agenda,

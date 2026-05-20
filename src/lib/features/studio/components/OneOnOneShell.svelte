@@ -1,14 +1,17 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { resource } from "runed";
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
-  import { authQuery, getCachedRole, initAuth } from "$lib/auth/session.svelte";
-  import { convex } from "$lib/convex/client";
+  import { authQuery, initAuth } from "$lib/auth/session.svelte";
+  import { useQuery, useConvexClient } from "convex-svelte";
   import PageShell from "$features/app/components/PageShell.svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import Select from "$components/ui/Select.svelte";
 
   const auth = initAuth();
-  const role = $derived(getCachedRole() ?? "customer");
+  const profileQuery = useQuery(api.appProfiles.viewer, () => auth.isAuthenticated ? {} : "skip");
+  const role = $derived(profileQuery.data?.role ?? "customer");
   const isStaff = $derived(role === "instructor" || role === "admin");
 
   const range = $derived.by(() => {
@@ -66,12 +69,23 @@
   let endHour = $state(12);
   let slotMinutes = $state(50);
   let bufferMinutes = $state(10);
+  const weekdayOptions = [
+    { value: 0, label: "ראשון" },
+    { value: 1, label: "שני" },
+    { value: 2, label: "שלישי" },
+    { value: 3, label: "רביעי" },
+    { value: 4, label: "חמישי" },
+    { value: 5, label: "שישי" },
+    { value: 6, label: "שבת" },
+  ];
+
+  const client = useConvexClient();
 
   async function requestSlot(slot: { instructorUserId: Id<"users">; startsAt: number; endsAt: number }) {
     actionId = String(slot.startsAt);
     actionError = "";
     try {
-      await convex.mutation(api.customerOneOnOne.requestSlot, { ...slot, note });
+      await client.mutation(api.customerOneOnOne.requestSlot, { ...slot, note });
       note = "";
       await Promise.all([slotsResource.refetch(), mineResource.refetch()]);
     } catch (reason) {
@@ -85,7 +99,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await convex.mutation(api.customerOneOnOne.cancelRequest, { requestId });
+      await client.mutation(api.customerOneOnOne.cancelRequest, { requestId });
       await mineResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לבטל.";
@@ -98,7 +112,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await convex.mutation(api.instructorOneOnOne.approveRequest, { requestId });
+      await client.mutation(api.instructorOneOnOne.approveRequest, { requestId });
       await requestsResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לאשר.";
@@ -111,7 +125,7 @@
     actionId = requestId;
     actionError = "";
     try {
-      await convex.mutation(api.instructorOneOnOne.rejectRequest, { requestId });
+      await client.mutation(api.instructorOneOnOne.rejectRequest, { requestId });
       await requestsResource.refetch();
     } catch (reason) {
       actionError = reason instanceof Error ? reason.message : "לא הצלחנו לדחות.";
@@ -124,7 +138,7 @@
     actionId = "availability";
     actionError = "";
     try {
-      await convex.mutation(api.instructorOneOnOne.setAvailabilityRule, {
+      await client.mutation(api.instructorOneOnOne.setAvailabilityRule, {
         weekday,
         startMinute: startHour * 60,
         endMinute: endHour * 60,
@@ -138,6 +152,10 @@
     } finally {
       actionId = null;
     }
+  }
+
+  function formatHour(value: number) {
+    return `${String(value).padStart(2, "0")}:00`;
   }
 </script>
 
@@ -158,30 +176,19 @@
       <section class="panel">
         <h2>זמינות</h2>
         <div class="form-grid">
-          <label>
-            <span>יום</span>
-            <select bind:value={weekday}>
-              <option value={0}>ראשון</option>
-              <option value={1}>שני</option>
-              <option value={2}>שלישי</option>
-              <option value={3}>רביעי</option>
-              <option value={4}>חמישי</option>
-              <option value={5}>שישי</option>
-              <option value={6}>שבת</option>
-            </select>
-          </label>
+          <Select label="יום" bind:value={weekday} options={weekdayOptions} compact />
           <label><span>התחלה</span><input type="number" min="0" max="23" bind:value={startHour} /></label>
           <label><span>סיום</span><input type="number" min="1" max="24" bind:value={endHour} /></label>
           <label><span>משך</span><input type="number" min="20" max="120" bind:value={slotMinutes} /></label>
           <label><span>מרווח</span><input type="number" min="0" max="60" bind:value={bufferMinutes} /></label>
         </div>
-        <button class="primary-action" onclick={saveAvailability} disabled={actionId === "availability"}>שמירת זמינות</button>
+        <Button tone="ink" onclick={saveAvailability} disabled={actionId === "availability"}>שמירת זמינות</Button>
 
         <div class="compact-list">
           {#each availabilityResource.current ?? [] as rule}
             <div class="compact-row">
               <span>יום {rule.weekday}</span>
-              <span>{Math.floor(rule.startMinute / 60)}:00-{Math.floor(rule.endMinute / 60)}:00</span>
+              <span>{formatHour(Math.floor(rule.startMinute / 60))}-{formatHour(Math.floor(rule.endMinute / 60))}</span>
             </div>
           {/each}
         </div>
@@ -198,8 +205,8 @@
                 <h3>{dateFormatter.format(new Date(request.requestedStartsAt))}</h3>
                 <p>{request.note || "ללא הערה"}</p>
                 <div class="actions">
-                  <button onclick={() => approveRequest(request._id)} disabled={actionId === request._id}>אישור</button>
-                  <button class="danger" onclick={() => rejectRequest(request._id)} disabled={actionId === request._id}>דחייה</button>
+                  <Button tone="paper" onclick={() => approveRequest(request._id)} disabled={actionId === request._id}>אישור</Button>
+                  <Button tone="danger" onclick={() => rejectRequest(request._id)} disabled={actionId === request._id}>דחייה</Button>
                 </div>
               </article>
             {/each}
@@ -225,9 +232,9 @@
               <article class="request-card">
                 <h3>{dateFormatter.format(new Date(slot.startsAt))}</h3>
                 <p>{slot.availableCredits > 0 ? "יש קרדיט 1:1 זמין" : "אין קרדיט 1:1 זמין"}</p>
-                <button onclick={() => requestSlot(slot)} disabled={slot.availableCredits <= 0 || actionId === String(slot.startsAt)}>
+                <Button tone="ink" onclick={() => requestSlot(slot)} disabled={slot.availableCredits <= 0 || actionId === String(slot.startsAt)}>
                   לשלוח בקשה
-                </button>
+                </Button>
               </article>
             {/each}
           </div>
@@ -245,7 +252,7 @@
                 <h3>{dateFormatter.format(new Date(request.requestedStartsAt))}</h3>
                 <p>{request.status}</p>
                 {#if request.status === "pending"}
-                  <button class="danger" onclick={() => cancelRequest(request._id)} disabled={actionId === request._id}>ביטול</button>
+                  <Button tone="danger" onclick={() => cancelRequest(request._id)} disabled={actionId === request._id}>ביטול</Button>
                 {/if}
               </article>
             {/each}
@@ -268,7 +275,7 @@
   .state-card,
   .request-card {
     border: var(--border);
-    background: var(--white);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
     padding: var(--space-5);
   }
 
@@ -317,7 +324,6 @@
   }
 
   input,
-  select,
   textarea {
     min-width: 0;
     min-height: 42px;
@@ -338,9 +344,10 @@
     flex-wrap: wrap;
   }
 
-  button,
-  .button-link,
-  .primary-action {
+  .button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 40px;
     border: var(--border);
     background: var(--ink);
@@ -350,17 +357,16 @@
     font-weight: 800;
     cursor: pointer;
     text-decoration: none;
+    border-radius: 0;
+    will-change: border-radius;
+    transition:
+      background var(--duration-fast),
+      border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1);
   }
 
-  button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .danger {
-    background: #fef2f2;
-    color: #b42318;
-    border-color: #fecaca;
+  .button-link:hover {
+    background: var(--ink-secondary);
+    border-radius: 20px;
   }
 
   .compact-row {

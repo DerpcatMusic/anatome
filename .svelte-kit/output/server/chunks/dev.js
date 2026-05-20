@@ -45,6 +45,16 @@ function await_invalid() {
 	throw error;
 }
 /**
+* `<svelte:element this="%tag%">` is not a valid element name — the element will not be rendered
+* @param {string} tag
+* @returns {never}
+*/
+function dynamic_element_invalid_tag(tag) {
+	const error = /* @__PURE__ */ new Error(`dynamic_element_invalid_tag\n\`<svelte:element this="${tag}">\` is not a valid element name — the element will not be rendered\nhttps://svelte.dev/e/dynamic_element_invalid_tag`);
+	error.name = "Svelte error";
+	throw error;
+}
+/**
 * The `html` property of server render results has been deprecated. Use `body` instead.
 * @returns {never}
 */
@@ -216,6 +226,7 @@ var is_array = Array.isArray;
 var index_of = Array.prototype.indexOf;
 var includes = Array.prototype.includes;
 var array_from = Array.from;
+var object_keys = Object.keys;
 var define_property = Object.defineProperty;
 var get_descriptor = Object.getOwnPropertyDescriptor;
 var object_prototype = Object.prototype;
@@ -249,6 +260,26 @@ function deferred() {
 		resolve,
 		reject
 	};
+}
+/**
+* When encountering a situation like `let [a, b, c] = $derived(blah())`,
+* we need to stash an intermediate value that `a`, `b`, and `c` derive
+* from, in case it's an iterable
+* @template T
+* @param {ArrayLike<T> | Iterable<T>} value
+* @param {number} [n]
+* @returns {Array<T>}
+*/
+function to_array(value, n) {
+	if (Array.isArray(value)) return value;
+	if (n === void 0 || !(Symbol.iterator in value)) return Array.from(value);
+	/** @type {T[]} */
+	const array = [];
+	for (const element of value) {
+		array.push(element);
+		if (array.length === n) break;
+	}
+	return array;
 }
 var CLEAN = 1024;
 var DIRTY = 2048;
@@ -364,6 +395,7 @@ function in_webcontainer() {
 //#region node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
 var UNINITIALIZED = Symbol();
+var ATTACHMENT_KEY = "@attach";
 /**
 * @returns {string[]}
 */
@@ -576,6 +608,14 @@ function effect_update_depth_exceeded() {
 */
 function hydration_failed() {
 	throw new Error(`https://svelte.dev/e/hydration_failed`);
+}
+/**
+* The `%rune%` rune is only available inside `.svelte` and `.svelte.js/ts` files
+* @param {string} rune
+* @returns {never}
+*/
+function rune_outside_svelte(rune) {
+	throw new Error(`https://svelte.dev/e/rune_outside_svelte`);
 }
 /**
 * Property descriptors defined on `$state` objects must contain `value` and always be `enumerable`, `configurable` and `writable`.
@@ -2629,6 +2669,17 @@ function get_next_sibling(node) {
 function clear_text_content(node) {
 	node.textContent = "";
 }
+/**
+* @template {keyof HTMLElementTagNameMap | string} T
+* @param {T} tag
+* @param {string} [namespace]
+* @param {string} [is]
+* @returns {T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : Element}
+*/
+function create_element(tag, namespace, is) {
+	let options = is ? { is } : void 0;
+	return document.createElementNS(namespace ?? "http://www.w3.org/1999/xhtml", tag, options);
+}
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
 /**
@@ -2727,6 +2778,18 @@ function effect_tracking() {
 */
 function create_user_effect(fn) {
 	return create_effect(4 | USER_EFFECT, fn);
+}
+/**
+* Internal representation of `$effect.root(...)`
+* @param {() => void | (() => void)} fn
+* @returns {() => void}
+*/
+function effect_root(fn) {
+	Batch.ensure();
+	const effect = create_effect(64 | EFFECT_PRESERVED, fn);
+	return () => {
+		destroy_effect(effect);
+	};
 }
 /**
 * An effect root whose children can transition out
@@ -3279,6 +3342,50 @@ function untrack(fn) {
 		untracking = previous_untracking;
 	}
 }
+//#endregion
+//#region node_modules/svelte/src/store/utils.js
+/** @import { Readable } from './public' */
+/**
+* @template T
+* @param {Readable<T> | null | undefined} store
+* @param {(value: T) => void} run
+* @param {(value: T) => void} [invalidate]
+* @returns {() => void}
+*/
+function subscribe_to_store(store, run, invalidate) {
+	if (store == null) {
+		run(void 0);
+		if (invalidate) invalidate(void 0);
+		return noop;
+	}
+	const unsub = untrack(() => store.subscribe(run, invalidate));
+	return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+}
+var VOID_ELEMENT_NAMES = [
+	"area",
+	"base",
+	"br",
+	"col",
+	"command",
+	"embed",
+	"hr",
+	"img",
+	"input",
+	"keygen",
+	"link",
+	"meta",
+	"param",
+	"source",
+	"track",
+	"wbr"
+];
+/**
+* Returns `true` if `name` is of a void element
+* @param {string} name
+*/
+function is_void(name) {
+	return VOID_ELEMENT_NAMES.includes(name) || name.toLowerCase() === "!doctype";
+}
 /**
 * Attributes that are boolean, i.e. they are present or not present.
 */
@@ -3337,6 +3444,18 @@ var PASSIVE_EVENTS = ["touchstart", "touchmove"];
 function is_passive_event(name) {
 	return PASSIVE_EVENTS.includes(name);
 }
+/** List of elements that require raw contents and should not have SSR comments put in them */
+var RAW_TEXT_ELEMENTS = [
+	"textarea",
+	"script",
+	"style",
+	"title"
+];
+/** @param {string} name */
+function is_raw_text_element(name) {
+	return RAW_TEXT_ELEMENTS.includes(name);
+}
+var REGEX_VALID_TAG_NAME = /^[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9.\-_\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\u1FFF\u200C-\u200D\u203F-\u2040\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}]*)?$/u;
 //#endregion
 //#region node_modules/svelte/src/internal/server/blocks/html.js
 /**
@@ -3348,6 +3467,28 @@ function html(value) {
 //#endregion
 //#region node_modules/svelte/src/internal/server/index.js
 var INVALID_ATTR_NAME_CHAR_REGEX = /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
+/**
+* @param {Renderer} renderer
+* @param {string} tag
+* @param {() => void} attributes_fn
+* @param {() => void} children_fn
+* @returns {void}
+*/
+function element(renderer, tag, attributes_fn = noop, children_fn = noop) {
+	renderer.push("<!---->");
+	if (tag) {
+		if (!REGEX_VALID_TAG_NAME.test(tag)) dynamic_element_invalid_tag(tag);
+		renderer.push(`<${tag}`);
+		attributes_fn();
+		renderer.push(`>`);
+		if (!is_void(tag)) {
+			children_fn();
+			if (!is_raw_text_element(tag)) renderer.push(EMPTY_COMMENT);
+			renderer.push(`</${tag}>`);
+		}
+	}
+	renderer.push("<!---->");
+}
 /**
 * Only available on the server and when compiling with the `server` option.
 * Takes a component and returns an object with `body` and `head` properties on it, which you can use to populate the HTML when server-rendering your app.
@@ -3409,6 +3550,25 @@ function attributes(attrs, css_hash, classes, styles, flags = 0) {
 	return attr_str;
 }
 /**
+* @param {Record<string, unknown>[]} props
+* @returns {Record<string, unknown>}
+*/
+function spread_props(props) {
+	/** @type {Record<string, unknown>} */
+	const merged_props = {};
+	let key;
+	for (let i = 0; i < props.length; i++) {
+		const obj = props[i];
+		if (obj == null) continue;
+		for (key of Object.keys(obj)) {
+			const desc = Object.getOwnPropertyDescriptor(obj, key);
+			if (desc) Object.defineProperty(merged_props, key, desc);
+			else merged_props[key] = obj[key];
+		}
+	}
+	return merged_props;
+}
+/**
 * @param {unknown} value
 * @returns {string}
 */
@@ -3431,6 +3591,33 @@ function attr_class(value, hash, directives) {
 function attr_style(value, directives) {
 	var result = to_style(value, directives);
 	return result ? ` style="${escape_html(result, true)}"` : "";
+}
+/**
+* @template V
+* @param {Record<string, [any, any, any]>} store_values
+* @param {string} store_name
+* @param {Store<V> | null | undefined} store
+* @returns {V}
+*/
+function store_get(store_values, store_name, store) {
+	if (store_name in store_values && store_values[store_name][0] === store) return store_values[store_name][2];
+	store_values[store_name]?.[1]();
+	store_values[store_name] = [
+		store,
+		null,
+		void 0
+	];
+	const unsub = subscribe_to_store(
+		store,
+		/** @param {any} v */
+		(v) => store_values[store_name][2] = v
+	);
+	store_values[store_name][1] = unsub;
+	return store_values[store_name][2];
+}
+/** @param {Record<string, [any, any, any]>} store_values */
+function unsubscribe_stores(store_values) {
+	for (const store_name of Object.keys(store_values)) store_values[store_name][1]();
 }
 /**
 * Legacy mode: If the prop has a fallback and is bound in the
@@ -3460,6 +3647,16 @@ function once(get_value) {
 		if (value === UNINITIALIZED) value = get_value();
 		return value;
 	};
+}
+/**
+* Create an unique ID
+* @param {Renderer} renderer
+* @returns {string}
+*/
+function props_id(renderer) {
+	const uid = renderer.global.uid();
+	renderer.push("<!--$" + uid + "-->");
+	return uid;
 }
 /**
 * @template T
@@ -4191,4 +4388,4 @@ function get_user_code_location() {
 	return get_stack().filter((line) => line.trim().startsWith("at ")).map((line) => line.replace(/\((.*):\d+:\d+\)$/, (_, file) => `(${file})`)).join("\n");
 }
 //#endregion
-export { noop as $, queue_micro_task as A, lifecycle_double_unmount as B, init_operations as C, flushSync as D, boundary as E, hydrate_node as F, HYDRATION_ERROR as G, hydration_failed as H, hydrating as I, getAbortSignal as J, get_render_context as K, set_hydrate_node as L, pop as M, push as N, readable as O, snapshot as P, define_property as Q, set_hydrating as R, get_next_sibling as S, set as T, attr as U, state_proxy_unmount as V, escape_html as W, STATE_SYMBOL as X, LEGACY_PROPS as Y, array_from as Z, component_root as _, derived as a, setContext as at, create_text as b, render as c, hydratable_serialization_failed as ct, is_passive_event as d, run as et, active_effect as f, set_active_reaction as g, set_active_effect as h, bind_props as i, hasContext as it, component_context as j, writable as k, stringify as l, lifecycle_function_unavailable as lt, get as m, attr_class as n, getAllContexts as nt, ensure_array_like as o, ssr_context as ot, active_reaction as p, async_mode_flag as q, attr_style as r, getContext as rt, head as s, hydratable_clobbering as st, get_user_code_location as t, createContext as tt, html as u, experimental_async_required as ut, without_reactive_context as v, mutable_source as w, get_first_child as x, clear_text_content as y, hydration_mismatch as z };
+export { rune_outside_svelte as $, get_first_child as A, component_context as B, component_root as C, hydratable_clobbering as Ct, clear_text_content as D, without_reactive_context as E, experimental_async_required as Et, boundary as F, hydrate_node as G, push as H, flushSync as I, set_hydrating as J, hydrating as K, readable as L, init_operations as M, mutable_source as N, create_element as O, set as P, hydration_failed as Q, writable as R, set_active_reaction as S, ssr_context as St, render_effect as T, lifecycle_function_unavailable as Tt, snapshot as U, pop as V, hydrate_next as W, lifecycle_double_unmount as X, hydration_mismatch as Y, state_proxy_unmount as Z, is_passive_event as _, createContext as _t, bind_props as a, get_render_context as at, get as b, hasContext as bt, ensure_array_like as c, LEGACY_PROPS as ct, render as d, array_from as dt, attr as et, spread_props as f, define_property as ft, html as g, to_array as gt, unsubscribe_stores as h, run as ht, attributes as i, HYDRATION_ERROR as it, get_next_sibling as j, create_text as k, head as l, REACTION_RAN as lt, stringify as m, object_keys as mt, attr_class as n, escape_html as nt, derived as o, async_mode_flag as ot, store_get as p, noop as pt, set_hydrate_node as q, attr_style as r, ATTACHMENT_KEY as rt, element as s, getAbortSignal as st, get_user_code_location as t, clsx$1 as tt, props_id as u, STATE_SYMBOL as ut, active_effect as v, getAllContexts as vt, effect_root as w, hydratable_serialization_failed as wt, set_active_effect as x, setContext as xt, active_reaction as y, getContext as yt, queue_micro_task as z };

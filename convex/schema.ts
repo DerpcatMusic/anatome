@@ -84,6 +84,7 @@ export default defineSchema({
   })
     .index("by_startsAt", ["startsAt"])
     .index("by_status_and_startsAt", ["status", "startsAt"])
+    .index("by_status_and_joinClosesAt", ["status", "joinClosesAt"])
     .index("by_instructorUserId_and_startsAt", ["instructorUserId", "startsAt"]),
 
   liveRooms: defineTable({
@@ -132,6 +133,16 @@ export default defineSchema({
   })
     .index("by_liveClassId_and_createdAt", ["liveClassId", "createdAt"])
     .index("by_userId_and_createdAt", ["userId", "createdAt"]),
+
+  liveAttendance: defineTable({
+    liveClassId: v.id("liveClasses"),
+    userId: v.id("users"),
+    identity: v.string(),
+    joinedAt: v.number(),
+    leftAt: v.optional(v.number()),
+  })
+    .index("by_liveClassId_and_identity", ["liveClassId", "identity"])
+    .index("by_liveClassId_and_userId", ["liveClassId", "userId"]),
 
   liveReminderEvents: defineTable({
     liveClassId: v.id("liveClasses"),
@@ -206,21 +217,26 @@ export default defineSchema({
     thumbnailUrl: v.optional(v.string()),
     durationSeconds: v.number(),
     requiredEquipment: equipmentListValidator,
-    availableFrom: v.number(),
-    availableUntil: v.number(),
+    accessKind: v.union(v.literal("macroflow"), v.literal("microflow")),
+    muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
+    muxMaxResolutionTier: v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p")),
+    staticRendition: v.optional(v.union(v.literal("none"), v.literal("audio-only"), v.literal("720p"), v.literal("1080p"))),
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
     createdAt: v.number(),
     updatedAt: v.number(),
+    instructorUserId: v.optional(v.id("users")),
   })
-    .index("by_status_and_availableFrom", ["status", "availableFrom"])
-    .index("by_status_and_availableUntil", ["status", "availableUntil"])
-    .index("by_availableUntil", ["availableUntil"]),
+    .index("by_status", ["status"])
+    .index("by_instructorUserId_and_createdAt", ["instructorUserId", "createdAt"]),
 
   videoUploads: defineTable({
     videoId: v.id("videos"),
     instructorUserId: v.id("users"),
     muxUploadId: v.string(),
     muxAssetId: v.optional(v.string()),
+    muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
+    muxMaxResolutionTier: v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p")),
+    staticRendition: v.union(v.literal("none"), v.literal("audio-only"), v.literal("720p"), v.literal("1080p")),
     status: v.union(v.literal("waiting"), v.literal("asset_created"), v.literal("ready"), v.literal("errored")),
     errorMessage: v.optional(v.string()),
     createdAt: v.number(),
@@ -230,17 +246,42 @@ export default defineSchema({
     .index("by_muxUploadId", ["muxUploadId"])
     .index("by_instructorUserId", ["instructorUserId"]),
 
-  videoSelections: defineTable({
+  videoEntitlements: defineTable({
     videoId: v.id("videos"),
     userId: v.id("users"),
-    creditBucketId: v.id("creditBuckets"),
-    selectedAt: v.number(),
-    accessEndsAt: v.number(),
+    kind: v.literal("macroflow"),
+    source: v.literal("purchase"),
+    creditBucketId: v.optional(v.id("creditBuckets")),
+    purchasedAt: v.number(),
   })
-    .index("by_userId_and_accessEndsAt", ["userId", "accessEndsAt"])
     .index("by_userId_and_videoId", ["userId", "videoId"])
-    .index("by_userId_and_creditBucketId_and_videoId", ["userId", "creditBucketId", "videoId"])
+    .index("by_userId_and_kind", ["userId", "kind"])
     .index("by_creditBucketId", ["creditBucketId"]),
+
+  videoCategories: defineTable({
+    slug: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_sortOrder", ["sortOrder"])
+    .index("by_slug", ["slug"])
+    .index("by_isActive_and_sortOrder", ["isActive", "sortOrder"]),
+
+  videoCategoryVideos: defineTable({
+    categoryId: v.id("videoCategories"),
+    videoId: v.id("videos"),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_categoryId_and_sortOrder", ["categoryId", "sortOrder"])
+    .index("by_categoryId_and_videoId", ["categoryId", "videoId"])
+    .index("by_videoId", ["videoId"]),
 
   videoProgress: defineTable({
     videoId: v.id("videos"),

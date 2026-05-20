@@ -1,62 +1,64 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { api } from "$convex/_generated/api";
-  import { initAuth, getCachedRole, signOut } from "$lib/auth/session.svelte";
+  import { initAuth, signOut } from "$lib/auth/session.svelte";
   import { useQuery } from "convex-svelte";
-  import { routePath, liveRoomHref } from "$lib/i18n/context";
-
-  let { role: roleProp }: { role?: "customer" | "instructor" | "admin" | null } = $props();
+  import { getAppContext } from "$features/app/context/appContext";
+  import { liveRoomHref } from "$lib/i18n/context";
 
   const auth = initAuth();
+  const ctx = getAppContext();
 
-  // Use prop if provided, otherwise fall back to cached role from localStorage.
-  // No async fetch = no layout jump on MPA navigation.
-  const role = $derived(roleProp ?? (getCachedRole() as "customer" | "instructor" | "admin" | null) ?? "customer");
-  const isStaff = $derived(role === "instructor" || role === "admin");
+  // Route-based prefix: /u or /i. For shared pages (live-room, watch), fall back to role.
+  const prefix = $derived.by(() => {
+    const path = page.url.pathname;
+    if (path.startsWith("/i/")) return "/i";
+    if (path.startsWith("/u/")) return "/u";
+    // Shared pages: use actual role from context
+    return ctx.role === "instructor" || ctx.role === "admin" ? "/i" : "/u";
+  });
+  const isInstructorPrefix = $derived(prefix === "/i");
 
-  const customerNav = [
-    { href: routePath("dashboard"), label: "סקירה" },
-    { href: routePath("customerCalendar"), label: "לוח לייבים" },
-    { href: routePath("customerOneOnOne"), label: "1:1 אישי" },
-    { href: routePath("customerVideos"), label: "וידאו" },
-    { href: routePath("profile"), label: "פרופיל פילאטיס" },
-  ];
-
-  const staffNav = [
-    { href: routePath("dashboard"), label: "סקירה" },
-    { href: routePath("studioLive"), label: "סטודיו לייב" },
-    { href: routePath("studioVideos"), label: "ניהול וידאו" },
-    { href: routePath("profile"), label: "פרופיל מדריכה" },
-  ];
+  const navMap: Record<string, { href: string; label: string }[]> = {
+    "/u": [
+      { href: "/u/dashboard", label: "סקירה" },
+      { href: "/u/calendar", label: "לוח לייבים" },
+      { href: "/u/one-on-one", label: "1:1 אישי" },
+      { href: "/u/videos", label: "וידאו" },
+      { href: "/u/profile", label: "פרופיל פילאטיס" },
+    ],
+    "/i": [
+      { href: "/i/dashboard", label: "סקירה" },
+      { href: "/i/live", label: "סטודיו לייב" },
+      { href: "/i/videos", label: "ניהול וידאו" },
+      { href: "/i/one-on-one", label: "ניהול 1:1" },
+      { href: "/i/profile", label: "פרופיל מדריכה" },
+    ],
+  };
 
   const nextLiveQuery = useQuery(api.liveClasses.myNextLiveClass, () => auth.isAuthenticated ? {} : "skip");
   const nextLive = $derived(nextLiveQuery.data ?? null);
   const showLiveTab = $derived(nextLive !== null && nextLive.status !== "ended" && nextLive.status !== "cancelled");
 
-  const baseNav = $derived(isStaff ? staffNav : customerNav);
+  const baseNav = $derived(navMap[prefix] ?? navMap["/u"]);
   const navItems = $derived(showLiveTab
     ? [{ href: liveRoomHref(nextLive!.classId), label: "LIVE", isLive: true }, ...baseNav]
     : baseNav
   );
 
-  let currentPath = $state(typeof window !== "undefined" ? window.location.pathname : "");
-
-  if (typeof window !== "undefined") {
-    window.addEventListener("popstate", () => {
-      currentPath = window.location.pathname;
-    });
-  }
+  const currentPath = $derived(page.url.pathname);
 
   function isCurrent(href: string) {
-    if (href.startsWith(routePath("liveRoom"))) return currentPath === routePath("liveRoom");
+    if (href.startsWith("/live-room")) return currentPath === "/live-room";
     return currentPath === href;
   }
 </script>
 
 <aside class="sidebar" aria-label="ניווט אזור אישי">
   <div class="sidebar__brand">
-    <span class="sidebar__tagline">{isStaff ? "סטודיו" : "אזור אישי"}</span>
-    {#if isStaff}
-      <span class="role-badge role-badge--{role}">{role === "admin" ? "Admin" : "Instructor"}</span>
+    <span class="sidebar__tagline">{isInstructorPrefix ? "סטודיו" : "אזור אישי"}</span>
+    {#if isInstructorPrefix && ctx.role}
+      <span class="role-badge role-badge--{ctx.role}">{ctx.role === "admin" ? "Admin" : "Instructor"}</span>
     {/if}
   </div>
 
@@ -158,7 +160,10 @@
     font-size: var(--step-0);
     font-weight: 600;
     text-decoration: none;
-    transition: background var(--duration-fast), color var(--duration-fast);
+    border-radius: 0;
+    transition:
+      background 0.15s var(--ease-out),
+      color 0.15s var(--ease-out);
     border-inline-end: 3px solid transparent;
   }
 
@@ -168,29 +173,31 @@
   }
 
   .sidebar__link[aria-current="page"] {
-    font-weight: 700;
+    font-weight: 800;
     background: var(--surface);
     border-inline-end-color: var(--ink);
   }
 
   .sidebar__link--live {
-    background: #fff1f0;
-    color: #c93322;
+    color: var(--danger);
     font-weight: 800;
-    border-inline-end-color: #c93322;
   }
-
+ 
+  .sidebar__link--live:hover {
+    background: var(--danger-soft);
+  }
+ 
   .sidebar__link--live[aria-current="page"] {
-    background: #c93322;
-    color: #fff;
-    border-inline-end-color: #c93322;
+    background: var(--danger);
+    color: var(--white);
+    border-inline-end-color: var(--danger);
   }
-
+ 
   .live-pulse {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #c93322;
+    background: var(--danger);
     animation: pulse-dot 1.5s ease-in-out infinite;
     display: inline-block;
     margin-inline-end: var(--space-2);
@@ -268,6 +275,11 @@
       background: var(--ink);
       color: var(--white);
       border-color: var(--ink);
+    }
+
+    .sidebar__link--live[aria-current="page"] {
+      background: var(--danger);
+      border-color: var(--danger);
     }
 
     .sidebar__account {

@@ -2,30 +2,36 @@ import { getContext, setContext } from "svelte";
 import { t, tFormat, type Locale, type TranslationKey, defaultLocale } from "./dictionary";
 
 export type RouteKey =
-  | "dashboard"
-  | "customerCalendar"
-  | "customerOneOnOne"
-  | "customerVideos"
+  | "uDashboard"
+  | "uCalendar"
+  | "uOneOnOne"
+  | "uVideos"
+  | "uProfile"
+  | "iDashboard"
+  | "iLive"
+  | "iVideos"
+  | "iOneOnOne"
+  | "iProfile"
   | "watch"
-  | "profile"
-  | "onboarding"
   | "liveRoom"
-  | "studioLive"
-  | "studioVideos";
+  | "onboarding";
 
 const I18N_KEY = Symbol("i18n");
 
 const routes: Record<RouteKey, string> = {
-  dashboard: "/dashboard",
-  customerCalendar: "/calendar",
-  customerOneOnOne: "/one-on-one",
-  customerVideos: "/videos",
+  uDashboard: "/u/dashboard",
+  uCalendar: "/u/calendar",
+  uOneOnOne: "/u/one-on-one",
+  uVideos: "/u/videos",
+  uProfile: "/u/profile",
+  iDashboard: "/i/dashboard",
+  iLive: "/i/live",
+  iVideos: "/i/videos",
+  iOneOnOne: "/i/one-on-one",
+  iProfile: "/i/profile",
   watch: "/watch",
-  profile: "/profile",
-  onboarding: "/onboarding",
   liveRoom: "/live-room",
-  studioLive: "/live",
-  studioVideos: "/studio/videos",
+  onboarding: "/onboarding",
 };
 
 export type I18nContext = {

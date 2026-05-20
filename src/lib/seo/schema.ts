@@ -1,5 +1,5 @@
 import { SITE } from "./config";
-import { routePath } from "$lib/i18n/context";
+
 
 // ─── Base types ───────────────────────────────────────────
 export type JsonLd = Record<string, unknown>;
@@ -331,7 +331,7 @@ export function eventSchema(e: LiveClassEvent): JsonLd {
     organizer: { "@id": `${SITE.domain}/#organization` },
     offers: {
       "@type": "Offer",
-      url: e.url ?? `${SITE.domain}${routePath("customerCalendar")}`,
+      url: e.url ?? `${SITE.domain}/u/calendar`,
       price: "0",
       priceCurrency: "ILS",
       availability: "https://schema.org/InStock",

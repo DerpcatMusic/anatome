@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { routePath } from "$lib/i18n/context";
+  import Button from "$components/ui/Button.svelte";
+
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   let {
@@ -19,8 +20,8 @@
     <h2>{t.auth.loggedIn.title()}</h2>
     <p class="intro">{t.auth.loggedIn.subtitle()}</p>
   </div>
-  <a class="auth-btn auth-btn--primary" href={routePath("dashboard")}>{t.auth.loggedIn.cta()}</a>
-  <button class="auth-btn" type="button" onclick={() => { signOut(); closeModal(); }}>{t.auth.loggedIn.signOut()}</button>
+  <Button tone="ink" href="/u/dashboard">{t.auth.loggedIn.cta()}</Button>
+  <Button tone="paper" type="button" onclick={() => { signOut(); closeModal(); }}>{t.auth.loggedIn.signOut()}</Button>
 </div>
 
 <style>
@@ -55,34 +56,4 @@
     line-height: 1.5;
   }
 
-  .auth-btn {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    padding-inline: var(--space-4);
-    font-weight: 700;
-    font-size: var(--step--1);
-    cursor: pointer;
-    text-decoration: none;
-    font-family: inherit;
-    transition: background var(--duration-fast) var(--ease-out);
-  }
-
-  .auth-btn:hover {
-    background: var(--surface);
-  }
-
-  .auth-btn--primary {
-    background: var(--ink);
-    color: var(--white);
-    border-color: var(--ink);
-  }
-
-  .auth-btn--primary:hover {
-    background: var(--ink-secondary);
-  }
 </style>

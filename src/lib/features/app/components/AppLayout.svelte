@@ -3,15 +3,13 @@
 
   let {
     children,
-    role,
   }: {
     children: import("svelte").Snippet;
-    role?: "customer" | "instructor" | "admin" | null;
   } = $props();
 </script>
 
 <div class="app-layout">
-  <AppSidebar {role} />
+  <AppSidebar />
   <main class="app-main">
     {@render children()}
   </main>

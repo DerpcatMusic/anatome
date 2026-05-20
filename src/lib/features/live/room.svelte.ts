@@ -2,7 +2,7 @@ import { api } from "$convex/_generated/api";
 import type { Id } from "$convex/_generated/dataModel";
 import type { ConvexClient } from "convex/browser";
 import type { Room, TrackPublishDefaults } from "livekit-client";
-import { initAuth } from "$lib/auth/session.svelte";
+import { initAuth, getCachedRole } from "$lib/auth/session.svelte";
 import { useI18n } from "$lib/i18n/runes.svelte";
 import type {
   ParticipantRole,
@@ -18,6 +18,10 @@ import type {
   MediaDevice,
   VideoCodecChoice,
   VideoResolutionChoice,
+  VideoFramerateChoice,
+  BitrateChoice,
+  AudioPresetChoice,
+  DegradationPreferenceChoice,
   ChatMessage,
 } from "./types";
 
@@ -58,9 +62,14 @@ export class LiveRoom {
   });
   trackStats = $state<PerTrackStat[]>([]);
   activeSpeakerIdentity = $state<string | null>(null);
-  showParticipants = $state(true);
+  showParticipants = $state(false);
+  showChat = $state(false);
   showQualityPanel = $state(false);
   private statsTimer: number | null = null;
+  private participantDebounceTimer: number | null = null;
+  private expiryTimer: number | null = null;
+  private clockTimer: number | null = null;
+  private nowMs = $state(Date.now());
   private previousStats = new Map<string, { timestamp: number; bytes: number }>();
 
   // Pre-connect state
@@ -75,6 +84,12 @@ export class LiveRoom {
   selectedAudioDevice = $state("");
   selectedCodec = $state<VideoCodecChoice>("h264");
   selectedResolution = $state<VideoResolutionChoice>("1080p");
+  selectedFramerate = $state<VideoFramerateChoice>(30);
+  selectedBitrateMbps = $state<BitrateChoice>(4.5);
+  selectedAudioPreset = $state<AudioPresetChoice>("musicHighQuality");
+  simulcastEnabled = $state(true);
+  forceStereo = $state(false);
+  degradationPreference = $state<DegradationPreferenceChoice>("maintain-framerate");
   audioProcessingEnabled = $state(true);
   cameraAccess = $state<DeviceAccessState>("unknown");
   micAccess = $state<DeviceAccessState>("unknown");
@@ -93,9 +108,13 @@ export class LiveRoom {
     return a.name.localeCompare(b.name);
   };
 
-  readonly isInstructorRoom = $derived(
-    this.joinInfo?.participantRole === "instructor" || this.joinInfo?.participantRole === "admin"
-  );
+  readonly isInstructorRoom = $derived.by(() => {
+    if (this.joinInfo) {
+      return this.joinInfo.participantRole === "instructor" || this.joinInfo.participantRole === "admin";
+    }
+    const role = getCachedRole();
+    return role === "instructor" || role === "admin";
+  });
   readonly videoTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "video"));
   readonly audioTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "audio"));
   readonly screenShareTiles = $derived(this.videoTiles.filter((t) => t.source === "screen_share"));
@@ -154,7 +173,7 @@ export class LiveRoom {
   readonly hasPreviewMic = $derived(Boolean(this.previewStream?.getAudioTracks().length));
   readonly expiresAt = $derived(this.joinInfo?.joinClosesAt ?? null);
   readonly secondsUntilExpiry = $derived(
-    this.expiresAt === null ? null : Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1000))
+    this.expiresAt === null ? null : Math.max(0, Math.floor((this.expiresAt - this.nowMs) / 1000))
   );
 
   constructor(client: ConvexClient) {
@@ -305,6 +324,16 @@ export class LiveRoom {
   }
 
   refreshParticipants() {
+    if (this.participantDebounceTimer !== null) {
+      window.clearTimeout(this.participantDebounceTimer);
+    }
+    this.participantDebounceTimer = window.setTimeout(() => {
+      this._refreshParticipants();
+      this.participantDebounceTimer = null;
+    }, 80);
+  }
+
+  private _refreshParticipants() {
     if (this._room === null) return;
     const local = this._room.localParticipant;
     const next: ParticipantItem[] = [
@@ -415,7 +444,7 @@ export class LiveRoom {
     };
   }
 
-  private async refreshStreamStats() {
+  async refreshStreamStats() {
     if (this._room === null) return;
     const publications: Array<{
       id: string;
@@ -465,6 +494,14 @@ export class LiveRoom {
         this.collectTrackStats(p.track, p.id, p.name, p.source, p.kind)
       )
     );
+    // Prune stale previousStats entries for removed tracks
+    const activeIds = new Set(publications.map((p) => p.id));
+    for (const key of this.previousStats.keys()) {
+      const baseId = key.split(":")[0];
+      if (!activeIds.has(baseId)) {
+        this.previousStats.delete(key);
+      }
+    }
     this.trackStats = results;
     const videoResults = results.filter((r) => r.kind === "video");
     const primaryVideo =
@@ -485,14 +522,43 @@ export class LiveRoom {
 
   private startStatsTimer() {
     if (this.statsTimer !== null) return;
-    void this.refreshStreamStats();
-    this.statsTimer = window.setInterval(() => void this.refreshStreamStats(), 2500);
+    this.statsTimer = window.setInterval(() => {
+      if (this.showQualityPanel) void this.refreshStreamStats();
+    }, 5000);
   }
 
   private stopStatsTimer() {
     if (this.statsTimer !== null) window.clearInterval(this.statsTimer);
     this.statsTimer = null;
     this.previousStats.clear();
+  }
+
+  private startExpiryTimer(expiresAt: number) {
+    this.stopExpiryTimer();
+    this.nowMs = Date.now();
+    this.clockTimer = window.setInterval(() => {
+      this.nowMs = Date.now();
+    }, 1000);
+    this.expiryTimer = window.setTimeout(
+      () => this.expireLocalRoom(),
+      Math.max(0, expiresAt - Date.now())
+    );
+  }
+
+  private stopExpiryTimer() {
+    if (this.expiryTimer !== null) window.clearTimeout(this.expiryTimer);
+    if (this.clockTimer !== null) window.clearInterval(this.clockTimer);
+    this.expiryTimer = null;
+    this.clockTimer = null;
+  }
+
+  private expireLocalRoom() {
+    this.mediaError = "השיעור הסתיים והחיבור נסגר.";
+    this.connectionState = "disconnected";
+    this.stopStatsTimer();
+    this.clearMediaTiles();
+    this._room?.disconnect();
+    this._room = null;
   }
 
   // ── Pre-connect ────────────────────────────────────────────
@@ -656,6 +722,18 @@ export class LiveRoom {
     await this.switchPreviewDevice();
   }
 
+  // Switch audio/video device mid-stream using LiveKit's built-in API
+  async switchStreamDevice(kind: "audioinput" | "videoinput", deviceId: string) {
+    if (!this._room) return;
+    try {
+      await this._room.switchActiveDevice(kind, deviceId, true);
+      if (kind === "audioinput") this.selectedAudioDevice = deviceId;
+      if (kind === "videoinput") this.selectedVideoDevice = deviceId;
+    } catch (reason) {
+      console.warn(`[LiveKit] Failed to switch ${kind}:`, reason);
+    }
+  }
+
   stopPreview() {
     if (this.previewStream) {
       this.previewStream.getTracks().forEach((t) => t.stop());
@@ -673,14 +751,16 @@ export class LiveRoom {
   }
 
   private resolutionDimensions(isInstructor: boolean) {
-    if (this.selectedResolution === "1080p" && isInstructor) return { width: 1920, height: 1080, frameRate: 30 };
-    if (this.selectedResolution === "720p" || isInstructor) return { width: 1280, height: 720, frameRate: 30 };
-    return { width: 640, height: 360, frameRate: 24 };
+    const frameRate = this.selectedFramerate;
+    if (this.selectedResolution === "1080p" && isInstructor) return { width: 1920, height: 1080, frameRate };
+    if (this.selectedResolution === "720p" || isInstructor) return { width: 1280, height: 720, frameRate };
+    return { width: 640, height: 360, frameRate: Math.min(frameRate, 30) };
   }
 
   private cameraCaptureOptions(isInstructor: boolean) {
     return {
       resolution: this.resolutionDimensions(isInstructor),
+      frameRate: this.selectedFramerate,
       ...(this.selectedVideoDevice ? { deviceId: this.selectedVideoDevice } : {}),
     };
   }
@@ -699,31 +779,49 @@ export class LiveRoom {
     VideoPreset: typeof import("livekit-client").VideoPreset,
     AudioPresets: typeof import("livekit-client").AudioPresets,
   ): TrackPublishDefaults {
-    const premium = isInstructor && this.selectedResolution === "1080p";
-    const balanced = this.selectedResolution !== "360p";
+    const targetBitrate = Math.round(this.selectedBitrateMbps * 1_000_000);
+    const frameRate = this.selectedFramerate;
+    const isSvc = this.selectedCodec === "vp9" || this.selectedCodec === "av1";
+
+    const audioPresets: Record<AudioPresetChoice, typeof AudioPresets.telephone> = {
+      speech: AudioPresets.speech,
+      music: AudioPresets.music,
+      musicStereo: AudioPresets.musicStereo,
+      musicHighQuality: AudioPresets.musicHighQuality,
+      musicHighQualityStereo: AudioPresets.musicHighQualityStereo,
+    };
+
+    const scalabilityMode = isSvc
+      ? (this.selectedResolution === "1080p" ? "L3T3_KEY" : "L2T3_KEY") as import("livekit-client").ScalabilityMode
+      : undefined;
+
     return {
-      simulcast: true,
+      simulcast: this.simulcastEnabled && !isSvc,
       videoCodec: this.selectedCodec,
       videoEncoding: {
-        maxBitrate: premium ? 4_500_000 : balanced ? 1_800_000 : 650_000,
-        maxFramerate: this.selectedResolution === "360p" ? 24 : 30,
+        maxBitrate: targetBitrate,
+        maxFramerate: frameRate,
       },
-      videoSimulcastLayers: premium
-        ? [new VideoPreset(1280, 720, 1_800_000, 30), new VideoPreset(640, 360, 600_000, 30)]
-        : balanced
-          ? [new VideoPreset(640, 360, 600_000, 30), new VideoPreset(320, 180, 180_000, 24)]
-          : [new VideoPreset(320, 180, 180_000, 24)],
+      videoSimulcastLayers: this.simulcastEnabled && !isSvc
+        ? [
+            new VideoPreset(1280, 720, Math.round(targetBitrate * 0.4), Math.min(frameRate, 30)),
+            new VideoPreset(640, 360, Math.round(targetBitrate * 0.15), Math.min(frameRate, 30)),
+          ]
+        : undefined,
       screenShareEncoding: { maxBitrate: 4_000_000, maxFramerate: 15 },
       screenShareSimulcastLayers: [
         new VideoPreset(1280, 720, 2_000_000, 15),
         new VideoPreset(640, 360, 800_000, 15),
       ],
-      audioPreset: isInstructor ? AudioPresets.music : AudioPresets.speech,
+      audioPreset: audioPresets[this.selectedAudioPreset],
       red: true,
-      dtx: !isInstructor,
+      dtx: this.selectedAudioPreset === "speech",
+      forceStereo: this.forceStereo,
+      degradationPreference: this.degradationPreference,
+      scalabilityMode,
       backupCodec: {
         codec: (this.selectedCodec === "h264" ? "vp8" : "h264") as "vp8" | "h264",
-        encoding: { maxBitrate: premium ? 3_000_000 : 1_000_000, maxFramerate: 30 },
+        encoding: { maxBitrate: Math.round(targetBitrate * 0.7), maxFramerate: frameRate },
       },
     };
   }
@@ -732,9 +830,55 @@ export class LiveRoom {
     this.publishCameraOnNextJoin = publishAvailableDevices && this.wantsCameraOnJoin;
     this.publishMicOnNextJoin = publishAvailableDevices && this.wantsMicOnJoin;
     this.stopPreview();
+    this.mediaError = ""; // Clear pre-connect errors when entering room
     // Firefox needs time to release the camera device before LiveKit grabs it
-    await new Promise((r) => setTimeout(r, 500));
+    const isFirefox = typeof navigator !== "undefined" && navigator.userAgent.includes("Firefox");
+    if (isFirefox) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
     if (this.joinInfo) void this.connectRoom(this.joinInfo);
+  }
+
+  async reconnect() {
+    if (!this.joinInfo || Date.now() >= this.joinInfo.joinClosesAt) return;
+    this.error = "";
+    this.mediaError = "";
+    this.connectionState = "idle";
+    await this.loadToken();
+    if (this.status === "ready" && this.joinInfo) {
+      await this.enterRoom(true);
+    }
+  }
+
+  async startLiveAndConnect(publishAvailableDevices = true) {
+    const liveClassId = this.getClassId();
+    if (liveClassId === null) return;
+    this.status = "checking";
+    this.error = "";
+    try {
+      await this.client.mutation(api.instructorLive.startLive, { liveClassId });
+      await this.loadToken();
+      if (this.status as string === "ready") {
+        await this.enterRoom(publishAvailableDevices);
+      }
+    } catch (reason){
+      console.error("[LiveKit] Start live failed:", reason);
+      this.error = reason instanceof Error ? reason.message : i18n.t.live.room.startLiveError();
+      this.status = "error";
+    }
+  }
+
+  async endLive() {
+    const liveClassId = this.getClassId();
+    if (liveClassId === null) return;
+    try {
+      await this.client.mutation(api.instructorLive.endLive, { liveClassId });
+      this.destroy();
+      window.location.assign("/i/live");
+    } catch (reason) {
+      console.error("[LiveKit] End live failed:", reason);
+      this.mediaError = reason instanceof Error ? reason.message : i18n.t.live.room.endLiveError();
+    }
   }
 
   // ── Token & Room connection ────────────────────────────────
@@ -752,7 +896,9 @@ export class LiveRoom {
     this.error = "";
     this.mediaError = "";
     try {
-      this.joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+      const joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+      this.joinInfo = joinInfo;
+      this.startExpiryTimer(joinInfo.joinClosesAt);
       this.status = "ready";
     } catch (reason) {
       console.error("[LiveKit] Token fetch failed:", reason);
@@ -760,9 +906,15 @@ export class LiveRoom {
         this.status = "locked";
         return;
       }
-      this.error =
-        this.auth.error ||
-        (reason instanceof Error ? reason.message : i18n.t.live.room.tokenError());
+      const message = reason instanceof Error ? reason.message : String(reason);
+      if (message.includes("Class is not live")) {
+        const role = getCachedRole();
+        if (role === "instructor" || role === "admin") {
+          this.status = "prep";
+          return;
+        }
+      }
+      this.error = this.auth.error || message || i18n.t.live.room.tokenError();
       this.status = "error";
     }
   }
@@ -804,7 +956,7 @@ export class LiveRoom {
           const participant = participantInfo.identity === lkRoom.localParticipant.identity
             ? lkRoom.localParticipant
             : lkRoom.remoteParticipants.get(participantInfo.identity);
-          this.chatMessages = [...this.chatMessages, {
+          const next = [...this.chatMessages, {
             id: reader.info?.id ?? `${participantInfo.identity}:${Date.now()}`,
             identity: participantInfo.identity,
             name: participant?.name || participantInfo.identity,
@@ -812,6 +964,7 @@ export class LiveRoom {
             createdAt: reader.info?.timestamp ?? Date.now(),
             isLocal: participantInfo.identity === lkRoom.localParticipant.identity,
           }];
+          this.chatMessages = next.length > 200 ? next.slice(-200) : next;
         })();
       });
       lkRoom
@@ -823,7 +976,12 @@ export class LiveRoom {
           this.refreshParticipants();
         })
         .on(RoomEvent.Disconnected, () => {
-          this.connectionState = "disconnected";
+          if (this.joinInfo && Date.now() < this.joinInfo.joinClosesAt) {
+            this.connectionState = "idle";
+            this.status = "ready";
+          } else {
+            this.connectionState = "disconnected";
+          }
         })
         .on(RoomEvent.ParticipantConnected, (participant: unknown) => {
           this.attachParticipantListeners(participant, ParticipantEvent);
@@ -984,6 +1142,7 @@ export class LiveRoom {
 
   destroy() {
     this.stopPreview();
+    this.stopExpiryTimer();
     this.clearMediaTiles();
     this.stopStatsTimer();
     this._room?.unregisterTextStreamHandler("homebody.chat");

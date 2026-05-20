@@ -1,8 +1,10 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import { useConvexClient, useQuery } from "convex-svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import Select from "$components/ui/Select.svelte";
 
   type Request = FunctionReturnType<typeof api.instructorOneOnOne.listRequests>[number];
   type Rule = FunctionReturnType<typeof api.instructorOneOnOne.listAvailability>[number];
@@ -31,6 +33,7 @@
     ["5", "שישי"],
     ["6", "שבת"],
   ] as const;
+  const weekdayOptions = weekdays.map(([value, label]) => ({ value: Number(value), label }));
 
   const dayFormatter = new Intl.DateTimeFormat("he-IL", {
     weekday: "long",
@@ -137,14 +140,7 @@
     <section class="inner-panel">
       <h3>פתיחת זמינות</h3>
       <form class="availability-form" onsubmit={(event) => { event.preventDefault(); void saveAvailability(); }}>
-        <label>
-          <span>יום</span>
-          <select bind:value={weekday}>
-            {#each weekdays as [value, label]}
-              <option value={Number(value)}>{label}</option>
-            {/each}
-          </select>
-        </label>
+        <Select label="יום" bind:value={weekday} options={weekdayOptions} compact />
         <label>
           <span>משעה</span>
           <input type="time" bind:value={startTime} />
@@ -161,7 +157,7 @@
           <span>מרווח</span>
           <input type="number" min="0" max="60" bind:value={bufferMinutes} />
         </label>
-        <button type="submit" disabled={action === "availability"}>{action === "availability" ? "שומרות..." : "לפתוח זמינות"}</button>
+        <Button type="submit" tone="ink" disabled={action === "availability"}>{action === "availability" ? "שומרות..." : "לפתוח זמינות"}</Button>
       </form>
 
       <div class="rule-list">
@@ -190,8 +186,8 @@
                 <p>{request.note}</p>
               {/if}
               <div class="row-actions">
-                <button type="button" class="approve" disabled={action === request._id} onclick={() => approve(request)}>לאשר</button>
-                <button type="button" disabled={action === request._id} onclick={() => reject(request)}>לדחות</button>
+                <Button type="button" tone="ink" disabled={action === request._id} onclick={() => approve(request)}>לאשר</Button>
+                <Button type="button" tone="paper" disabled={action === request._id} onclick={() => reject(request)}>לדחות</Button>
               </div>
             </article>
           {/each}
@@ -205,7 +201,7 @@
   .studio-one-on-one,
   .inner-panel {
     border: var(--border);
-    background: var(--white);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
     padding: clamp(16px, 2vw, 24px);
     display: grid;
     gap: var(--space-4);
@@ -250,7 +246,6 @@
   }
 
   input,
-  select,
   button {
     min-height: 42px;
     border: var(--border);
@@ -259,12 +254,6 @@
     font: inherit;
     font-weight: 800;
     padding: 0 var(--space-3);
-  }
-
-  .availability-form button,
-  .approve {
-    background: var(--ink);
-    color: var(--white);
   }
 
   .rule-list,

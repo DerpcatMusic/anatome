@@ -36,8 +36,8 @@
   }
 
   .notice--caution {
-    border-color: #d4a017;
-    background: #fdf6e3;
+    border-color: var(--caution);
+    background: var(--caution-soft);
     color: var(--ink);
   }
 </style>

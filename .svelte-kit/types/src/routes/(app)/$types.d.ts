@@ -10,7 +10,7 @@ type OutputDataShape<T> = MaybeWithVoid<Omit<App.PageData, RequiredKeys<T>> & Pa
 type EnsureDefined<T> = T extends null | undefined ? {} : T;
 type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
 export type Snapshot<T = any> = Kit.Snapshot<T>;
-type LayoutRouteId = RouteId | "/(app)/calendar" | "/(app)/dashboard" | "/(app)/live" | "/(app)/live-room" | "/(app)/one-on-one" | "/(app)/profile" | "/(app)/studio/videos" | "/(app)/videos" | "/(app)/watch" | "/(app)/אזור-אישי" | "/(app)/אחד-על-אחד" | "/(app)/וידאו" | "/(app)/לוח" | "/(app)/סטודיו/וידאו" | "/(app)/סטודיו/לייב" | "/(app)/פרופיל" | "/(app)/צפייה"
+type LayoutRouteId = RouteId | "/(app)/calendar" | "/(app)/dashboard" | "/(app)/i/dashboard" | "/(app)/i/live" | "/(app)/i/one-on-one" | "/(app)/i/profile" | "/(app)/i/videos" | "/(app)/live" | "/(app)/live-room" | "/(app)/one-on-one" | "/(app)/profile" | "/(app)/studio/videos" | "/(app)/u/calendar" | "/(app)/u/dashboard" | "/(app)/u/one-on-one" | "/(app)/u/profile" | "/(app)/u/videos" | "/(app)/videos" | "/(app)/watch" | "/(app)/אזור-אישי" | "/(app)/אחד-על-אחד" | "/(app)/וידאו" | "/(app)/לוח" | "/(app)/סטודיו/וידאו" | "/(app)/סטודיו/לייב" | "/(app)/פרופיל" | "/(app)/צפייה"
 type LayoutParams = RouteParams & {  }
 type LayoutParentData = EnsureDefined<import('../$types.js').LayoutData>;
 

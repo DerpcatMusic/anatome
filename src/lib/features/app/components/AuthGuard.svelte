@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { api } from "$convex/_generated/api";
+  import { useQuery } from "convex-svelte";
   import { initAuth, getCachedRole } from "$lib/auth/session.svelte";
   import AppSkeleton from "./AppSkeleton.svelte";
   import AppLocked from "./AppLocked.svelte";
@@ -12,20 +14,29 @@
   } = $props();
 
   const auth = initAuth();
-  const cachedRole = $derived(getCachedRole());
+
+  // Fetch the real profile from the backend instead of trusting localStorage
+  const profileQuery = useQuery(api.appProfiles.viewer, () =>
+    auth.isAuthenticated ? {} : "skip"
+  );
+
+  const realRole = $derived(profileQuery.data?.role ?? getCachedRole());
 
   const isAuthorized = $derived.by(() => {
     if (!auth.isAuthenticated) return false;
     if (!role) return true;
-    const r = cachedRole;
+    const r = realRole;
     if (r === null) return true; // Role unknown — let the page handle server-side auth
     if (role === "admin") return r === "admin";
     if (role === "instructor") return r === "instructor" || r === "admin";
+    if (role === "customer") return r === "customer";
     return true;
   });
+
+  const isLoading = $derived(auth.isLoading || profileQuery.isLoading);
 </script>
 
-{#if auth.isLoading}
+{#if isLoading}
   <AppSkeleton />
 {:else if !auth.isAuthenticated}
   <AppLocked
@@ -33,7 +44,7 @@
     subtitle={auth.error || "החשבון נעול. נכנסים מחדש דרך העמוד הראשי."}
   >
     {#snippet actions()}
-      <a href="/">כניסה</a>
+      <a href="/" class="locked__action">כניסה</a>
     {/snippet}
   </AppLocked>
 {:else if !isAuthorized}

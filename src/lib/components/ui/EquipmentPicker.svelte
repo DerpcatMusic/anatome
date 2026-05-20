@@ -1,5 +1,7 @@
 <script lang="ts">
   import { equipmentOptions, type Equipment } from "$lib/labels";
+  import Checkbox from "$components/ui/Checkbox.svelte";
+  import EquipmentIcon from "$components/icons/EquipmentIcon.svelte";
 
   let {
     selected = $bindable([]),
@@ -29,18 +31,19 @@
   <p class="equipment-picker__label">{label}</p>
   <div class="equipment-grid">
     {#each equipmentOptions as [value, itemLabel]}
-      <label
-        class:selected={selected.includes(value)}
-        class:readonly
+      <Checkbox
+        checked={selected.includes(value)}
+        {readonly}
+        {disabled}
+        onchange={() => toggle(value)}
       >
-        <input
-          type="checkbox"
-          checked={selected.includes(value)}
-          onchange={() => toggle(value)}
-          {disabled}
-        />
-        <span>{itemLabel}</span>
-      </label>
+        <div class="equipment-choice-content">
+          <div class="icon-wrapper">
+            <EquipmentIcon name={value} />
+          </div>
+          <span class="choice-label">{itemLabel}</span>
+        </div>
+      </Checkbox>
     {/each}
   </div>
 </div>
@@ -59,31 +62,41 @@
 
   .equipment-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: var(--space-2);
   }
 
-  .equipment-grid label {
+  .equipment-grid :global(.hb-choice) {
+    min-height: 56px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .equipment-choice-content {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    border: var(--border);
-    padding: var(--space-3);
-    cursor: pointer;
-    background: var(--white);
-    font-weight: 600;
+    width: 100%;
+    direction: rtl;
   }
 
-  .equipment-grid label.selected {
-    background: var(--sky);
+  .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
   }
 
-  .equipment-grid label.readonly {
-    cursor: default;
+  .icon-wrapper :global(svg) {
+    width: 100%;
+    height: 100%;
   }
 
-  .equipment-grid input {
-    position: absolute;
-    opacity: 0;
+  .choice-label {
+    font-size: var(--step--1);
+    font-weight: 800;
+    white-space: nowrap;
   }
 </style>

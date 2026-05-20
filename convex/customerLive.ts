@@ -10,6 +10,7 @@ type CalendarClass = {
   viewerReservationStatus: Doc<"liveReservations">["status"] | null;
   viewerCanReserve: boolean;
   viewerCanJoin: boolean;
+  viewerIsWalkIn: boolean;
   viewerAvailableCredits: number;
   viewerMissingEquipment: string[];
   viewerRole: Doc<"appProfiles">["role"] | null;

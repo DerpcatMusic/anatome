@@ -1,5 +1,5 @@
 export type ParticipantRole = "instructor" | "customer" | "admin";
-export type RoomStatus = "checking" | "locked" | "missing" | "ready" | "error";
+export type RoomStatus = "checking" | "locked" | "missing" | "prep" | "ready" | "error";
 export type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected";
 export type MediaSource = "camera" | "microphone" | "screen_share" | "screen_share_audio" | "unknown";
 export type PreConnectStep = "idle" | "requesting" | "preview" | "denied" | "no-devices";
@@ -49,8 +49,12 @@ export type PerTrackStat = {
 };
 
 export type MediaDevice = { deviceId: string; label: string };
-export type VideoCodecChoice = "vp8" | "h264" | "vp9";
+export type VideoCodecChoice = "vp8" | "h264" | "vp9" | "av1";
 export type VideoResolutionChoice = "1080p" | "720p" | "360p";
+export type VideoFramerateChoice = 24 | 30 | 60;
+export type BitrateChoice = 2.5 | 4.5 | 6 | 8;
+export type AudioPresetChoice = "speech" | "music" | "musicStereo" | "musicHighQuality" | "musicHighQualityStereo";
+export type DegradationPreferenceChoice = "maintain-framerate" | "maintain-resolution" | "balanced";
 export type ChatMessage = {
   id: string;
   identity: string;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -16,12 +17,12 @@
     <h1>{t.landing.hero.headline()}</h1>
     <p class="lead">{t.landing.hero.lead()}</p>
     <div class="actions">
-      <button class="btn btn--ink" onclick={openAuthOverlay}>
+      <Button tone="ink" onclick={openAuthOverlay}>
         {t.landing.hero.ctaPrimary()}
-      </button>
-      <a class="btn btn--paper" href="#instructor">
+      </Button>
+      <Button tone="paper" href="#instructor">
         {t.landing.hero.ctaSecondary()}
-      </a>
+      </Button>
     </div>
   </div>
 </section>

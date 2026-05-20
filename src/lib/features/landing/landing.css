@@ -24,6 +24,27 @@
   flex-direction: column;
 }
 
+/* ═══════════════════════════════════════════
+   HARDENING: RTL text resilience
+   ═══════════════════════════════════════════ */
+.landing {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.landing * {
+  min-width: 0;
+  min-height: 0;
+}
+
+.landing h1,
+.landing h2,
+.landing h3,
+.landing p {
+  text-wrap: pretty;
+}
+
 /* ─── HERO ─── */
 .landing .hero {
   position: relative;
@@ -35,8 +56,8 @@
   border-bottom: var(--border);
   background-color: var(--paper);
   background-image:
-    radial-gradient(ellipse 80% 60% at 15% 25%, color-mix(in srgb, var(--sky) 40%, transparent), transparent 55%),
-    radial-gradient(ellipse 60% 80% at 85% 75%, color-mix(in srgb, var(--beige) 45%, transparent), transparent 50%);
+    radial-gradient(ellipse 80% 60% at 15% 25%, color-mix(in srgb, var(--sky) 35%, transparent), transparent 55%),
+    radial-gradient(ellipse 60% 80% at 85% 75%, color-mix(in srgb, var(--terra-soft) 55%, transparent), transparent 50%);
   background-size: 150% 150%;
   animation: mesh-drift-hero 18s ease-in-out infinite alternate;
 }
@@ -83,13 +104,46 @@
   margin: 0 0 var(--space-7);
 }
 
+.landing .hero__inner h1 {
+  /* OPTIMIZE: contain to isolate paint */
+  contain: layout style paint;
+}
+
 .landing .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-/* ─── Shared button styles ─── */
+/* ─── Landing button overrides (hb-button) ─── */
+.landing .hb-button--ink {
+  background: var(--terra);
+  color: var(--white);
+  border-color: var(--terra);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--terra-soft) 72%, transparent);
+}
+
+.landing .hb-button--ink:hover {
+  background: var(--terra-strong);
+  border-color: var(--terra-strong);
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--terra-soft) 52%, transparent);
+}
+
+.landing .pricing-card--featured .hb-button--ink,
+.landing .section--final-cta .hb-button--ink {
+  background: var(--white);
+  color: var(--terra);
+  border-color: var(--white);
+  box-shadow: none;
+}
+
+.landing .pricing-card--featured .hb-button--ink:hover,
+.landing .section--final-cta .hb-button--ink:hover {
+  background: var(--surface-warm);
+  border-color: var(--surface-warm);
+}
+
+/* ─── Shared button styles (legacy) ─── */
 .landing .btn {
   display: inline-flex;
   min-height: 56px;
@@ -104,22 +158,31 @@
   cursor: pointer;
   font-family: inherit;
   text-decoration: none;
-  transition: background var(--duration-fast), transform var(--duration-fast);
+  border-radius: 0;
+  will-change: border-radius, transform;
+  transition:
+    background var(--duration-fast),
+    border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1),
+    transform var(--duration-fast);
 }
 
 .landing .btn:hover {
   background: var(--surface);
+  border-radius: 28px;
   transform: translateY(-1px);
 }
 
 .landing .btn--ink {
-  background: var(--ink);
+  background: var(--terra);
   color: var(--white);
-  border-color: var(--ink);
+  border-color: var(--terra);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--terra-soft) 72%, transparent);
 }
 
 .landing .btn--ink:hover {
-  background: var(--ink-secondary);
+  background: var(--terra-strong);
+  border-color: var(--terra-strong);
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--terra-soft) 52%, transparent);
 }
 
 .landing .btn--paper {
@@ -137,6 +200,10 @@
   font-size: var(--step-1);
 }
 
+.landing .btn--xl:hover {
+  border-radius: 32px;
+}
+
 .landing .btn--full {
   width: 100%;
 }
@@ -146,6 +213,16 @@
   border-top: var(--border);
   padding: clamp(72px, 10vw, 140px) clamp(24px, 5vw, 80px);
   background: var(--white);
+  /* OPTIMIZE: content-visibility for below-fold sections */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* First two sections visible immediately */
+.landing .hero,
+.landing .section--philosophy {
+  content-visibility: visible;
+  contain: none;
 }
 
 .landing .section-header {
@@ -178,6 +255,35 @@
   letter-spacing: -0.02em;
   margin: 0;
   font-weight: 700;
+}
+
+/* ─── PHILOSOPHY ─── */
+.landing .section--philosophy {
+  background: var(--surface-warm);
+  text-align: center;
+}
+
+.landing .philosophy-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.landing .section--philosophy h2 {
+  font-size: var(--step-3);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-5);
+  font-weight: 800;
+  color: var(--terra);
+}
+
+.landing .philosophy-body {
+  font-size: var(--step-1);
+  color: var(--ink);
+  line-height: 1.65;
+  max-width: 60ch;
+  margin: 0 auto;
+  font-weight: 500;
 }
 
 /* ─── INSTRUCTOR ─── */
@@ -462,17 +568,30 @@
 }
 
 .landing .pricing-card--featured {
-  background: var(--ink);
+  background: var(--terra);
   color: var(--white);
-  border-color: var(--ink);
+  border-color: var(--terra);
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--terra-soft) 55%, transparent);
 }
 
 .landing .pricing-card--featured .pricing-label {
-  color: var(--line-light);
+  color: var(--terra-soft);
 }
 
 .landing .pricing-card--featured .pricing-note {
-  color: var(--line-light);
+  color: var(--terra-soft);
+}
+
+.landing .pricing-card--featured .btn--ink {
+  background: var(--white);
+  color: var(--terra);
+  border-color: var(--white);
+  box-shadow: none;
+}
+
+.landing .pricing-card--featured .btn--ink:hover {
+  background: var(--surface-warm);
+  border-color: var(--surface-warm);
 }
 
 .landing .pricing-header {
@@ -574,9 +693,9 @@
 
 /* ─── FINAL CTA ─── */
 .landing .section--final-cta {
-  background: var(--ink);
+  background: var(--terra);
   color: var(--white);
-  border-top: var(--border);
+  border-top: 1px solid var(--terra-strong);
   text-align: center;
 }
 
@@ -592,16 +711,28 @@
 }
 
 .landing .section--final-cta p {
-  color: var(--line-light);
+  color: var(--terra-soft);
   margin-bottom: var(--space-7);
   font-size: var(--step-1);
+}
+
+.landing .section--final-cta .btn--ink {
+  background: var(--white);
+  color: var(--terra);
+  border-color: var(--white);
+  box-shadow: none;
+}
+
+.landing .section--final-cta .btn--ink:hover {
+  background: var(--surface-warm);
+  border-color: var(--surface-warm);
 }
 
 .landing .final-cta-note {
   margin-top: var(--space-6);
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  color: var(--muted);
+  color: var(--terra-muted);
 }
 
 /* ─── AUTH OVERLAY ─── */
@@ -609,38 +740,50 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: grid;
-  place-items: center;
-  background: rgba(10, 10, 10, 0.45);
-  padding: var(--space-5);
+  background: color-mix(in srgb, var(--beige) 34%, rgba(10, 10, 10, 0.45));
+  backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s;
+  transition: opacity var(--duration-base);
 }
 
-.auth-overlay.is-open {
+.auth-overlay[data-state="open"] {
   opacity: 1;
   pointer-events: auto;
 }
 
 .auth-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+  z-index: 101;
   width: 100%;
   max-width: 420px;
-  background: var(--white);
+  max-height: calc(100vh - var(--space-6));
+  overflow-y: auto;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
   padding: var(--space-6);
   border: var(--border);
-  transform: translateY(8px);
-  transition: transform 0.2s;
+  opacity: 0;
+  transition:
+    transform 0.35s var(--ease-elastic),
+    opacity 0.25s var(--ease-out);
 }
 
-.auth-overlay.is-open .auth-card {
-  transform: translateY(0);
+.auth-card[data-state="open"] {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
 }
 
 /* ─── MOBILE ─── */
 @media (max-width: 860px) {
   .landing .hero h1 {
     font-size: clamp(2.8rem, 10vw, 4.5rem);
+  }
+
+  .landing .section--philosophy h2 {
+    font-size: clamp(2rem, 8vw, 3.5rem);
   }
 
   .landing .instructor-split {
@@ -703,5 +846,10 @@
 
   .landing .pricing-card--featured {
     grid-column: auto;
+  }
+
+  /* OPTIMIZE: reduce motion on mobile for battery */
+  .landing .hero {
+    animation-duration: 30s;
   }
 }

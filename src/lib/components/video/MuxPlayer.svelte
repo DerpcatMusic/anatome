@@ -1,5 +1,6 @@
 <script lang="ts">
   import "@mux/mux-player";
+  import { PUBLIC_MUX_ENV_KEY } from "$env/static/public";
 
   type MuxPlayerElement = HTMLElement & {
     currentTime: number;
@@ -64,12 +65,13 @@
     metadata-video-id={videoId}
     metadata-video-title={title}
     metadata-viewer-user-id={viewerUserId ?? undefined}
+    env-key={PUBLIC_MUX_ENV_KEY || undefined}
     stream-type="on-demand"
     playbackrates="0.75 1 1.25 1.5 2"
     max-resolution={maxResolution ?? undefined}
     max-auto-resolution="1080p"
     cap-rendition-to-player-size
-    accent-color="#4a90a4"
+    accent-color="var(--sky-strong)"
     style="--controls-backdrop-color: rgba(0,0,0,0.6);"
     ontimeupdate={() => reportProgress(false)}
     onpause={() => reportProgress(true)}

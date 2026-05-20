@@ -44,14 +44,14 @@
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    background: #d11f1f;
-    box-shadow: 0 0 0 0 rgba(209, 31, 31, 0.45);
+    background: var(--danger);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 45%, transparent);
     animation: live-breathe 1.7s ease-in-out infinite;
     flex: 0 0 auto;
   }
 
   @keyframes live-breathe {
-    0%, 100% { transform: scale(0.82); box-shadow: 0 0 0 0 rgba(209, 31, 31, 0.45); }
-    50% { transform: scale(1); box-shadow: 0 0 0 9px rgba(209, 31, 31, 0); }
+    0%, 100% { transform: scale(0.82); box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 45%, transparent); }
+    50% { transform: scale(1); box-shadow: 0 0 0 9px transparent; }
   }
 </style>

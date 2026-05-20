@@ -1,8 +1,7 @@
 import { ConvexClient } from "convex/browser";
-
-const convexUrl = import.meta.env.PUBLIC_CONVEX_CLIENT_URL;
+import { PUBLIC_CONVEX_CLIENT_URL } from "$env/static/public";
 
 export const convex =
-  typeof window !== "undefined" && convexUrl
-    ? new ConvexClient(convexUrl)
+  typeof window !== "undefined" && PUBLIC_CONVEX_CLIENT_URL
+    ? new ConvexClient(PUBLIC_CONVEX_CLIENT_URL)
     : (null as unknown as ConvexClient);

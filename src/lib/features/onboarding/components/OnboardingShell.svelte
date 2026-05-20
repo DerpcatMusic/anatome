@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import { initAuth, setCachedRole } from "$lib/auth/session.svelte";
-  import { routePath } from "$lib/i18n/context";
+
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useQuery } from "convex-svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
@@ -42,10 +42,10 @@
       if (dashboard.role) setCachedRole(dashboard.role);
       if (dashboard.role === "instructor" || dashboard.role === "admin") {
         status = "done";
-        window.location.assign(routePath("dashboard"));
+        window.location.assign("/u/dashboard");
       } else if (!dashboard.needsOnboarding) {
         status = "done";
-        window.location.assign(routePath("dashboard"));
+        window.location.assign("/u/dashboard");
       } else {
         status = "ready";
       }
@@ -55,22 +55,22 @@
 
 <section class="onboarding-page">
   {#if status === "checking" || status === "done"}
-    <AppSkeleton width="70%" />
+    <div class="onboarding-page__child"><AppSkeleton width="70%" /></div>
   {:else if status === "locked"}
-    <AppLocked
+    <div class="onboarding-page__child"><AppLocked
       title={t.onboarding.locked.title()}
       subtitle={t.onboarding.locked.subtitle()}
     >
       {#snippet actions()}
         <a href="/">{t.nav.backHome()}</a>
       {/snippet}
-    </AppLocked>
+    </AppLocked></div>
   {:else if status === "error"}
-    <div class="max-w-md mx-auto mt-20">
+    <div class="onboarding-page__child"><div class="max-w-md mx-auto mt-20">
       <Notice tone="danger">{error}</Notice>
-    </div>
+    </div></div>
   {:else}
-    <OnboardingForm redirectTo={routePath("dashboard")} />
+    <div class="onboarding-page__child"><OnboardingForm redirectTo="/u/dashboard" /></div>
   {/if}
 </section>
 
@@ -79,7 +79,7 @@
     min-height: calc(100vh - 56px);
   }
 
-  .onboarding-page :global(> *) {
+  .onboarding-page__child {
     min-height: calc(100vh - 56px);
   }
 </style>

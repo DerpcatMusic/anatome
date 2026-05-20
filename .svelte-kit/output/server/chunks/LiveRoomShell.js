@@ -1,10 +1,1098 @@
-import { n as onDestroy } from "./index-server.js";
-import { U as attr, W as escape_html, a as derived, l as stringify, n as attr_class, o as ensure_array_like, r as attr_style } from "./dev.js";
+import { r as onDestroy } from "./index-server.js";
+import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id } from "./dev.js";
+import "./events.js";
 import { n as routePath } from "./context.js";
-import { n as useConvexClient } from "./client.svelte.js";
-import { r as initAuth, s as api } from "./session.svelte.js";
+import { f as useConvexClient, n as getCachedRole, r as initAuth, s as api } from "./session.svelte.js";
+import { B as getDataChecked, F as boolToStr, H as getDataTransitionAttrs, J as Context, K as watch, L as boolToTrueOrUndef, P as boolToEmptyStrOrUndef, Q as mergeProps, R as createBitsAttrs, Y as attachRef, at as simpleBox, c as createId, f as isElement, it as boxWith, l as noop$1, m as isFocusVisible, z as getAriaChecked } from "./arrays.js";
+import { m as PresenceManager, p as Portal } from "./scroll-lock.js";
+import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
+import { i as DOMContext } from "./use-id.js";
+import { t as Button_1 } from "./Button.js";
+import { t as Hidden_input } from "./hidden-input.js";
+import { t as Select_1 } from "./Select.js";
+import { i as SafePolygon, n as Popover_content, r as PopoverRootState, t as Popover_trigger } from "./popover-trigger.js";
+import { t as ScrollArea_1 } from "./ScrollArea.js";
 import { t as Notice } from "./Notice.js";
 import { t as useI18n } from "./runes.svelte.js";
+//#region node_modules/bits-ui/dist/bits/meter/meter.svelte.js
+var meterAttrs = createBitsAttrs({
+	component: "meter",
+	parts: ["root"]
+});
+var MeterRootState = class MeterRootState {
+	static create(opts) {
+		return new MeterRootState(opts);
+	}
+	opts;
+	attachment;
+	constructor(opts) {
+		this.opts = opts;
+		this.attachment = attachRef(this.opts.ref);
+	}
+	#props = derived(() => ({
+		role: "meter",
+		value: this.opts.value.current,
+		"aria-valuemin": this.opts.min.current,
+		"aria-valuemax": this.opts.max.current,
+		"aria-valuenow": this.opts.value.current,
+		"data-value": this.opts.value.current,
+		"data-max": this.opts.max.current,
+		"data-min": this.opts.min.current,
+		[meterAttrs.root]: "",
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+//#endregion
+//#region node_modules/bits-ui/dist/bits/meter/components/meter.svelte
+function Meter($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { child, children, value = 0, max = 100, min = 0, id = createId(uid), ref = null, $$slots, $$events, ...restProps } = $$props;
+		const rootState = MeterRootState.create({
+			value: boxWith(() => value),
+			max: boxWith(() => max),
+			min: boxWith(() => min),
+			id: boxWith(() => id),
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, rootState.props));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, { props: mergedProps() });
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer);
+			$$renderer.push(`<!----></div>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/popover/components/popover.svelte
+function Popover($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { open = false, onOpenChange = noop$1, onOpenChangeComplete = noop$1, children } = $$props;
+		PopoverRootState.create({
+			open: boxWith(() => open, (v) => {
+				open = v;
+				onOpenChange(v);
+			}),
+			onOpenChangeComplete: boxWith(() => onOpenChangeComplete)
+		});
+		Floating_layer($$renderer, {
+			children: ($$renderer) => {
+				children?.($$renderer);
+				$$renderer.push(`<!---->`);
+			},
+			$$slots: { default: true }
+		});
+		bind_props($$props, { open });
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/switch/switch.svelte.js
+var switchAttrs = createBitsAttrs({
+	component: "switch",
+	parts: ["root", "thumb"]
+});
+var SwitchRootContext = new Context("Switch.Root");
+var SwitchRootState = class SwitchRootState {
+	static create(opts) {
+		return SwitchRootContext.set(new SwitchRootState(opts));
+	}
+	opts;
+	attachment;
+	constructor(opts) {
+		this.opts = opts;
+		this.attachment = attachRef(opts.ref);
+		this.onkeydown = this.onkeydown.bind(this);
+		this.onclick = this.onclick.bind(this);
+	}
+	#toggle() {
+		this.opts.checked.current = !this.opts.checked.current;
+	}
+	onkeydown(e) {
+		if (!(e.key === "Enter" || e.key === " ") || this.opts.disabled.current) return;
+		e.preventDefault();
+		this.#toggle();
+	}
+	onclick(_) {
+		if (this.opts.disabled.current) return;
+		this.#toggle();
+	}
+	#sharedProps = derived(() => ({
+		"data-disabled": boolToEmptyStrOrUndef(this.opts.disabled.current),
+		"data-state": getDataChecked(this.opts.checked.current),
+		"data-required": boolToEmptyStrOrUndef(this.opts.required.current)
+	}));
+	get sharedProps() {
+		return this.#sharedProps();
+	}
+	set sharedProps($$value) {
+		return this.#sharedProps($$value);
+	}
+	#snippetProps = derived(() => ({ checked: this.opts.checked.current }));
+	get snippetProps() {
+		return this.#snippetProps();
+	}
+	set snippetProps($$value) {
+		return this.#snippetProps($$value);
+	}
+	#props = derived(() => ({
+		...this.sharedProps,
+		id: this.opts.id.current,
+		role: "switch",
+		disabled: boolToTrueOrUndef(this.opts.disabled.current),
+		"aria-checked": getAriaChecked(this.opts.checked.current, false),
+		"aria-required": boolToStr(this.opts.required.current),
+		[switchAttrs.root]: "",
+		onclick: this.onclick,
+		onkeydown: this.onkeydown,
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+var SwitchInputState = class SwitchInputState {
+	static create() {
+		return new SwitchInputState(SwitchRootContext.get());
+	}
+	root;
+	#shouldRender = derived(() => this.root.opts.name.current !== void 0);
+	get shouldRender() {
+		return this.#shouldRender();
+	}
+	set shouldRender($$value) {
+		return this.#shouldRender($$value);
+	}
+	constructor(root) {
+		this.root = root;
+	}
+	#props = derived(() => ({
+		type: "checkbox",
+		name: this.root.opts.name.current,
+		value: this.root.opts.value.current,
+		checked: this.root.opts.checked.current,
+		disabled: this.root.opts.disabled.current,
+		required: this.root.opts.required.current
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+var SwitchThumbState = class SwitchThumbState {
+	static create(opts) {
+		return new SwitchThumbState(opts, SwitchRootContext.get());
+	}
+	opts;
+	root;
+	attachment;
+	constructor(opts, root) {
+		this.opts = opts;
+		this.root = root;
+		this.attachment = attachRef(opts.ref);
+	}
+	#snippetProps = derived(() => ({ checked: this.root.opts.checked.current }));
+	get snippetProps() {
+		return this.#snippetProps();
+	}
+	set snippetProps($$value) {
+		return this.#snippetProps($$value);
+	}
+	#props = derived(() => ({
+		...this.root.sharedProps,
+		id: this.opts.id.current,
+		[switchAttrs.thumb]: "",
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+//#endregion
+//#region node_modules/bits-ui/dist/bits/switch/components/switch-input.svelte
+function Switch_input($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const inputState = SwitchInputState.create();
+		if (inputState.shouldRender) {
+			$$renderer.push("<!--[0-->");
+			Hidden_input($$renderer, spread_props([inputState.props]));
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/switch/components/switch.svelte
+function Switch($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { child, children, ref = null, id = createId(uid), disabled = false, required = false, checked = false, value = "on", name = void 0, type = "button", onCheckedChange = noop$1, $$slots, $$events, ...restProps } = $$props;
+		const rootState = SwitchRootState.create({
+			checked: boxWith(() => checked, (v) => {
+				checked = v;
+				onCheckedChange?.(v);
+			}),
+			disabled: boxWith(() => disabled ?? false),
+			required: boxWith(() => required),
+			value: boxWith(() => value),
+			name: boxWith(() => name),
+			id: boxWith(() => id),
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, rootState.props, { type }));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, {
+				props: mergedProps(),
+				...rootState.snippetProps
+			});
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<button${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer, rootState.snippetProps);
+			$$renderer.push(`<!----></button>`);
+		}
+		$$renderer.push(`<!--]--> `);
+		Switch_input($$renderer, {});
+		$$renderer.push(`<!---->`);
+		bind_props($$props, {
+			ref,
+			checked
+		});
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/switch/components/switch-thumb.svelte
+function Switch_thumb($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { child, children, ref = null, id = createId(uid), $$slots, $$events, ...restProps } = $$props;
+		const thumbState = SwitchThumbState.create({
+			id: boxWith(() => id),
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, thumbState.props));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, {
+				props: mergedProps(),
+				...thumbState.snippetProps
+			});
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<span${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer, thumbState.snippetProps);
+			$$renderer.push(`<!----></span>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/internal/timeout-fn.js
+var TimeoutFn = class {
+	#interval;
+	#cb;
+	#timer = null;
+	constructor(cb, interval) {
+		this.#cb = cb;
+		this.#interval = interval;
+		this.stop = this.stop.bind(this);
+		this.start = this.start.bind(this);
+		this.stop;
+	}
+	#clear() {
+		if (this.#timer !== null) {
+			window.clearTimeout(this.#timer);
+			this.#timer = null;
+		}
+	}
+	stop() {
+		this.#clear();
+	}
+	start(...args) {
+		this.#clear();
+		this.#timer = window.setTimeout(() => {
+			this.#timer = null;
+			this.#cb(...args);
+		}, this.#interval);
+	}
+};
+//#endregion
+//#region node_modules/bits-ui/dist/bits/tooltip/tooltip.svelte.js
+var tooltipAttrs = createBitsAttrs({
+	component: "tooltip",
+	parts: ["content", "trigger"]
+});
+var TooltipProviderContext = new Context("Tooltip.Provider");
+var TooltipRootContext = new Context("Tooltip.Root");
+var TooltipTriggerRegistryState = class {
+	triggers = /* @__PURE__ */ new Map();
+	activeTriggerId = null;
+	#activeTriggerNode = derived(() => {
+		const activeTriggerId = this.activeTriggerId;
+		if (activeTriggerId === null) return null;
+		return this.triggers.get(activeTriggerId)?.node ?? null;
+	});
+	get activeTriggerNode() {
+		return this.#activeTriggerNode();
+	}
+	set activeTriggerNode($$value) {
+		return this.#activeTriggerNode($$value);
+	}
+	#activePayload = derived(() => {
+		const activeTriggerId = this.activeTriggerId;
+		if (activeTriggerId === null) return null;
+		return this.triggers.get(activeTriggerId)?.payload ?? null;
+	});
+	get activePayload() {
+		return this.#activePayload();
+	}
+	set activePayload($$value) {
+		return this.#activePayload($$value);
+	}
+	register = (record) => {
+		const next = new Map(this.triggers);
+		next.set(record.id, record);
+		this.triggers = next;
+		this.#coerceActiveTrigger();
+	};
+	update = (record) => {
+		const next = new Map(this.triggers);
+		next.set(record.id, record);
+		this.triggers = next;
+		this.#coerceActiveTrigger();
+	};
+	unregister = (id) => {
+		if (!this.triggers.has(id)) return;
+		const next = new Map(this.triggers);
+		next.delete(id);
+		this.triggers = next;
+		if (this.activeTriggerId === id) this.activeTriggerId = null;
+	};
+	setActiveTrigger = (id) => {
+		if (id === null) {
+			this.activeTriggerId = null;
+			return;
+		}
+		if (!this.triggers.has(id)) {
+			this.activeTriggerId = null;
+			return;
+		}
+		this.activeTriggerId = id;
+	};
+	get = (id) => {
+		return this.triggers.get(id);
+	};
+	has = (id) => {
+		return this.triggers.has(id);
+	};
+	getFirstTriggerId = () => {
+		const firstEntry = this.triggers.entries().next();
+		if (firstEntry.done) return null;
+		return firstEntry.value[0];
+	};
+	#coerceActiveTrigger = () => {
+		const activeTriggerId = this.activeTriggerId;
+		if (activeTriggerId === null) return;
+		if (!this.triggers.has(activeTriggerId)) this.activeTriggerId = null;
+	};
+};
+var TooltipProviderState = class TooltipProviderState {
+	static create(opts) {
+		return TooltipProviderContext.set(new TooltipProviderState(opts));
+	}
+	opts;
+	isOpenDelayed = true;
+	isPointerInTransit = simpleBox(false);
+	#timerFn;
+	#openTooltip = null;
+	constructor(opts) {
+		this.opts = opts;
+		this.#timerFn = new TimeoutFn(() => {
+			this.isOpenDelayed = true;
+		}, this.opts.skipDelayDuration.current);
+	}
+	#startTimer = () => {
+		if (this.opts.skipDelayDuration.current === 0) {
+			this.isOpenDelayed = true;
+			return;
+		} else this.#timerFn.start();
+	};
+	#clearTimer = () => {
+		this.#timerFn.stop();
+	};
+	onOpen = (tooltip) => {
+		if (this.#openTooltip && this.#openTooltip !== tooltip) this.#openTooltip.handleClose();
+		this.#clearTimer();
+		this.isOpenDelayed = false;
+		this.#openTooltip = tooltip;
+	};
+	onClose = (tooltip) => {
+		if (this.#openTooltip === tooltip) {
+			this.#openTooltip = null;
+			this.#startTimer();
+		}
+	};
+	isTooltipOpen = (tooltip) => {
+		return this.#openTooltip === tooltip;
+	};
+};
+var TooltipRootState = class TooltipRootState {
+	static create(opts) {
+		return TooltipRootContext.set(new TooltipRootState(opts, TooltipProviderContext.get()));
+	}
+	opts;
+	provider;
+	#delayDuration = derived(() => this.opts.delayDuration.current ?? this.provider.opts.delayDuration.current);
+	get delayDuration() {
+		return this.#delayDuration();
+	}
+	set delayDuration($$value) {
+		return this.#delayDuration($$value);
+	}
+	#disableHoverableContent = derived(() => this.opts.disableHoverableContent.current ?? this.provider.opts.disableHoverableContent.current);
+	get disableHoverableContent() {
+		return this.#disableHoverableContent();
+	}
+	set disableHoverableContent($$value) {
+		return this.#disableHoverableContent($$value);
+	}
+	#disableCloseOnTriggerClick = derived(() => this.opts.disableCloseOnTriggerClick.current ?? this.provider.opts.disableCloseOnTriggerClick.current);
+	get disableCloseOnTriggerClick() {
+		return this.#disableCloseOnTriggerClick();
+	}
+	set disableCloseOnTriggerClick($$value) {
+		return this.#disableCloseOnTriggerClick($$value);
+	}
+	#disabled = derived(() => this.opts.disabled.current ?? this.provider.opts.disabled.current);
+	get disabled() {
+		return this.#disabled();
+	}
+	set disabled($$value) {
+		return this.#disabled($$value);
+	}
+	#ignoreNonKeyboardFocus = derived(() => this.opts.ignoreNonKeyboardFocus.current ?? this.provider.opts.ignoreNonKeyboardFocus.current);
+	get ignoreNonKeyboardFocus() {
+		return this.#ignoreNonKeyboardFocus();
+	}
+	set ignoreNonKeyboardFocus($$value) {
+		return this.#ignoreNonKeyboardFocus($$value);
+	}
+	registry;
+	tether;
+	contentNode = null;
+	contentPresence;
+	#wasOpenDelayed = false;
+	#timerFn;
+	#stateAttr = derived(() => {
+		if (!this.opts.open.current) return "closed";
+		return this.#wasOpenDelayed ? "delayed-open" : "instant-open";
+	});
+	get stateAttr() {
+		return this.#stateAttr();
+	}
+	set stateAttr($$value) {
+		return this.#stateAttr($$value);
+	}
+	constructor(opts, provider) {
+		this.opts = opts;
+		this.provider = provider;
+		this.tether = opts.tether.current?.state ?? null;
+		this.registry = this.tether?.registry ?? new TooltipTriggerRegistryState();
+		this.#timerFn = new TimeoutFn(() => {
+			this.#wasOpenDelayed = true;
+			this.opts.open.current = true;
+		}, this.delayDuration ?? 0);
+		if (this.tether) this.tether.root = this;
+		this.contentPresence = new PresenceManager({
+			open: this.opts.open,
+			ref: boxWith(() => this.contentNode),
+			onComplete: () => {
+				this.opts.onOpenChangeComplete.current(this.opts.open.current);
+			}
+		});
+		watch(() => this.delayDuration, () => {
+			if (this.delayDuration === void 0) return;
+			this.#timerFn = new TimeoutFn(() => {
+				this.#wasOpenDelayed = true;
+				this.opts.open.current = true;
+			}, this.delayDuration);
+		});
+		watch(() => this.opts.open.current, (isOpen) => {
+			if (isOpen) {
+				this.ensureActiveTrigger();
+				this.provider.onOpen(this);
+			} else this.provider.onClose(this);
+		}, { lazy: true });
+		watch(() => this.opts.triggerId.current, (triggerId) => {
+			if (triggerId === this.registry.activeTriggerId) return;
+			this.registry.setActiveTrigger(triggerId);
+		});
+		watch(() => this.registry.activeTriggerId, (activeTriggerId) => {
+			if (this.opts.triggerId.current === activeTriggerId) return;
+			this.opts.triggerId.current = activeTriggerId;
+		});
+	}
+	handleOpen = () => {
+		this.#timerFn.stop();
+		this.#wasOpenDelayed = false;
+		this.ensureActiveTrigger();
+		this.opts.open.current = true;
+	};
+	handleClose = () => {
+		this.#timerFn.stop();
+		this.opts.open.current = false;
+	};
+	#handleDelayedOpen = () => {
+		this.#timerFn.stop();
+		const shouldSkipDelay = !this.provider.isOpenDelayed;
+		const delayDuration = this.delayDuration ?? 0;
+		if (shouldSkipDelay || delayDuration === 0) {
+			this.#wasOpenDelayed = false;
+			this.opts.open.current = true;
+		} else this.#timerFn.start();
+	};
+	onTriggerEnter = (triggerId) => {
+		this.setActiveTrigger(triggerId);
+		this.#handleDelayedOpen();
+	};
+	onTriggerLeave = () => {
+		if (this.disableHoverableContent) this.handleClose();
+		else this.#timerFn.stop();
+	};
+	ensureActiveTrigger = () => {
+		if (this.registry.activeTriggerId !== null && this.registry.has(this.registry.activeTriggerId)) return;
+		if (this.opts.triggerId.current !== null && this.registry.has(this.opts.triggerId.current)) {
+			this.registry.setActiveTrigger(this.opts.triggerId.current);
+			return;
+		}
+		const firstTriggerId = this.registry.getFirstTriggerId();
+		this.registry.setActiveTrigger(firstTriggerId);
+	};
+	setActiveTrigger = (triggerId) => {
+		this.registry.setActiveTrigger(triggerId);
+	};
+	registerTrigger = (trigger) => {
+		this.registry.register(trigger);
+		if (trigger.disabled && this.registry.activeTriggerId === trigger.id && this.opts.open.current) this.handleClose();
+	};
+	updateTrigger = (trigger) => {
+		this.registry.update(trigger);
+		if (trigger.disabled && this.registry.activeTriggerId === trigger.id && this.opts.open.current) this.handleClose();
+	};
+	unregisterTrigger = (id) => {
+		const isActive = this.registry.activeTriggerId === id;
+		this.registry.unregister(id);
+		if (isActive && this.opts.open.current) this.handleClose();
+	};
+	isActiveTrigger = (triggerId) => {
+		return this.registry.activeTriggerId === triggerId;
+	};
+	get triggerNode() {
+		return this.registry.activeTriggerNode;
+	}
+	get activePayload() {
+		return this.registry.activePayload;
+	}
+	get activeTriggerId() {
+		return this.registry.activeTriggerId;
+	}
+};
+var TooltipTriggerState = class TooltipTriggerState {
+	static create(opts) {
+		if (opts.tether.current) return new TooltipTriggerState(opts, null, opts.tether.current.state);
+		return new TooltipTriggerState(opts, TooltipRootContext.get(), null);
+	}
+	opts;
+	root;
+	tether;
+	attachment;
+	#isPointerDown = simpleBox(false);
+	#hasPointerMoveOpened = false;
+	domContext;
+	#transitCheckTimeout = null;
+	#mounted = false;
+	#lastRegisteredId = null;
+	constructor(opts, root, tether) {
+		this.opts = opts;
+		this.root = root;
+		this.tether = tether;
+		this.domContext = new DOMContext(opts.ref);
+		this.attachment = attachRef(this.opts.ref, (v) => this.#register(v));
+		watch(() => this.opts.id.current, () => {
+			this.#register(this.opts.ref.current);
+		});
+		watch(() => this.opts.payload.current, () => {
+			this.#register(this.opts.ref.current);
+		});
+		watch(() => this.opts.disabled.current, () => {
+			this.#register(this.opts.ref.current);
+		});
+	}
+	#getRoot = () => {
+		return this.tether?.root ?? this.root;
+	};
+	#isDisabled = () => {
+		const root = this.#getRoot();
+		return this.opts.disabled.current || Boolean(root?.disabled);
+	};
+	#register = (node) => {
+		if (!this.#mounted) return;
+		const id = this.opts.id.current;
+		const payload = this.opts.payload.current;
+		const disabled = this.opts.disabled.current;
+		if (this.#lastRegisteredId && this.#lastRegisteredId !== id) {
+			const root = this.#getRoot();
+			if (this.tether) this.tether.registry.unregister(this.#lastRegisteredId);
+			else root?.unregisterTrigger(this.#lastRegisteredId);
+		}
+		const triggerRecord = {
+			id,
+			node,
+			payload,
+			disabled
+		};
+		const root = this.#getRoot();
+		if (this.tether) {
+			if (this.tether.registry.has(id)) this.tether.registry.update(triggerRecord);
+			else this.tether.registry.register(triggerRecord);
+			if (disabled && this.tether.registry.activeTriggerId === id && root?.opts.open.current) root.handleClose();
+		} else if (root?.registry.has(id)) root.updateTrigger(triggerRecord);
+		else root?.registerTrigger(triggerRecord);
+		this.#lastRegisteredId = id;
+	};
+	#clearTransitCheck = () => {
+		if (this.#transitCheckTimeout !== null) {
+			clearTimeout(this.#transitCheckTimeout);
+			this.#transitCheckTimeout = null;
+		}
+	};
+	handlePointerUp = () => {
+		this.#isPointerDown.current = false;
+	};
+	#onpointerup = () => {
+		if (this.#isDisabled()) return;
+		this.#isPointerDown.current = false;
+	};
+	#onpointerdown = () => {
+		if (this.#isDisabled()) return;
+		this.#isPointerDown.current = true;
+		this.domContext.getDocument().addEventListener("pointerup", () => {
+			this.handlePointerUp();
+		}, { once: true });
+	};
+	#onpointerenter = (e) => {
+		const root = this.#getRoot();
+		if (!root) return;
+		if (this.#isDisabled()) {
+			if (root.opts.open.current) root.handleClose();
+			return;
+		}
+		if (e.pointerType === "touch") return;
+		if (root.provider.isPointerInTransit.current) {
+			this.#clearTransitCheck();
+			this.#transitCheckTimeout = window.setTimeout(() => {
+				if (root.provider.isPointerInTransit.current) {
+					root.provider.isPointerInTransit.current = false;
+					root.onTriggerEnter(this.opts.id.current);
+					this.#hasPointerMoveOpened = true;
+				}
+			}, 250);
+			return;
+		}
+		root.onTriggerEnter(this.opts.id.current);
+		this.#hasPointerMoveOpened = true;
+	};
+	#onpointermove = (e) => {
+		const root = this.#getRoot();
+		if (!root) return;
+		if (this.#isDisabled()) {
+			if (root.opts.open.current) root.handleClose();
+			return;
+		}
+		if (e.pointerType === "touch") return;
+		if (this.#hasPointerMoveOpened) return;
+		this.#clearTransitCheck();
+		root.provider.isPointerInTransit.current = false;
+		root.onTriggerEnter(this.opts.id.current);
+		this.#hasPointerMoveOpened = true;
+	};
+	#onpointerleave = (e) => {
+		const root = this.#getRoot();
+		if (!root) return;
+		if (this.#isDisabled()) return;
+		this.#clearTransitCheck();
+		if (!root.isActiveTrigger(this.opts.id.current)) {
+			this.#hasPointerMoveOpened = false;
+			return;
+		}
+		const relatedTarget = e.relatedTarget;
+		if (isElement(relatedTarget)) for (const record of root.registry.triggers.values()) {
+			if (record.node !== relatedTarget) continue;
+			if (root.provider.opts.skipDelayDuration.current > 0) {
+				this.#hasPointerMoveOpened = false;
+				return;
+			}
+			root.handleClose();
+			this.#hasPointerMoveOpened = false;
+			return;
+		}
+		root.onTriggerLeave();
+		this.#hasPointerMoveOpened = false;
+	};
+	#onfocus = (e) => {
+		const root = this.#getRoot();
+		if (!root) return;
+		if (this.#isPointerDown.current) return;
+		if (this.#isDisabled()) {
+			if (root.opts.open.current) root.handleClose();
+			return;
+		}
+		if (root.ignoreNonKeyboardFocus && !isFocusVisible(e.currentTarget)) return;
+		root.setActiveTrigger(this.opts.id.current);
+		root.handleOpen();
+	};
+	#onblur = () => {
+		const root = this.#getRoot();
+		if (!root || this.#isDisabled()) return;
+		root.handleClose();
+	};
+	#onclick = () => {
+		const root = this.#getRoot();
+		if (!root || root.disableCloseOnTriggerClick || this.#isDisabled()) return;
+		root.handleClose();
+	};
+	#props = derived(() => {
+		const root = this.#getRoot();
+		const isOpenForTrigger = Boolean(root?.opts.open.current && root.isActiveTrigger(this.opts.id.current));
+		const isDisabled = this.#isDisabled();
+		return {
+			id: this.opts.id.current,
+			"aria-describedby": isOpenForTrigger ? root?.contentNode?.id : void 0,
+			"data-state": isOpenForTrigger ? root?.stateAttr : "closed",
+			"data-disabled": boolToEmptyStrOrUndef(isDisabled),
+			"data-delay-duration": `${root?.delayDuration ?? 0}`,
+			[tooltipAttrs.trigger]: "",
+			tabindex: isDisabled ? void 0 : this.opts.tabindex.current,
+			disabled: this.opts.disabled.current,
+			onpointerup: this.#onpointerup,
+			onpointerdown: this.#onpointerdown,
+			onpointerenter: this.#onpointerenter,
+			onpointermove: this.#onpointermove,
+			onpointerleave: this.#onpointerleave,
+			onfocus: this.#onfocus,
+			onblur: this.#onblur,
+			onclick: this.#onclick,
+			...this.attachment
+		};
+	});
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+var TooltipContentState = class TooltipContentState {
+	static create(opts) {
+		return new TooltipContentState(opts, TooltipRootContext.get());
+	}
+	opts;
+	root;
+	attachment;
+	constructor(opts, root) {
+		this.opts = opts;
+		this.root = root;
+		this.attachment = attachRef(this.opts.ref, (v) => this.root.contentNode = v);
+		new SafePolygon({
+			triggerNode: () => this.root.triggerNode,
+			contentNode: () => this.root.contentNode,
+			enabled: () => this.root.opts.open.current && !this.root.disableHoverableContent,
+			transitIntentTimeout: 180,
+			ignoredTargets: () => {
+				if (this.root.provider.opts.skipDelayDuration.current === 0) return [];
+				const nodes = [];
+				const activeTriggerNode = this.root.triggerNode;
+				for (const record of this.root.registry.triggers.values()) if (record.node && record.node !== activeTriggerNode) nodes.push(record.node);
+				return nodes;
+			},
+			onPointerExit: () => {
+				if (this.root.provider.isTooltipOpen(this.root)) this.root.handleClose();
+			}
+		});
+	}
+	onInteractOutside = (e) => {
+		if (isElement(e.target) && this.root.triggerNode?.contains(e.target) && this.root.disableCloseOnTriggerClick) {
+			e.preventDefault();
+			return;
+		}
+		this.opts.onInteractOutside.current(e);
+		if (e.defaultPrevented) return;
+		this.root.handleClose();
+	};
+	onEscapeKeydown = (e) => {
+		this.opts.onEscapeKeydown.current?.(e);
+		if (e.defaultPrevented) return;
+		this.root.handleClose();
+	};
+	onOpenAutoFocus = (e) => {
+		e.preventDefault();
+	};
+	onCloseAutoFocus = (e) => {
+		e.preventDefault();
+	};
+	get shouldRender() {
+		return this.root.contentPresence.shouldRender;
+	}
+	#snippetProps = derived(() => ({ open: this.root.opts.open.current }));
+	get snippetProps() {
+		return this.#snippetProps();
+	}
+	set snippetProps($$value) {
+		return this.#snippetProps($$value);
+	}
+	#props = derived(() => ({
+		id: this.opts.id.current,
+		"data-state": this.root.stateAttr,
+		"data-disabled": boolToEmptyStrOrUndef(this.root.disabled),
+		...getDataTransitionAttrs(this.root.contentPresence.transitionStatus),
+		style: { outline: "none" },
+		[tooltipAttrs.content]: "",
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+	popperProps = {
+		onInteractOutside: this.onInteractOutside,
+		onEscapeKeydown: this.onEscapeKeydown,
+		onOpenAutoFocus: this.onOpenAutoFocus,
+		onCloseAutoFocus: this.onCloseAutoFocus
+	};
+};
+//#endregion
+//#region node_modules/bits-ui/dist/bits/tooltip/components/tooltip.svelte
+function Tooltip($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { open = false, triggerId = null, onOpenChange = noop$1, onOpenChangeComplete = noop$1, disabled, delayDuration, disableCloseOnTriggerClick, disableHoverableContent, ignoreNonKeyboardFocus, tether, children } = $$props;
+		const rootState = TooltipRootState.create({
+			open: boxWith(() => open, (v) => {
+				open = v;
+				onOpenChange(v);
+			}),
+			triggerId: boxWith(() => triggerId, (v) => {
+				triggerId = v;
+			}),
+			delayDuration: boxWith(() => delayDuration),
+			disableCloseOnTriggerClick: boxWith(() => disableCloseOnTriggerClick),
+			disableHoverableContent: boxWith(() => disableHoverableContent),
+			ignoreNonKeyboardFocus: boxWith(() => ignoreNonKeyboardFocus),
+			disabled: boxWith(() => disabled),
+			onOpenChangeComplete: boxWith(() => onOpenChangeComplete),
+			tether: boxWith(() => tether)
+		});
+		Floating_layer($$renderer, {
+			tooltip: true,
+			children: ($$renderer) => {
+				children?.($$renderer, {
+					open: rootState.opts.open.current,
+					triggerId: rootState.activeTriggerId,
+					payload: rootState.activePayload
+				});
+				$$renderer.push(`<!---->`);
+			},
+			$$slots: { default: true }
+		});
+		bind_props($$props, {
+			open,
+			triggerId
+		});
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/tooltip/components/tooltip-content.svelte
+function Tooltip_content($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { children, child, id = createId(uid), ref = null, side = "top", sideOffset = 0, align = "center", avoidCollisions = true, arrowPadding = 0, sticky = "partial", strategy, hideWhenDetached = false, customAnchor, collisionPadding = 0, onInteractOutside = noop$1, onEscapeKeydown = noop$1, forceMount = false, style, $$slots, $$events, ...restProps } = $$props;
+		const contentState = TooltipContentState.create({
+			id: boxWith(() => id),
+			ref: boxWith(() => ref, (v) => ref = v),
+			onInteractOutside: boxWith(() => onInteractOutside),
+			onEscapeKeydown: boxWith(() => onEscapeKeydown)
+		});
+		const floatingProps = derived(() => ({
+			side,
+			sideOffset,
+			align,
+			avoidCollisions,
+			arrowPadding,
+			sticky,
+			hideWhenDetached,
+			collisionPadding,
+			strategy,
+			customAnchor: customAnchor ?? contentState.root.triggerNode
+		}));
+		const mergedProps = derived(() => mergeProps(restProps, floatingProps(), contentState.props));
+		if (forceMount) {
+			$$renderer.push("<!--[0-->");
+			{
+				function popper($$renderer, { props, wrapperProps }) {
+					const finalWrapperProps = mergeProps(wrapperProps, { style: { pointerEvents: contentState.root.disableHoverableContent ? "none" : void 0 } });
+					const finalProps = mergeProps(props, { style: getFloatingContentCSSVars("tooltip") }, { style });
+					if (child) {
+						$$renderer.push("<!--[0-->");
+						child($$renderer, {
+							props: finalProps,
+							wrapperProps: finalWrapperProps,
+							...contentState.snippetProps
+						});
+						$$renderer.push(`<!---->`);
+					} else {
+						$$renderer.push("<!--[-1-->");
+						$$renderer.push(`<div${attributes({ ...finalWrapperProps })}><div${attributes({ ...finalProps })}>`);
+						children?.($$renderer);
+						$$renderer.push(`<!----></div></div>`);
+					}
+					$$renderer.push(`<!--]-->`);
+				}
+				Popper_layer_force_mount($$renderer, spread_props([
+					mergedProps(),
+					contentState.popperProps,
+					{
+						enabled: contentState.root.opts.open.current,
+						id,
+						trapFocus: false,
+						loop: false,
+						preventScroll: false,
+						forceMount: true,
+						ref: contentState.opts.ref,
+						tooltip: true,
+						shouldRender: contentState.shouldRender,
+						contentPointerEvents: contentState.root.disableHoverableContent ? "none" : "auto",
+						popper,
+						$$slots: { popper: true }
+					}
+				]));
+			}
+		} else if (!forceMount) {
+			$$renderer.push("<!--[1-->");
+			{
+				function popper($$renderer, { props, wrapperProps }) {
+					const finalWrapperProps = mergeProps(wrapperProps, { style: { pointerEvents: contentState.root.disableHoverableContent ? "none" : void 0 } });
+					const finalProps = mergeProps(props, { style: getFloatingContentCSSVars("tooltip") }, { style });
+					if (child) {
+						$$renderer.push("<!--[0-->");
+						child($$renderer, {
+							props: finalProps,
+							wrapperProps: finalWrapperProps,
+							...contentState.snippetProps
+						});
+						$$renderer.push(`<!---->`);
+					} else {
+						$$renderer.push("<!--[-1-->");
+						$$renderer.push(`<div${attributes({ ...finalWrapperProps })}><div${attributes({ ...finalProps })}>`);
+						children?.($$renderer);
+						$$renderer.push(`<!----></div></div>`);
+					}
+					$$renderer.push(`<!--]-->`);
+				}
+				Popper_layer($$renderer, spread_props([
+					mergedProps(),
+					contentState.popperProps,
+					{
+						open: contentState.root.opts.open.current,
+						id,
+						trapFocus: false,
+						loop: false,
+						preventScroll: false,
+						forceMount: false,
+						ref: contentState.opts.ref,
+						tooltip: true,
+						shouldRender: contentState.shouldRender,
+						contentPointerEvents: contentState.root.disableHoverableContent ? "none" : "auto",
+						popper,
+						$$slots: { popper: true }
+					}
+				]));
+			}
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/tooltip/components/tooltip-trigger.svelte
+function Tooltip_trigger($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { children, child, id = createId(uid), disabled = false, payload, tether, type = "button", tabindex = 0, ref = null, $$slots, $$events, ...restProps } = $$props;
+		const triggerState = TooltipTriggerState.create({
+			id: boxWith(() => id),
+			disabled: boxWith(() => disabled ?? false),
+			tabindex: boxWith(() => tabindex ?? 0),
+			payload: boxWith(() => payload),
+			tether: boxWith(() => tether),
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, triggerState.props, { type }));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, { props: mergedProps() });
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<button${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer);
+			$$renderer.push(`<!----></button>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/tooltip/components/tooltip-provider.svelte
+function Tooltip_provider($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { children, delayDuration = 700, disableCloseOnTriggerClick = false, disableHoverableContent = false, disabled = false, ignoreNonKeyboardFocus = false, skipDelayDuration = 300 } = $$props;
+		TooltipProviderState.create({
+			delayDuration: boxWith(() => delayDuration),
+			disableCloseOnTriggerClick: boxWith(() => disableCloseOnTriggerClick),
+			disableHoverableContent: boxWith(() => disableHoverableContent),
+			disabled: boxWith(() => disabled),
+			ignoreNonKeyboardFocus: boxWith(() => ignoreNonKeyboardFocus),
+			skipDelayDuration: boxWith(() => skipDelayDuration)
+		});
+		children?.($$renderer);
+		$$renderer.push(`<!---->`);
+	});
+}
+//#endregion
 //#region src/lib/features/live/room.svelte.ts
 var i18n = useI18n();
 var LiveRoom = class {
@@ -34,8 +1122,13 @@ var LiveRoom = class {
 	trackStats = [];
 	activeSpeakerIdentity = null;
 	showParticipants = true;
+	showChat = true;
 	showQualityPanel = false;
 	statsTimer = null;
+	participantDebounceTimer = null;
+	expiryTimer = null;
+	clockTimer = null;
+	nowMs = Date.now();
 	previousStats = /* @__PURE__ */ new Map();
 	preConnectStep = "idle";
 	previewStream = null;
@@ -48,6 +1141,12 @@ var LiveRoom = class {
 	selectedAudioDevice = "";
 	selectedCodec = "h264";
 	selectedResolution = "1080p";
+	selectedFramerate = 30;
+	selectedBitrateMbps = 4.5;
+	selectedAudioPreset = "musicHighQuality";
+	simulcastEnabled = true;
+	forceStereo = false;
+	degradationPreference = "maintain-framerate";
 	audioProcessingEnabled = true;
 	cameraAccess = "unknown";
 	micAccess = "unknown";
@@ -63,7 +1162,11 @@ var LiveRoom = class {
 		if (a.isLocal !== b.isLocal) return Number(a.isLocal) - Number(b.isLocal);
 		return a.name.localeCompare(b.name);
 	};
-	#isInstructorRoom = derived(() => this.joinInfo?.participantRole === "instructor" || this.joinInfo?.participantRole === "admin");
+	#isInstructorRoom = derived(() => {
+		if (this.joinInfo) return this.joinInfo.participantRole === "instructor" || this.joinInfo.participantRole === "admin";
+		const role = getCachedRole();
+		return role === "instructor" || role === "admin";
+	});
 	get isInstructorRoom() {
 		return this.#isInstructorRoom();
 	}
@@ -195,7 +1298,7 @@ var LiveRoom = class {
 	set expiresAt($$value) {
 		return this.#expiresAt($$value);
 	}
-	#secondsUntilExpiry = derived(() => this.expiresAt === null ? null : Math.max(0, Math.floor((this.expiresAt - Date.now()) / 1e3)));
+	#secondsUntilExpiry = derived(() => this.expiresAt === null ? null : Math.max(0, Math.floor((this.expiresAt - this.nowMs) / 1e3)));
 	get secondsUntilExpiry() {
 		return this.#secondsUntilExpiry();
 	}
@@ -304,6 +1407,13 @@ var LiveRoom = class {
 		});
 	}
 	refreshParticipants() {
+		if (this.participantDebounceTimer !== null) window.clearTimeout(this.participantDebounceTimer);
+		this.participantDebounceTimer = window.setTimeout(() => {
+			this._refreshParticipants();
+			this.participantDebounceTimer = null;
+		}, 80);
+	}
+	_refreshParticipants() {
 		if (this._room === null) return;
 		const local = this._room.localParticipant;
 		const next = [{
@@ -393,6 +1503,11 @@ var LiveRoom = class {
 			});
 		});
 		const results = await Promise.all(publications.map((p) => this.collectTrackStats(p.track, p.id, p.name, p.source, p.kind)));
+		const activeIds = new Set(publications.map((p) => p.id));
+		for (const key of this.previousStats.keys()) {
+			const baseId = key.split(":")[0];
+			if (!activeIds.has(baseId)) this.previousStats.delete(key);
+		}
 		this.trackStats = results;
 		const videoResults = results.filter((r) => r.kind === "video");
 		const primaryVideo = videoResults.find((r) => r.source === "screen_share") ?? videoResults.find((r) => !r.id.startsWith("local:")) ?? videoResults[0];
@@ -410,12 +1525,36 @@ var LiveRoom = class {
 	startStatsTimer() {
 		if (this.statsTimer !== null) return;
 		this.refreshStreamStats();
-		this.statsTimer = window.setInterval(() => void this.refreshStreamStats(), 2500);
+		this.statsTimer = window.setInterval(() => {
+			if (this.showQualityPanel) this.refreshStreamStats();
+		}, 5e3);
 	}
 	stopStatsTimer() {
 		if (this.statsTimer !== null) window.clearInterval(this.statsTimer);
 		this.statsTimer = null;
 		this.previousStats.clear();
+	}
+	startExpiryTimer(expiresAt) {
+		this.stopExpiryTimer();
+		this.nowMs = Date.now();
+		this.clockTimer = window.setInterval(() => {
+			this.nowMs = Date.now();
+		}, 1e3);
+		this.expiryTimer = window.setTimeout(() => this.expireLocalRoom(), Math.max(0, expiresAt - Date.now()));
+	}
+	stopExpiryTimer() {
+		if (this.expiryTimer !== null) window.clearTimeout(this.expiryTimer);
+		if (this.clockTimer !== null) window.clearInterval(this.clockTimer);
+		this.expiryTimer = null;
+		this.clockTimer = null;
+	}
+	expireLocalRoom() {
+		this.mediaError = "השיעור הסתיים והחיבור נסגר.";
+		this.connectionState = "disconnected";
+		this.stopStatsTimer();
+		this.clearMediaTiles();
+		this._room?.disconnect();
+		this._room = null;
 	}
 	getMediaErrorMessage(kind, reason) {
 		const errName = reason instanceof DOMException ? reason.name : "";
@@ -543,6 +1682,16 @@ var LiveRoom = class {
 		this.selectedVideoDevice = "";
 		await this.switchPreviewDevice();
 	}
+	async switchStreamDevice(kind, deviceId) {
+		if (!this._room) return;
+		try {
+			await this._room.switchActiveDevice(kind, deviceId, true);
+			if (kind === "audioinput") this.selectedAudioDevice = deviceId;
+			if (kind === "videoinput") this.selectedVideoDevice = deviceId;
+		} catch (reason) {
+			console.warn(`[LiveKit] Failed to switch ${kind}:`, reason);
+		}
+	}
 	stopPreview() {
 		if (this.previewStream) {
 			this.previewStream.getTracks().forEach((t) => t.stop());
@@ -559,25 +1708,27 @@ var LiveRoom = class {
 		this.audioLevel = 0;
 	}
 	resolutionDimensions(isInstructor) {
+		const frameRate = this.selectedFramerate;
 		if (this.selectedResolution === "1080p" && isInstructor) return {
 			width: 1920,
 			height: 1080,
-			frameRate: 30
+			frameRate
 		};
 		if (this.selectedResolution === "720p" || isInstructor) return {
 			width: 1280,
 			height: 720,
-			frameRate: 30
+			frameRate
 		};
 		return {
 			width: 640,
 			height: 360,
-			frameRate: 24
+			frameRate: Math.min(frameRate, 30)
 		};
 	}
 	cameraCaptureOptions(isInstructor) {
 		return {
 			resolution: this.resolutionDimensions(isInstructor),
+			frameRate: this.selectedFramerate,
 			...this.selectedVideoDevice ? { deviceId: this.selectedVideoDevice } : {}
 		};
 	}
@@ -590,29 +1741,41 @@ var LiveRoom = class {
 		};
 	}
 	publishProfile(isInstructor, VideoPreset, AudioPresets) {
-		const premium = isInstructor && this.selectedResolution === "1080p";
-		const balanced = this.selectedResolution !== "360p";
+		const targetBitrate = Math.round(this.selectedBitrateMbps * 1e6);
+		const frameRate = this.selectedFramerate;
+		const isSvc = this.selectedCodec === "vp9" || this.selectedCodec === "av1";
+		const audioPresets = {
+			speech: AudioPresets.speech,
+			music: AudioPresets.music,
+			musicStereo: AudioPresets.musicStereo,
+			musicHighQuality: AudioPresets.musicHighQuality,
+			musicHighQualityStereo: AudioPresets.musicHighQualityStereo
+		};
+		const scalabilityMode = isSvc ? this.selectedResolution === "1080p" ? "L3T3_KEY" : "L2T3_KEY" : void 0;
 		return {
-			simulcast: true,
+			simulcast: this.simulcastEnabled && !isSvc,
 			videoCodec: this.selectedCodec,
 			videoEncoding: {
-				maxBitrate: premium ? 45e5 : balanced ? 18e5 : 65e4,
-				maxFramerate: this.selectedResolution === "360p" ? 24 : 30
+				maxBitrate: targetBitrate,
+				maxFramerate: frameRate
 			},
-			videoSimulcastLayers: premium ? [new VideoPreset(1280, 720, 18e5, 30), new VideoPreset(640, 360, 6e5, 30)] : balanced ? [new VideoPreset(640, 360, 6e5, 30), new VideoPreset(320, 180, 18e4, 24)] : [new VideoPreset(320, 180, 18e4, 24)],
+			videoSimulcastLayers: this.simulcastEnabled && !isSvc ? [new VideoPreset(1280, 720, Math.round(targetBitrate * .4), Math.min(frameRate, 30)), new VideoPreset(640, 360, Math.round(targetBitrate * .15), Math.min(frameRate, 30))] : void 0,
 			screenShareEncoding: {
 				maxBitrate: 4e6,
 				maxFramerate: 15
 			},
 			screenShareSimulcastLayers: [new VideoPreset(1280, 720, 2e6, 15), new VideoPreset(640, 360, 8e5, 15)],
-			audioPreset: isInstructor ? AudioPresets.music : AudioPresets.speech,
+			audioPreset: audioPresets[this.selectedAudioPreset],
 			red: true,
-			dtx: !isInstructor,
+			dtx: this.selectedAudioPreset === "speech",
+			forceStereo: this.forceStereo,
+			degradationPreference: this.degradationPreference,
+			scalabilityMode,
 			backupCodec: {
 				codec: this.selectedCodec === "h264" ? "vp8" : "h264",
 				encoding: {
-					maxBitrate: premium ? 3e6 : 1e6,
-					maxFramerate: 30
+					maxBitrate: Math.round(targetBitrate * .7),
+					maxFramerate: frameRate
 				}
 			}
 		};
@@ -621,8 +1784,32 @@ var LiveRoom = class {
 		this.publishCameraOnNextJoin = publishAvailableDevices && this.wantsCameraOnJoin;
 		this.publishMicOnNextJoin = publishAvailableDevices && this.wantsMicOnJoin;
 		this.stopPreview();
-		await new Promise((r) => setTimeout(r, 500));
+		this.mediaError = "";
+		if (typeof navigator !== "undefined" && navigator.userAgent.includes("Firefox")) await new Promise((r) => setTimeout(r, 500));
 		if (this.joinInfo) this.connectRoom(this.joinInfo);
+	}
+	async reconnect() {
+		if (!this.joinInfo || Date.now() >= this.joinInfo.joinClosesAt) return;
+		this.error = "";
+		this.mediaError = "";
+		this.connectionState = "idle";
+		await this.loadToken();
+		if (this.status === "ready" && this.joinInfo) await this.enterRoom(true);
+	}
+	async startLiveAndConnect(publishAvailableDevices = true) {
+		const liveClassId = this.getClassId();
+		if (liveClassId === null) return;
+		this.status = "checking";
+		this.error = "";
+		try {
+			await this.client.mutation(api.instructorLive.startLive, { liveClassId });
+			await this.loadToken();
+			if (this.status === "ready") await this.enterRoom(publishAvailableDevices);
+		} catch (reason) {
+			console.error("[LiveKit] Start live failed:", reason);
+			this.error = reason instanceof Error ? reason.message : i18n.t.live.room.startLiveError();
+			this.status = "error";
+		}
 	}
 	async loadToken() {
 		if (!this.auth.isAuthenticated) {
@@ -638,7 +1825,9 @@ var LiveRoom = class {
 		this.error = "";
 		this.mediaError = "";
 		try {
-			this.joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+			const joinInfo = await this.client.action(api.livekit.issueJoinToken, { liveClassId });
+			this.joinInfo = joinInfo;
+			this.startExpiryTimer(joinInfo.joinClosesAt);
 			this.status = "ready";
 		} catch (reason) {
 			console.error("[LiveKit] Token fetch failed:", reason);
@@ -646,7 +1835,15 @@ var LiveRoom = class {
 				this.status = "locked";
 				return;
 			}
-			this.error = this.auth.error || (reason instanceof Error ? reason.message : i18n.t.live.room.tokenError());
+			const message = reason instanceof Error ? reason.message : String(reason);
+			if (message.includes("Class is not live")) {
+				const role = getCachedRole();
+				if (role === "instructor" || role === "admin") {
+					this.status = "prep";
+					return;
+				}
+			}
+			this.error = this.auth.error || message || i18n.t.live.room.tokenError();
 			this.status = "error";
 		}
 	}
@@ -677,7 +1874,7 @@ var LiveRoom = class {
 				(async () => {
 					const text = await reader.readAll();
 					const participant = participantInfo.identity === lkRoom.localParticipant.identity ? lkRoom.localParticipant : lkRoom.remoteParticipants.get(participantInfo.identity);
-					this.chatMessages = [...this.chatMessages, {
+					const next = [...this.chatMessages, {
 						id: reader.info?.id ?? `${participantInfo.identity}:${Date.now()}`,
 						identity: participantInfo.identity,
 						name: participant?.name || participantInfo.identity,
@@ -685,6 +1882,7 @@ var LiveRoom = class {
 						createdAt: reader.info?.timestamp ?? Date.now(),
 						isLocal: participantInfo.identity === lkRoom.localParticipant.identity
 					}];
+					this.chatMessages = next.length > 200 ? next.slice(-200) : next;
 				})();
 			});
 			lkRoom.on(RoomEvent.Reconnecting, () => {
@@ -693,7 +1891,10 @@ var LiveRoom = class {
 				this.connectionState = "connected";
 				this.refreshParticipants();
 			}).on(RoomEvent.Disconnected, () => {
-				this.connectionState = "disconnected";
+				if (this.joinInfo && Date.now() < this.joinInfo.joinClosesAt) {
+					this.connectionState = "idle";
+					this.status = "ready";
+				} else this.connectionState = "disconnected";
 			}).on(RoomEvent.ParticipantConnected, (participant) => {
 				this.attachParticipantListeners(participant, ParticipantEvent);
 				this.refreshParticipants();
@@ -795,6 +1996,7 @@ var LiveRoom = class {
 	}
 	destroy() {
 		this.stopPreview();
+		this.stopExpiryTimer();
 		this.clearMediaTiles();
 		this.stopStatsTimer();
 		this._room?.unregisterTextStreamHandler("homebody.chat");
@@ -803,190 +2005,729 @@ var LiveRoom = class {
 	}
 };
 //#endregion
+//#region src/lib/features/live/components/room/ui/LiveAudioMeter.svelte
+function LiveAudioMeter($$renderer, $$props) {
+	let { label, level } = $$props;
+	const scale = derived(() => Math.max(0, Math.min(1, level)));
+	$$renderer.push(`<div class="hb-meter"><span class="hb-meter__label">${escape_html(label)}</span> `);
+	if (Meter) {
+		$$renderer.push("<!--[-->");
+		Meter($$renderer, {
+			class: "hb-meter__track",
+			value: Math.round(scale() * 100),
+			max: 100,
+			"aria-label": label,
+			children: ($$renderer) => {
+				$$renderer.push(`<div class="hb-meter__fill"${attr_style(`transform: scaleX(${stringify(scale())})`)}></div>`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push("<!--]-->");
+	} else {
+		$$renderer.push("<!--[!-->");
+		$$renderer.push("<!--]-->");
+	}
+	$$renderer.push(`</div>`);
+}
+//#endregion
+//#region src/lib/features/live/components/room/PreConnectFrame.svelte
+function PreConnectFrame($$renderer, $$props) {
+	let { title, backHref, children } = $$props;
+	$$renderer.push(`<section class="live-entry svelte-sl1xo9"${attr("aria-label", title)}><div class="live-entry__mesh svelte-sl1xo9" aria-hidden="true"></div> <div class="live-entry__shell svelte-sl1xo9"><header class="live-entry__header svelte-sl1xo9"><a class="live-entry__close svelte-sl1xo9"${attr("href", backHref)} aria-label="חזרה"><span class="material-symbols-rounded svelte-sl1xo9" aria-hidden="true">close</span></a> <h1 class="live-entry__title svelte-sl1xo9">${escape_html(title)}</h1></header> `);
+	children($$renderer);
+	$$renderer.push(`<!----></div></section>`);
+}
+//#endregion
+//#region src/lib/features/live/components/room/PreConnectPreview.svelte
+function PreConnectPreview($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { room } = $$props;
+		const { t } = useI18n();
+		$$renderer.push(`<section class="preview-panel svelte-1tsbpt6"${attr("aria-label", t.live.preConnect.title())}>`);
+		if (room.hasPreviewCamera) {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<div class="preview-panel__video svelte-1tsbpt6"><video autoplay="" playsinline="" muted="" class="svelte-1tsbpt6"></video></div>`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<div class="preview-panel__placeholder svelte-1tsbpt6"><span class="material-symbols-rounded svelte-1tsbpt6" aria-hidden="true">videocam_off</span> <span>${escape_html(t.live.room.noVideo())}</span></div>`);
+		}
+		$$renderer.push(`<!--]--></section>`);
+	});
+}
+//#endregion
+//#region src/lib/components/ui/Switch.svelte
+function Switch_1($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { label, checked = false, disabled = false, class: className = "", onchange } = $$props;
+		function updateChecked(next) {
+			checked = next;
+			onchange?.();
+		}
+		$$renderer.push(`<span${attr_class(clsx(`hb-switch ${className}`.trim()))}>`);
+		if (Switch) {
+			$$renderer.push("<!--[-->");
+			Switch($$renderer, {
+				class: "hb-switch__root",
+				"aria-label": label,
+				checked,
+				disabled,
+				onCheckedChange: updateChecked,
+				children: ($$renderer) => {
+					if (Switch_thumb) {
+						$$renderer.push("<!--[-->");
+						Switch_thumb($$renderer, { class: "hb-switch__thumb" });
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push("<!--]-->");
+		} else {
+			$$renderer.push("<!--[!-->");
+			$$renderer.push("<!--]-->");
+		}
+		$$renderer.push(` <span>${escape_html(label)}</span></span>`);
+		bind_props($$props, { checked });
+	});
+}
+//#endregion
+//#region src/lib/features/live/components/room/PreConnectSettings.svelte
+function PreConnectSettings($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { room } = $$props;
+		const { t } = useI18n();
+		const instructorResolutionOptions = [{
+			value: "1080p",
+			label: "1080p"
+		}, {
+			value: "720p",
+			label: "720p"
+		}];
+		const customerResolutionOptions = [{
+			value: "720p",
+			label: "720p"
+		}, {
+			value: "360p",
+			label: "360p"
+		}];
+		const codecOptions = [
+			{
+				value: "h264",
+				label: "H.264"
+			},
+			{
+				value: "vp8",
+				label: "VP8"
+			},
+			{
+				value: "vp9",
+				label: "VP9"
+			},
+			{
+				value: "av1",
+				label: "AV1"
+			}
+		];
+		const bitrateOptions = [
+			{
+				value: 2.5,
+				label: "2.5 Mbps"
+			},
+			{
+				value: 4.5,
+				label: "4.5 Mbps"
+			},
+			{
+				value: 6,
+				label: "6 Mbps"
+			},
+			{
+				value: 8,
+				label: "8 Mbps"
+			}
+		];
+		const framerateOptions = [
+			{
+				value: 24,
+				label: "24 fps"
+			},
+			{
+				value: 30,
+				label: "30 fps"
+			},
+			{
+				value: 60,
+				label: "60 fps"
+			}
+		];
+		const audioOptions = [
+			{
+				value: "speech",
+				label: "דיבור"
+			},
+			{
+				value: "music",
+				label: "תנועה"
+			},
+			{
+				value: "musicStereo",
+				label: "סטריאו"
+			},
+			{
+				value: "musicHighQuality",
+				label: "Hi-Fi"
+			},
+			{
+				value: "musicHighQualityStereo",
+				label: "Hi-Fi סטריאו"
+			}
+		];
+		const priorityOptions = [
+			{
+				value: "maintain-framerate",
+				label: "תנועה חלקה"
+			},
+			{
+				value: "maintain-resolution",
+				label: "תמונה חדה"
+			},
+			{
+				value: "balanced",
+				label: "מאוזן"
+			}
+		];
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			$$renderer.push(`<section class="settings-panel svelte-arx5f7"${attr("aria-label", t.live.room.settingsTitle())}><div class="settings-panel__head svelte-arx5f7"><span class="svelte-arx5f7">${escape_html(t.live.room.settingsTitle())}</span> <strong class="svelte-arx5f7">${escape_html(room.isInstructorRoom ? t.live.preConnect.qualityTitle() : t.live.preConnect.devicesCheckTitle())}</strong></div> <div class="settings-panel__grid svelte-arx5f7">`);
+			if (room.isInstructorRoom) {
+				$$renderer.push("<!--[0-->");
+				Select_1($$renderer, {
+					label: t.live.preConnect.resolutionLabel(),
+					options: instructorResolutionOptions,
+					get value() {
+						return room.selectedResolution;
+					},
+					set value($$value) {
+						room.selectedResolution = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Select_1($$renderer, {
+					label: t.live.preConnect.codecLabel(),
+					options: codecOptions,
+					get value() {
+						return room.selectedCodec;
+					},
+					set value($$value) {
+						room.selectedCodec = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Select_1($$renderer, {
+					label: t.live.preConnect.bitrateLabel(),
+					options: bitrateOptions,
+					get value() {
+						return room.selectedBitrateMbps;
+					},
+					set value($$value) {
+						room.selectedBitrateMbps = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Select_1($$renderer, {
+					label: t.live.preConnect.framerateLabel(),
+					options: framerateOptions,
+					get value() {
+						return room.selectedFramerate;
+					},
+					set value($$value) {
+						room.selectedFramerate = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Select_1($$renderer, {
+					label: t.live.preConnect.audioLabel(),
+					options: audioOptions,
+					get value() {
+						return room.selectedAudioPreset;
+					},
+					set value($$value) {
+						room.selectedAudioPreset = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Select_1($$renderer, {
+					label: t.live.preConnect.priorityLabel(),
+					options: priorityOptions,
+					get value() {
+						return room.degradationPreference;
+					},
+					set value($$value) {
+						room.degradationPreference = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> <div class="settings-panel__toggles svelte-arx5f7">`);
+				Switch_1($$renderer, {
+					label: t.live.preConnect.simulcastLabel(),
+					get checked() {
+						return room.simulcastEnabled;
+					},
+					set checked($$value) {
+						room.simulcastEnabled = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----> `);
+				Switch_1($$renderer, {
+					label: t.live.preConnect.stereoLabel(),
+					get checked() {
+						return room.forceStereo;
+					},
+					set checked($$value) {
+						room.forceStereo = $$value;
+						$$settled = false;
+					}
+				});
+				$$renderer.push(`<!----></div>`);
+			} else {
+				$$renderer.push("<!--[-1-->");
+				Select_1($$renderer, {
+					label: t.live.preConnect.resolutionLabel(),
+					options: customerResolutionOptions,
+					get value() {
+						return room.selectedResolution;
+					},
+					set value($$value) {
+						room.selectedResolution = $$value;
+						$$settled = false;
+					}
+				});
+			}
+			$$renderer.push(`<!--]--> `);
+			if (room.videoDevices.length > 1) {
+				$$renderer.push("<!--[0-->");
+				Select_1($$renderer, {
+					label: t.live.preConnect.cameraLabel(),
+					options: room.videoDevices.map((d) => ({
+						value: d.deviceId,
+						label: d.label
+					})),
+					onchange: () => room.switchPreviewDevice(),
+					get value() {
+						return room.selectedVideoDevice;
+					},
+					set value($$value) {
+						room.selectedVideoDevice = $$value;
+						$$settled = false;
+					}
+				});
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> `);
+			if (room.audioDevices.length > 1) {
+				$$renderer.push("<!--[0-->");
+				Select_1($$renderer, {
+					label: t.live.preConnect.micLabel(),
+					options: room.audioDevices.map((d) => ({
+						value: d.deviceId,
+						label: d.label
+					})),
+					onchange: () => room.switchPreviewDevice(),
+					get value() {
+						return room.selectedAudioDevice;
+					},
+					set value($$value) {
+						room.selectedAudioDevice = $$value;
+						$$settled = false;
+					}
+				});
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <div class="settings-panel__toggles svelte-arx5f7">`);
+			Switch_1($$renderer, {
+				label: t.live.room.echoCancel(),
+				onchange: () => room.switchPreviewDevice(),
+				get checked() {
+					return room.audioProcessingEnabled;
+				},
+				set checked($$value) {
+					room.audioProcessingEnabled = $$value;
+					$$settled = false;
+				}
+			});
+			$$renderer.push(`<!----></div> `);
+			if (room.hasPreviewMic) {
+				$$renderer.push("<!--[0-->");
+				LiveAudioMeter($$renderer, {
+					label: t.live.preConnect.audioLevel(),
+					level: room.audioLevel
+				});
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--></div></section>`);
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
+	});
+}
+//#endregion
+//#region src/lib/features/live/components/room/PreConnectState.svelte
+function PreConnectState($$renderer, $$props) {
+	let { title, message = "", tone = "neutral", actionLabel, actionHref, onAction, secondaryLabel, secondaryHref, loading = false } = $$props;
+	$$renderer.push(`<div class="entry-state svelte-17jvehl">`);
+	if (loading) {
+		$$renderer.push("<!--[0-->");
+		$$renderer.push(`<div class="entry-state__spinner svelte-17jvehl"></div>`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--> `);
+	if (title) {
+		$$renderer.push("<!--[0-->");
+		$$renderer.push(`<h2 class="svelte-17jvehl">${escape_html(title)}</h2>`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--> `);
+	if (message) {
+		$$renderer.push("<!--[0-->");
+		if (tone === "neutral") {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<p class="svelte-17jvehl">${escape_html(message)}</p>`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			Notice($$renderer, {
+				tone,
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(message)}`);
+				},
+				$$slots: { default: true }
+			});
+		}
+		$$renderer.push(`<!--]-->`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--> `);
+	if (actionLabel || secondaryLabel) {
+		$$renderer.push("<!--[0-->");
+		$$renderer.push(`<div class="entry-state__actions svelte-17jvehl">`);
+		if (actionLabel) {
+			$$renderer.push("<!--[0-->");
+			Button_1($$renderer, {
+				tone: "primary",
+				href: actionHref,
+				onclick: onAction,
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(actionLabel)}`);
+				},
+				$$slots: { default: true }
+			});
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]--> `);
+		if (secondaryLabel && secondaryHref) {
+			$$renderer.push("<!--[0-->");
+			Button_1($$renderer, {
+				tone: "secondary",
+				href: secondaryHref,
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(secondaryLabel)}`);
+				},
+				$$slots: { default: true }
+			});
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]--></div>`);
+	} else $$renderer.push("<!--[-1-->");
+	$$renderer.push(`<!--]--></div>`);
+}
+//#endregion
 //#region src/lib/features/live/components/room/PreConnectOverlay.svelte
 function PreConnectOverlay($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
 		const backHref = derived(() => room.isInstructorRoom ? routePath("studioLive") : routePath("customerCalendar"));
-		const backLabel = derived(() => room.isInstructorRoom ? t.live.preConnect.backStudio() : t.live.preConnect.backCalendar());
-		if (room.status === "checking") {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="setup-overlay svelte-ikmx6e"><div class="setup-box svelte-ikmx6e"><div class="spinner svelte-ikmx6e"></div> <p class="setup-text svelte-ikmx6e">${escape_html(t.live.preConnect.checking())}</p></div></div>`);
-		} else if (room.status === "locked") {
-			$$renderer.push("<!--[1-->");
-			$$renderer.push(`<div class="setup-overlay svelte-ikmx6e"><div class="setup-box svelte-ikmx6e"><h1 class="svelte-ikmx6e">${escape_html(t.live.preConnect.lockedTitle())}</h1> `);
-			if (room.auth.error) {
-				$$renderer.push("<!--[0-->");
-				Notice($$renderer, {
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(room.auth.error)}`);
-					},
-					$$slots: { default: true }
-				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <a class="btn-primary svelte-ikmx6e" href="/">${escape_html(t.live.preConnect.lockedCta())}</a></div></div>`);
-		} else if (room.status === "missing") {
-			$$renderer.push("<!--[2-->");
-			$$renderer.push(`<div class="setup-overlay svelte-ikmx6e"><div class="setup-box svelte-ikmx6e"><h1 class="svelte-ikmx6e">${escape_html(t.live.preConnect.missingTitle())}</h1> <a class="btn-primary svelte-ikmx6e"${attr("href", routePath("customerCalendar"))}>${escape_html(t.live.preConnect.missingCta())}</a></div></div>`);
-		} else if (room.status === "error") {
-			$$renderer.push("<!--[3-->");
-			$$renderer.push(`<div class="setup-overlay svelte-ikmx6e"><div class="setup-box svelte-ikmx6e"><h1 class="svelte-ikmx6e">${escape_html(t.live.preConnect.errorTitle())}</h1> `);
-			Notice($$renderer, {
-				tone: "danger",
+		const isPrep = derived(() => room.status === "prep");
+		const isReady = derived(() => room.status === "ready" && room.joinInfo && room.connectionState === "idle");
+		const showSetup = derived(() => isPrep() || isReady());
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			PreConnectFrame($$renderer, {
+				title: t.live.preConnect.title(),
+				backHref: backHref(),
 				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(room.error)}`);
+					if (room.status === "checking") {
+						$$renderer.push("<!--[0-->");
+						PreConnectState($$renderer, {
+							loading: true,
+							message: t.live.preConnect.checking()
+						});
+					} else if (room.status === "locked") {
+						$$renderer.push("<!--[1-->");
+						PreConnectState($$renderer, {
+							title: t.live.preConnect.lockedTitle(),
+							message: room.auth.error,
+							actionLabel: t.live.preConnect.lockedCta(),
+							actionHref: "/"
+						});
+					} else if (room.status === "missing") {
+						$$renderer.push("<!--[2-->");
+						PreConnectState($$renderer, {
+							title: t.live.preConnect.missingTitle(),
+							actionLabel: t.live.preConnect.missingCta(),
+							actionHref: routePath("customerCalendar")
+						});
+					} else if (room.status === "error") {
+						$$renderer.push("<!--[3-->");
+						PreConnectState($$renderer, {
+							title: t.live.preConnect.errorTitle(),
+							message: room.error,
+							tone: "danger",
+							actionLabel: t.live.preConnect.retry(),
+							onAction: () => room.loadToken(),
+							secondaryLabel: t.live.preConnect.backCalendar(),
+							secondaryHref: routePath("customerCalendar")
+						});
+					} else if (showSetup()) {
+						$$renderer.push("<!--[4-->");
+						$$renderer.push(`<div class="entry-stack svelte-ikmx6e">`);
+						if (room.preConnectStep === "requesting") {
+							$$renderer.push("<!--[0-->");
+							PreConnectState($$renderer, {
+								loading: true,
+								message: t.live.preConnect.requesting()
+							});
+						} else if (room.preConnectStep === "preview" && room.previewStream) {
+							$$renderer.push("<!--[1-->");
+							if (room.isInstructorRoom) {
+								$$renderer.push("<!--[0-->");
+								$$renderer.push(`<div class="entry-console svelte-ikmx6e"><aside class="entry-console__side svelte-ikmx6e">`);
+								PreConnectSettings($$renderer, { room });
+								$$renderer.push(`<!----> <div class="entry-actions svelte-ikmx6e">`);
+								if (isPrep()) {
+									$$renderer.push("<!--[0-->");
+									Button_1($$renderer, {
+										tone: "primary",
+										size: "lg",
+										onclick: () => room.startLiveAndConnect(true),
+										children: ($$renderer) => {
+											$$renderer.push(`<!---->${escape_html(t.live.preConnect.startLive())}`);
+										},
+										$$slots: { default: true }
+									});
+								} else {
+									$$renderer.push("<!--[-1-->");
+									Button_1($$renderer, {
+										tone: "primary",
+										size: "lg",
+										onclick: () => room.enterRoom(true),
+										children: ($$renderer) => {
+											$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterRoom())}`);
+										},
+										$$slots: { default: true }
+									});
+								}
+								$$renderer.push(`<!--]--> `);
+								Button_1($$renderer, {
+									tone: "ghost",
+									onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push(`<!----></div></aside> <div class="entry-console__main svelte-ikmx6e">`);
+								PreConnectPreview($$renderer, { room });
+								$$renderer.push(`<!----></div></div>`);
+							} else {
+								$$renderer.push("<!--[-1-->");
+								$$renderer.push(`<div class="customer-connect svelte-ikmx6e"><div class="customer-connect__preview svelte-ikmx6e">`);
+								PreConnectPreview($$renderer, { room });
+								$$renderer.push(`<!----></div> <div class="customer-connect__tools svelte-ikmx6e">`);
+								if (room.videoDevices.length > 1) {
+									$$renderer.push("<!--[0-->");
+									Select_1($$renderer, {
+										label: t.live.preConnect.cameraLabel(),
+										options: room.videoDevices.map((d) => ({
+											value: d.deviceId,
+											label: d.label
+										})),
+										onchange: () => room.switchPreviewDevice(),
+										get value() {
+											return room.selectedVideoDevice;
+										},
+										set value($$value) {
+											room.selectedVideoDevice = $$value;
+											$$settled = false;
+										}
+									});
+								} else $$renderer.push("<!--[-1-->");
+								$$renderer.push(`<!--]--> `);
+								if (room.audioDevices.length > 1) {
+									$$renderer.push("<!--[0-->");
+									Select_1($$renderer, {
+										label: t.live.preConnect.micLabel(),
+										options: room.audioDevices.map((d) => ({
+											value: d.deviceId,
+											label: d.label
+										})),
+										onchange: () => room.switchPreviewDevice(),
+										get value() {
+											return room.selectedAudioDevice;
+										},
+										set value($$value) {
+											room.selectedAudioDevice = $$value;
+											$$settled = false;
+										}
+									});
+								} else $$renderer.push("<!--[-1-->");
+								$$renderer.push(`<!--]--> `);
+								if (room.hasPreviewMic) {
+									$$renderer.push("<!--[0-->");
+									LiveAudioMeter($$renderer, {
+										label: t.live.preConnect.audioLevel(),
+										level: room.audioLevel
+									});
+								} else $$renderer.push("<!--[-1-->");
+								$$renderer.push(`<!--]--> <div class="customer-connect__actions svelte-ikmx6e">`);
+								Button_1($$renderer, {
+									tone: "primary",
+									size: "lg",
+									onclick: () => room.enterRoom(true),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterRoom())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push(`<!----> `);
+								Button_1($$renderer, {
+									tone: "ghost",
+									onclick: () => room.enterRoom(false),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push(`<!----></div></div></div>`);
+							}
+							$$renderer.push(`<!--]-->`);
+						} else if (room.preConnectStep === "denied" || room.preConnectStep === "no-devices") {
+							$$renderer.push("<!--[2-->");
+							PreConnectState($$renderer, {
+								title: t.live.preConnect.enterNoDevices(),
+								message: room.mediaError,
+								tone: "caution",
+								actionLabel: t.live.preConnect.retryDevices(),
+								onAction: () => room.startPreview()
+							});
+							$$renderer.push(`<!----> <div class="entry-actions entry-actions--single svelte-ikmx6e">`);
+							Button_1($$renderer, {
+								tone: "ghost",
+								onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
+								children: ($$renderer) => {
+									$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutCamera())}`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push(`<!----></div>`);
+						} else $$renderer.push("<!--[-1-->");
+						$$renderer.push(`<!--]--></div>`);
+					} else $$renderer.push("<!--[-1-->");
+					$$renderer.push(`<!--]-->`);
 				},
 				$$slots: { default: true }
 			});
-			$$renderer.push(`<!----> <div class="row-buttons svelte-ikmx6e"><button class="btn-primary svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.retry())}</button> <a class="btn-secondary svelte-ikmx6e"${attr("href", routePath("customerCalendar"))}>${escape_html(t.live.preConnect.backCalendar())}</a></div></div></div>`);
-		} else if (room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
-			$$renderer.push("<!--[4-->");
-			$$renderer.push(`<div class="setup-overlay svelte-ikmx6e"><div class="setup-card svelte-ikmx6e"><div class="setup-card__header svelte-ikmx6e"><a class="setup-back svelte-ikmx6e"${attr("href", backHref())}><span class="material-symbols-rounded svelte-ikmx6e" aria-hidden="true">arrow_forward</span> <span>${escape_html(backLabel())}</span></a> <div class="setup-title svelte-ikmx6e"><span class="setup-card__kicker svelte-ikmx6e">${escape_html(t.live.preConnect.kicker())}</span> <h1 class="svelte-ikmx6e">${escape_html(t.live.preConnect.title())}</h1></div></div> `);
-			if (room.mediaError) {
-				$$renderer.push("<!--[0-->");
-				Notice($$renderer, {
-					tone: "caution",
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(room.mediaError)}`);
-					},
-					$$slots: { default: true }
-				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> `);
-			if (room.preConnectStep === "requesting") {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="setup-box svelte-ikmx6e"><div class="spinner svelte-ikmx6e"></div> <p class="setup-text svelte-ikmx6e">${escape_html(t.live.preConnect.requesting())}</p></div>`);
-			} else if (room.preConnectStep === "denied" || room.preConnectStep === "no-devices") {
-				$$renderer.push("<!--[1-->");
-				$$renderer.push(`<div class="setup-box svelte-ikmx6e">`);
-				if (room.mediaError) {
-					$$renderer.push("<!--[0-->");
-					Notice($$renderer, {
-						tone: "caution",
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
+	});
+}
+//#endregion
+//#region src/lib/components/ui/Tooltip.svelte
+function Tooltip_1($$renderer, $$props) {
+	let { label, children, sideOffset = 8, openDelay = 160, side = "top", align = "center" } = $$props;
+	if (Tooltip) {
+		$$renderer.push("<!--[-->");
+		Tooltip($$renderer, {
+			children: ($$renderer) => {
+				{
+					function child($$renderer, { props }) {
+						$$renderer.push(`<span${attributes({
+							...props,
+							class: "hb-tooltip-trigger"
+						})}>`);
+						children($$renderer);
+						$$renderer.push(`<!----></span>`);
+					}
+					if (Tooltip_trigger) {
+						$$renderer.push("<!--[-->");
+						Tooltip_trigger($$renderer, {
+							child,
+							$$slots: { child: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+				}
+				$$renderer.push(` `);
+				if (Portal) {
+					$$renderer.push("<!--[-->");
+					Portal($$renderer, {
 						children: ($$renderer) => {
-							$$renderer.push(`<!---->${escape_html(room.mediaError)}`);
+							{
+								function child($$renderer, { wrapperProps, props, open }) {
+									if (open) {
+										$$renderer.push("<!--[0-->");
+										$$renderer.push(`<div${attributes({ ...wrapperProps })}><div${attributes({
+											...props,
+											class: "hb-tooltip-content"
+										})}>${escape_html(label)}</div></div>`);
+									} else $$renderer.push("<!--[-1-->");
+									$$renderer.push(`<!--]-->`);
+								}
+								if (Tooltip_content) {
+									$$renderer.push("<!--[-->");
+									Tooltip_content($$renderer, {
+										side,
+										align,
+										sideOffset,
+										child,
+										$$slots: { child: true }
+									});
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+							}
 						},
 						$$slots: { default: true }
 					});
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> <div class="row-buttons svelte-ikmx6e"><button class="btn-enter svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.enterNoDevices())}</button> <button class="btn-secondary svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.retryDevices())}</button></div></div>`);
-			} else if (room.preConnectStep === "preview" && room.previewStream) {
-				$$renderer.push("<!--[2-->");
-				$$renderer.push(`<div class="preview-stage svelte-ikmx6e">`);
-				if (room.hasPreviewCamera) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<div class="preview-video-wrap svelte-ikmx6e"><video${attr("srcobject", room.previewStream)} autoplay="" playsinline="" muted="" class="preview-video svelte-ikmx6e"></video></div>`);
+					$$renderer.push("<!--]-->");
 				} else {
-					$$renderer.push("<!--[-1-->");
-					$$renderer.push(`<div class="preview-audio-only svelte-ikmx6e"><span class="material-symbols-rounded svelte-ikmx6e" aria-hidden="true">mic</span> <strong class="svelte-ikmx6e">${escape_html(t.live.preConnect.cameraConnected())}</strong> <span class="svelte-ikmx6e">${escape_html(t.live.preConnect.noCamera())}</span> <button class="btn-secondary svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.retryCamera())}</button></div>`);
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
-				$$renderer.push(`<!--]--> <div class="preview-controls svelte-ikmx6e">`);
-				if (room.isInstructorRoom) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<label class="device-select svelte-ikmx6e"><span class="svelte-ikmx6e">Resolution</span> `);
-					$$renderer.select({
-						value: room.selectedResolution,
-						class: ""
-					}, ($$renderer) => {
-						$$renderer.option({ value: "1080p" }, ($$renderer) => {
-							$$renderer.push(`1080p premium`);
-						});
-						$$renderer.option({ value: "720p" }, ($$renderer) => {
-							$$renderer.push(`720p balanced`);
-						});
-					}, "svelte-ikmx6e");
-					$$renderer.push(`</label> <label class="device-select svelte-ikmx6e"><span class="svelte-ikmx6e">Codec</span> `);
-					$$renderer.select({
-						value: room.selectedCodec,
-						class: ""
-					}, ($$renderer) => {
-						$$renderer.option({ value: "h264" }, ($$renderer) => {
-							$$renderer.push(`H.264 compatibility`);
-						});
-						$$renderer.option({ value: "vp8" }, ($$renderer) => {
-							$$renderer.push(`VP8 simulcast`);
-						});
-						$$renderer.option({ value: "vp9" }, ($$renderer) => {
-							$$renderer.push(`VP9 efficient`);
-						});
-					}, "svelte-ikmx6e");
-					$$renderer.push(`</label>`);
-				} else {
-					$$renderer.push("<!--[-1-->");
-					$$renderer.push(`<label class="device-select svelte-ikmx6e"><span class="svelte-ikmx6e">Resolution</span> `);
-					$$renderer.select({
-						value: room.selectedResolution,
-						class: ""
-					}, ($$renderer) => {
-						$$renderer.option({ value: "720p" }, ($$renderer) => {
-							$$renderer.push(`720p`);
-						});
-						$$renderer.option({ value: "360p" }, ($$renderer) => {
-							$$renderer.push(`360p low data`);
-						});
-					}, "svelte-ikmx6e");
-					$$renderer.push(`</label>`);
-				}
-				$$renderer.push(`<!--]--> `);
-				if (room.videoDevices.length > 1) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<label class="device-select svelte-ikmx6e"><span class="svelte-ikmx6e">${escape_html(t.live.preConnect.cameraLabel())}</span> `);
-					$$renderer.select({
-						value: room.selectedVideoDevice,
-						onchange: () => room.switchPreviewDevice(),
-						class: ""
-					}, ($$renderer) => {
-						$$renderer.push(`<!--[-->`);
-						const each_array = ensure_array_like(room.videoDevices);
-						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-							let d = each_array[$$index];
-							$$renderer.option({ value: d.deviceId }, ($$renderer) => {
-								$$renderer.push(`${escape_html(d.label)}`);
-							});
-						}
-						$$renderer.push(`<!--]-->`);
-					}, "svelte-ikmx6e");
-					$$renderer.push(`</label>`);
-				} else if (!room.hasPreviewCamera) {
-					$$renderer.push("<!--[1-->");
-					$$renderer.push(`<button class="btn-secondary device-retry svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.refreshCamera())}</button>`);
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> `);
-				if (room.audioDevices.length > 1) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<label class="device-select svelte-ikmx6e"><span class="svelte-ikmx6e">${escape_html(t.live.preConnect.micLabel())}</span> `);
-					$$renderer.select({
-						value: room.selectedAudioDevice,
-						onchange: () => room.switchPreviewDevice(),
-						class: ""
-					}, ($$renderer) => {
-						$$renderer.push(`<!--[-->`);
-						const each_array_1 = ensure_array_like(room.audioDevices);
-						for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-							let d = each_array_1[$$index_1];
-							$$renderer.option({ value: d.deviceId }, ($$renderer) => {
-								$$renderer.push(`${escape_html(d.label)}`);
-							});
-						}
-						$$renderer.push(`<!--]-->`);
-					}, "svelte-ikmx6e");
-					$$renderer.push(`</label>`);
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> <label class="device-toggle svelte-ikmx6e"><input type="checkbox"${attr("checked", room.audioProcessingEnabled, true)}/> <span>Echo cancellation / noise suppression</span></label> `);
-				if (room.hasPreviewMic) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<div class="audio-meter svelte-ikmx6e"><span class="svelte-ikmx6e">${escape_html(t.live.preConnect.audioLevel())}</span> <div class="audio-bar svelte-ikmx6e"><div class="audio-fill svelte-ikmx6e"${attr_style(`width: ${stringify(Math.round(room.audioLevel * 100))}%`)}></div></div></div>`);
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--></div></div> <div class="preview-actions svelte-ikmx6e"><button class="btn-enter svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.enterRoom())}</button> <button class="btn-text svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.enterWithoutDevices())}</button></div>`);
-			} else {
-				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="setup-box svelte-ikmx6e"><button class="btn-enter svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.startDevices())}</button> <p class="setup-hint svelte-ikmx6e">${escape_html(t.live.preConnect.devicesHint())}</p> <button class="btn-secondary svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.refreshCamera())}</button> <button class="btn-text svelte-ikmx6e" type="button">${escape_html(t.live.preConnect.enterWithoutCamera())}</button></div>`);
-			}
-			$$renderer.push(`<!--]--></div></div>`);
-		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]-->`);
-	});
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push("<!--]-->");
+	} else {
+		$$renderer.push("<!--[!-->");
+		$$renderer.push("<!--]-->");
+	}
 }
 //#endregion
 //#region src/lib/features/live/components/room/RoomHeader.svelte
@@ -995,12 +2736,34 @@ function RoomHeader($$renderer, $$props) {
 		let { room } = $$props;
 		const { t } = useI18n();
 		const backHref = derived(() => room.isInstructorRoom ? routePath("studioLive") : routePath("customerCalendar"));
-		$$renderer.push(`<header class="room-header svelte-1ls2kld"><div class="header-left svelte-1ls2kld"><a${attr("href", backHref())} class="header-back svelte-1ls2kld"><span class="material-symbols-rounded svelte-1ls2kld" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></a> <div class="header-divider svelte-1ls2kld"></div> <div class="header-status svelte-1ls2kld"><span${attr_class("status-dot svelte-1ls2kld", void 0, { "on": room.connectionState === "connected" })}></span> <span class="status-label svelte-1ls2kld">${escape_html(room.connectionLabel)}</span></div> <button class="header-participants-btn svelte-1ls2kld" type="button"><span class="material-symbols-rounded svelte-1ls2kld" aria-hidden="true">people</span> <span>${escape_html(room.participants.length)}</span></button></div> <div class="header-right svelte-1ls2kld">`);
+		$$renderer.push(`<header class="lr-header lr-glass"><div class="lr-header__group"><a${attr("href", backHref())} class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></a> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": room.connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(room.connectionLabel)}</span></div> `);
+		Tooltip_1($$renderer, {
+			label: t.live.room.participantsTitle(),
+			children: ($$renderer) => {
+				$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(room.participants.length)}</span></button>`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----></div> <div class="lr-header__group">`);
 		if (room.isInstructorRoom) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<button class="header-icon-btn svelte-1ls2kld" type="button"${attr("aria-label", t.live.stats.title())}${attr("title", t.live.stats.title())}><span class="material-symbols-rounded svelte-1ls2kld" aria-hidden="true">monitoring</span></button>`);
+			Tooltip_1($$renderer, {
+				label: t.live.stats.title(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="hb-button hb-button--icon"${attr("aria-label", t.live.stats.title())}><span class="material-symbols-rounded" aria-hidden="true">monitoring</span></button>`);
+				},
+				$$slots: { default: true }
+			});
 		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--> <a class="header-icon-btn leave svelte-1ls2kld"${attr("href", backHref())}${attr("aria-label", t.live.room.leave())}${attr("title", t.live.room.leave())}><span class="material-symbols-rounded svelte-1ls2kld" aria-hidden="true">logout</span></a></div></header>`);
+		$$renderer.push(`<!--]--> `);
+		Tooltip_1($$renderer, {
+			label: t.live.room.leave(),
+			children: ($$renderer) => {
+				$$renderer.push(`<button type="button" class="hb-button hb-button--icon-danger"${attr("aria-label", t.live.room.leave())}><span class="material-symbols-rounded" aria-hidden="true">logout</span></button>`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----></div></header>`);
 	});
 }
 //#endregion
@@ -1009,7 +2772,7 @@ function VideoStage($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<main class="stage svelte-1ows5l0">`);
+		$$renderer.push(`<main class="lr-stage">`);
 		if (room.isInstructorRoom) {
 			$$renderer.push("<!--[0-->");
 			if (room.hasScreenShare) {
@@ -1018,38 +2781,38 @@ function VideoStage($$renderer, $$props) {
 				const each_array = ensure_array_like(room.screenShareTiles);
 				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 					let tile = each_array[$$index];
-					$$renderer.push(`<figure class="spotlight-tile svelte-1ows5l0"><div class="svelte-1ows5l0"></div> <span class="badge-screen svelte-1ows5l0">${escape_html(t.live.room.screenShare())}</span> <figcaption class="svelte-1ows5l0">${escape_html(tile.name)}</figcaption></figure>`);
+					$$renderer.push(`<figure class="lr-tile"><div class="lr-tile__video"></div> <span class="lr-badge lr-badge--screen">${escape_html(t.live.room.screenShare())}</span> <figcaption class="lr-tile__name">${escape_html(tile.name)}</figcaption></figure>`);
 				}
 				$$renderer.push(`<!--]--></div> <div class="spotlight-strip svelte-1ows5l0"><!--[-->`);
 				const each_array_1 = ensure_array_like(room.videoTiles.filter((t) => t.source !== "screen_share").sort(room.tileSort));
 				for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
 					let tile = each_array_1[$$index_1];
-					$$renderer.push(`<figure${attr_class("strip-tile svelte-1ows5l0", void 0, {
-						"strip-tile--self": tile.isLocal,
-						"strip-tile--speaking": tile.identity === room.activeSpeakerIdentity
-					})}><div class="svelte-1ows5l0"></div> <figcaption class="svelte-1ows5l0">${escape_html(tile.name)}</figcaption></figure>`);
+					$$renderer.push(`<figure${attr_class("lr-tile", void 0, {
+						"lr-tile--self": tile.isLocal,
+						"lr-tile--speaking": tile.identity === room.activeSpeakerIdentity
+					})}><div class="lr-tile__video"></div> <figcaption class="lr-tile__name">${escape_html(tile.name)}</figcaption></figure>`);
 				}
 				$$renderer.push(`<!--]--></div></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="video-grid svelte-1ows5l0"${attr_style(`--grid-cols: ${stringify(room.gridCols())}`)}>`);
+				$$renderer.push(`<div class="lr-grid"${attr_style(`--grid-cols: ${stringify(room.gridCols())}`)}>`);
 				if (room.videoTiles.length === 0) {
 					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<div class="empty-stage svelte-1ows5l0">${escape_html(t.live.room.waitingForCameras())}</div>`);
+					$$renderer.push(`<div class="lr-stage__empty">${escape_html(t.live.room.waitingForCameras())}</div>`);
 				} else $$renderer.push("<!--[-1-->");
 				$$renderer.push(`<!--]--> <!--[-->`);
 				const each_array_2 = ensure_array_like(room.videoTiles.sort(room.tileSort));
 				for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
 					let tile = each_array_2[$$index_2];
-					$$renderer.push(`<figure${attr_class("grid-tile svelte-1ows5l0", void 0, {
-						"grid-tile--self": tile.isLocal,
-						"grid-tile--speaking": tile.identity === room.activeSpeakerIdentity
-					})}><div class="svelte-1ows5l0"></div> `);
+					$$renderer.push(`<figure${attr_class("lr-tile", void 0, {
+						"lr-tile--self": tile.isLocal,
+						"lr-tile--speaking": tile.identity === room.activeSpeakerIdentity
+					})}><div class="lr-tile__video"></div> `);
 					if (tile.source === "screen_share") {
 						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<span class="badge-screen svelte-1ows5l0">${escape_html(t.live.room.screenShare())}</span>`);
+						$$renderer.push(`<span class="lr-badge lr-badge--screen">${escape_html(t.live.room.screenShare())}</span>`);
 					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> <figcaption class="svelte-1ows5l0">${escape_html(tile.name)}</figcaption></figure>`);
+					$$renderer.push(`<!--]--> <figcaption class="lr-tile__name">${escape_html(tile.name)}</figcaption></figure>`);
 				}
 				$$renderer.push(`<!--]--></div>`);
 			}
@@ -1059,20 +2822,20 @@ function VideoStage($$renderer, $$props) {
 			$$renderer.push(`<div class="student-stage svelte-1ows5l0">`);
 			if (room.primaryInstructorVideo) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<figure class="student-main svelte-1ows5l0"><div class="svelte-1ows5l0"></div> `);
+				$$renderer.push(`<figure class="student-main svelte-1ows5l0"><div class="lr-tile__video"></div> `);
 				if (room.primaryInstructorVideo.source === "screen_share") {
 					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<span class="badge-screen svelte-1ows5l0">${escape_html(t.live.room.screenShare())}</span>`);
+					$$renderer.push(`<span class="lr-badge lr-badge--screen">${escape_html(t.live.room.screenShare())}</span>`);
 				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> <figcaption class="svelte-1ows5l0">${escape_html(room.primaryInstructorVideo.name)}</figcaption></figure>`);
+				$$renderer.push(`<!--]--> <figcaption class="lr-tile__name">${escape_html(room.primaryInstructorVideo.name)}</figcaption></figure>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="empty-stage svelte-1ows5l0">${escape_html(t.live.room.waitingForInstructor())}</div>`);
+				$$renderer.push(`<div class="lr-stage__empty">${escape_html(t.live.room.waitingForInstructor())}</div>`);
 			}
 			$$renderer.push(`<!--]--> `);
 			if (room.selfVideo) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<figure class="student-pip svelte-1ows5l0"><div class="svelte-1ows5l0"></div> <figcaption class="svelte-1ows5l0">${escape_html(room.selfVideo.name)}</figcaption></figure>`);
+				$$renderer.push(`<figure class="student-pip svelte-1ows5l0"><div class="lr-tile__video"></div> <figcaption class="lr-tile__name">${escape_html(room.selfVideo.name)}</figcaption></figure>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--></div>`);
 		}
@@ -1087,32 +2850,40 @@ function ParticipantSidebar($$renderer, $$props) {
 		const { t } = useI18n();
 		if (room.showParticipants) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<aside class="participant-sidebar svelte-1dln1jg"${attr("aria-label", t.live.room.participantsTitle())}><div class="sidebar-header svelte-1dln1jg"><h3 class="svelte-1dln1jg">${escape_html(t.live.room.participantsTitle())}</h3> <button class="sidebar-close svelte-1dln1jg" type="button"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded svelte-1dln1jg">close</span></button></div> <div class="sidebar-list svelte-1dln1jg"><!--[-->`);
-			const each_array = ensure_array_like(room.participants);
-			for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-				let p = each_array[$$index];
-				$$renderer.push(`<div${attr_class("participant-item svelte-1dln1jg", void 0, {
-					"participant-item--speaking": p.isSpeaking,
-					"participant-item--instructor": p.isInstructor
-				})}><div class="participant-item__left svelte-1dln1jg"><span class="participant-item__name svelte-1dln1jg">${escape_html(p.name)}</span> `);
-				if (p.isInstructor) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<span class="participant-item__role svelte-1dln1jg">${escape_html(t.live.room.instructor())}</span>`);
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> `);
-				if (p.isLocal) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<span class="participant-item__role svelte-1dln1jg">${escape_html(t.live.room.you())}</span>`);
-				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--></div> <div class="participant-item__indicators svelte-1dln1jg"><span${attr_class("indicator svelte-1dln1jg", void 0, {
-					"indicator--on": p.hasMic,
-					"indicator--off": !p.hasMic
-				})}${attr("title", p.hasMic ? t.live.room.micOn() : t.live.room.micOff())}><span class="material-symbols-rounded svelte-1dln1jg" aria-hidden="true">${escape_html(p.hasMic ? "mic" : "mic_off")}</span></span> <span${attr_class("indicator svelte-1dln1jg", void 0, {
-					"indicator--on": p.hasCamera,
-					"indicator--off": !p.hasCamera
-				})}${attr("title", p.hasCamera ? t.live.room.cameraOn() : t.live.room.cameraOff())}><span class="material-symbols-rounded svelte-1dln1jg" aria-hidden="true">${escape_html(p.hasCamera ? "videocam" : "videocam_off")}</span></span></div></div>`);
-			}
-			$$renderer.push(`<!--]--></div></aside>`);
+			$$renderer.push(`<aside class="lr-panel lr-glass lr-panel--participants"${attr("aria-label", t.live.room.participantsTitle())}><div class="lr-panel__header"><h3>${escape_html(t.live.room.participantsTitle())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> `);
+			ScrollArea_1($$renderer, {
+				class: "lr-panel__scroll",
+				children: ($$renderer) => {
+					$$renderer.push(`<div class="lr-participant-list"><!--[-->`);
+					const each_array = ensure_array_like(room.participants);
+					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+						let p = each_array[$$index];
+						$$renderer.push(`<div${attr_class("lr-participant", void 0, {
+							"lr-participant--speaking": p.isSpeaking,
+							"lr-participant--instructor": p.isInstructor
+						})}><div class="lr-participant__left"><span class="lr-participant__name">${escape_html(p.name)}</span> `);
+						if (p.isInstructor) {
+							$$renderer.push("<!--[0-->");
+							$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.instructor())}</span>`);
+						} else $$renderer.push("<!--[-1-->");
+						$$renderer.push(`<!--]--> `);
+						if (p.isLocal) {
+							$$renderer.push("<!--[0-->");
+							$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.you())}</span>`);
+						} else $$renderer.push("<!--[-1-->");
+						$$renderer.push(`<!--]--></div> <div class="lr-participant__indicators"><span${attr_class("lr-indicator", void 0, {
+							"lr-indicator--on": p.hasMic,
+							"lr-indicator--off": !p.hasMic
+						})}${attr("title", p.hasMic ? t.live.room.micOn() : t.live.room.micOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasMic ? "mic" : "mic_off")}</span></span> <span${attr_class("lr-indicator", void 0, {
+							"lr-indicator--on": p.hasCamera,
+							"lr-indicator--off": !p.hasCamera
+						})}${attr("title", p.hasCamera ? t.live.room.cameraOn() : t.live.room.cameraOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasCamera ? "videocam" : "videocam_off")}</span></span></div></div>`);
+					}
+					$$renderer.push(`<!--]--></div>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});
@@ -1122,16 +2893,138 @@ function ParticipantSidebar($$renderer, $$props) {
 function RoomChat($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
-		$$renderer.push(`<aside class="room-chat svelte-1ss84dm" aria-label="Room chat"><div class="chat-header svelte-1ss84dm"><h3 class="svelte-1ss84dm">Chat</h3></div> <div class="chat-list svelte-1ss84dm"><!--[-->`);
-		const each_array = ensure_array_like(room.chatMessages);
-		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-			let message = each_array[$$index];
-			$$renderer.push(`<article${attr_class("chat-message svelte-1ss84dm", void 0, { "chat-message--local": message.isLocal })}><div class="chat-message__meta svelte-1ss84dm"><span>${escape_html(message.name)}</span> <time>${escape_html(new Intl.DateTimeFormat("he-IL", {
-				hour: "2-digit",
-				minute: "2-digit"
-			}).format(new Date(message.createdAt)))}</time></div> <p class="svelte-1ss84dm">${escape_html(message.text)}</p></article>`);
+		const { t } = useI18n();
+		if (room.showChat) {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<aside class="lr-chat lr-glass svelte-1ss84dm"${attr("aria-label", t.live.room.chatTitle())}><div class="lr-panel__header"><h3>${escape_html(t.live.room.chatTitle())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> <div class="lr-chat__scroll svelte-1ss84dm"><div class="lr-chat__list">`);
+			if (room.chatMessages.length === 0) {
+				$$renderer.push("<!--[0-->");
+				$$renderer.push(`<div class="lr-chat__empty">${escape_html(t.live.room.chatEmpty())}</div>`);
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <!--[-->`);
+			const each_array = ensure_array_like(room.chatMessages);
+			for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+				let message = each_array[$$index];
+				$$renderer.push(`<article${attr_class("lr-chat-message", void 0, { "lr-chat-message--local": message.isLocal })}><div class="lr-chat-message__meta"><span>${escape_html(message.name)}</span> <time>${escape_html(new Intl.DateTimeFormat("he-IL", {
+					hour: "2-digit",
+					minute: "2-digit"
+				}).format(new Date(message.createdAt)))}</time></div> <p class="lr-chat-message__text">${escape_html(message.text)}</p></article>`);
+			}
+			$$renderer.push(`<!--]--></div></div> `);
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <form class="lr-chat__form"><input class="lr-chat__input"${attr("value", room.chatDraft)} maxlength="500"${attr("placeholder", t.live.room.chatPlaceholder())}${attr("aria-label", t.live.room.chatPlaceholder())}/> `);
+			Button_1($$renderer, {
+				type: "submit",
+				tone: "ink",
+				size: "sm",
+				disabled: !room.chatDraft.trim(),
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->${escape_html(t.live.room.chatSend())}`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></form></aside>`);
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
+	});
+}
+//#endregion
+//#region src/lib/components/ui/Popover.svelte
+function Popover_1($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { open = false, children, trigger, side = "bottom", align = "center", sideOffset = 6 } = $$props;
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			if (Popover) {
+				$$renderer.push("<!--[-->");
+				Popover($$renderer, {
+					get open() {
+						return open;
+					},
+					set open($$value) {
+						open = $$value;
+						$$settled = false;
+					},
+					children: ($$renderer) => {
+						{
+							function child($$renderer, { props }) {
+								$$renderer.push(`<span${attributes({
+									...props,
+									class: "hb-popover-trigger"
+								})}>`);
+								trigger($$renderer);
+								$$renderer.push(`<!----></span>`);
+							}
+							if (Popover_trigger) {
+								$$renderer.push("<!--[-->");
+								Popover_trigger($$renderer, {
+									child,
+									$$slots: { child: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									{
+										function child($$renderer, { wrapperProps, props, open: isOpen }) {
+											if (isOpen) {
+												$$renderer.push("<!--[0-->");
+												$$renderer.push(`<div${attributes({ ...wrapperProps })}><div${attributes({
+													...props,
+													class: "hb-popover-content"
+												})}>`);
+												children($$renderer);
+												$$renderer.push(`<!----></div></div>`);
+											} else $$renderer.push("<!--[-1-->");
+											$$renderer.push(`<!--]-->`);
+										}
+										if (Popover_content) {
+											$$renderer.push("<!--[-->");
+											Popover_content($$renderer, {
+												side,
+												align,
+												sideOffset,
+												child,
+												$$slots: { child: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		}
-		$$renderer.push(`<!--]--></div> <form class="chat-form svelte-1ss84dm"><input${attr("value", room.chatDraft)} maxlength="500" placeholder="Message" class="svelte-1ss84dm"/> <button type="submit"${attr("disabled", !room.chatDraft.trim(), true)} class="svelte-1ss84dm">Send</button></form></aside>`);
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
+		bind_props($$props, { open });
 	});
 }
 //#endregion
@@ -1140,21 +3033,172 @@ function ControlBar($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { room } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<footer class="control-bar svelte-1m9mm61"><button${attr_class("ctrl-btn svelte-1m9mm61", void 0, {
-			"ctrl-on": room.micEnabled,
-			"ctrl-off": !room.micEnabled
-		})} type="button"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic())}><span class="material-symbols-rounded svelte-1m9mm61" aria-hidden="true">${escape_html(room.micEnabled ? "mic" : "mic_off")}</span> <span class="ctrl-label svelte-1m9mm61">${escape_html(room.micEnabled ? t.live.controls.micOnLabel() : t.live.controls.micOffLabel())}</span></button> <button${attr_class("ctrl-btn svelte-1m9mm61", void 0, {
-			"ctrl-on": room.cameraEnabled,
-			"ctrl-off": !room.cameraEnabled
-		})} type="button"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera())}><span class="material-symbols-rounded svelte-1m9mm61" aria-hidden="true">${escape_html(room.cameraEnabled ? "videocam" : "videocam_off")}</span> <span class="ctrl-label svelte-1m9mm61">${escape_html(room.cameraEnabled ? t.live.controls.cameraOnLabel() : t.live.controls.cameraOffLabel())}</span></button> `);
-		if (room.isInstructorRoom) {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<button${attr_class("ctrl-btn svelte-1m9mm61", void 0, {
-				"ctrl-on": room.screenShareEnabled,
-				"ctrl-off": !room.screenShareEnabled
-			})} type="button"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen())}><span class="material-symbols-rounded svelte-1m9mm61" aria-hidden="true">${escape_html(room.screenShareEnabled ? "stop_screen_share" : "screen_share")}</span> <span class="ctrl-label svelte-1m9mm61">${escape_html(room.screenShareEnabled ? t.live.controls.screenOnLabel() : t.live.controls.screenOffLabel())}</span></button>`);
-		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--> <button${attr_class("ctrl-btn ctrl-participants svelte-1m9mm61", void 0, { "ctrl-on": room.showParticipants })} type="button"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded svelte-1m9mm61" aria-hidden="true">people</span> <span class="ctrl-label svelte-1m9mm61">${escape_html(t.live.room.participantsTitle())}</span></button></footer>`);
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			$$renderer.push(`<footer class="lr-control-bar"><div${attr_class("lr-control", void 0, {
+				"lr-control--on": room.micEnabled,
+				"lr-control--off": !room.micEnabled
+			})}>`);
+			Tooltip_1($$renderer, {
+				label: room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.micEnabled ? "mic" : "mic_off")}</span> <span class="lr-control__label">${escape_html(room.micEnabled ? t.live.controls.micOnLabel() : t.live.controls.micOffLabel())}</span></button>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----> `);
+			if (room.audioDevices.length > 1) {
+				$$renderer.push("<!--[0-->");
+				{
+					function trigger($$renderer) {
+						$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.micLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
+					}
+					function children($$renderer) {
+						$$renderer.push(`<div class="lr-device-list"><!--[-->`);
+						const each_array = ensure_array_like(room.audioDevices);
+						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+							let device = each_array[$$index];
+							$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedAudioDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
+						}
+						$$renderer.push(`<!--]--></div>`);
+					}
+					Popover_1($$renderer, {
+						side: "top",
+						align: "center",
+						sideOffset: 8,
+						trigger,
+						children,
+						$$slots: {
+							trigger: true,
+							default: true
+						}
+					});
+				}
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--></div> <div${attr_class("lr-control", void 0, {
+				"lr-control--on": room.cameraEnabled,
+				"lr-control--off": !room.cameraEnabled
+			})}>`);
+			Tooltip_1($$renderer, {
+				label: room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.cameraEnabled ? "videocam" : "videocam_off")}</span> <span class="lr-control__label">${escape_html(room.cameraEnabled ? t.live.controls.cameraOnLabel() : t.live.controls.cameraOffLabel())}</span></button>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----> `);
+			if (room.videoDevices.length > 1) {
+				$$renderer.push("<!--[0-->");
+				{
+					function trigger($$renderer) {
+						$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.cameraLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
+					}
+					function children($$renderer) {
+						$$renderer.push(`<div class="lr-device-list"><!--[-->`);
+						const each_array_1 = ensure_array_like(room.videoDevices);
+						for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+							let device = each_array_1[$$index_1];
+							$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedVideoDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
+						}
+						$$renderer.push(`<!--]--></div>`);
+					}
+					Popover_1($$renderer, {
+						side: "top",
+						align: "center",
+						sideOffset: 8,
+						trigger,
+						children,
+						$$slots: {
+							trigger: true,
+							default: true
+						}
+					});
+				}
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--></div> `);
+			if (room.isInstructorRoom) {
+				$$renderer.push("<!--[0-->");
+				$$renderer.push(`<div${attr_class("lr-control", void 0, {
+					"lr-control--on": room.screenShareEnabled,
+					"lr-control--off": !room.screenShareEnabled
+				})}>`);
+				Tooltip_1($$renderer, {
+					label: room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen(),
+					children: ($$renderer) => {
+						$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.screenShareEnabled ? "stop_screen_share" : "screen_share")}</span> <span class="lr-control__label">${escape_html(room.screenShareEnabled ? t.live.controls.screenOnLabel() : t.live.controls.screenOffLabel())}</span></button>`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----></div>`);
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <div${attr_class("lr-control", void 0, {
+				"lr-control--active": room.showParticipants,
+				"lr-control--off": !room.showParticipants
+			})}>`);
+			Tooltip_1($$renderer, {
+				label: room.showParticipants ? t.live.room.hideParticipants() : t.live.room.showParticipants(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span class="lr-control__label">${escape_html(t.live.room.participantsTitle())}</span></button>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div> <div${attr_class("lr-control", void 0, {
+				"lr-control--active": room.showChat,
+				"lr-control--off": !room.showChat
+			})}>`);
+			Tooltip_1($$renderer, {
+				label: room.showChat ? t.live.room.hideChat() : t.live.room.showChat(),
+				children: ($$renderer) => {
+					$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.showChat())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.showChat ? "chat" : "chat_bubble_outline")}</span> <span class="lr-control__label">${escape_html(t.live.room.chatTitle())}</span></button>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div> `);
+			{
+				function trigger($$renderer) {
+					$$renderer.push(`<div class="lr-control lr-control--off"><button type="button" class="lr-control__main"${attr("aria-label", t.live.room.settingsTitle())}><span class="material-symbols-rounded" aria-hidden="true">settings</span> <span class="lr-control__label">${escape_html(t.live.room.settingsTitle())}</span></button></div>`);
+				}
+				function children($$renderer) {
+					$$renderer.push(`<div class="lr-settings"><strong class="lr-settings__title">${escape_html(t.live.room.settingsTitle())}</strong> `);
+					Switch_1($$renderer, {
+						label: t.live.room.echoCancel(),
+						onchange: () => room.switchPreviewDevice(),
+						get checked() {
+							return room.audioProcessingEnabled;
+						},
+						set checked($$value) {
+							room.audioProcessingEnabled = $$value;
+							$$settled = false;
+						}
+					});
+					$$renderer.push(`<!----> `);
+					if (room.isInstructorRoom) {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<button type="button" class="lr-settings__link">${escape_html(t.live.stats.title())}</button>`);
+					} else $$renderer.push("<!--[-1-->");
+					$$renderer.push(`<!--]--></div>`);
+				}
+				Popover_1($$renderer, {
+					side: "top",
+					align: "end",
+					sideOffset: 8,
+					trigger,
+					children,
+					$$slots: {
+						trigger: true,
+						default: true
+					}
+				});
+			}
+			$$renderer.push(`<!----></footer>`);
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 	});
 }
 //#endregion
@@ -1165,18 +3209,26 @@ function QualityPanel($$renderer, $$props) {
 		const { t } = useI18n();
 		if (room.isInstructorRoom && room.showQualityPanel) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<aside class="quality-drawer svelte-y2tmce"${attr("aria-label", t.live.stats.title())}><div class="drawer-header svelte-y2tmce"><h3 class="svelte-y2tmce">${escape_html(t.live.stats.title())}</h3> <button class="drawer-close svelte-y2tmce" type="button"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded svelte-y2tmce">close</span></button></div> <dl class="quality-headline svelte-y2tmce"><div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.participants())}</dt><dd class="svelte-y2tmce">${escape_html(room.participants.length)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.video())}</dt><dd class="svelte-y2tmce">${escape_html(room.streamStats.videoTracks)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.audio())}</dt><dd class="svelte-y2tmce">${escape_html(room.streamStats.audioTracks)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.bitrate())}</dt><dd class="svelte-y2tmce">${escape_html(room.formattedBitrate)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.resolution())}</dt><dd class="svelte-y2tmce">${escape_html(room.formattedResolution)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.fps())}</dt><dd class="svelte-y2tmce">${escape_html(room.formattedFps)}</dd></div> <div class="svelte-y2tmce"><dt class="svelte-y2tmce">${escape_html(t.live.stats.packetLoss())}</dt><dd class="svelte-y2tmce">${escape_html(room.formattedPacketLoss)}</dd></div></dl> `);
-			if (room.trackStats.length > 0) {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<details class="track-stats svelte-y2tmce" open=""><summary class="svelte-y2tmce">${escape_html(t.live.stats.videoSources())}</summary> <div class="track-stats-list svelte-y2tmce"><!--[-->`);
-				const each_array = ensure_array_like(room.trackStats.filter((t) => t.kind === "video"));
-				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-					let stat = each_array[$$index];
-					$$renderer.push(`<div class="track-stat-row svelte-y2tmce"><span class="track-stat-name svelte-y2tmce">${escape_html(stat.name)}</span> <span${attr_class("track-stat-badge svelte-y2tmce", void 0, { "track-stat-badge--screen": stat.source === "screen_share" })}>${escape_html(stat.source === "screen_share" ? t.live.stats.sourceScreen() : stat.source === "camera" ? t.live.stats.sourceCamera() : t.live.stats.sourceUnknown())}</span> <span class="track-stat-detail svelte-y2tmce">${escape_html(stat.width ?? "—")}×${escape_html(stat.height ?? "—")} @ ${escape_html(stat.bitrateKbps > 0 ? `${stat.bitrateKbps} kbps` : "—")}</span></div>`);
-				}
-				$$renderer.push(`<!--]--></div></details>`);
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--></aside>`);
+			$$renderer.push(`<aside class="lr-quality lr-glass"${attr("aria-label", t.live.stats.title())}><div class="lr-panel__header"><h3>${escape_html(t.live.stats.title())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> `);
+			ScrollArea_1($$renderer, {
+				class: "lr-panel__scroll",
+				children: ($$renderer) => {
+					$$renderer.push(`<dl class="lr-quality__headline"><div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.participants())}</dt> <dd class="lr-quality__value">${escape_html(room.participants.length)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.video())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.videoTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.audio())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.audioTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.bitrate())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedBitrate)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.resolution())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedResolution)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.fps())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedFps)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.packetLoss())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedPacketLoss)}</dd></div></dl> `);
+					if (room.trackStats.length > 0) {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<details class="lr-quality__track-list" open=""><summary>${escape_html(t.live.stats.videoSources())}</summary> <div class="lr-quality__tracks"><!--[-->`);
+						const each_array = ensure_array_like(room.trackStats.filter((t) => t.kind === "video"));
+						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+							let stat = each_array[$$index];
+							$$renderer.push(`<div class="lr-track-stat"><span class="lr-track-stat__name">${escape_html(stat.name)}</span> <span${attr_class("lr-track-stat__badge", void 0, { "lr-track-stat__badge--screen": stat.source === "screen_share" })}>${escape_html(stat.source === "screen_share" ? t.live.stats.sourceScreen() : stat.source === "camera" ? t.live.stats.sourceCamera() : t.live.stats.sourceUnknown())}</span> <span class="lr-track-stat__detail">${escape_html(stat.width ?? "—")}×${escape_html(stat.height ?? "—")} @ ${escape_html(stat.bitrateKbps > 0 ? `${stat.bitrateKbps} kbps` : "—")}</span></div>`);
+						}
+						$$renderer.push(`<!--]--></div></details>`);
+					} else $$renderer.push("<!--[-1-->");
+					$$renderer.push(`<!--]-->`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});
@@ -1192,35 +3244,41 @@ function LiveRoomShell($$renderer, $$props) {
 		if (room.auth.isLoading || room.status === "checking") {
 			$$renderer.push("<!--[0-->");
 			PreConnectOverlay($$renderer, { room });
-		} else if (room.status === "locked" || room.status === "missing" || room.status === "error" || room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
+		} else if (room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error" || room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
 			$$renderer.push("<!--[1-->");
 			PreConnectOverlay($$renderer, { room });
 		} else if (room.connectionState !== "idle") {
 			$$renderer.push("<!--[2-->");
-			$$renderer.push(`<div class="live-room svelte-8bmq7k">`);
-			RoomHeader($$renderer, { room });
-			$$renderer.push(`<!----> <div class="room-body svelte-8bmq7k">`);
-			VideoStage($$renderer, { room });
-			$$renderer.push(`<!----> `);
-			ParticipantSidebar($$renderer, { room });
-			$$renderer.push(`<!----> `);
-			RoomChat($$renderer, { room });
-			$$renderer.push(`<!----></div> `);
-			if (room.mediaError) {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="room-media-error svelte-8bmq7k" role="status">${escape_html(room.mediaError)}</div>`);
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> `);
-			ControlBar($$renderer, { room });
-			$$renderer.push(`<!----> `);
-			QualityPanel($$renderer, { room });
-			$$renderer.push(`<!----> <div class="audio-sink svelte-8bmq7k" aria-hidden="true"><!--[-->`);
-			const each_array = ensure_array_like(room.audioTiles);
-			for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-				each_array[$$index];
-				$$renderer.push(`<div></div>`);
-			}
-			$$renderer.push(`<!--]--></div></div>`);
+			Tooltip_provider($$renderer, {
+				delayDuration: 160,
+				children: ($$renderer) => {
+					$$renderer.push(`<div class="lr-room">`);
+					RoomHeader($$renderer, { room });
+					$$renderer.push(`<!----> <div class="lr-room__body">`);
+					VideoStage($$renderer, { room });
+					$$renderer.push(`<!----> `);
+					ParticipantSidebar($$renderer, { room });
+					$$renderer.push(`<!----> `);
+					RoomChat($$renderer, { room });
+					$$renderer.push(`<!----></div> `);
+					if (room.mediaError) {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<div class="lr-media-error" role="alert">${escape_html(room.mediaError)}</div>`);
+					} else $$renderer.push("<!--[-1-->");
+					$$renderer.push(`<!--]--> `);
+					ControlBar($$renderer, { room });
+					$$renderer.push(`<!----> `);
+					QualityPanel($$renderer, { room });
+					$$renderer.push(`<!----> <div class="lr-audio-sink" aria-hidden="true"><!--[-->`);
+					const each_array = ensure_array_like(room.audioTiles);
+					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+						each_array[$$index];
+						$$renderer.push(`<div></div>`);
+					}
+					$$renderer.push(`<!--]--></div></div>`);
+				},
+				$$slots: { default: true }
+			});
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});

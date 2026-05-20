@@ -1,8 +1,9 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { resource } from "runed";
   import { api } from "$convex/_generated/api";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
-  import { convex } from "$lib/convex/client";
+  import { useConvexClient } from "convex-svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
   import AppLocked from "$features/app/components/AppLocked.svelte";
   import OnboardingForm from "$features/onboarding/components/OnboardingForm.svelte";
@@ -42,6 +43,8 @@
   let saving = $state(false);
   let saveError = $state("");
   let saveSuccess = $state(false);
+
+  const client = useConvexClient();
 
   $effect(() => {
     if (appProfileResource.current) {
@@ -116,7 +119,7 @@
     saveError = "";
     saveSuccess = false;
     try {
-      await convex.mutation(api.appProfiles.updateInstructorProfile, {
+      await client.mutation(api.appProfiles.updateInstructorProfile, {
         displayName: `${instructorName.trim()} ${instructorSurname.trim()}`.trim(),
         credentials: instructorCredentials.trim(),
         certificateDocument: certificateDataUrl || undefined,
@@ -132,6 +135,10 @@
       saving = false;
     }
   }
+
+  async function retryDashboard() {
+    await dashboardResource.refetch();
+  }
 </script>
 
 {#if auth.isLoading || dashboardResource.loading || (isStaff && appProfileResource.loading)}
@@ -139,13 +146,13 @@
 {:else if !auth.isAuthenticated}
   <AppLocked title="צריך להתחבר קודם" subtitle="כדי לערוך את הפרופיל, נכנסים עם כתובת אימייל.">
     {#snippet actions()}
-      <a href="/">לעמוד הראשי</a>
+      <a href="/" class="locked__action">לעמוד הראשי</a>
     {/snippet}
   </AppLocked>
 {:else if dashboardResource.error}
   <AppLocked title="לא הצלחנו לטעון" subtitle="נסי לרענן את הדף.">
     {#snippet actions()}
-      <button onclick={() => dashboardResource.refetch()}>לנסות שוב</button>
+      <Button tone="ghost" type="button" onclick={retryDashboard}>לנסות שוב</Button>
     {/snippet}
   </AppLocked>
 {:else if isStaff}
@@ -193,7 +200,7 @@
                 <span class="doc-icon">קובץ</span>
               {/if}
               <span class="doc-name">{certificateFile?.name || "תעודה"}</span>
-              <button class="doc-remove" onclick={() => { certificateFile = null; certificateDataUrl = ""; }} type="button">מחק</button>
+              <Button tone="ghost" type="button" onclick={() => { certificateFile = null; certificateDataUrl = ""; }}>מחק</Button>
             </div>
           {:else}
             <label class="file-drop">
@@ -215,7 +222,7 @@
                 <span class="doc-icon">קובץ</span>
               {/if}
               <span class="doc-name">{insuranceFile?.name || "ביטוח"}</span>
-              <button class="doc-remove" onclick={() => { insuranceFile = null; insuranceDataUrl = ""; }} type="button">מחק</button>
+              <Button tone="ghost" type="button" onclick={() => { insuranceFile = null; insuranceDataUrl = ""; }}>מחק</Button>
             </div>
           {:else}
             <label class="file-drop">
@@ -226,9 +233,9 @@
         </div>
       </section>
 
-      <button class="btn-save" onclick={saveInstructorProfile} disabled={saving}>
+      <Button tone="ink" onclick={saveInstructorProfile} disabled={saving}>
         {saving ? "שומר..." : "שמור פרופיל"}
-      </button>
+      </Button>
     </div>
   </PageShell>
 {:else if profile}
@@ -250,7 +257,7 @@
     flex-direction: column;
     gap: var(--space-4);
     border: var(--border);
-    background: var(--white);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
     padding: var(--space-5);
   }
 
@@ -352,34 +359,4 @@
     white-space: nowrap;
   }
 
-  .doc-remove,
-  .btn-save {
-    border: var(--border);
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .doc-remove {
-    background: #fef2f2;
-    color: #b42318;
-    border-color: #fecaca;
-    padding: var(--space-2) var(--space-3);
-  }
-
-  .btn-save {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 48px;
-    width: fit-content;
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-  }
-
-  .btn-save:disabled {
-    opacity: 0.5;
-    cursor: wait;
-  }
 </style>

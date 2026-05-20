@@ -1,67 +1,38 @@
 <script lang="ts">
+  import { Button } from "bits-ui";
+  import type { Snippet } from "svelte";
+
   let {
     type = "button",
     tone = "paper",
+    size = "md",
+    href,
     disabled = false,
     onclick,
+    class: className = "",
     children,
   }: {
     type?: "button" | "submit";
-    tone?: "paper" | "ink" | "sky";
+    tone?: "paper" | "ink" | "sky" | "primary" | "secondary" | "ghost" | "danger" | "terra";
+    size?: "sm" | "md" | "lg";
+    href?: string;
     disabled?: boolean;
     onclick?: () => void | Promise<void>;
-    children?: import("svelte").Snippet;
+    class?: string;
+    children?: Snippet;
   } = $props();
+
+  const classes = $derived(
+    `hb-button hb-button--${tone} hb-button--${size} ${className}`.trim()
+  );
 </script>
 
-<button class={`button button--${tone}`} {type} {disabled} {onclick}>
-  {@render children?.()}
-</button>
-
-<style>
-  .button {
-    display: inline-flex;
-    min-height: 52px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    padding-inline: var(--space-6);
-    background: var(--white);
-    color: var(--ink);
-    font-weight: 700;
-    font-size: var(--step-0);
-    font-family: inherit;
-    cursor: pointer;
-    transition: background var(--duration-fast) var(--ease-out);
-  }
-
-  .button:hover {
-    background: var(--surface);
-  }
-
-  .button--ink {
-    background: var(--ink);
-    color: var(--white);
-    border-color: var(--ink);
-  }
-
-  .button--ink:hover {
-    background: var(--ink-secondary);
-  }
-
-  .button--sky {
-    background: var(--sky);
-    color: var(--ink);
-    border-color: var(--line);
-  }
-
-  .button--sky:hover {
-    background: var(--sky-strong);
-    color: var(--white);
-  }
-
-  .button:disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-  }
-</style>
+{#if href}
+  <Button.Root class={classes} {href} {disabled} {onclick}>
+    {@render children?.()}
+  </Button.Root>
+{:else}
+  <Button.Root class={classes} {type} {disabled} {onclick}>
+    {@render children?.()}
+  </Button.Root>
+{/if}

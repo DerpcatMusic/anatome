@@ -1,5 +1,16 @@
 <script lang="ts">
+  import { Calendar, TimeGrid, Interaction } from "@event-calendar/core";
+  import "@event-calendar/core/index.css";
+  import "$features/live/styles/calendar-theme.css";
+
+  import Button from "$components/ui/Button.svelte";
+  import { useConvexClient } from "convex-svelte";
+  import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
+  import { durationLabel } from "$lib/labels";
+  import type { Equipment } from "$lib/labels";
+  import LiveClassModalShell from "./LiveClassModalShell.svelte";
+  import EditLiveClassForm from "./EditLiveClassForm.svelte";
 
   type LiveClass = {
     _id: Id<"liveClasses">;
@@ -10,380 +21,299 @@
     endsAt: number;
     capacity: number;
     type: "group_live" | "one_on_one";
-    requiredEquipment: string[];
+    requiredEquipment: Equipment[];
+    joinOpensMinutesBefore?: number;
   };
+
+  interface Props {
+    classes: LiveClass[];
+    onStart: (id: Id<"liveClasses">) => void;
+    onEnd: (id: Id<"liveClasses">) => void;
+    actionId: string | null;
+    onSelectSlot: (timeLocalString: string, durationMinutes: number) => void;
+    onRefreshClasses: () => Promise<void>;
+  }
 
   let {
     classes,
     onStart,
     onEnd,
     actionId,
-  }: {
-    classes: LiveClass[];
-    onStart: (id: Id<"liveClasses">) => void;
-    onEnd: (id: Id<"liveClasses">) => void;
-    actionId: string | null;
-  } = $props();
+    onSelectSlot,
+    onRefreshClasses,
+  }: Props = $props();
 
-  const hebrewDays = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+  const client = useConvexClient();
 
-  const dayFormatter = new Intl.DateTimeFormat("he-IL", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "Asia/Jerusalem",
-  });
+  // Edit modal state
+  let activeEditClass = $state<LiveClass | null>(null);
+  let submitting = $state(false);
+  let editError = $state("");
 
-  const timeFormatter = new Intl.DateTimeFormat("he-IL", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jerusalem",
-  });
-
-  function getDayStart(ts: number) {
+  function formatLocalTime(ts: number) {
     const d = new Date(ts);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
+    const h = String(d.getHours()).padStart(2, "0");
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `${h}:${m}`;
   }
 
-  function getWeekStart(ts: number) {
-    const d = new Date(ts);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
-    return monday.getTime();
+  function toDateTimeLocal(date: Date) {
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
-  const now = Date.now();
-  const weekStart = $derived(getWeekStart(now));
+  function escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
-  const weekDays = $derived(
-    Array.from({ length: 7 }, (_, i) => {
-      const start = weekStart + i * 24 * 60 * 60 * 1000;
-      return {
-        start,
-        label: dayFormatter.format(new Date(start)),
-        dayIndex: (new Date(start).getDay() + 6) % 7, // 0=Monday for Hebrew
-        isToday: getDayStart(start) === getDayStart(now),
-      };
-    })
-  );
-
-  const classesByDay = $derived(() => {
-    const map = new Map<number, LiveClass[]>();
-    for (const day of weekDays) {
-      const dayEnd = day.start + 24 * 60 * 60 * 1000;
-      map.set(
-        day.start,
-        classes
-          .filter((c) => c.startsAt >= day.start && c.startsAt < dayEnd)
-          .sort((a, b) => a.startsAt - b.startsAt)
-      );
+  async function submitReschedule(data: {
+    title: string;
+    description: string;
+    startsAt: number;
+    durationMinutes: number;
+    joinOpensMinutesBefore: number;
+    capacity: number;
+    requiredEquipment: Equipment[];
+  }) {
+    if (!activeEditClass) return;
+    editError = "";
+    submitting = true;
+    try {
+      await client.mutation(api.instructorLive.rescheduleLiveClass, {
+        liveClassId: activeEditClass._id,
+        startsAt: data.startsAt,
+        durationMinutes: data.durationMinutes,
+        joinOpensMinutesBefore: data.joinOpensMinutesBefore,
+        capacity: data.capacity,
+        requiredEquipment: data.requiredEquipment,
+        title: data.title,
+        description: data.description,
+      });
+      activeEditClass = null;
+      await onRefreshClasses();
+    } catch (err) {
+      editError = err instanceof Error ? err.message : "לא הצלחנו לעדכן את השיעור.";
+    } finally {
+      submitting = false;
     }
-    return map;
+  }
+
+  async function submitCancellation() {
+    if (!activeEditClass) return;
+    if (!confirm("האם את בטוחה שברצונך לבטל שיעור זה? כל הרשמות המנויות יבוטלו ויזוכו בקרדיט באופן אוטומטי.")) return;
+    editError = "";
+    submitting = true;
+    try {
+      await client.mutation(api.instructorLive.cancelLiveClass, {
+        liveClassId: activeEditClass._id,
+      });
+      activeEditClass = null;
+      await onRefreshClasses();
+    } catch (err) {
+      editError = err instanceof Error ? err.message : "לא הצלחנו לבטל את השיעור.";
+    } finally {
+      submitting = false;
+    }
+  }
+
+  async function handleDragDropReschedule(liveClassId: Id<"liveClasses">, newStartsAt: number, newEndsAt: number) {
+    const orig = classes.find(c => c._id === liveClassId);
+    if (!orig) return;
+
+    const durationMinutes = Math.round((newEndsAt - newStartsAt) / (1000 * 60));
+    try {
+      await client.mutation(api.instructorLive.rescheduleLiveClass, {
+        liveClassId,
+        startsAt: newStartsAt,
+        durationMinutes,
+        joinOpensMinutesBefore: orig.joinOpensMinutesBefore ?? 10,
+        capacity: orig.capacity,
+        requiredEquipment: orig.requiredEquipment,
+        title: orig.title,
+        description: orig.description,
+      });
+      await onRefreshClasses();
+    } catch (err) {
+      editError = err instanceof Error ? err.message : "לא הצלחנו לעדכן את השיעור.";
+      await onRefreshClasses(); // Rollback local view
+    }
+  }
+
+  // Calendar configuration with reactive states
+  const plugins = [TimeGrid, Interaction];
+
+  const calendarOptions = $derived({
+    view: "timeGridWeek",
+    locale: "he",
+    direction: "rtl" as const,
+    firstDay: 0, // Sunday first
+    slotMinTime: "00:00:00",
+    slotMaxTime: "24:00:00",
+    allDaySlot: false,
+    headerToolbar: {
+      start: "today prev,next",
+      center: "title",
+      end: ""
+    },
+    buttonText: {
+      today: "היום"
+    },
+    height: "calc(100vh - 260px)",
+    slotDuration: "00:30:00",
+    slotLabelInterval: "01:00:00",
+    slotEventOverlap: false,
+    selectable: true,
+    unselectAuto: true,
+    editable: true,
+    selectBackgroundColor: "rgba(59, 130, 246, 0.35)",
+
+    // Reactive Convex classes array
+    events: classes
+      .filter((c) => c.status !== "cancelled")
+      .map((c) => ({
+        id: c._id,
+        title: c.title,
+        start: new Date(c.startsAt).toISOString(),
+        end: new Date(c.endsAt).toISOString(),
+        editable: c.status === "scheduled" || c.status === "live",
+        startEditable: c.status === "scheduled" || c.status === "live",
+        durationEditable: c.status === "scheduled" || c.status === "live",
+        className: `ec-event-status--${c.status}`,
+        extendedProps: {
+          originalClass: c
+        }
+      })),
+
+    // Calendar Handlers
+    select: function(info: { start: Date; end: Date }) {
+      // Block scheduling in the past
+      if (info.start.getTime() < Date.now() - 5 * 60 * 1000) {
+        return;
+      }
+      const startsAtLocal = toDateTimeLocal(info.start);
+      const durationMinutes = Math.round((info.end.getTime() - info.start.getTime()) / 60000);
+      onSelectSlot(startsAtLocal, durationMinutes);
+    },
+    eventClick: function(info: { event: { extendedProps: { originalClass?: LiveClass } } }) {
+      const liveClass = info.event.extendedProps?.originalClass;
+      if (!liveClass) return;
+      editError = "";
+      activeEditClass = liveClass;
+    },
+    eventDrop: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date }; revert: () => void }) {
+      const liveClass = info.event.extendedProps?.originalClass;
+      if (!liveClass || liveClass.status === "ended") {
+        info.revert();
+        return;
+      }
+      handleDragDropReschedule(liveClass._id, info.event.start.getTime(), info.event.end.getTime());
+    },
+    eventResize: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date }; revert: () => void }) {
+      const liveClass = info.event.extendedProps?.originalClass;
+      if (!liveClass || liveClass.status === "ended") {
+        info.revert();
+        return;
+      }
+      handleDragDropReschedule(liveClass._id, info.event.start.getTime(), info.event.end.getTime());
+    },
+
+    // Clean minimal event card render
+    eventContent: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date } }) {
+      const c = info.event.extendedProps?.originalClass;
+      if (!c) {
+        // This is a preview/selection event — render nothing custom
+        return { html: "" };
+      }
+
+      const formattedTime = `${formatLocalTime(c.startsAt)} – ${formatLocalTime(c.endsAt)}`;
+
+      let statusDot = "";
+      if (c.status === "live") {
+        statusDot = `<span class="pulse-indicator" aria-label="שידור חי"></span>`;
+      }
+
+      return {
+        html: `
+          <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} • ${formattedTime}">
+            <div class="event-title">${escapeHtml(c.title)}</div>
+            <div class="event-meta">
+              ${statusDot}
+              <span class="meta-badge">${c.type === "one_on_one" ? "1:1" : "קבוצתי"}</span>
+            </div>
+          </div>
+        `
+      };
+    }
   });
-
-  function statusClass(status: string) {
-    if (status === "live") return "status--live";
-    if (status === "scheduled") return "status--scheduled";
-    if (status === "ended") return "status--ended";
-    return "status--other";
-  }
-
-  function statusDot(status: string) {
-    if (status === "live") return "●";
-    if (status === "scheduled") return "○";
-    return "·";
-  }
 </script>
 
-<div class="agenda">
-  <div class="agenda-header">
-    <p class="eyebrow">Weekly Schedule</p>
-    <h2>לוח שבועי</h2>
-  </div>
-
-  <div class="agenda-grid">
-    {#each weekDays as day}
-      {@const dayClasses = classesByDay().get(day.start) ?? []}
-      <div class="day-col" class:today={day.isToday}>
-        <div class="day-header">
-          <span class="day-name">{hebrewDays[day.dayIndex]}</span>
-          <span class="day-date">{day.label}</span>
-        </div>
-        <div class="day-classes">
-          {#if dayClasses.length === 0}
-            <div class="day-empty">—</div>
-          {:else}
-            {#each dayClasses as liveClass}
-              <article class="class-card {statusClass(liveClass.status)}">
-                <div class="class-time">
-                  <span class="dot">{statusDot(liveClass.status)}</span>
-                  <span>{timeFormatter.format(new Date(liveClass.startsAt))}</span>
-                </div>
-                <h4 class="class-title">{liveClass.title}</h4>
-                <p class="class-meta">
-                  {liveClass.capacity} מקומות ·
-                  {liveClass.type === "one_on_one" ? "1:1" : "קבוצתי"}
-                </p>
-                <div class="class-actions">
-                  {#if liveClass.status === "scheduled"}
-                    <button
-                      class="btn btn--ink"
-                      onclick={() => onStart(liveClass._id)}
-                      disabled={actionId === liveClass._id}
-                    >
-                      {actionId === liveClass._id ? "..." : "התחל"}
-                    </button>
-                  {:else if liveClass.status === "live"}
-                    <a class="btn btn--sky" href={`/live-room?classId=${liveClass._id}`}>חדר</a>
-                    <button
-                      class="btn btn--danger"
-                      onclick={() => onEnd(liveClass._id)}
-                      disabled={actionId === liveClass._id}
-                    >
-                      סיים
-                    </button>
-                  {:else}
-                    <span class="status-label">{liveClass.status}</span>
-                  {/if}
-                </div>
-              </article>
-            {/each}
-          {/if}
-        </div>
-      </div>
-    {/each}
+<div class="weekly-agenda-container">
+  <div class="calendar-wrapper">
+    <Calendar {plugins} options={calendarOptions} />
   </div>
 </div>
 
+<LiveClassModalShell
+  bind:open={() => activeEditClass !== null, (v) => { if (!v) activeEditClass = null; }}
+  title={activeEditClass?.status === "ended" ? "שיעור לייב שהסתיים" : "עריכת שיעור לייב"}
+  icon={activeEditClass?.status === "ended" ? "task_alt" : "edit_calendar"}
+  iconColor={activeEditClass?.status === "ended" ? "var(--muted)" : "var(--sky-strong)"}
+  wide
+>
+  {#if activeEditClass}
+    <EditLiveClassForm
+      liveClass={activeEditClass}
+      onSubmit={(data) => void submitReschedule(data)}
+      onCancel={() => { activeEditClass = null; editError = ""; }}
+      onDelete={submitCancellation}
+      onEndLive={() => {
+        if (activeEditClass) onEnd(activeEditClass._id);
+      }}
+      {submitting}
+    />
+    {#if editError}
+      <div class="form-error" role="alert">
+        <span class="material-symbols-rounded">error</span>
+        {editError}
+      </div>
+    {/if}
+  {/if}
+</LiveClassModalShell>
+
 <style>
-  .agenda {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
+  .weekly-agenda-container {
+    width: 100%;
+    direction: rtl;
+    contain: layout paint;
   }
 
-  .agenda-header {
+  .calendar-wrapper {
+    background: var(--white);
+    border: 1px solid var(--line-light);
+    padding: var(--space-2);
+    border-radius: 8px;
+  }
+
+  .form-error {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: var(--space-2);
-  }
-
-  .agenda-header h2 {
-    font-size: var(--step-2);
-    line-height: 1.1;
-    margin: 0;
-  }
-
-  .eyebrow {
-    font-family: var(--font-mono);
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    border: 1px solid var(--danger);
+    padding: var(--space-3);
+    font-weight: 800;
     font-size: var(--step--1);
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin: 0;
+    margin-block-start: var(--space-3);
   }
 
-  .agenda-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: var(--space-2);
-    border: var(--border);
-    background: var(--white);
-    padding: var(--space-3);
-  }
-
-  .day-col {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    min-width: 0;
-  }
-
-  .day-col.today .day-header {
-    background: var(--sky);
-    border-color: var(--ink);
-  }
-
-  .day-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-3) var(--space-2);
-    border: var(--border);
-    background: var(--surface);
-    text-align: center;
-  }
-
-  .day-name {
-    font-family: var(--font-mono);
+  .form-error .material-symbols-rounded {
     font-size: var(--step-1);
-    font-weight: 900;
-    line-height: 1;
-  }
-
-  .day-date {
-    font-size: var(--step--2);
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .day-classes {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    flex: 1;
-  }
-
-  .day-empty {
-    text-align: center;
-    color: var(--line-light);
-    padding: var(--space-4) 0;
-    font-family: var(--font-mono);
-    font-size: var(--step-1);
-  }
-
-  .class-card {
-    border: var(--border);
-    padding: var(--space-3);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    background: var(--white);
-    transition: box-shadow var(--duration-fast);
-  }
-
-  .class-card:hover {
-    box-shadow: 3px 3px 0 var(--ink);
-  }
-
-  .class-time {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    font-weight: 800;
-  }
-
-  .dot {
-    font-size: var(--step-0);
-    line-height: 1;
-  }
-
-  .status--live .dot { color: #188038; }
-  .status--scheduled .dot { color: var(--sky-strong); }
-  .status--ended .dot { color: var(--muted); }
-
-  .class-title {
-    font-size: var(--step-0);
-    line-height: 1.2;
-    margin: 0;
-    font-weight: 800;
-  }
-
-  .class-meta {
-    font-size: var(--step--2);
-    color: var(--muted);
-    margin: 0;
-    font-family: var(--font-mono);
-  }
-
-  .class-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    margin-top: auto;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 28px;
-    padding-inline: var(--space-3);
-    border: var(--border);
-    font: inherit;
-    font-size: var(--step--2);
-    font-weight: 900;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background var(--duration-fast);
-  }
-
-  .btn--ink {
-    background: var(--ink);
-    color: var(--white);
-  }
-
-  .btn--ink:hover { background: var(--ink-secondary); }
-
-  .btn--sky {
-    background: var(--sky);
-    color: var(--ink);
-  }
-
-  .btn--sky:hover {
-    background: var(--sky-strong);
-    color: var(--white);
-  }
-
-  .btn--danger {
-    background: #fef2f2;
-    color: #b42318;
-    border-color: #fecaca;
-  }
-
-  .btn--danger:hover { background: #fee2e2; }
-
-  .btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  .status-label {
-    font-size: var(--step--2);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: var(--space-1) 0;
-  }
-
-  /* Mobile: horizontal scroll */
-  @media (max-width: 1200px) {
-    .agenda-grid {
-      grid-template-columns: repeat(7, minmax(160px, 1fr));
-      overflow-x: auto;
-      padding-bottom: var(--space-4);
-    }
-  }
-
-  @media (max-width: 640px) {
-    .agenda-grid {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-
-    .day-col {
-      gap: var(--space-2);
-    }
-
-    .day-header {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .day-classes {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: var(--space-2);
-    }
+    flex-shrink: 0;
   }
 </style>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+  import { Dialog } from "bits-ui";
   import "$lib/features/landing/landing.css";
   import SEO from "$components/seo/SEO.svelte";
   import { SITE } from "$lib/seo/config";
@@ -19,6 +21,7 @@
   import Footer from "$components/layout/Footer.svelte";
   import {
     HeroSection,
+    PhilosophySection,
     InstructorSection,
     PreviewSection,
     PillarsSection,
@@ -30,6 +33,7 @@
   import { useI18n } from "$lib/i18n/runes";
 
   const { t } = useI18n();
+  let authOpen = $state(false);
 
   /* ═══════════════════════════════════════════
      FILL IN: Real instructor details
@@ -42,12 +46,19 @@
   };
 
   function openAuthOverlay() {
-    const overlay = document.getElementById("auth-overlay");
-    if (overlay) {
-      overlay.classList.add("is-open");
-      setTimeout(() => overlay.querySelector("input")?.focus(), 100);
-    }
+    authOpen = true;
   }
+
+  onMount(() => {
+    const open = () => { authOpen = true; };
+    const close = () => { authOpen = false; };
+    window.addEventListener("homebody:auth-open", open);
+    window.addEventListener("homebody:auth-close", close);
+    return () => {
+      window.removeEventListener("homebody:auth-open", open);
+      window.removeEventListener("homebody:auth-close", close);
+    };
+  });
 
   /* ─── Structured Data (honest — no fake reviews) ─── */
   const pageUrl = SITE.domain;
@@ -65,14 +76,19 @@
         `כן — זה בדיוק התמחות שלנו. כל שיעור מלווה בהסברים על איזה תרגיל מתאים לאיזו פתולוגיה, ומה לעשות אם משהו כואב. אנחנו לא עושים "תעשי איתי" בלי הסבר. אם יש לך אבחון רפואי ספציפי, מומלץ לשלוח אותו לפני השיעור הראשון כדי שהמדריכה תוכל להתאים את התוכנית.`,
     },
     {
+      question: "מה ההבדל בין מקרופלואו למיקרופלואו?",
+      answer:
+        "מקרופלואו — סרטוני פילאטיס פלואו שלם בין חצי שעה לשעה. כל סרטון עולה קרדיט אחד ונשאר אצלך לתמיד, גם אחרי שאת כבר לא רשומה. מיקרופלואו — סרטונים קצרים של תרגיל או שניים, מתמקדים על שריר או גיד או פטולוגיה אחת. זמין לכל מי שמשלם מנוי. כשמפסיקים להיות רשומים — אין גישה אליהם יותר.",
+    },
+    {
+      question: "איך עובד הלייב? זום? גוגל מיט?",
+      answer:
+        "בכלל לא. הכל בפלטפורמה שלנו. נרשמת? את כבר בפנים. בלי להסתבך עם אימייל וקישורים ובלאגן. שיעורים קבוצתיים בלייב — אנחנו רואים אותם, הם רואים אותנו, והמדריכה נותנת תיקונים בזמן אמת. יש גם אפשרות לאחד על אחד.",
+    },
+    {
       question: "איזה ציוד אני צריכה?",
       answer:
         "רק מזרן. אין צורך בציוד מקצועי או בסטודיו יקר. חלק מהשיעורים משתמשים בחפצים פשוטים מהבית — כרית, מגבת מגולגלת, כדור טניס. כל מה שצריך מופיע בתיאור השיעור לפני שמתחילים.",
-    },
-    {
-      question: "מה ההבדל בין מוקלט ללייב?",
-      answer:
-        "שיעורים מוקלטים — את צופה בזמן שלך, יכולה לעצור, לחזור אחורה, לבחור את האורך (15, 30 או 45 דקות). שיעורים חיים — קבוצה של עד 12 משתתפות בזום, עם תיקון אישי בזמן אמת. המדריכה רואה את כולן ונותנת הוראות ספציפיות לכל אחת.",
     },
     {
       question: "איך עובד השיעור הפרטי?",
@@ -140,6 +156,7 @@
 
 <main class="landing" id="main-content">
   <HeroSection {openAuthOverlay} />
+  <PhilosophySection />
   <InstructorSection instructor={INSTRUCTOR} />
   <PreviewSection />
   <PillarsSection />
@@ -151,14 +168,11 @@
 
 <Footer />
 
-<!-- Auth Overlay — proper dialog semantics -->
-<div id="auth-overlay" class="auth-overlay"
-  onclick={(e) => { if(e.target === e.currentTarget) e.currentTarget.classList.remove("is-open"); }}
-  onkeydown={(e) => { if(e.key === "Escape") e.currentTarget.classList.remove("is-open"); }}
-  role="presentation"
-  aria-hidden="true"
->
-  <div class="auth-card" role="dialog" aria-modal="true" aria-label="כניסה והרשמה">
-    <AuthPanel />
-  </div>
-</div>
+<Dialog.Root bind:open={authOpen}>
+  <Dialog.Portal>
+    <Dialog.Overlay class="auth-overlay" />
+    <Dialog.Content class="auth-card" aria-label="כניסה והרשמה">
+      <AuthPanel />
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

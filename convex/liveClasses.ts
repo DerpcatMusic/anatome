@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { requireAppProfile, requireRole, requireUserId } from "./lib/authz";
@@ -121,14 +122,15 @@ export const listCalendarRange = query({
             .unique();
     const now = Date.now();
 
-    // Batch-fetch all class reservations once instead of N+1 per class
+    // Batch-fetch all class reservations using indexed per-class queries
     const classIdSet = new Set(classes.map((c) => c._id));
     const reservationsByClass = new Map<Id<"liveClasses">, Doc<"liveReservations">[]>();
-    for await (const r of ctx.db.query("liveReservations")) {
-      if (!classIdSet.has(r.liveClassId)) continue;
-      const arr = reservationsByClass.get(r.liveClassId) ?? [];
-      arr.push(r);
-      reservationsByClass.set(r.liveClassId, arr);
+    for (const classId of classIdSet) {
+      const reservations = await ctx.db
+        .query("liveReservations")
+        .withIndex("by_liveClassId_and_status", (q) => q.eq("liveClassId", classId))
+        .take(50);
+      reservationsByClass.set(classId, reservations);
     }
 
     const results = [];
@@ -151,10 +153,25 @@ export const listCalendarRange = query({
         liveClass.requiredEquipment,
       );
 
+      const seatsRemaining = Math.max(0, liveClass.capacity - seatsTaken);
+      const hasValidReservation =
+        viewerReservationStatus !== null &&
+        viewerReservationStatus !== "cancelled" &&
+        viewerReservationStatus !== "refunded" &&
+        viewerReservationStatus !== "no_show";
+      const canWalkIn =
+        userId !== null &&
+        liveClass.status === "live" &&
+        now >= liveClass.joinOpensAt &&
+        now <= liveClass.joinClosesAt &&
+        seatsRemaining > 0 &&
+        available >= liveClass.creditCost &&
+        viewerMissingEquipment.length === 0;
+
       results.push({
         liveClass,
         seatsTaken,
-        seatsRemaining: Math.max(0, liveClass.capacity - seatsTaken),
+        seatsRemaining,
         viewerReservationStatus,
         viewerCanReserve:
           userId !== null &&
@@ -167,11 +184,10 @@ export const listCalendarRange = query({
           userId !== null &&
           (liveClass.type === "group_live" || liveClass.type === "one_on_one") &&
           liveClass.status === "live" &&
-          viewerReservationStatus !== null &&
-          viewerReservationStatus !== "cancelled" &&
-          viewerReservationStatus !== "refunded" &&
           now >= liveClass.joinOpensAt &&
-          now <= liveClass.joinClosesAt,
+          now <= liveClass.joinClosesAt &&
+          (hasValidReservation || canWalkIn),
+        viewerIsWalkIn: !hasValidReservation && canWalkIn,
         viewerAvailableCredits: available,
         viewerMissingEquipment,
         viewerRole: appProfile?.role ?? null,
@@ -199,7 +215,39 @@ export const get = query({
     liveClassId: v.id("liveClasses"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.liveClassId);
+    const userId = await getAuthUserId(ctx);
+    const liveClass = await ctx.db.get(args.liveClassId);
+    if (liveClass === null) return null;
+
+    // Public group_live classes are visible to everyone
+    if (liveClass.type === "group_live") {
+      return liveClass;
+    }
+
+    // 1:1 classes are private — only staff and the reserved customer can see them
+    if (userId === null) return null;
+
+    const profile = await ctx.db
+      .query("appProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+    const isStaff = profile !== null && (profile.role === "instructor" || profile.role === "admin");
+    if (isStaff) return liveClass;
+
+    const reservation = await ctx.db
+      .query("liveReservations")
+      .withIndex("by_liveClassId_and_userId", (q) =>
+        q.eq("liveClassId", args.liveClassId).eq("userId", userId),
+      )
+      .unique();
+
+    const hasValidReservation =
+      reservation !== null &&
+      (reservation.status === "reserved" || reservation.status === "joined");
+
+    if (hasValidReservation) return liveClass;
+
+    return null;
   },
 });
 
@@ -280,15 +328,12 @@ export const reserve = mutation({
       return existing._id;
     }
 
-    let seatsTaken = liveClass.seatsTaken ?? 0;
-    if (liveClass.seatsTaken === undefined) {
-      const allReservations = await ctx.db
-        .query("liveReservations")
-        .withIndex("by_liveClassId_and_status", (q) => q.eq("liveClassId", args.liveClassId))
-        .take(liveClass.capacity + 1);
-      seatsTaken = allReservations.filter((r) => r.status === "reserved" || r.status === "joined").length;
-      await ctx.db.patch(args.liveClassId, { seatsTaken });
-    }
+    // Always compute seatsTaken from ground truth to avoid counter drift
+    const allReservations = await ctx.db
+      .query("liveReservations")
+      .withIndex("by_liveClassId_and_status", (q) => q.eq("liveClassId", args.liveClassId))
+      .take(liveClass.capacity + 1);
+    const seatsTaken = allReservations.filter((r) => r.status === "reserved" || r.status === "joined").length;
     if (seatsTaken >= liveClass.capacity) {
       throw new Error("Class is full");
     }
@@ -427,6 +472,81 @@ export const myNextLiveClass = query({
   },
 });
 
+export const autoStartDueLiveClasses = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const dueClasses = await ctx.db
+      .query("liveClasses")
+      .withIndex("by_status_and_startsAt", (q) => q.eq("status", "scheduled").lte("startsAt", now))
+      .take(50);
+
+    for (const liveClass of dueClasses) {
+      if (liveClass.status !== "scheduled") continue;
+      if (now > liveClass.joinClosesAt) continue;
+
+      await ctx.db.patch(liveClass._id, { status: "live", updatedAt: now });
+
+      const existingRoom = await ctx.db
+        .query("liveRooms")
+        .withIndex("by_liveClassId", (q) => q.eq("liveClassId", liveClass._id))
+        .unique();
+
+      if (existingRoom === null) {
+        await ctx.db.insert("liveRooms", {
+          liveClassId: liveClass._id,
+          provider: "livekit",
+          roomName: roomNameForClass(liveClass._id),
+          status: "active",
+          startedAt: now,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.patch(existingRoom._id, { status: "active", updatedAt: now });
+      }
+    }
+  },
+});
+
+export const settleClassReservations = internalMutation({
+  args: {
+    liveClassId: v.id("liveClasses"),
+  },
+  handler: async (ctx, args) => {
+    const reservations = await ctx.db
+      .query("liveReservations")
+      .withIndex("by_liveClassId_and_status", (q) =>
+        q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
+      )
+      .take(200);
+
+    for (const reservation of reservations) {
+      const bucket = await ctx.db.get(reservation.creditBucketId);
+      if (bucket === null) continue;
+
+      if (reservation.creditKind === "live") {
+        await ctx.db.patch(bucket._id, {
+          liveReserved: Math.max(0, (bucket.liveReserved ?? 0) - reservation.creditsReserved),
+        });
+      } else {
+        await ctx.db.patch(bucket._id, {
+          oneOnOneReserved: Math.max(0, (bucket.oneOnOneReserved ?? 0) - reservation.creditsReserved),
+        });
+      }
+
+      await ctx.db.patch(reservation._id, { status: "no_show" });
+    }
+
+    // Decrement seatsTaken by the number of reservations settled
+    const liveClass = await ctx.db.get(args.liveClassId);
+    if (liveClass !== null && reservations.length > 0) {
+      await ctx.db.patch(args.liveClassId, {
+        seatsTaken: Math.max(0, (liveClass.seatsTaken ?? 0) - reservations.length),
+      });
+    }
+  },
+});
+
 export const prepareJoin = internalMutation({
   args: {
     liveClassId: v.id("liveClasses"),
@@ -451,6 +571,8 @@ export const prepareJoin = internalMutation({
       throw new Error("Class is outside the join window");
     }
 
+    let joinReason = "join_token_issued";
+
     if (!isInstructor) {
       const reservation = await ctx.db
         .query("liveReservations")
@@ -458,10 +580,6 @@ export const prepareJoin = internalMutation({
           q.eq("liveClassId", args.liveClassId).eq("userId", userId),
         )
         .unique();
-
-      if (reservation === null || reservation.status === "cancelled" || reservation.status === "refunded") {
-        throw new Error("Reservation required");
-      }
 
       const memberProfile = await ctx.db
         .query("memberProfiles")
@@ -472,7 +590,9 @@ export const prepareJoin = internalMutation({
         throw new Error("Required equipment missing");
       }
 
-      if (reservation.status === "reserved") {
+      if (reservation !== null && reservation.status === "joined") {
+        joinReason = "rejoin_token_issued";
+      } else if (reservation !== null && reservation.status === "reserved") {
         const bucket = await ctx.db.get(reservation.creditBucketId);
         if (bucket === null) throw new Error("Reservation credit bucket not found");
 
@@ -492,6 +612,48 @@ export const prepareJoin = internalMutation({
           status: "joined",
           joinedAt: now,
         });
+      } else if (reservation === null) {
+        // Walk-in / mid-live join
+        const walkInReservations = await ctx.db
+          .query("liveReservations")
+          .withIndex("by_liveClassId_and_status", (q) => q.eq("liveClassId", args.liveClassId))
+          .take(liveClass.capacity + 1);
+        const seatsTaken = walkInReservations.filter((r) => r.status === "reserved" || r.status === "joined").length;
+        if (seatsTaken >= liveClass.capacity) {
+          throw new Error("Class is full");
+        }
+
+        const bucket = await getCurrentCreditBucket(ctx, userId);
+        if (bucket === null) throw new Error("No active credit bucket");
+        if (availableCredits(bucket, liveClass.creditKind) < liveClass.creditCost) {
+          throw new Error("Insufficient credits");
+        }
+
+        if (liveClass.creditKind === "live") {
+          await ctx.db.patch(bucket._id, {
+            liveUsed: bucket.liveUsed + liveClass.creditCost,
+          });
+        } else {
+          await ctx.db.patch(bucket._id, {
+            oneOnOneUsed: bucket.oneOnOneUsed + liveClass.creditCost,
+          });
+        }
+
+        await ctx.db.insert("liveReservations", {
+          liveClassId: args.liveClassId,
+          userId,
+          creditBucketId: bucket._id,
+          status: "joined",
+          creditKind: liveClass.creditKind,
+          creditsReserved: liveClass.creditCost,
+          reservedAt: now,
+          joinedAt: now,
+        });
+
+        await ctx.db.patch(liveClass._id, { seatsTaken: seatsTaken + 1 });
+        joinReason = "mid_live_walk_in";
+      } else {
+        throw new Error("Reservation required");
       }
     }
 
@@ -523,7 +685,7 @@ export const prepareJoin = internalMutation({
       userId,
       role: participantRole,
       result: "allowed",
-      reason: "join_token_issued",
+      reason: joinReason,
       createdAt: now,
     });
 
@@ -538,6 +700,51 @@ export const prepareJoin = internalMutation({
       endsAt: liveClass.endsAt,
       joinClosesAt: liveClass.joinClosesAt,
       capacity: liveClass.capacity,
+    };
+  },
+});
+
+export const expireDueLiveClasses = internalMutation({
+  args: {
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const dueClasses = await ctx.db
+      .query("liveClasses")
+      .withIndex("by_status_and_joinClosesAt", (q) => q.eq("status", "live").lte("joinClosesAt", args.now))
+      .take(100);
+
+    const expiredRoomNames: string[] = [];
+
+    for (const liveClass of dueClasses) {
+      await ctx.db.patch(liveClass._id, {
+        status: "ended",
+        updatedAt: args.now,
+        seatsTaken: 0,
+      });
+
+      const room = await ctx.db
+        .query("liveRooms")
+        .withIndex("by_liveClassId", (q) => q.eq("liveClassId", liveClass._id))
+        .unique();
+
+      if (room !== null) {
+        expiredRoomNames.push(room.roomName);
+        await ctx.db.patch(room._id, {
+          status: "ended",
+          endedAt: room.endedAt ?? args.now,
+          updatedAt: args.now,
+        });
+      }
+
+      await ctx.runMutation(internal.liveClasses.settleClassReservations, {
+        liveClassId: liveClass._id,
+      });
+    }
+
+    return {
+      expiredClassIds: dueClasses.map((liveClass) => liveClass._id),
+      expiredRoomNames,
     };
   },
 });

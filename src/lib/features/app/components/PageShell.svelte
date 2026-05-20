@@ -28,12 +28,15 @@
       {#if kicker}
         <p class="kicker">{kicker}</p>
       {/if}
-      <h1>{title}</h1>
+      <div class="title-row">
+        <h1>{title}</h1>
+        {#if badge}
+          <span class="badge">{badge}</span>
+        {/if}
+      </div>
     </div>
     {#if headerExtra}
       {@render headerExtra()}
-    {:else if badge}
-      <span class="badge">{badge}</span>
     {/if}
   </div>
 
@@ -77,6 +80,13 @@
     flex-direction: column;
     gap: var(--space-2);
     min-width: 0;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
   }
 
   .kicker {

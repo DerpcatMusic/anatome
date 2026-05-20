@@ -4,13 +4,13 @@ import { routePath } from "$lib/i18n/context";
 export const prerender = true;
 
 const DISALLOWED = [
-  routePath("dashboard"),
-  routePath("customerCalendar"),
-  routePath("customerOneOnOne"),
-  routePath("customerVideos"),
-  routePath("studioLive"),
+  "/u/dashboard",
+  "/u/calendar",
+  "/u/one-on-one",
+  "/u/videos",
+  "/i/live",
   routePath("liveRoom"),
-  routePath("profile"),
+  "/u/profile",
   routePath("watch"),
   routePath("onboarding"),
   "/callback",

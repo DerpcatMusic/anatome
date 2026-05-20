@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import { useConvexClient } from "convex-svelte";
-  import { routePath } from "$lib/i18n/context";
+
   import { useI18n } from "$lib/i18n/runes.svelte";
   import {
     equipmentOptions,
@@ -115,7 +115,7 @@
         equipment, experience, goals, notes,
       });
       submitted = true;
-      const target = redirectTo ?? routePath("dashboard");
+      const target = redirectTo ?? "/u/dashboard";
       setTimeout(() => window.location.assign(target), 800);
     } catch (reason) {
       error = reason instanceof Error ? reason.message : t.onboarding.saveError();
@@ -181,7 +181,7 @@
 
         <div class="form-footer">
           {#if !isFirst}
-            <button class="back-btn" type="button" onclick={back} disabled={pending}>{t.onboarding.nav.back()}</button>
+            <Button tone="paper" size="sm" onclick={back} disabled={pending}>{t.onboarding.nav.back()}</Button>
           {:else}
             <span></span>
           {/if}
@@ -327,29 +327,6 @@
     padding-top: var(--space-6);
     border-top: var(--border);
     flex-shrink: 0;
-  }
-
-  /* ─── Back button ─── */
-  .back-btn {
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    font: inherit;
-    font-weight: 700;
-    font-size: var(--step-1);
-    cursor: pointer;
-    padding: var(--space-3) var(--space-6);
-    min-height: 52px;
-    transition: background var(--duration-fast);
-  }
-
-  .back-btn:hover {
-    background: var(--surface);
-  }
-
-  .back-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
   }
 
   /* ─── Success ─── */

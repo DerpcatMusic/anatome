@@ -1,0 +1,183 @@
+/* Clean Modern EventCalendar Theme */
+.ec {
+  font-family: var(--font-sans);
+  --ec-border-color: var(--line-light);
+}
+
+.ec-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-light);
+}
+
+.ec-day {
+  font-weight: 700;
+  font-size: var(--step--1);
+  padding: var(--space-2) var(--space-1);
+  border-inline-end: 1px solid var(--line-light);
+  color: var(--ink);
+}
+
+.ec-time {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--step--2);
+  color: var(--muted);
+}
+
+/* Events — clean pill cards with left-border status coding */
+.ec-event {
+  border-radius: 4px;
+  border: none;
+  border-inline-start: 3px solid transparent;
+  padding: 0;
+  margin-inline: 1px;
+  color: var(--ink);
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.ec-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.ec-event-resizer {
+  width: 20px;
+  height: 3px;
+  background: var(--muted);
+  border-radius: 2px;
+  inset-block-end: 3px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.ec-event:hover .ec-event-resizer {
+  opacity: 1;
+}
+
+.ec-event-status--ended .ec-event-resizer {
+  display: none;
+}
+
+/* Status color coding — left border + subtle background */
+.ec-event-status--scheduled {
+  border-inline-start-color: var(--sky-strong);
+  background: color-mix(in oklch, var(--sky-soft) 35%, var(--white));
+}
+
+.ec-event-status--live {
+  border-inline-start-color: var(--terra-strong);
+  background: color-mix(in oklch, var(--terra-soft) 45%, var(--white));
+}
+
+.ec-event-status--ended {
+  border-inline-start-color: var(--muted);
+  background: var(--surface);
+  opacity: 0.65;
+}
+
+.ec-event-status--ended .event-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+  text-decoration-thickness: 1px;
+}
+
+/* Inner Event Layout */
+.calendar-class-event-body {
+  padding: 3px 5px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 1px;
+  direction: rtl;
+  text-align: right;
+  justify-content: space-between;
+}
+
+.calendar-class-event-body .event-title {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.calendar-class-event-body .event-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.calendar-class-event-body .meta-badge {
+  font-size: 10px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Pulsing live dot */
+.pulse-indicator {
+  width: 6px;
+  height: 6px;
+  background: var(--terra-strong);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  animation: pulseGlow 1.5s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-indicator {
+    animation: none;
+    opacity: 1;
+  }
+
+  .ec-event {
+    transition: none;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Preview selection while dragging */
+.ec-event.ec-preview {
+  z-index: 1000;
+  user-select: none;
+  opacity: 0.7;
+  border-inline-start-color: var(--sky-strong);
+  background: color-mix(in oklch, var(--sky) 25%, transparent);
+  border-radius: 6px;
+}
+
+.ec-selecting {
+  cursor: crosshair;
+}
+
+/* Today highlight */
+.ec-today {
+  background: color-mix(in oklch, var(--sky-soft) 12%, transparent);
+}
+
+/* Slot lines */
+.ec-lines {
+  border-color: var(--line-light);
+}

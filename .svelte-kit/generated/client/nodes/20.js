@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/(app)/סטודיו/לייב/+page.svelte";
+export { default as component } from "../../../../src/routes/(app)/u/dashboard/+page.svelte";

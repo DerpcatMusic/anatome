@@ -3,7 +3,8 @@ import type { FunctionReference } from "convex/server";
 import { PersistedState } from "runed";
 import { api } from "$convex/_generated/api";
 import { convex } from "$lib/convex/client";
-import { routePath } from "$lib/i18n/context";
+
+import { PUBLIC_CONVEX_CLIENT_URL } from "$env/static/public";
 
 type Tokens = {
   token: string;
@@ -16,7 +17,7 @@ type AuthState = {
   error: string;
 };
 
-const namespace = `homebody:${import.meta.env.PUBLIC_CONVEX_CLIENT_URL ?? "ssr"}`;
+const namespace = `homebody:${PUBLIC_CONVEX_CLIENT_URL ?? "ssr"}`;
 const tokenKey = `${namespace}:jwt`;
 const refreshTokenKey = `${namespace}:refresh`;
 
@@ -107,7 +108,7 @@ function clearStaleSession(message = expiredSessionMessage) {
  * that trigger refresh-token storms.
  */
 function makeHttpClient(token: string) {
-  return new ConvexHttpClient(import.meta.env.PUBLIC_CONVEX_CLIENT_URL!, {
+  return new ConvexHttpClient(PUBLIC_CONVEX_CLIENT_URL!, {
     auth: token,
     logger: false,
   });
@@ -135,7 +136,7 @@ async function doRefreshToken(): Promise<string | null> {
 
   try {
     // Use an unauthenticated client for the refresh action itself.
-    const client = new ConvexHttpClient(import.meta.env.PUBLIC_CONVEX_CLIENT_URL!, {
+    const client = new ConvexHttpClient(PUBLIC_CONVEX_CLIENT_URL!, {
       logger: false,
     });
     const result = await withTimeout(
@@ -257,12 +258,12 @@ async function redirectAfterAuth() {
     const dashboard = await authQuery(api.users.dashboard, {});
     if (dashboard?.role) setCachedRole(dashboard.role);
     if (dashboard?.needsOnboarding) {
-      window.location.assign(routePath("onboarding"));
+      window.location.assign("/onboarding");
     } else {
-      window.location.assign(routePath("dashboard"));
+      window.location.assign("/u/dashboard");
     }
   } catch {
-    window.location.assign(routePath("dashboard"));
+    window.location.assign("/u/dashboard");
   }
 }
 

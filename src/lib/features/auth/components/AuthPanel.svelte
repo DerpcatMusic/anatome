@@ -1,7 +1,7 @@
 <script lang="ts">
   import Notice from "$components/ui/Notice.svelte";
   import { initAuth, signOut, storeTokens } from "$lib/auth/session.svelte";
-  import { routePath } from "$lib/i18n/context";
+
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
@@ -76,7 +76,7 @@
         params: { email, code: code.trim() },
       });
       storeTokens(result.tokens ?? null);
-      window.location.assign(routePath("dashboard"));
+      window.location.assign("/u/dashboard");
     } catch (reason) {
       status = reason instanceof Error ? reason.message : t.auth.statusCodeError();
     } finally {
@@ -92,8 +92,7 @@
   }
 
   function closeModal() {
-    const overlay = document.getElementById("auth-overlay");
-    if (overlay) overlay.classList.remove("is-open");
+    window.dispatchEvent(new CustomEvent("homebody:auth-close"));
   }
 
   function switchToCode() {

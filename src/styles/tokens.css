@@ -2,6 +2,8 @@
   /* Ink */
   --ink: #0a0a0a;
   --ink-secondary: #1a1a1a;
+  --ink-gradient-end: #16191f;
+  --ink-gradient-end-hover: #232830;
 
   /* Paper — warm, slightly beige */
   --paper: #fffdf8;
@@ -18,11 +20,39 @@
   /* Gradient accents */
   --sky: #9fd8ff;
   --sky-soft: #d4eeff;
-  --sky-strong: #43b8ff;
+  --sky-strong: #2aa3f0;
   --beige: #eadcc5;
 
-  /* Semantic */
+  /* Warm accent — terracotta for confidence & warmth */
+  --terra: #c45d3a;
+  --terra-soft: #f3ddd5;
+  --terra-strong: #a04428;
+  --terra-muted: #d4876e;
+
+  /* Semantic Danger */
   --danger: #c93322;
+  --danger-soft: #fff1f0;
+  --danger-soft-hover: #fde8e7;
+  --danger-border: #fecaca;
+  --danger-text: #c93322;
+
+  /* Semantic Success & Warning */
+  --success: #188038;
+  --success-strong: #137333;
+  --success-soft: color-mix(in srgb, var(--success) 16%, transparent);
+  --success-bg: #e8f5ee;
+  --success-border: #137333;
+  --success-text: #137333;
+
+  --speaking: #f2b84b;
+  --warning: #c93322;
+  --warning-bg: #fff7ed;
+  --warning-text: #7c2d12;
+  --caution: #d4a017;
+  --caution-soft: #fdf6e3;
+
+  /* Additional Accents */
+  --accent-purple: #8c5cf6;
 
   /* Typography */
   --font-body: "Noto Sans Hebrew", "Assistant", "Arial", sans-serif;
@@ -51,8 +81,51 @@
   /* Borders */
   --border: 1px solid var(--line);
 
+  /* ── Shadows ── */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --shadow-primary-button: 6px 6px 0 color-mix(in srgb, var(--sky) 52%, transparent);
+  --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
+  --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 34%, transparent);
+  --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
+
+  /* ── Glassmorphism (unified) ── */
+  --glass-bg: color-mix(in srgb, var(--white) 82%, transparent);
+  --glass-strong-bg: color-mix(in srgb, var(--white) 92%, transparent);
+  --glass-border: 1px solid var(--line-light);
+  --glass-blur: blur(16px);
+
+  /* ── Warm surfaces ── */
+  --surface-warm: #fdf6f0;
+  --surface-terra: #faf0ec;
+
+  /* ── Live Room ── */
+  --video-bg: #0d0f14;
+  --video-bg-warm: #11141a;
+  --video-gradient-end: #23262d;
+  --tile-border: color-mix(in srgb, var(--white) 22%, transparent);
+  --screen-share-bg: var(--sky-strong);
+  --screen-share-color: var(--white);
+  --chat-bg: color-mix(in srgb, var(--surface) 72%, transparent);
+  --chat-border: color-mix(in srgb, var(--line) 16%, transparent);
+  --chat-radius: 8px 8px 8px 0;
+  --chat-radius-local: 8px 8px 0 8px;
+  --participant-border: color-mix(in srgb, var(--line) 16%, transparent);
+  --participant-bg: color-mix(in srgb, var(--white) 62%, transparent);
+  --participant-speaking-bg: color-mix(in srgb, var(--success-bg) 80%, var(--white));
+  --quality-row-border: color-mix(in srgb, var(--line) 14%, transparent);
+  --quality-row-bg: color-mix(in srgb, var(--surface) 68%, transparent);
+  --panel-width: 280px;
+
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-elastic: cubic-bezier(0.34, 1.8, 0.64, 1);
   --duration-fast: 0.12s;
   --duration-base: 0.2s;
+  --transition-bounce: transform 0.35s var(--ease-elastic), box-shadow 0.35s var(--ease-elastic), border-radius 0.55s var(--ease-elastic);
+
+  /* Layout grids */
+  --subgrid-card-rows: subgrid;
+  --subgrid-card-span: span 6;
 }

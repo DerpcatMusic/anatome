@@ -1,6 +1,7 @@
 <script lang="ts">
   import { useI18n } from '$lib/i18n/runes.svelte';
   import { goalOptions } from '$lib/labels';
+  import Checkbox from '$components/ui/Checkbox.svelte';
   import Notice from '$components/ui/Notice.svelte';
 
   let {
@@ -18,10 +19,11 @@
 
 <div class="chips">
   {#each goalOptions as [value, label]}
-    <label class="chip" class:selected={goals.includes(value)}>
-      <input type="checkbox" checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)} />
-      <span>{label}</span>
-    </label>
+    <div class="chip">
+      <Checkbox checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)}>
+        <span>{label}</span>
+      </Checkbox>
+    </div>
   {/each}
 </div>
 {#if goals.length === 0}
@@ -36,32 +38,10 @@
   }
 
   .chip {
-    cursor: pointer;
-  }
-
-  .chip input {
-    position: absolute;
-    opacity: 0;
-  }
-
-  .chip span {
     display: inline-flex;
     min-height: 48px;
     align-items: center;
-    border: var(--border);
-    background: var(--white);
     padding-inline: var(--space-5);
     font-size: var(--step-0);
-    font-weight: 600;
-    transition: background var(--duration-fast);
-  }
-
-  .chip:hover span {
-    background: var(--surface);
-  }
-
-  .chip.selected span {
-    background: var(--sky);
-    border-color: var(--line);
   }
 </style>

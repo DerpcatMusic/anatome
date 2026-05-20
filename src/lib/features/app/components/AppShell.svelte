@@ -1,8 +1,9 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { api } from "$convex/_generated/api";
   import Dashboard from "$features/dashboard/components/Dashboard.svelte";
   import { signOut } from "$lib/auth/session.svelte";
-  import { routePath } from "$lib/i18n/context";
+
   import { useQuery } from "convex-svelte";
   import { initAuth } from "$lib/auth/session.svelte";
 
@@ -21,7 +22,7 @@
       <h1>צריך להתחבר</h1>
       <p>כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p>
       <div class="locked__actions">
-        <a href="/">כניסה</a>
+        <Button tone="ink" size="md" onclick={() => window.location.assign('/')}>כניסה</Button>
       </div>
     </div>
   </div>
@@ -36,8 +37,8 @@
       <h1>צריך לסיים התאמה אישית</h1>
       <p>קצר, פשוט, ויעזור לנו להתאים לך שיעורים.</p>
       <div class="locked__actions">
-        <a href={routePath("onboarding")}>להמשיך בהתאמה</a>
-        <button onclick={signOut}>יציאה</button>
+        <Button tone="ink" size="md" onclick={() => window.location.assign("/onboarding")}>להמשיך בהתאמה</Button>
+        <Button tone="paper" size="sm" onclick={signOut}>יציאה</Button>
       </div>
     </div>
   </div>
@@ -107,25 +108,7 @@
     margin-top: var(--space-2);
   }
 
-  .locked__actions a,
-  .locked__actions button {
-    display: inline-flex;
+  .locked__actions :global(.hb-button) {
     min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-    font-weight: 700;
-    font-size: var(--step--1);
-    text-decoration: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .locked__actions a:hover,
-  .locked__actions button:hover {
-    background: var(--ink-secondary);
   }
 </style>

@@ -1,15 +1,12 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { initAuth, signOut } from "$lib/auth/session.svelte";
-  import { routePath } from "$lib/i18n/context";
+
 
   const auth = initAuth();
 
   function openAuth() {
-    const overlay = document.getElementById("auth-overlay");
-    if (overlay) {
-      overlay.classList.add("is-open");
-      setTimeout(() => overlay.querySelector("input")?.focus(), 100);
-    }
+    window.dispatchEvent(new CustomEvent("homebody:auth-open"));
   }
 </script>
 
@@ -25,10 +22,10 @@
       {#if auth.isLoading}
         <span class="navbar__status">טוען...</span>
       {:else if auth.isAuthenticated}
-        <a class="navbar__link navbar__link--primary" href={routePath("dashboard")}>אזור אישי</a>
-        <button class="navbar__btn" type="button" onclick={signOut}>יציאה</button>
+        <Button tone="sky" size="sm" onclick={() => window.location.assign("/u/dashboard")}>אזור אישי</Button>
+        <Button tone="paper" size="sm" onclick={signOut}>יציאה</Button>
       {:else}
-        <button class="navbar__btn navbar__btn--primary" type="button" onclick={openAuth}>כניסה</button>
+        <Button tone="ink" size="sm" onclick={openAuth}>כניסה</Button>
       {/if}
     </div>
   </div>
@@ -90,58 +87,6 @@
     font-size: var(--step-0);
     color: var(--muted);
     font-family: var(--font-mono);
-  }
-
-  .navbar__link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px;
-    padding-inline: var(--space-4);
-    font-size: var(--step-0);
-    font-weight: 700;
-    text-decoration: none;
-    color: var(--ink);
-    border: var(--border);
-    background: var(--white);
-    transition: background var(--duration-fast);
-  }
-
-  .navbar__link:hover {
-    background: var(--surface);
-  }
-
-  .navbar__link--primary {
-    background: var(--sky);
-    border-color: var(--line);
-  }
-
-  .navbar__btn {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px;
-    padding-inline: var(--space-4);
-    font: inherit;
-    font-size: var(--step-0);
-    font-weight: 700;
-    cursor: pointer;
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    transition: background var(--duration-fast);
-  }
-
-  .navbar__btn:hover {
-    background: var(--surface);
-  }
-
-  .navbar__btn--primary {
-    background: var(--ink);
-    color: var(--white);
-    border-color: var(--ink);
-  }
-
-  .navbar__btn--primary:hover {
-    background: var(--ink-secondary);
   }
 
   @media (max-width: 520px) {

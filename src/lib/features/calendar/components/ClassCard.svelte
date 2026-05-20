@@ -1,10 +1,11 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import type { Id } from "$convex/_generated/dataModel";
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { equipmentLabel, classTypeLabel, creditLabel } from "$lib/labels";
-  import { liveRoomHref, routePath } from "$lib/i18n/context";
+  import { classTypeLabel, creditLabel } from "$lib/labels";
+  import { liveRoomHref } from "$lib/i18n/context";
 
   type CalendarClass = FunctionReturnType<typeof api.customerLive.listCalendarRange>[number];
 
@@ -28,77 +29,93 @@
     timeZone: "Asia/Jerusalem",
   });
 
-  function statusLabel(item: CalendarClass) {
+  function statusInfo(item: CalendarClass) {
     if (item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined") {
-      return t.calendar.status.reserved();
+      return { label: t.calendar.status.reserved(), tone: "success" as const };
     }
-    if (item.viewerRole === "instructor" || item.viewerRole === "admin") {
-      if (item.viewerCanJoin) return t.calendar.status.manageLive();
-      return t.calendar.status.studioClass();
+    if (item.liveClass.status === "live") {
+      return { label: t.calendar.status.nowLive(), tone: "terra" as const };
     }
-    if (item.liveClass.status === "live") return t.calendar.status.nowLive();
-    if (item.seatsRemaining <= 0) return t.calendar.status.full();
-    if (item.viewerMissingEquipment.length > 0) return t.calendar.status.missingEquipmentShort();
-    if (item.viewerAvailableCredits < item.liveClass.creditCost) return t.calendar.status.notEnoughCredits();
-    return t.calendar.status.open();
+    if (item.seatsRemaining <= 0) {
+      return { label: t.calendar.status.full(), tone: "muted" as const };
+    }
+    if (item.viewerMissingEquipment.length > 0) {
+      return { label: t.calendar.status.missingEquipmentShort(), tone: "muted" as const };
+    }
+    if (item.viewerAvailableCredits < item.liveClass.creditCost) {
+      return { label: t.calendar.status.notEnoughCredits(), tone: "muted" as const };
+    }
+    return { label: t.calendar.status.open(), tone: "sky" as const };
   }
+
+  function rsvpText(item: CalendarClass): string | null {
+    const now = Date.now();
+    const closesAt = item.liveClass.joinClosesAt;
+    if (closesAt <= now) return "ההרשמה נסגרה";
+    const diffMs = closesAt - now;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    if (diffMinutes < 60) return `נסגרת בעוד ${diffMinutes} דקות`;
+    if (diffHours < 24) return `נסגרת בעוד ${diffHours} שעות`;
+    return null;
+  }
+
+  const info = $derived(statusInfo(item));
+  const rsvp = $derived(rsvpText(item));
 </script>
 
 <article class="class-card">
   <div class="class-card__time">
-    <span>{timeFormatter.format(new Date(item.liveClass.startsAt))}</span>
-    <span>{timeFormatter.format(new Date(item.liveClass.endsAt))}</span>
+    <span class="class-card__start">{timeFormatter.format(new Date(item.liveClass.startsAt))}</span>
+    <span class="class-card__end">{timeFormatter.format(new Date(item.liveClass.endsAt))}</span>
   </div>
 
-  <div class="class-card__content">
-    <div class="class-card__header">
-      <div>
-        <p class="class-card__type">{classTypeLabel(item.liveClass.type)}</p>
+  <div class="class-card__body">
+    <div class="class-card__main">
+      <div class="class-card__title-row">
         <h3>{item.liveClass.title}</h3>
+        <span class="status-badge status-badge--{info.tone}">{info.label}</span>
       </div>
-      <span class="class-card__status">{statusLabel(item)}</span>
+
+      <div class="class-card__meta">
+        <span class="meta-tag meta-tag--type">{classTypeLabel(item.liveClass.type)}</span>
+        <span class="meta-tag">{creditLabel(item.liveClass.creditKind)}</span>
+        {#if item.liveClass.capacity > 1}
+          <span class="meta-tag">{item.seatsRemaining} / {item.liveClass.capacity}</span>
+        {/if}
+        {#if rsvp}
+          <span class="meta-tag meta-tag--rsvp" class:meta-tag--urgent={info.tone === "sky" && item.liveClass.joinClosesAt - Date.now() < 1000 * 60 * 60}>
+            {rsvp}
+          </span>
+        {/if}
+      </div>
     </div>
 
-    {#if item.liveClass.description}
-      <p class="class-card__description">{item.liveClass.description}</p>
-    {/if}
-
-    <div class="class-card__meta">
-      <span>{creditLabel(item.liveClass.creditKind)}</span>
-      <span>{t.calendar.class.seats({ remaining: item.seatsRemaining, capacity: item.liveClass.capacity })}</span>
-      {#each item.liveClass.requiredEquipment as equipment}
-        <span>{equipmentLabel(equipment)}</span>
-      {/each}
-    </div>
-
-    {#if item.viewerMissingEquipment.length > 0}
-      <p class="info-text">
-        {t.calendar.class.missingEquipment({ items: item.viewerMissingEquipment.map(equipmentLabel).join(", ") })}
-      </p>
-    {/if}
-
-    <div class="class-card__actions">
+    <div class="class-card__action">
       {#if item.viewerCanJoin}
-        <a class="class-card__join" href={liveRoomHref(item.liveClass._id)}>{t.calendar.class.join()}</a>
-      {:else if item.viewerRole === "instructor" || item.viewerRole === "admin"}
-        <a class="class-card__join" href={routePath("studioLive")}>{t.calendar.class.manage()}</a>
+        {#if item.viewerIsWalkIn}
+          <Button tone="terra" size="sm" href={liveRoomHref(item.liveClass._id)}>
+            {t.calendar.class.joinWalkIn()}
+          </Button>
+        {:else}
+          <Button tone="terra" size="sm" href={liveRoomHref(item.liveClass._id)}>
+            {t.calendar.class.join()}
+          </Button>
+        {/if}
       {:else if item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined"}
-        <button
-          type="button"
-          onclick={() => onCancel(item.liveClass._id)}
-          disabled={actionId === item.liveClass._id}
-        >
+        <Button type="button" tone="paper" size="sm" onclick={() => onCancel(item.liveClass._id)} disabled={actionId === item.liveClass._id}>
           {t.calendar.class.cancel()}
-        </button>
+        </Button>
       {:else}
-        <button
+        <Button
           type="button"
-          class="class-card__reserve"
+          tone={info.tone === "sky" ? "ink" : "paper"}
+          size="sm"
           onclick={() => onReserve(item.liveClass._id)}
           disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
         >
           {t.calendar.class.reserve()}
-        </button>
+        </Button>
       {/if}
     </div>
   </div>
@@ -107,153 +124,162 @@
 <style>
   .class-card {
     display: grid;
-    grid-template-columns: 96px 1fr;
-    border: var(--border);
+    grid-template-columns: 72px 1fr;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
     background: var(--white);
+    border-bottom: 1px solid var(--line-light);
+    transition: background var(--duration-fast);
+  }
+
+  .class-card:hover {
+    background: color-mix(in srgb, var(--sky-soft) 30%, var(--white));
   }
 
   .class-card__time {
-    display: grid;
-    align-content: start;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    border-inline-start: var(--border);
-    font-family: var(--font-mono);
-    font-weight: 800;
-  }
-
-  .class-card__time span:first-child {
-    font-size: var(--step-1);
-  }
-
-  .class-card__time span:last-child {
-    color: var(--muted);
-  }
-
-  .class-card__content {
-    display: grid;
-    gap: var(--space-4);
-    padding: var(--space-5);
-  }
-
-  .class-card__header {
     display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: var(--space-4);
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--font-mono);
+    text-align: center;
   }
 
-  .class-card h3 {
+  .class-card__start {
     font-size: var(--step-1);
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .class-card__end {
+    font-size: var(--step--2);
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .class-card__body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .class-card__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .class-card__title-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .class-card__title-row h3 {
+    font-size: var(--step-0);
     line-height: 1.2;
     margin: 0;
-  }
-
-  .class-card__type {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin: 0 0 var(--space-1);
-  }
-
-  .class-card__status {
-    border: var(--border);
-    background: var(--surface);
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--step--1);
-    font-weight: 800;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .class-card__description {
+  .status-badge {
+    flex-shrink: 0;
+    font-size: var(--step--2);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .status-badge--sky {
+    background: var(--sky-soft);
+    color: var(--sky-strong);
+  }
+
+  .status-badge--terra {
+    background: var(--terra-soft);
+    color: var(--terra-strong);
+  }
+
+  .status-badge--success {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  .status-badge--muted {
+    background: var(--surface);
     color: var(--muted);
-    line-height: 1.7;
-    margin: 0;
   }
 
   .class-card__meta {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-2);
+    min-width: 0;
   }
 
-  .class-card__meta span {
-    border: 1px solid var(--line-light);
-    background: var(--surface);
-    padding: var(--space-2) var(--space-3);
+  .meta-tag {
     font-size: var(--step--1);
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .meta-tag--type {
+    color: var(--ink);
     font-weight: 700;
   }
 
-  .class-card__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
-  .class-card__actions button,
-  .class-card__join {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    padding-inline: var(--space-4);
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background var(--duration-fast);
-  }
-
-  .class-card__actions button:hover,
-  .class-card__join:hover {
-    background: var(--surface);
-  }
-
-  .class-card__reserve,
-  .class-card__join {
-    background: var(--ink);
-    color: var(--white);
-    border-color: var(--ink);
-  }
-
-  .class-card__reserve:hover,
-  .class-card__join:hover {
-    background: var(--ink-secondary);
-  }
-
-  .class-card__actions button:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  .info-text {
+  .meta-tag--rsvp {
     color: var(--muted);
-    font-size: var(--step--1);
-    line-height: 1.5;
-    margin: 0;
+    font-size: var(--step--2);
   }
 
-  @media (max-width: 860px) {
+  .meta-tag--urgent {
+    color: var(--terra-strong);
+    font-weight: 800;
+  }
+
+  .class-card__action {
+    flex-shrink: 0;
+  }
+
+  .class-card__action :global(button) {
+    min-width: 100px;
+  }
+
+  @media (max-width: 680px) {
     .class-card {
       grid-template-columns: 1fr;
+      gap: var(--space-3);
+      padding: var(--space-3);
     }
 
     .class-card__time {
-      display: flex;
-      border-inline-start: 0;
-      border-bottom: var(--border);
+      flex-direction: row;
+      gap: var(--space-2);
+      justify-content: flex-start;
+    }
+
+    .class-card__body {
+      flex-direction: column;
+      align-items: stretch;
       gap: var(--space-3);
     }
 
-    .class-card__header {
-      flex-direction: column;
+    .class-card__title-row h3 {
+      white-space: normal;
     }
   }
 </style>

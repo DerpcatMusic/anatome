@@ -1,10 +1,10 @@
-import { U as attr, W as escape_html, a as derived, i as bind_props, n as attr_class, o as ensure_array_like, r as attr_style, u as html } from "./dev.js";
+import { a as bind_props, c as ensure_array_like, et as attr, n as attr_class, nt as escape_html, o as derived, r as attr_style } from "./dev.js";
 import { n as routePath } from "./context.js";
-import { n as useConvexClient } from "./client.svelte.js";
-import { s as api } from "./session.svelte.js";
+import { f as useConvexClient, s as api } from "./session.svelte.js";
+import { t as Button_1 } from "./Button.js";
+import { n as EquipmentIcon, r as Checkbox_1, t as RadioGroup_1 } from "./RadioGroup.js";
 import { t as Notice } from "./Notice.js";
 import { t as useI18n } from "./runes.svelte.js";
-import { t as Button } from "./Button.js";
 import { d as goalLabel, i as equipmentLabel, l as experienceOptions, o as equipmentOptions, p as goalOptions, s as experienceLabel } from "./labels.js";
 //#region src/lib/features/app/components/AppSkeleton.svelte
 function AppSkeleton($$renderer, $$props) {
@@ -41,34 +41,36 @@ function ExperienceStep($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { experience = void 0 } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<div class="options svelte-1n930o"><!--[-->`);
-		const each_array = ensure_array_like(experienceOptions);
-		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-			let [val, title] = each_array[$$index];
-			const desc = val === "new" ? t.onboarding.experience.newDesc() : val === "some" ? t.onboarding.experience.someDesc() : t.onboarding.experience.steadyDesc();
-			$$renderer.push(`<label${attr_class("option svelte-1n930o", void 0, { "selected": experience === val })}><input type="radio"${attr("checked", experience === val, true)}${attr("value", val)} class="svelte-1n930o"/> <span class="option__title svelte-1n930o">${escape_html(title)}</span> <span class="option__desc svelte-1n930o">${escape_html(desc)}</span></label>`);
+		const options = derived(() => experienceOptions.map(([val, title]) => ({
+			value: val,
+			label: title,
+			description: val === "new" ? t.onboarding.experience.newDesc() : val === "some" ? t.onboarding.experience.someDesc() : t.onboarding.experience.steadyDesc()
+		})));
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			$$renderer.push(`<div class="experience-options svelte-1n930o">`);
+			RadioGroup_1($$renderer, {
+				options: options(),
+				orientation: "vertical",
+				get value() {
+					return experience;
+				},
+				set value($$value) {
+					experience = $$value;
+					$$settled = false;
+				}
+			});
+			$$renderer.push(`<!----></div>`);
 		}
-		$$renderer.push(`<!--]--></div>`);
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 		bind_props($$props, { experience });
 	});
-}
-//#endregion
-//#region src/lib/components/icons/EquipmentIcon.svelte
-function EquipmentIcon($$renderer, $$props) {
-	let { name } = $$props;
-	const icons = {
-		mat: `<rect x="4" y="14" width="56" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="12" y1="22" x2="52" y2="22" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="12" y1="28" x2="44" y2="28" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="12" y1="34" x2="48" y2="34" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>`,
-		reformer: `<rect x="6" y="20" width="48" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="14" y="16" width="20" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="36" x2="10" y2="42" stroke="currentColor" stroke-width="2.5"/><line x1="50" y1="36" x2="50" y2="42" stroke="currentColor" stroke-width="2.5"/><line x1="6" y1="42" x2="54" y2="42" stroke="currentColor" stroke-width="2"/>`,
-		cadillac: `<rect x="8" y="12" width="44" height="36" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="8" y1="20" x2="52" y2="20" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="8" y1="40" x2="52" y2="40" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><circle cx="18" cy="30" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="42" cy="30" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="12" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="52" y1="12" x2="52" y2="6" stroke="currentColor" stroke-width="2"/>`,
-		chair: `<rect x="20" y="12" width="20" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="20" y1="22" x2="40" y2="22" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="24" y1="40" x2="24" y2="48" stroke="currentColor" stroke-width="2.5"/><line x1="36" y1="40" x2="36" y2="48" stroke="currentColor" stroke-width="2.5"/><line x1="22" y1="48" x2="38" y2="48" stroke="currentColor" stroke-width="2"/>`,
-		barrel: `<path d="M16 12 C12 12, 8 24, 8 30 C8 36, 12 48, 16 48 L48 48 C52 48, 56 36, 56 30 C56 24, 52 12, 48 12 Z" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="12" y1="22" x2="52" y2="22" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="10" y1="30" x2="54" y2="30" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="12" y1="38" x2="52" y2="38" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>`,
-		magic_circle: `<circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/><circle cx="32" cy="10" r="3" fill="currentColor"/><circle cx="32" cy="54" r="3" fill="currentColor"/><circle cx="10" cy="32" r="3" fill="currentColor"/><circle cx="54" cy="32" r="3" fill="currentColor"/>`,
-		small_ball: `<circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 24 Q32 18, 46 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path d="M16 34 Q32 28, 48 34" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>`,
-		resistance_band: `<path d="M12 16 Q32 8, 52 16" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 32 Q32 24, 52 32" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 48 Q32 40, 52 48" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="12" y1="16" x2="12" y2="48" stroke="currentColor" stroke-width="2"/><line x1="52" y1="16" x2="52" y2="48" stroke="currentColor" stroke-width="2"/>`,
-		light_weights: `<rect x="12" y="20" width="8" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="40" y="20" width="8" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="20" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.5"/><rect x="24" y="12" width="12" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>`
-	};
-	const svgContent = derived(() => icons[name] ?? icons.mat);
-	$$renderer.push(`<svg viewBox="0 0 64 64" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${html(svgContent())}</svg>`);
 }
 //#endregion
 //#region src/lib/features/onboarding/components/steps/EquipmentStep.svelte
@@ -76,13 +78,24 @@ function EquipmentStep($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { equipment = void 0 } = $$props;
 		const { t } = useI18n();
+		function toggle(list, value) {
+			return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+		}
 		$$renderer.push(`<div class="equip-grid svelte-7wc14w"><!--[-->`);
 		const each_array = ensure_array_like(equipmentOptions);
 		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 			let [value, label] = each_array[$$index];
-			$$renderer.push(`<label${attr_class("equip-card svelte-7wc14w", void 0, { "selected": equipment.includes(value) })}><input type="checkbox"${attr("checked", equipment.includes(value), true)} class="svelte-7wc14w"/> `);
-			EquipmentIcon($$renderer, { name: value });
-			$$renderer.push(`<!----> <span class="svelte-7wc14w">${escape_html(label)}</span></label>`);
+			$$renderer.push(`<div class="equip-card svelte-7wc14w">`);
+			Checkbox_1($$renderer, {
+				checked: equipment.includes(value),
+				onchange: () => equipment = toggle(equipment, value),
+				children: ($$renderer) => {
+					EquipmentIcon($$renderer, { name: value });
+					$$renderer.push(`<!----> <span class="svelte-7wc14w">${escape_html(label)}</span>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div>`);
 		}
 		$$renderer.push(`<!--]--></div> `);
 		if (equipment.length === 0) {
@@ -105,11 +118,23 @@ function GoalsStep($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { goals = void 0 } = $$props;
 		const { t } = useI18n();
+		function toggle(list, value) {
+			return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+		}
 		$$renderer.push(`<div class="chips svelte-vptto8"><!--[-->`);
 		const each_array = ensure_array_like(goalOptions);
 		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 			let [value, label] = each_array[$$index];
-			$$renderer.push(`<label${attr_class("chip svelte-vptto8", void 0, { "selected": goals.includes(value) })}><input type="checkbox"${attr("checked", goals.includes(value), true)} class="svelte-vptto8"/> <span class="svelte-vptto8">${escape_html(label)}</span></label>`);
+			$$renderer.push(`<div class="chip svelte-vptto8">`);
+			Checkbox_1($$renderer, {
+				checked: goals.includes(value),
+				onchange: () => goals = toggle(goals, value),
+				children: ($$renderer) => {
+					$$renderer.push(`<span>${escape_html(label)}</span>`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div>`);
 		}
 		$$renderer.push(`<!--]--></div> `);
 		if (goals.length === 0) {
@@ -181,6 +206,10 @@ function OnboardingForm($$renderer, $$props) {
 			if (!canProceed()) return;
 			error = "";
 			if (!isLast()) stepIndex++;
+		}
+		function back() {
+			error = "";
+			if (!isFirst()) stepIndex--;
 		}
 		async function submit() {
 			pending = true;
@@ -289,7 +318,16 @@ function OnboardingForm($$renderer, $$props) {
 				$$renderer.push(`<!--]--></div> <div class="form-footer svelte-j1vmuv">`);
 				if (!isFirst()) {
 					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<button class="back-btn svelte-j1vmuv" type="button"${attr("disabled", pending, true)}>${escape_html(t.onboarding.nav.back())}</button>`);
+					Button_1($$renderer, {
+						tone: "paper",
+						size: "sm",
+						onclick: back,
+						disabled: pending,
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->${escape_html(t.onboarding.nav.back())}`);
+						},
+						$$slots: { default: true }
+					});
 				} else {
 					$$renderer.push("<!--[-1-->");
 					$$renderer.push(`<span class="svelte-j1vmuv"></span>`);
@@ -297,7 +335,7 @@ function OnboardingForm($$renderer, $$props) {
 				$$renderer.push(`<!--]--> `);
 				if (isLast()) {
 					$$renderer.push("<!--[0-->");
-					Button($$renderer, {
+					Button_1($$renderer, {
 						type: "button",
 						tone: "ink",
 						disabled: pending || !canProceed(),
@@ -309,7 +347,7 @@ function OnboardingForm($$renderer, $$props) {
 					});
 				} else {
 					$$renderer.push("<!--[-1-->");
-					Button($$renderer, {
+					Button_1($$renderer, {
 						type: "button",
 						tone: "ink",
 						disabled: !canProceed(),

@@ -1,7 +1,7 @@
-import { U as attr, W as escape_html, a as derived, l as stringify, n as attr_class, o as ensure_array_like } from "../../../chunks/dev.js";
+import { c as ensure_array_like, et as attr, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../chunks/dev.js";
 import { n as routePath, t as liveRoomHref } from "../../../chunks/context.js";
-import { r as useQuery } from "../../../chunks/client.svelte.js";
-import { n as getCachedRole, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
+import { n as getCachedRole, p as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
+import { t as page } from "../../../chunks/state.js";
 //#region src/lib/features/app/components/AppSidebar.svelte
 function AppSidebar($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
@@ -58,13 +58,10 @@ function AppSidebar($$renderer, $$props) {
 			label: "LIVE",
 			isLive: true
 		}, ...baseNav()] : baseNav());
-		let currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-		if (typeof window !== "undefined") window.addEventListener("popstate", () => {
-			currentPath = window.location.pathname;
-		});
+		const currentPath = derived(() => page.url.pathname);
 		function isCurrent(href) {
-			if (href.startsWith(routePath("liveRoom"))) return currentPath === routePath("liveRoom");
-			return currentPath === href;
+			if (href.startsWith(routePath("liveRoom"))) return currentPath() === routePath("liveRoom");
+			return currentPath() === href;
 		}
 		$$renderer.push(`<aside class="sidebar svelte-1uyw6j7" aria-label="ניווט אזור אישי"><div class="sidebar__brand svelte-1uyw6j7"><span class="sidebar__tagline svelte-1uyw6j7">${escape_html(isStaff() ? "סטודיו" : "אזור אישי")}</span> `);
 		if (isStaff()) {

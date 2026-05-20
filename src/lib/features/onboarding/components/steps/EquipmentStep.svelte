@@ -2,6 +2,7 @@
   import { useI18n } from '$lib/i18n/runes.svelte';
   import { equipmentOptions } from '$lib/labels';
   import EquipmentIcon from '$components/icons/EquipmentIcon.svelte';
+  import Checkbox from '$components/ui/Checkbox.svelte';
   import Notice from '$components/ui/Notice.svelte';
 
   let {
@@ -19,11 +20,12 @@
 
 <div class="equip-grid">
   {#each equipmentOptions as [value, label]}
-    <label class="equip-card" class:selected={equipment.includes(value)}>
-      <input type="checkbox" checked={equipment.includes(value)} onchange={() => equipment = toggle(equipment, value)} />
-      <EquipmentIcon name={value} />
-      <span>{label}</span>
-    </label>
+    <div class="equip-card">
+      <Checkbox checked={equipment.includes(value)} onchange={() => equipment = toggle(equipment, value)}>
+        <EquipmentIcon name={value} />
+        <span>{label}</span>
+      </Checkbox>
+    </div>
   {/each}
 </div>
 {#if equipment.length === 0}
@@ -43,25 +45,7 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-5) var(--space-4);
-    border: var(--border);
-    background: var(--white);
-    cursor: pointer;
     text-align: center;
-    transition: background var(--duration-fast);
-  }
-
-  .equip-card:hover {
-    background: var(--surface);
-  }
-
-  .equip-card.selected {
-    background: var(--sky-soft);
-    border-color: var(--line);
-  }
-
-  .equip-card input {
-    position: absolute;
-    opacity: 0;
   }
 
   .equip-card span {

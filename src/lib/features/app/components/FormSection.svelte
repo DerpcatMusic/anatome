@@ -17,20 +17,18 @@
 
 <style>
   .form-section {
-    border: var(--border);
-    background: var(--white);
-    padding: var(--space-4);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-3);
     min-width: 0;
   }
 
   h3 {
     font-size: var(--step-0);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1.2;
     margin: 0;
+    color: var(--ink);
   }
 
   .form-section__body {

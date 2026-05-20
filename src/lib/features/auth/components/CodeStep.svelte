@@ -41,7 +41,7 @@
   </Button>
 
   <div class="auth-links">
-    <button class="link" type="button" onclick={reset}>{t.auth.switchEmail()}</button>
+    <Button tone="ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button>
   </div>
 {:else}
   <!-- link sent state -->
@@ -57,10 +57,10 @@
   </div>
 
   <div class="auth-links">
-    <button class="link" type="button" onclick={switchToCode}>
+    <Button tone="ghost" type="button" onclick={switchToCode}>
       {t.auth.enterCodeManually()}
-    </button>
-    <button class="link" type="button" onclick={reset}>{t.auth.switchEmail()}</button>
+    </Button>
+    <Button tone="ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button>
   </div>
 {/if}
 
@@ -102,21 +102,4 @@
     justify-content: center;
   }
 
-  .link {
-    justify-self: start;
-    border: 0;
-    background: transparent;
-    padding: 0;
-    color: var(--ink);
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-    font-size: var(--step--1);
-    transition: color var(--duration-fast) var(--ease-out);
-  }
-
-  .link:hover {
-    color: var(--sky-strong);
-  }
 </style>

@@ -1,7 +1,7 @@
-import { U as attr, W as escape_html, a as derived, n as attr_class } from "./dev.js";
+import { et as attr, n as attr_class, nt as escape_html, o as derived } from "./dev.js";
 import { n as routePath, t as liveRoomHref } from "./context.js";
-import { r as useQuery } from "./client.svelte.js";
-import { r as initAuth, s as api } from "./session.svelte.js";
+import { a as signOut, p as useQuery, r as initAuth, s as api } from "./session.svelte.js";
+import { t as Button_1 } from "./Button.js";
 import { t as useI18n } from "./runes.svelte.js";
 import { a as equipmentLabelMap, c as experienceLabelMap, f as goalLabelMap, u as fmtList } from "./labels.js";
 import { t as PageShell } from "./PageShell.js";
@@ -106,13 +106,43 @@ function AppShell($$renderer, $$props) {
 			$$renderer.push(`<div class="app-frame svelte-5rkayd"><p class="svelte-5rkayd">טוען...</p></div>`);
 		} else if (!auth.isAuthenticated) {
 			$$renderer.push("<!--[1-->");
-			$$renderer.push(`<div class="app-frame svelte-5rkayd"><div class="locked svelte-5rkayd"><p class="locked__kicker svelte-5rkayd">HomeBody</p> <h1 class="svelte-5rkayd">צריך להתחבר</h1> <p class="svelte-5rkayd">כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p> <div class="locked__actions svelte-5rkayd"><a href="/" class="svelte-5rkayd">כניסה</a></div></div></div>`);
+			$$renderer.push(`<div class="app-frame svelte-5rkayd"><div class="locked svelte-5rkayd"><p class="locked__kicker svelte-5rkayd">HomeBody</p> <h1 class="svelte-5rkayd">צריך להתחבר</h1> <p class="svelte-5rkayd">כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p> <div class="locked__actions svelte-5rkayd">`);
+			Button_1($$renderer, {
+				tone: "ink",
+				size: "md",
+				onclick: () => window.location.assign("/"),
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->כניסה`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div></div></div>`);
 		} else if (query.error) {
 			$$renderer.push("<!--[2-->");
 			$$renderer.push(`<div class="app-frame svelte-5rkayd"><p class="svelte-5rkayd">שגיאה: ${escape_html(query.error.message)}</p></div>`);
 		} else if (query.data?.needsOnboarding) {
 			$$renderer.push("<!--[3-->");
-			$$renderer.push(`<div class="app-frame svelte-5rkayd"><div class="locked svelte-5rkayd"><p class="locked__kicker svelte-5rkayd">כמעט שם</p> <h1 class="svelte-5rkayd">צריך לסיים התאמה אישית</h1> <p class="svelte-5rkayd">קצר, פשוט, ויעזור לנו להתאים לך שיעורים.</p> <div class="locked__actions svelte-5rkayd"><a${attr("href", routePath("onboarding"))} class="svelte-5rkayd">להמשיך בהתאמה</a> <button class="svelte-5rkayd">יציאה</button></div></div></div>`);
+			$$renderer.push(`<div class="app-frame svelte-5rkayd"><div class="locked svelte-5rkayd"><p class="locked__kicker svelte-5rkayd">כמעט שם</p> <h1 class="svelte-5rkayd">צריך לסיים התאמה אישית</h1> <p class="svelte-5rkayd">קצר, פשוט, ויעזור לנו להתאים לך שיעורים.</p> <div class="locked__actions svelte-5rkayd">`);
+			Button_1($$renderer, {
+				tone: "ink",
+				size: "md",
+				onclick: () => window.location.assign(routePath("onboarding")),
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->להמשיך בהתאמה`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----> `);
+			Button_1($$renderer, {
+				tone: "paper",
+				size: "sm",
+				onclick: signOut,
+				children: ($$renderer) => {
+					$$renderer.push(`<!---->יציאה`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push(`<!----></div></div></div>`);
 		} else if (query.data) {
 			$$renderer.push("<!--[4-->");
 			Dashboard($$renderer, {

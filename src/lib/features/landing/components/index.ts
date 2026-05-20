@@ -1,4 +1,5 @@
 export { default as HeroSection } from "./HeroSection.svelte";
+export { default as PhilosophySection } from "./PhilosophySection.svelte";
 export { default as InstructorSection } from "./InstructorSection.svelte";
 export { default as PreviewSection } from "./PreviewSection.svelte";
 export { default as PillarsSection } from "./PillarsSection.svelte";

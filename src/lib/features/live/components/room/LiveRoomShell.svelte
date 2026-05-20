@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { Tooltip } from "bits-ui";
   import { useConvexClient } from "convex-svelte";
   import { LiveRoom } from "$lib/features/live/room.svelte";
   import { mountMedia } from "$lib/features/live/types";
+  import Button from "$components/ui/Button.svelte";
   import PreConnectOverlay from "./PreConnectOverlay.svelte";
   import RoomHeader from "./RoomHeader.svelte";
   import VideoStage from "./VideoStage.svelte";
@@ -10,84 +11,133 @@
   import RoomChat from "./RoomChat.svelte";
   import ControlBar from "./ControlBar.svelte";
   import QualityPanel from "./QualityPanel.svelte";
+  import "$lib/features/live/styles/room.css";
 
   const client = useConvexClient();
   const room = new LiveRoom(client);
 
-  onMount(() => { void room.loadToken(); });
-  onDestroy(() => { room.destroy(); });
+  function onKeyDown(e: KeyboardEvent) {
+    const isMac = navigator.platform.includes('Mac');
+    const mod = isMac ? e.metaKey : e.ctrlKey;
+    if (!mod) return;
+    switch (e.key.toLowerCase()) {
+      case 'd':
+        e.preventDefault();
+        void room.toggleMic();
+        break;
+      case 'e':
+        e.preventDefault();
+        void room.toggleCamera();
+        break;
+    }
+  }
+
+  function onBeforeUnload(e: BeforeUnloadEvent) {
+    if (room.connectionState === "connected") {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  }
+
+  $effect(() => {
+    void room.loadToken();
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      room.destroy();
+    };
+  });
 </script>
 
 {#if room.auth.isLoading || room.status === "checking"}
   <PreConnectOverlay {room} />
-{:else if room.status === "locked" || room.status === "missing" || room.status === "error" || (room.status === "ready" && room.joinInfo && room.connectionState === "idle")}
+{:else if room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error"}
   <PreConnectOverlay {room} />
-{:else if room.connectionState !== "idle"}
-  <div class="live-room">
-    <RoomHeader {room} />
-
-    <div class="room-body">
-      <VideoStage {room} />
-      <ParticipantSidebar {room} />
-      <RoomChat {room} />
-    </div>
-
-    {#if room.mediaError}
-      <div class="room-media-error" role="status">{room.mediaError}</div>
-    {/if}
-
-    <ControlBar {room} />
-    <QualityPanel {room} />
-
-    <div class="audio-sink" aria-hidden="true">
-      {#each room.audioTiles as tile (tile.id)}<div use:mountMedia={tile.element}></div>{/each}
+{:else if room.connectionState === "disconnected"}
+  <!-- Disconnect recovery overlay -->
+  <div class="disconnect-overlay">
+    <div class="disconnect-card">
+      <span class="material-symbols-rounded" aria-hidden="true">wifi_off</span>
+      <h2>החיבור נותק</h2>
+      <p>ניתן לנסות להתחבר שוב או לצאת מהחדר.</p>
+      <div class="disconnect-actions">
+        <Button tone="ink" size="md" onclick={() => room.reconnect()}>התחברות מחדש</Button>
+        <Button tone="ghost" size="sm" onclick={() => {
+          room.destroy();
+          window.location.href = room.isInstructorRoom ? '/i/live' : '/u/calendar';
+        }}>יציאה</Button>
+      </div>
     </div>
   </div>
+{:else if room.status === "ready" && room.joinInfo && room.connectionState === "idle"}
+  <PreConnectOverlay {room} />
+{:else if room.connectionState !== "idle"}
+  <Tooltip.Provider delayDuration={160}>
+    <div class="lr-room">
+      <RoomHeader {room} />
+
+      <div class="lr-room__body">
+        <VideoStage {room} />
+        <ParticipantSidebar {room} />
+        <RoomChat {room} />
+      </div>
+
+      {#if room.mediaError}
+        <div class="lr-media-error" role="alert">{room.mediaError}</div>
+      {/if}
+
+      <ControlBar {room} />
+      <QualityPanel {room} />
+
+      <div class="lr-audio-sink" aria-hidden="true">
+        {#each room.audioTiles as tile (tile.id)}<div use:mountMedia={tile.element}></div>{/each}
+      </div>
+    </div>
+  </Tooltip.Provider>
 {/if}
 
 <style>
-  .live-room {
+  .disconnect-overlay {
     position: fixed;
     inset: 0;
     z-index: 50;
     display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-areas: "header" "body" "controls";
-    background: var(--surface);
-    color: var(--ink);
-    overflow: hidden;
-    box-sizing: border-box;
-    font-family: var(--font-body);
+    place-items: center;
+    background: var(--ink);
+    color: var(--white);
   }
 
-  .room-body {
-    grid-area: body;
+  .disconnect-card {
     display: grid;
-    grid-template-columns: 1fr auto;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .room-media-error {
-    position: absolute;
-    inset-inline: var(--space-3);
-    inset-block-end: 88px;
-    z-index: 25;
-    border: 1px solid #c93322;
-    background: #fff7ed;
-    color: #7c2d12;
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--step--1);
-    font-weight: 800;
+    gap: var(--space-4);
+    max-width: 400px;
     text-align: center;
+    padding: var(--space-6);
   }
 
-  .audio-sink { display: none; }
+  .disconnect-card .material-symbols-rounded {
+    font-size: var(--step-4);
+    color: var(--terra);
+    justify-self: center;
+  }
 
-  @media (max-width: 48rem) {
-    .room-body {
-      grid-template-columns: 1fr;
-      position: relative;
-    }
+  .disconnect-card h2 {
+    font-size: var(--step-3);
+    margin: 0;
+  }
+
+  .disconnect-card p {
+    color: color-mix(in srgb, var(--white) 72%, transparent);
+    margin: 0;
+  }
+
+  .disconnect-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: center;
+    padding-top: var(--space-2);
   }
 </style>

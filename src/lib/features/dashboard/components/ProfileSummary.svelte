@@ -6,7 +6,7 @@
     fmtList,
   } from "$lib/labels";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { routePath } from "$lib/i18n/context";
+
 
   type StaffProfile = {
     displayName?: string | null;
@@ -39,7 +39,7 @@
   <div class="profile-summary">
     <div class="profile-summary__header">
       <p class="profile-summary__kicker">{t.dashboard.staffProfile.title()}</p>
-      <a href={routePath("profile")} class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
     </div>
     <div class="profile-summary__grid">
       <div class="profile-summary__cell">
@@ -69,7 +69,7 @@
   <div class="profile-summary">
     <div class="profile-summary__header">
       <p class="profile-summary__kicker">{t.dashboard.customerProfile.title()}</p>
-      <a href={routePath("profile")} class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
     </div>
 
     <div class="profile-summary__grid">
@@ -99,7 +99,7 @@
   .profile-summary {
     border: var(--border);
     padding: var(--space-6);
-    background: var(--white);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
   }
 
   .profile-summary__header {
@@ -183,7 +183,7 @@
   }
 
   .compliance--ok .compliance-dot {
-    color: #188038;
+    color: var(--success);
   }
 
   .compliance--ok {

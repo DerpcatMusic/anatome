@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Button from "$components/ui/Button.svelte";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -22,9 +23,9 @@
         <span class="pricing-price pricing-price--highlight">{t.landing.pricing.trial.price()}</span>
       </div>
       <p class="pricing-note">{t.landing.pricing.trial.note()}</p>
-      <button class="btn btn--ink btn--full" onclick={openAuthOverlay}>
+      <Button tone="ink" onclick={openAuthOverlay}>
         {t.landing.pricing.ctaButton()}
-      </button>
+      </Button>
     </div>
     <div class="pricing-card">
       <div class="pricing-header">

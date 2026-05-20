@@ -63,25 +63,5 @@
     margin-top: var(--space-2);
   }
 
-  .locked__actions :global(a),
-  .locked__actions :global(button) {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-    font-weight: 700;
-    font-size: var(--step--1);
-    text-decoration: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
 
-  .locked__actions :global(a:hover),
-  .locked__actions :global(button:hover) {
-    background: var(--ink-secondary);
-  }
 </style>

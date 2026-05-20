@@ -89,3 +89,7 @@ export function requireCustomer(profile: Doc<"appProfiles">) {
 export function requireInstructorOrAdmin(profile: Doc<"appProfiles">) {
   requireRole(profile, ["instructor", "admin"]);
 }
+
+export function isStaff(profile: Doc<"appProfiles"> | null): boolean {
+  return profile !== null && (profile.role === "instructor" || profile.role === "admin");
+}

@@ -1,5 +1,7 @@
 @import "./reset.css";
 @import "./tokens.css";
+@import "./ui.css";
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0");
 
 html {
   scroll-behavior: smooth;
@@ -114,11 +116,16 @@ h3 {
   font-size: var(--step-0);
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--duration-fast);
+  border-radius: 0;
+  will-change: border-radius;
+  transition:
+    background var(--duration-fast),
+    border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1);
 }
 
 .button:hover {
   background: var(--surface);
+  border-radius: 26px;
 }
 
 .button--ink {
@@ -235,32 +242,40 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: grid;
-  place-items: center;
-  background: rgba(10, 10, 10, 0.45);
-  padding: var(--space-5);
+  background: color-mix(in srgb, var(--beige) 34%, rgba(10, 10, 10, 0.45));
+  backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-base);
 }
 
-.auth-overlay.is-open {
+.auth-overlay[data-state="open"] {
   opacity: 1;
   pointer-events: auto;
 }
 
 .auth-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+  z-index: 101;
   width: 100%;
   max-width: 420px;
-  background: var(--white);
+  max-height: calc(100vh - var(--space-6));
+  overflow-y: auto;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
   padding: var(--space-6);
   border: var(--border);
-  transform: translateY(8px);
-  transition: transform var(--duration-base);
+  opacity: 0;
+  transition:
+    transform 0.35s var(--ease-elastic),
+    opacity 0.25s var(--ease-out);
 }
 
-.auth-overlay.is-open .auth-card {
-  transform: translateY(0);
+.auth-card[data-state="open"] {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
 }
 
 /* ─── Skeleton ─── */
@@ -311,8 +326,7 @@ h3 {
   color: var(--muted);
 }
 
-.locked a,
-.locked button {
+.locked__action {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
@@ -328,8 +342,7 @@ h3 {
   font-family: inherit;
 }
 
-.locked a:hover,
-.locked button:hover {
+.locked__action:hover {
   background: var(--ink-secondary);
 }
 

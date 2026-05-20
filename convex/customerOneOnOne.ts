@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { getCurrentCreditBucket } from "./lib/credits";
 import { requireAppProfile, requireCustomer, requireUserId } from "./lib/authz";
@@ -105,5 +105,35 @@ export const cancelRequest = mutation({
     }
     await ctx.db.patch(request._id, { status: "cancelled", updatedAt: Date.now(), decidedAt: Date.now() });
     return request._id;
+  },
+});
+
+
+export const expireStaleOneOnOneRequests = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const staleRequests = await ctx.db
+      .query("oneOnOneRequests")
+      .withIndex("by_status_and_requestedStartsAt", (q) =>
+        q.eq("status", "pending").lt("requestedStartsAt", now),
+      )
+      .take(100);
+
+    for (const request of staleRequests) {
+      const bucket = await ctx.db.get(request.creditBucketId);
+      if (bucket !== null) {
+        await ctx.db.patch(bucket._id, {
+          oneOnOneReserved: Math.max(0, (bucket.oneOnOneReserved ?? 0) - 1),
+        });
+      }
+      await ctx.db.patch(request._id, {
+        status: "expired",
+        updatedAt: now,
+        decidedAt: now,
+      });
+    }
+
+    return { expiredCount: staleRequests.length };
   },
 });

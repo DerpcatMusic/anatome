@@ -1,16 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import Button from "$components/ui/Button.svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
   import { authQuery, setCachedRole } from "$lib/auth/session.svelte";
-  import { convex } from "$lib/convex/client";
+  import { useConvexClient } from "convex-svelte";
   import { liveRoomHref } from "$lib/i18n/context";
   import PageShell from "$features/app/components/PageShell.svelte";
-  import FormSection from "$features/app/components/FormSection.svelte";
-  import Notice from "$components/ui/Notice.svelte";
   import WeeklyAgenda from "$features/live/components/WeeklyAgenda.svelte";
-  import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
+  import StudioLiveClassForm from "./StudioLiveClassForm.svelte";
+  import LiveClassModalShell from "$features/live/components/LiveClassModalShell.svelte";
   import type { Equipment } from "$lib/labels";
 
   type LiveClass = FunctionReturnType<typeof api.instructorLive.listMine>[number];
@@ -22,6 +22,7 @@
   let error = $state("");
   let actionId = $state<string | null>(null);
 
+  let showCreateModal = $state(false);
   let title = $state("פילאטיס לייב - נשימה, כוח ותנועה");
   let description = $state("שיעור דו־כיווני קטן עם תיקונים אישיים. הכיני מרחב שקט, מצלמה פתוחה וציוד מתאים.");
   let liveType = $state<"group_live" | "one_on_one">("group_live");
@@ -48,7 +49,7 @@
     try {
       profile = await authQuery(api.appProfiles.viewer, {});
       if (profile === null || (profile.role !== "admin" && profile.role !== "instructor")) {
-        error = "רק מדריכה או אדמין יכולות לפתוח לייב";
+        window.location.assign("/calendar");
         return;
       }
       setCachedRole(profile.role);
@@ -60,11 +61,17 @@
     }
   }
 
+  async function retryLoad() {
+    await load();
+  }
+
+  const client = useConvexClient();
+
   async function createClass() {
     error = "";
     actionId = "create";
     try {
-      await convex.mutation(api.instructorLive.createLiveClass, {
+      await client.mutation(api.instructorLive.createLiveClass, {
         title,
         description,
         type: liveType,
@@ -74,7 +81,10 @@
         capacity: liveType === "one_on_one" ? 1 : capacity,
         requiredEquipment,
       });
+      // Reset defaults
       startsAtLocal = defaultStartsAtLocal();
+      durationMinutes = 50;
+      showCreateModal = false;
       await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו ליצור לייב.";
@@ -87,7 +97,7 @@
     actionId = liveClassId;
     error = "";
     try {
-      await convex.mutation(api.instructorLive.startLive, { liveClassId });
+      await client.mutation(api.instructorLive.startLive, { liveClassId });
       await load();
       window.location.assign(liveRoomHref(liveClassId));
     } catch (reason) {
@@ -101,7 +111,7 @@
     actionId = liveClassId;
     error = "";
     try {
-      await convex.mutation(api.instructorLive.endLive, { liveClassId });
+      await client.mutation(api.instructorLive.endLive, { liveClassId });
       await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לסיים את הלייב.";
@@ -110,195 +120,123 @@
     }
   }
 
+  function handleSelectSlot(timeLocalString: string, slotDurationMinutes: number) {
+    startsAtLocal = timeLocalString;
+    durationMinutes = slotDurationMinutes;
+    showCreateModal = true;
+  }
+
+  function openCreateModal() {
+    startsAtLocal = defaultStartsAtLocal();
+    durationMinutes = 50;
+    showCreateModal = true;
+  }
+
   onMount(() => void load());
 </script>
 
 <PageShell
-  kicker="HomeBody Studio"
-  title="יצירת לייב פילאטיס"
-  description="תזמון שיעור, ציוד חובה, פתיחת חדר LiveKit וניהול הכניסה לפני השידור."
-  badge={profile?.role === "admin" ? "Admin" : "Instructor"}
+  title="לוח שידורים שבועי"
+  description="תזמון וניהול של כל שיעורי הפילאטיס בלייב."
+  badge={profile?.role === "admin" ? "מנהלת" : "מדריכה"}
   {loading}
   error={error || null}
 >
   {#if !loading && !error}
-    <div class="studio-grid">
-      <FormSection title="תזמון שיעור חדש">
-        <form onsubmit={(event) => { event.preventDefault(); void createClass(); }}>
-          <div class="live-type-switch" role="radiogroup" aria-label="סוג לייב">
-            <label class:selected={liveType === "group_live"}>
-              <input type="radio" bind:group={liveType} value="group_live" />
-              <span>לייב קבוצתי</span>
-              <small>עד 12 משתתפות, RSVP, קרדיט לייב אחד</small>
-            </label>
-            <label class:selected={liveType === "one_on_one"}>
-              <input type="radio" bind:group={liveType} value="one_on_one" />
-              <span>1:1 אישי</span>
-              <small>משתתפת אחת, קרדיט 1:1 אחד</small>
-            </label>
-          </div>
+    <div class="studio-container">
+      <div class="calendar-actions-header">
+        <Button tone="ink" type="button" onclick={openCreateModal}>
+          <span class="material-symbols-rounded">add_circle</span>
+          שיעור לייב חדש
+        </Button>
+      </div>
 
-          <label class="field">
-            <span class="field__label">כותרת</span>
-            <input bind:value={title} required maxlength="120" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">תיאור קצר</span>
-            <textarea bind:value={description} rows="3" maxlength="500"></textarea>
-          </label>
-
-          <div class="form-grid">
-            <label class="field">
-              <span class="field__label">מתי מתחילים</span>
-              <input type="datetime-local" bind:value={startsAtLocal} required />
-            </label>
-            <label class="field">
-              <span class="field__label">משך בדקות</span>
-              <input type="number" min="15" max="180" bind:value={durationMinutes} />
-            </label>
-            <label class="field">
-              <span class="field__label">פתיחת כניסה לפני</span>
-              <input type="number" min="0" max="60" bind:value={joinOpensMinutesBefore} />
-            </label>
-            <label class="field">
-              <span class="field__label">מקומות</span>
-              <input type="number" min="1" max="12" bind:value={capacity} disabled={liveType === "one_on_one"} />
-            </label>
-          </div>
-
-          <EquipmentPicker bind:selected={requiredEquipment} label="ציוד חובה לשיעור" />
-
-          <button class="primary-action" type="submit" disabled={actionId === "create" || requiredEquipment.length === 0}>
-            {actionId === "create" ? "יוצרות..." : "לתזמן לייב"}
-          </button>
-        </form>
-      </FormSection>
-
-      <WeeklyAgenda {classes} onStart={startLive} onEnd={endLive} {actionId} />
+      <WeeklyAgenda
+        {classes}
+        onStart={startLive}
+        onEnd={endLive}
+        {actionId}
+        onSelectSlot={handleSelectSlot}
+        onRefreshClasses={load}
+      />
     </div>
+
+    <LiveClassModalShell
+      bind:open={showCreateModal}
+      title="תזמון שיעור לייב חדש"
+      icon="calendar_add_on"
+      iconColor="var(--sky-strong)"
+      wide
+    >
+      <StudioLiveClassForm
+        bind:title
+        bind:description
+        bind:liveType
+        bind:startsAtLocal
+        bind:durationMinutes
+        bind:joinOpensMinutesBefore
+        bind:capacity
+        bind:requiredEquipment
+        pending={actionId === "create"}
+        onSubmit={() => void createClass()}
+      />
+      {#if error}
+        <div class="form-error" role="alert">
+          <span class="material-symbols-rounded">error</span>
+          {error}
+        </div>
+      {/if}
+    </LiveClassModalShell>
   {:else if error}
     <div class="retry-state">
-      <button type="button" onclick={load}>נסה שוב</button>
+      <Button tone="ghost" type="button" onclick={retryLoad}>נסה שוב</Button>
     </div>
   {/if}
 </PageShell>
 
 <style>
-  .studio-grid {
-    display: grid;
-    grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.35fr);
-    gap: var(--space-6);
-    align-items: start;
-  }
-
-  form {
+  .studio-container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--space-4);
+    direction: rtl;
   }
 
-  .live-type-switch {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  .live-type-switch label {
+  .calendar-actions-header {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    border: var(--border);
-    padding: var(--space-4);
-    cursor: pointer;
-    background: var(--white);
+    justify-content: flex-start;
+    margin-block-end: var(--space-2);
   }
 
-  .live-type-switch label.selected {
-    background: var(--sky);
-  }
-
-  .live-type-switch input {
-    position: absolute;
-    opacity: 0;
-  }
-
-  .live-type-switch span {
-    font-weight: 900;
-  }
-
-  .live-type-switch small {
-    color: var(--muted);
-    line-height: 1.5;
-    font-weight: 600;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .field__label {
-    font-size: var(--step--1);
-    color: var(--muted);
-    font-weight: 800;
-  }
-
-  input,
-  textarea {
-    width: 100%;
-    min-width: 0;
-    border: var(--border);
-    background: var(--white);
-    color: var(--ink);
-    font: inherit;
-    padding: var(--space-3);
-    box-sizing: border-box;
-  }
-
-  textarea {
-    resize: vertical;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  .primary-action,
-  .retry-state button {
-    width: fit-content;
-    min-height: 48px;
-    display: inline-flex;
+  :global(.calendar-actions-header button) {
+    display: flex !important;
     align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
+    gap: var(--space-2);
+    font-size: var(--step-0) !important;
+    padding: var(--space-2) var(--space-4) !important;
   }
 
-  .primary-action:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+  .form-error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    border: 1px solid var(--danger);
+    padding: var(--space-3);
+    font-weight: 800;
+    font-size: var(--step--1);
+    margin-block-start: var(--space-3);
+  }
+
+  .form-error .material-symbols-rounded {
+    font-size: var(--step-1);
+    flex-shrink: 0;
   }
 
   .retry-state {
     border: var(--border);
-    background: var(--white);
+    background: color-mix(in srgb, var(--white) 78%, transparent);
     padding: var(--space-5);
-  }
-
-  @media (max-width: 980px) {
-    .studio-grid,
-    .form-grid,
-    .live-type-switch {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

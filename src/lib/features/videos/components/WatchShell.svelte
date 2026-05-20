@@ -3,11 +3,11 @@
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
-  import { routePath } from "$lib/i18n/context";
+
   import { durationLabel, equipmentLabel } from "$lib/labels";
   import Notice from "$components/ui/Notice.svelte";
   import MuxPlayer from "$components/video/MuxPlayer.svelte";
-  import { convex } from "$lib/convex/client";
+  import { useConvexClient } from "convex-svelte";
 
   const auth = initAuth();
 
@@ -19,15 +19,26 @@
     () => auth.isAuthenticated && videoId,
     async (shouldFetch) => {
       if (!shouldFetch || !videoId) return null;
-      return await authQuery(api.videos.getViewerPlayback, { videoId });
+      return await authQuery(api.video.playback.getViewerPlayback, { videoId });
     }
   );
 
   const playbackData = $derived(playbackResource.current);
 
+  const client = useConvexClient();
+  const tokenResource = resource(
+    () => auth.isAuthenticated && playbackData?.video.playbackId ? playbackData.video._id : null,
+    async (resolvedVideoId) => {
+      if (!resolvedVideoId) return null;
+      return await client.action(api.video.playbackToken.getViewerPlaybackToken, { videoId: resolvedVideoId });
+    }
+  );
+
+  const playbackToken = $derived(tokenResource.current?.token ?? null);
+
   async function updateProgress(progress: { currentTimeSeconds: number; durationSeconds: number }) {
     if (!videoId) return;
-    await convex.mutation(api.videos.updateProgress, { videoId, ...progress });
+    await client.mutation(api.video.playback.updateProgress, { videoId, ...progress });
   }
 </script>
 
@@ -45,12 +56,12 @@
 {:else if !videoId}
   <div class="state-card">
     <Notice tone="danger">לא צוין מזהה וידאו</Notice>
-    <a class="button-link" href={routePath("customerVideos")}>חזרה לספרייה</a>
+    <a class="button-link" href="/u/videos">חזרה לספרייה</a>
   </div>
 {:else if playbackResource.error}
   <div class="state-card">
     <Notice tone="danger">{playbackResource.error?.message ?? "שגיאה בטעינת הווידאו"}</Notice>
-    <a class="button-link" href={routePath("customerVideos")}>חזרה לספרייה</a>
+    <a class="button-link" href="/u/videos">חזרה לספרייה</a>
   </div>
 {:else if playbackData}
   <div class="watch-header">
@@ -58,14 +69,23 @@
     <h1>{playbackData.video.title}</h1>
   </div>
 
-  {#if playbackData.video.playbackId}
+  {#if playbackData.video.playbackId && playbackToken}
     <MuxPlayer
       playbackId={playbackData.video.playbackId}
+      playbackToken={playbackToken}
       thumbnailUrl={playbackData.video.thumbnailUrl}
       title={playbackData.video.title}
       videoId={playbackData.video._id}
       onProgress={updateProgress}
     />
+  {:else if playbackData.video.playbackId && tokenResource.error}
+    <div class="player-placeholder">
+      <Notice tone="danger">{tokenResource.error?.message ?? "שגיאה באישור הצפייה"}</Notice>
+    </div>
+  {:else if playbackData.video.playbackId}
+    <div class="player-placeholder">
+      <Notice>מאשרים צפייה מאובטחת...</Notice>
+    </div>
   {:else}
     <div class="player-placeholder">
       <Notice>הווידאו עדיין בעיבוד</Notice>
@@ -162,6 +182,16 @@
     cursor: pointer;
     text-decoration: none;
     width: fit-content;
+    border-radius: 0;
+    will-change: border-radius;
+    transition:
+      background var(--duration-fast),
+      border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1);
+  }
+
+  .button-link:hover {
+    background: var(--ink-secondary);
+    border-radius: 22px;
   }
 
   .skeleton {

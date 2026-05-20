@@ -1,12 +1,14 @@
-import { U as attr, W as escape_html, a as derived, i as bind_props, o as ensure_array_like, s as head, u as html } from "../../chunks/dev.js";
+import "../../chunks/index-server.js";
+import { a as bind_props, c as ensure_array_like, et as attr, g as html, l as head, nt as escape_html, o as derived } from "../../chunks/dev.js";
 import { t as SITE } from "../../chunks/config.js";
 import { n as routePath } from "../../chunks/context.js";
-import { n as useConvexClient } from "../../chunks/client.svelte.js";
-import { a as signOut, r as initAuth, s as api } from "../../chunks/session.svelte.js";
+import { a as signOut, f as useConvexClient, r as initAuth, s as api } from "../../chunks/session.svelte.js";
+import { p as Portal } from "../../chunks/scroll-lock.js";
+import { n as Dialog, r as Dialog_overlay, t as Dialog_content } from "../../chunks/dialog-content.js";
+import { t as Button_1 } from "../../chunks/Button.js";
 import { t as page } from "../../chunks/state.js";
 import { t as Notice } from "../../chunks/Notice.js";
 import { t as useI18n } from "../../chunks/runes.svelte.js";
-import { t as Button } from "../../chunks/Button.js";
 //#region src/lib/components/seo/SEO.svelte
 function SEO($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
@@ -388,7 +390,7 @@ function schemaGraph(...schemas) {
 function Input($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { label, name, type = "text", value = "", autocomplete, inputmode, required = false } = $$props;
-		$$renderer.push(`<label class="field svelte-138axrz"><span>${escape_html(label)}</span> <input${attr("value", value)}${attr("name", name)}${attr("type", type)}${attr("autocomplete", autocomplete)}${attr("inputmode", inputmode)}${attr("required", required, true)} class="svelte-138axrz"/></label>`);
+		$$renderer.push(`<label class="hb-input-field"><span class="hb-field__label">${escape_html(label)}</span> <input class="hb-input"${attr("value", value)}${attr("name", name)}${attr("type", type)}${attr("autocomplete", autocomplete)}${attr("inputmode", inputmode)}${attr("required", required, true)}/></label>`);
 		bind_props($$props, { value });
 	});
 }
@@ -416,7 +418,7 @@ function EmailStep($$renderer, $$props) {
 				}
 			});
 			$$renderer.push(`<!----> <div class="method-buttons svelte-115ousx">`);
-			Button($$renderer, {
+			Button_1($$renderer, {
 				type: "button",
 				tone: "ink",
 				disabled: pending,
@@ -427,7 +429,7 @@ function EmailStep($$renderer, $$props) {
 				$$slots: { default: true }
 			});
 			$$renderer.push(`<!----> `);
-			Button($$renderer, {
+			Button_1($$renderer, {
 				type: "button",
 				tone: "paper",
 				disabled: pending,
@@ -477,7 +479,7 @@ function CodeStep($$renderer, $$props) {
 					}
 				});
 				$$renderer.push(`<!----> `);
-				Button($$renderer, {
+				Button_1($$renderer, {
 					type: "submit",
 					tone: "ink",
 					disabled: pending,
@@ -486,11 +488,21 @@ function CodeStep($$renderer, $$props) {
 					},
 					$$slots: { default: true }
 				});
-				$$renderer.push(`<!----> <div class="auth-links svelte-2pyi9i"><button class="link svelte-2pyi9i" type="button">${escape_html(t.auth.switchEmail())}</button></div>`);
+				$$renderer.push(`<!----> <div class="auth-links svelte-2pyi9i">`);
+				Button_1($$renderer, {
+					tone: "ghost",
+					type: "button",
+					onclick: reset,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.auth.switchEmail())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
 				$$renderer.push(`<div class="link-sent svelte-2pyi9i"><p class="svelte-2pyi9i">${escape_html(t.auth.linkSentText())}</p> `);
-				Button($$renderer, {
+				Button_1($$renderer, {
 					type: "button",
 					tone: "paper",
 					onclick: openEmailApp,
@@ -499,7 +511,27 @@ function CodeStep($$renderer, $$props) {
 					},
 					$$slots: { default: true }
 				});
-				$$renderer.push(`<!----></div> <div class="auth-divider svelte-2pyi9i"><span>${escape_html(t.misc.or())}</span></div> <div class="auth-links svelte-2pyi9i"><button class="link svelte-2pyi9i" type="button">${escape_html(t.auth.enterCodeManually())}</button> <button class="link svelte-2pyi9i" type="button">${escape_html(t.auth.switchEmail())}</button></div>`);
+				$$renderer.push(`<!----></div> <div class="auth-divider svelte-2pyi9i"><span>${escape_html(t.misc.or())}</span></div> <div class="auth-links svelte-2pyi9i">`);
+				Button_1($$renderer, {
+					tone: "ghost",
+					type: "button",
+					onclick: switchToCode,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.auth.enterCodeManually())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----> `);
+				Button_1($$renderer, {
+					tone: "ghost",
+					type: "button",
+					onclick: reset,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.auth.switchEmail())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push(`<!----></div>`);
 			}
 			$$renderer.push(`<!--]-->`);
 		}
@@ -518,7 +550,29 @@ function LoggedInState($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { signOut, closeModal } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<div class="auth-state svelte-1si2n1d"><div class="auth-state__text svelte-1si2n1d"><p class="kicker svelte-1si2n1d">${escape_html(t.auth.loggedIn.kicker())}</p> <h2 class="svelte-1si2n1d">${escape_html(t.auth.loggedIn.title())}</h2> <p class="intro svelte-1si2n1d">${escape_html(t.auth.loggedIn.subtitle())}</p></div> <a class="auth-btn auth-btn--primary svelte-1si2n1d"${attr("href", routePath("dashboard"))}>${escape_html(t.auth.loggedIn.cta())}</a> <button class="auth-btn svelte-1si2n1d" type="button">${escape_html(t.auth.loggedIn.signOut())}</button></div>`);
+		$$renderer.push(`<div class="auth-state svelte-1si2n1d"><div class="auth-state__text svelte-1si2n1d"><p class="kicker svelte-1si2n1d">${escape_html(t.auth.loggedIn.kicker())}</p> <h2 class="svelte-1si2n1d">${escape_html(t.auth.loggedIn.title())}</h2> <p class="intro svelte-1si2n1d">${escape_html(t.auth.loggedIn.subtitle())}</p></div> `);
+		Button_1($$renderer, {
+			tone: "ink",
+			href: routePath("dashboard"),
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.auth.loggedIn.cta())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----> `);
+		Button_1($$renderer, {
+			tone: "paper",
+			type: "button",
+			onclick: () => {
+				signOut();
+				closeModal();
+			},
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.auth.loggedIn.signOut())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----></div>`);
 	});
 }
 //#endregion
@@ -575,8 +629,7 @@ function AuthPanel($$renderer, $$props) {
 			code = "";
 		}
 		function closeModal() {
-			const overlay = document.getElementById("auth-overlay");
-			if (overlay) overlay.classList.remove("is-open");
+			window.dispatchEvent(new CustomEvent("homebody:auth-close"));
 		}
 		function switchToCode() {
 			method = "code";
@@ -696,7 +749,33 @@ function HeroSection($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { openAuthOverlay } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<section class="hero" aria-label="ראשי"><div class="hero__inner"><p class="eyebrow">${escape_html(t.landing.hero.eyebrow())}</p> <h1>${escape_html(t.landing.hero.headline())}</h1> <p class="lead">${escape_html(t.landing.hero.lead())}</p> <div class="actions"><button class="btn btn--ink">${escape_html(t.landing.hero.ctaPrimary())}</button> <a class="btn btn--paper" href="#instructor">${escape_html(t.landing.hero.ctaSecondary())}</a></div></div></section>`);
+		$$renderer.push(`<section class="hero" aria-label="ראשי"><div class="hero__inner"><p class="eyebrow">${escape_html(t.landing.hero.eyebrow())}</p> <h1>${escape_html(t.landing.hero.headline())}</h1> <p class="lead">${escape_html(t.landing.hero.lead())}</p> <div class="actions">`);
+		Button_1($$renderer, {
+			tone: "ink",
+			onclick: openAuthOverlay,
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.landing.hero.ctaPrimary())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----> `);
+		Button_1($$renderer, {
+			tone: "paper",
+			href: "#instructor",
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.landing.hero.ctaSecondary())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----></div></div></section>`);
+	});
+}
+//#endregion
+//#region src/lib/features/landing/components/PhilosophySection.svelte
+function PhilosophySection($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const { t } = useI18n();
+		$$renderer.push(`<section class="content-section section--philosophy" aria-label="הגישה שלנו"><div class="philosophy-inner"><span class="section-tag">${escape_html(t.landing.philosophy.tag())}</span> <h2>${escape_html(t.landing.philosophy.headline())}</h2> <p class="philosophy-body">${escape_html(t.landing.philosophy.body())}</p></div></section>`);
 	});
 }
 //#endregion
@@ -721,7 +800,7 @@ function PreviewSection($$renderer, $$props) {
 function PillarsSection($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const { t } = useI18n();
-		$$renderer.push(`<section class="content-section section--pillars" aria-label="השירותים"><div class="section-header section-header--center"><span class="section-tag">${escape_html(t.landing.pillars.tag())}</span> <h2>${escape_html(t.landing.pillars.headline())}</h2></div> <div class="pillars-grid"><article class="pillar"><span class="pillar-num">01</span> <h3>${escape_html(t.landing.pillars.recordedTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.recordedLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.recordedBody())}</p></article> <article class="pillar"><span class="pillar-num">02</span> <h3>${escape_html(t.landing.pillars.liveTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.liveLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.liveBody())}</p></article> <article class="pillar"><span class="pillar-num">03</span> <h3>${escape_html(t.landing.pillars.privateTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.privateLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.privateBody())}</p></article></div></section>`);
+		$$renderer.push(`<section class="content-section section--pillars" aria-label="השירותים"><div class="section-header section-header--center"><span class="section-tag">${escape_html(t.landing.pillars.tag())}</span> <h2>${escape_html(t.landing.pillars.headline())}</h2></div> <div class="pillars-grid"><article class="pillar"><span class="pillar-num">01</span> <h3>${escape_html(t.landing.pillars.macroTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.macroLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.macroBody())}</p></article> <article class="pillar"><span class="pillar-num">02</span> <h3>${escape_html(t.landing.pillars.microTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.microLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.microBody())}</p></article> <article class="pillar"><span class="pillar-num">03</span> <h3>${escape_html(t.landing.pillars.liveTitle())}</h3> <p class="pillar-lead">${escape_html(t.landing.pillars.liveLead())}</p> <p class="pillar-body">${escape_html(t.landing.pillars.liveBody())}</p></article></div></section>`);
 	});
 }
 //#endregion
@@ -738,7 +817,16 @@ function PricingSection($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { openAuthOverlay } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<section class="content-section section--pricing" aria-label="מחירים"><div class="section-header section-header--center"><span class="section-tag">${escape_html(t.landing.pricing.tag())}</span> <h2>${escape_html(t.landing.pricing.headline())}</h2></div> <div class="pricing-grid"><div class="pricing-card pricing-card--featured"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.trial.label())}</span> <span class="pricing-price pricing-price--highlight">${escape_html(t.landing.pricing.trial.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.trial.note())}</p> <button class="btn btn--ink btn--full">${escape_html(t.landing.pricing.ctaButton())}</button></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.recorded.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.recorded.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.recorded.note())}</p></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.live.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.live.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.live.note())}</p></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.private.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.private.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.private.note())}</p></div></div> <p class="pricing-guarantee">${escape_html(t.landing.pricing.guarantee())}</p></section>`);
+		$$renderer.push(`<section class="content-section section--pricing" aria-label="מחירים"><div class="section-header section-header--center"><span class="section-tag">${escape_html(t.landing.pricing.tag())}</span> <h2>${escape_html(t.landing.pricing.headline())}</h2></div> <div class="pricing-grid"><div class="pricing-card pricing-card--featured"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.trial.label())}</span> <span class="pricing-price pricing-price--highlight">${escape_html(t.landing.pricing.trial.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.trial.note())}</p> `);
+		Button_1($$renderer, {
+			tone: "ink",
+			onclick: openAuthOverlay,
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.landing.pricing.ctaButton())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.recorded.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.recorded.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.recorded.note())}</p></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.live.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.live.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.live.note())}</p></div> <div class="pricing-card"><div class="pricing-header"><span class="pricing-label">${escape_html(t.landing.pricing.private.label())}</span> <span class="pricing-price">${escape_html(t.landing.pricing.private.price())}</span></div> <p class="pricing-note">${escape_html(t.landing.pricing.private.note())}</p></div></div> <p class="pricing-guarantee">${escape_html(t.landing.pricing.guarantee())}</p></section>`);
 	});
 }
 //#endregion
@@ -762,7 +850,16 @@ function CTASection($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { openAuthOverlay } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<section class="content-section section--final-cta" aria-label="התחילי עכשיו"><div class="final-cta-inner"><h2>${escape_html(t.landing.cta.headlineLine1())}<br/>${escape_html(t.landing.cta.headlineLine2())}</h2> <p>${escape_html(t.landing.cta.subheadline())}</p> <button class="btn btn--ink btn--xl">${escape_html(t.landing.cta.button())}</button> <p class="final-cta-note">${escape_html(t.landing.cta.note())}</p></div></section>`);
+		$$renderer.push(`<section class="content-section section--final-cta" aria-label="התחילי עכשיו"><div class="final-cta-inner"><h2>${escape_html(t.landing.cta.headlineLine1())}<br/>${escape_html(t.landing.cta.headlineLine2())}</h2> <p>${escape_html(t.landing.cta.subheadline())}</p> `);
+		Button_1($$renderer, {
+			tone: "ink",
+			onclick: openAuthOverlay,
+			children: ($$renderer) => {
+				$$renderer.push(`<!---->${escape_html(t.landing.cta.button())}`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----> <p class="final-cta-note">${escape_html(t.landing.cta.note())}</p></div></section>`);
 	});
 }
 //#endregion
@@ -770,17 +867,14 @@ function CTASection($$renderer, $$props) {
 function _page($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const { t } = useI18n();
+		let authOpen = false;
 		const INSTRUCTOR = {
 			name: "[שם המדריכה]",
 			years: "X",
 			story: "[סיפור אישי קצר — למה התחלת ללמד פילאטיס, מה הוביל אותך לפתוח HomeBody, איך הירושה ממרתה פילאטיס מעצבת את השיטה שלך. 2-3 משפטים אמיתיים.]"
 		};
 		function openAuthOverlay() {
-			const overlay = document.getElementById("auth-overlay");
-			if (overlay) {
-				overlay.classList.add("is-open");
-				setTimeout(() => overlay.querySelector("input")?.focus(), 100);
-			}
+			authOpen = true;
 		}
 		const pageUrl = SITE.domain;
 		const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
@@ -794,12 +888,16 @@ function _page($$renderer, $$props) {
 				answer: `כן — זה בדיוק התמחות שלנו. כל שיעור מלווה בהסברים על איזה תרגיל מתאים לאיזו פתולוגיה, ומה לעשות אם משהו כואב. אנחנו לא עושים "תעשי איתי" בלי הסבר. אם יש לך אבחון רפואי ספציפי, מומלץ לשלוח אותו לפני השיעור הראשון כדי שהמדריכה תוכל להתאים את התוכנית.`
 			},
 			{
-				question: "איזה ציוד אני צריכה?",
-				answer: "רק מזרן. אין צורך בציוד מקצועי או בסטודיו יקר. חלק מהשיעורים משתמשים בחפצים פשוטים מהבית — כרית, מגבת מגולגלת, כדור טניס. כל מה שצריך מופיע בתיאור השיעור לפני שמתחילים."
+				question: "מה ההבדל בין מקרופלואו למיקרופלואו?",
+				answer: "מקרופלואו — סרטוני פילאטיס פלואו שלם בין חצי שעה לשעה. כל סרטון עולה קרדיט אחד ונשאר אצלך לתמיד, גם אחרי שאת כבר לא רשומה. מיקרופלואו — סרטונים קצרים של תרגיל או שניים, מתמקדים על שריר או גיד או פטולוגיה אחת. זמין לכל מי שמשלם מנוי. כשמפסיקים להיות רשומים — אין גישה אליהם יותר."
 			},
 			{
-				question: "מה ההבדל בין מוקלט ללייב?",
-				answer: "שיעורים מוקלטים — את צופה בזמן שלך, יכולה לעצור, לחזור אחורה, לבחור את האורך (15, 30 או 45 דקות). שיעורים חיים — קבוצה של עד 12 משתתפות בזום, עם תיקון אישי בזמן אמת. המדריכה רואה את כולן ונותנת הוראות ספציפיות לכל אחת."
+				question: "איך עובד הלייב? זום? גוגל מיט?",
+				answer: "בכלל לא. הכל בפלטפורמה שלנו. נרשמת? את כבר בפנים. בלי להסתבך עם אימייל וקישורים ובלאגן. שיעורים קבוצתיים בלייב — אנחנו רואים אותם, הם רואים אותנו, והמדריכה נותנת תיקונים בזמן אמת. יש גם אפשרות לאחד על אחד."
+			},
+			{
+				question: "איזה ציוד אני צריכה?",
+				answer: "רק מזרן. אין צורך בציוד מקצועי או בסטודיו יקר. חלק מהשיעורים משתמשים בחפצים פשוטים מהבית — כרית, מגבת מגולגלת, כדור טניס. כל מה שצריך מופיע בתיאור השיעור לפני שמתחילים."
 			},
 			{
 				question: "איך עובד השיעור הפרטי?",
@@ -831,39 +929,104 @@ function _page($$renderer, $$props) {
 			name: t.landing.seo.breadcrumbHome(),
 			url: SITE.domain
 		}]));
-		SEO($$renderer, {
-			title: t.landing.seo.pageTitle(),
-			description: t.landing.seo.pageDescription(),
-			keywords: SITE.keywords,
-			ogType: "website",
-			canonical: SITE.domain,
-			jsonLd,
-			breadcrumbs: [{
-				name: t.landing.seo.breadcrumbHome(),
-				url: SITE.domain
-			}]
-		});
-		$$renderer.push(`<!----> <main class="landing" id="main-content">`);
-		HeroSection($$renderer, { openAuthOverlay });
-		$$renderer.push(`<!----> `);
-		InstructorSection($$renderer, { instructor: INSTRUCTOR });
-		$$renderer.push(`<!----> `);
-		PreviewSection($$renderer, {});
-		$$renderer.push(`<!----> `);
-		PillarsSection($$renderer, {});
-		$$renderer.push(`<!----> `);
-		StepsSection($$renderer, {});
-		$$renderer.push(`<!----> `);
-		PricingSection($$renderer, { openAuthOverlay });
-		$$renderer.push(`<!----> `);
-		FAQSection($$renderer, { items: faqItems });
-		$$renderer.push(`<!----> `);
-		CTASection($$renderer, { openAuthOverlay });
-		$$renderer.push(`<!----></main> `);
-		Footer($$renderer, {});
-		$$renderer.push(`<!----> <div id="auth-overlay" class="auth-overlay" role="presentation" aria-hidden="true"><div class="auth-card" role="dialog" aria-modal="true" aria-label="כניסה והרשמה">`);
-		AuthPanel($$renderer, {});
-		$$renderer.push(`<!----></div></div>`);
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			SEO($$renderer, {
+				title: t.landing.seo.pageTitle(),
+				description: t.landing.seo.pageDescription(),
+				keywords: SITE.keywords,
+				ogType: "website",
+				canonical: SITE.domain,
+				jsonLd,
+				breadcrumbs: [{
+					name: t.landing.seo.breadcrumbHome(),
+					url: SITE.domain
+				}]
+			});
+			$$renderer.push(`<!----> <main class="landing" id="main-content">`);
+			HeroSection($$renderer, { openAuthOverlay });
+			$$renderer.push(`<!----> `);
+			PhilosophySection($$renderer, {});
+			$$renderer.push(`<!----> `);
+			InstructorSection($$renderer, { instructor: INSTRUCTOR });
+			$$renderer.push(`<!----> `);
+			PreviewSection($$renderer, {});
+			$$renderer.push(`<!----> `);
+			PillarsSection($$renderer, {});
+			$$renderer.push(`<!----> `);
+			StepsSection($$renderer, {});
+			$$renderer.push(`<!----> `);
+			PricingSection($$renderer, { openAuthOverlay });
+			$$renderer.push(`<!----> `);
+			FAQSection($$renderer, { items: faqItems });
+			$$renderer.push(`<!----> `);
+			CTASection($$renderer, { openAuthOverlay });
+			$$renderer.push(`<!----></main> `);
+			Footer($$renderer, {});
+			$$renderer.push(`<!----> `);
+			if (Dialog) {
+				$$renderer.push("<!--[-->");
+				Dialog($$renderer, {
+					get open() {
+						return authOpen;
+					},
+					set open($$value) {
+						authOpen = $$value;
+						$$settled = false;
+					},
+					children: ($$renderer) => {
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Dialog_overlay) {
+										$$renderer.push("<!--[-->");
+										Dialog_overlay($$renderer, { class: "auth-overlay" });
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+									$$renderer.push(` `);
+									if (Dialog_content) {
+										$$renderer.push("<!--[-->");
+										Dialog_content($$renderer, {
+											class: "auth-card",
+											"aria-label": "כניסה והרשמה",
+											children: ($$renderer) => {
+												AuthPanel($$renderer, {});
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 	});
 }
 //#endregion

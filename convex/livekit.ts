@@ -2,7 +2,7 @@
 
 import { AccessToken, RoomServiceClient, TrackSource, type VideoGrant } from "livekit-server-sdk";
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 
@@ -38,18 +38,29 @@ async function ensureLiveKitRoom(
   roomName: string,
   metadata: Record<string, unknown>,
   maxParticipants: number,
+  joinClosesAt: number,
 ) {
   const roomClient = new RoomServiceClient(httpUrlForLiveKit(wsUrl), apiKey, apiSecret);
   const existing = await roomClient.listRooms([roomName]);
   if (existing.length > 0) return;
 
-  await roomClient.createRoom({
-    name: roomName,
-    emptyTimeout: 60,
-    departureTimeout: 20,
-    maxParticipants,
-    metadata: JSON.stringify(metadata),
-  });
+  const emptyTimeout = Math.max(3600, Math.ceil((joinClosesAt - Date.now()) / 1000) + 600);
+
+  try {
+    await roomClient.createRoom({
+      name: roomName,
+      emptyTimeout,
+      departureTimeout: 20,
+      maxParticipants,
+      metadata: JSON.stringify(metadata),
+    });
+  } catch (reason: unknown) {
+    const message = reason instanceof Error ? reason.message : String(reason);
+    if (message.includes("already exists") || message.includes("Room already exists")) {
+      return;
+    }
+    throw reason;
+  }
 }
 
 export const issueJoinToken = action({
@@ -98,6 +109,7 @@ export const issueJoinToken = action({
         instructorPriority: true,
       },
       Math.max(2, join.capacity + 1),
+      join.joinClosesAt,
     );
 
     const identity: string = `${join.participantRole}_${join.userId}`;
@@ -141,5 +153,40 @@ export const issueJoinToken = action({
       participantRole: join.participantRole,
       joinClosesAt: join.joinClosesAt,
     };
+  },
+});
+
+export const expireDueRooms = internalAction({
+  args: {},
+  handler: async (ctx): Promise<{ expiredClasses: number; deletedRooms: number }> => {
+    const result: { expiredRoomNames: string[] } = await ctx.runMutation(
+      internal.liveClasses.expireDueLiveClasses,
+      { now: Date.now() },
+    );
+
+    if (result.expiredRoomNames.length === 0) {
+      return { expiredClasses: 0, deletedRooms: 0 };
+    }
+
+    let env: ReturnType<typeof requireLiveKitEnv>;
+    try {
+      env = requireLiveKitEnv();
+    } catch {
+      return { expiredClasses: result.expiredRoomNames.length, deletedRooms: 0 };
+    }
+
+    const roomClient = new RoomServiceClient(httpUrlForLiveKit(env.wsUrl), env.apiKey, env.apiSecret);
+    let deletedRooms = 0;
+
+    for (const roomName of result.expiredRoomNames) {
+      try {
+        await roomClient.deleteRoom(roomName);
+        deletedRooms += 1;
+      } catch (reason) {
+        console.warn(`[LiveKit] Failed to delete expired room ${roomName}:`, reason);
+      }
+    }
+
+    return { expiredClasses: result.expiredRoomNames.length, deletedRooms };
   },
 });
