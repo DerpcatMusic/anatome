@@ -1,8 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireInstructorOrAdmin, requireUserId } from "../lib/authz";
 import { hasLiveClassConflict, minuteMs, oneOnOneTimezone } from "../lib/oneOnOne";
+import { LIMITS } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 
 export const listRequests = query({
@@ -17,7 +19,23 @@ export const listRequests = query({
         q.eq("instructorUserId", userId).eq("status", "pending"),
       )
       .order("asc")
-      .take(50);
+      .take(LIMITS.INSTRUCTOR_REQUESTS);
+  },
+});
+
+export const listRequestsPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireInstructorOrAdmin(profile);
+    return await ctx.db
+      .query("oneOnOneRequests")
+      .withIndex("by_instructorUserId_and_status_and_requestedStartsAt", (q) =>
+        q.eq("instructorUserId", userId).eq("status", "pending"),
+      )
+      .order("asc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -53,12 +71,12 @@ export const setAvailabilityRule = mutation({
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);
     requireInstructorOrAdmin(profile);
-    if (args.weekday < 0 || args.weekday > 6) throw new Error("Invalid weekday");
+    if (args.weekday < 0 || args.weekday > 6) throw new Error("יום שבוע לא תקין");
     if (args.startMinute < 0 || args.endMinute > 24 * 60 || args.startMinute >= args.endMinute) {
-      throw new Error("Invalid availability hours");
+      throw new Error("שעות זמינות לא תקינות");
     }
-    if (args.slotMinutes < 20 || args.slotMinutes > 120) throw new Error("Invalid slot duration");
-    if (args.bufferMinutes < 0 || args.bufferMinutes > 60) throw new Error("Invalid buffer");
+    if (args.slotMinutes < 20 || args.slotMinutes > 120) throw new Error("משך חלון זמן לא תקין");
+    if (args.bufferMinutes < 0 || args.bufferMinutes > 60) throw new Error("חוצץ זמן לא תקין");
 
     const now = Date.now();
     const payload = {
@@ -69,7 +87,7 @@ export const setAvailabilityRule = mutation({
 
     if (args.ruleId !== undefined) {
       const existing = await ctx.db.get(args.ruleId);
-      if (existing === null || existing.instructorUserId !== userId) throw new Error("Rule not found");
+      if (existing === null || existing.instructorUserId !== userId) throw new Error("הכלל לא נמצא");
       await ctx.db.patch(args.ruleId, payload);
       return args.ruleId;
     }
@@ -85,10 +103,10 @@ export const approveRequest = mutation({
     const profile = await requireAppProfile(ctx, userId);
     requireInstructorOrAdmin(profile);
     const request = await ctx.db.get(args.requestId);
-    if (request === null || request.instructorUserId !== userId) throw new Error("Request not found");
-    if (request.status !== "pending") throw new Error("Request is not pending");
+    if (request === null || request.instructorUserId !== userId) throw new Error("הבקשה לא נמצאה");
+    if (request.status !== "pending") throw new Error("הבקשה אינה בהמתנה");
     if (await hasLiveClassConflict(ctx, userId, request.requestedStartsAt, request.requestedEndsAt)) {
-      throw new Error("Slot is no longer free");
+      throw new Error("החלון כבר אינו פנוי");
     }
 
     const now = Date.now();

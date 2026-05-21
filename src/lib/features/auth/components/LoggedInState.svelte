@@ -14,8 +14,8 @@
   const { t } = useI18n();
 </script>
 
-<div class="auth-state">
-  <div class="auth-state__text">
+<div class="auth-state grid gap-4">
+  <div class="auth-state__text grid gap-2">
     <p class="kicker">{t.auth.loggedIn.kicker()}</p>
     <h2>{t.auth.loggedIn.title()}</h2>
     <p class="intro">{t.auth.loggedIn.subtitle()}</p>
@@ -25,14 +25,7 @@
 </div>
 
 <style>
-  .auth-state {
-    display: grid;
-    gap: 16px;
-  }
-
   .auth-state__text {
-    display: grid;
-    gap: 8px;
     margin-block-end: 4px;
   }
 

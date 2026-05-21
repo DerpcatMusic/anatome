@@ -12,7 +12,7 @@ function LiveAlert($$renderer, $$props) {
 		const { t } = useI18n();
 		if (liveAlert) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<a class="live-alert svelte-ng537h"${attr("href", liveRoomHref(liveAlert.liveClassId))}><span class="live-alert__pulse svelte-ng537h"></span> <span class="svelte-ng537h"><strong class="svelte-ng537h">${escape_html(t.dashboard.liveAlert.title())}</strong> <small class="svelte-ng537h">${escape_html(liveAlert.title)}</small></span></a>`);
+			$$renderer.push(`<a class="live-alert flex items-center gap-3 svelte-ng537h"${attr("href", liveRoomHref(liveAlert.liveClassId))}><span class="live-alert__pulse svelte-ng537h"></span> <span class="svelte-ng537h"><strong class="svelte-ng537h">${escape_html(t.dashboard.liveAlert.title())}</strong> <small class="svelte-ng537h">${escape_html(liveAlert.title)}</small></span></a>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalQuery } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 import { isStaff } from "../lib/authz";
 
 export const getAuthorizedVideo = internalQuery({
@@ -27,7 +28,7 @@ export const getAuthorizedVideo = internalQuery({
     const buckets = await ctx.db
       .query("creditBuckets")
       .withIndex("by_user_period", (q) => q.eq("userId", args.userId))
-      .take(50);
+      .take(LIMITS.PLAYBACK_BATCH);
     const hasActiveSubscription = buckets.some((row) => row.periodStart <= Date.now() && row.periodEnd > Date.now());
     if (hasActiveSubscription) return { video, access: { allowed: true as const, reason: "microflow" } };
     return null;

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { roomNameForClass } from "../lib/live";
@@ -13,7 +14,7 @@ export const autoStart = internalMutation({
       .withIndex("by_status_and_startsAt", (q) =>
         q.eq("status", "scheduled").lte("startsAt", now),
       )
-      .take(50);
+      .take(LIMITS.CRON_CLASSES);
 
     for (const liveClass of dueClasses) {
       if (liveClass.status !== "scheduled") continue;
@@ -57,7 +58,7 @@ export const expire = internalMutation({
       .withIndex("by_status_and_joinClosesAt", (q) =>
         q.eq("status", "live").lte("joinClosesAt", args.now),
       )
-      .take(100);
+      .take(LIMITS.CRON_SETTLE);
 
     const expiredRoomNames: string[] = [];
 

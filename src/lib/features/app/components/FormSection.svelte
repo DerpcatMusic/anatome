@@ -8,18 +8,15 @@
   } = $props();
 </script>
 
-<section class="form-section">
+<section class="form-section flex flex-col gap-3">
   <h3>{title}</h3>
-  <div class="form-section__body">
+  <div class="form-section__body flex flex-col gap-3">
     {@render children()}
   </div>
 </section>
 
 <style>
   .form-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
     min-width: 0;
   }
 
@@ -32,8 +29,6 @@
   }
 
   .form-section__body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+    min-width: 0;
   }
 </style>

@@ -47,7 +47,7 @@ export async function checkRateLimit(
   // Count remaining entries in window
   const recent = old.filter((e) => now - e.timestamp <= windowMs);
   if (recent.length >= max) {
-    throw new Error("Rate limit exceeded. Please try again later.");
+    throw new Error("נא להמתין מעט לפני הניסיון הבא");
   }
 
   // Record this attempt

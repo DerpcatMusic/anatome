@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { getCurrentCreditBucket, availableOneOnOneCredits } from "../credits/lib";
 import { requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
@@ -11,7 +12,7 @@ import {
 } from "../lib/oneOnOne";
 import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
-import { MS, RULES } from "../lib/constants";
+import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 
 export const listAvailableSlots = query({
@@ -23,7 +24,7 @@ export const listAvailableSlots = query({
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);
     requireCustomer(profile);
-    if (args.from >= args.to) throw new Error("Invalid range");
+    if (args.from >= args.to) throw new Error("טווח תאריכים לא תקין");
 
     const bucket = await getCurrentCreditBucket(ctx, userId);
     const availableCredits = bucket === null ? 0 : availableOneOnOneCredits(bucket);
@@ -41,7 +42,21 @@ export const listMine = query({
       .query("oneOnOneRequests")
       .withIndex("by_customerUserId_and_createdAt", (q) => q.eq("customerUserId", userId))
       .order("desc")
-      .take(25);
+      .take(LIMITS.CUSTOMER_REQUESTS);
+  },
+});
+
+export const listMinePaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireCustomer(profile);
+    return await ctx.db
+      .query("oneOnOneRequests")
+      .withIndex("by_customerUserId_and_createdAt", (q) => q.eq("customerUserId", userId))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -56,18 +71,18 @@ export const requestSlot = mutation({
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);
     requireCustomer(profile);
-    if (args.startsAt <= Date.now() + MS.TWO_HOURS) throw new Error("Slot is too soon");
-    if (args.endsAt <= args.startsAt) throw new Error("Invalid slot");
+    if (args.startsAt <= Date.now() + MS.TWO_HOURS) throw new Error("התאריך קרוב מדי");
+    if (args.endsAt <= args.startsAt) throw new Error("חלון זמן לא תקין");
     if (!(await slotMatchesAvailability(ctx, args.instructorUserId, args.startsAt, args.endsAt))) {
-      throw new Error("Slot is not available");
+      throw new Error("החלון אינו זמין");
     }
     if (!(await isOneOnOneSlotFree(ctx, args.instructorUserId, args.startsAt, args.endsAt))) {
-      throw new Error("Slot is no longer available");
+      throw new Error("החלון כבר אינו זמין");
     }
 
     const bucket = await getCurrentCreditBucket(ctx, userId);
-    if (bucket === null) throw new Error("No active credit bucket");
-    if (availableOneOnOneCredits(bucket) < 1) throw new Error("No 1:1 credit available");
+    if (bucket === null) throw new Error("אין תיק נקודות פעיל");
+    if (availableOneOnOneCredits(bucket) < 1) throw new Error("אין נקודות 1:1 זמינות");
 
     const now = Date.now();
     await reserveOneOnOneCredits(ctx, bucket, 1);
@@ -95,8 +110,8 @@ export const cancelRequest = mutation({
     const profile = await requireAppProfile(ctx, userId);
     requireCustomer(profile);
     const request = await ctx.db.get(args.requestId);
-    if (request === null || request.customerUserId !== userId) throw new Error("Request not found");
-    if (request.status !== "pending") throw new Error("Only pending requests can be cancelled");
+    if (request === null || request.customerUserId !== userId) throw new Error("הבקשה לא נמצאה");
+    if (request.status !== "pending") throw new Error("ניתן לבטל רק בקשות בהמתנה");
 
     const bucket = await ctx.db.get(request.creditBucketId);
     if (bucket !== null) {

@@ -8,7 +8,7 @@ import { d as goalLabel, i as equipmentLabel, l as experienceOptions, o as equip
 //#region src/lib/features/app/components/AppSkeleton.svelte
 function AppSkeleton($$renderer, $$props) {
 	let { title = true, lines = 2, width = "60%" } = $$props;
-	$$renderer.push(`<div class="loading svelte-4wdaoi">`);
+	$$renderer.push(`<div class="loading grid gap-3 svelte-4wdaoi">`);
 	if (title) {
 		$$renderer.push("<!--[0-->");
 		$$renderer.push(`<div class="skeleton skeleton--title svelte-4wdaoi"></div>`);
@@ -48,7 +48,7 @@ function ExperienceStep($$renderer, $$props) {
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
-			$$renderer.push(`<div class="experience-options svelte-1n930o">`);
+			$$renderer.push(`<div class="experience-options flex flex-col gap-3 svelte-1n930o">`);
 			RadioGroup_1($$renderer, {
 				options: options(),
 				orientation: "vertical",
@@ -120,11 +120,11 @@ function GoalsStep($$renderer, $$props) {
 		function toggle(list, value) {
 			return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 		}
-		$$renderer.push(`<div class="chips svelte-vptto8"><!--[-->`);
+		$$renderer.push(`<div class="chips flex flex-wrap gap-3"><!--[-->`);
 		const each_array = ensure_array_like(goalOptions);
 		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 			let [value, label] = each_array[$$index];
-			$$renderer.push(`<div class="chip svelte-vptto8">`);
+			$$renderer.push(`<div class="chip inline-flex items-center svelte-vptto8">`);
 			Checkbox_1($$renderer, {
 				checked: goals.includes(value),
 				onchange: () => goals = toggle(goals, value),
@@ -238,24 +238,24 @@ function OnboardingForm($$renderer, $$props) {
 		function $$render_inner($$renderer) {
 			if (submitted) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="success svelte-j1vmuv"><div class="success-mark svelte-j1vmuv">✦</div> <h2 class="svelte-j1vmuv">${escape_html(mode === "edit" ? t.onboarding.success.editTitle() : t.onboarding.success.title())}</h2> <p class="svelte-j1vmuv">${escape_html(mode === "edit" ? t.onboarding.success.editSubtitle() : t.onboarding.success.subtitle())}</p></div>`);
+				$$renderer.push(`<div class="success"><div class="success-mark">✦</div> <h2>${escape_html(mode === "edit" ? t.onboarding.success.editTitle() : t.onboarding.success.title())}</h2> <p>${escape_html(mode === "edit" ? t.onboarding.success.editSubtitle() : t.onboarding.success.subtitle())}</p></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<div class="onboarding svelte-j1vmuv"><div class="panel panel--question svelte-j1vmuv"><div class="panel__inner svelte-j1vmuv">`);
+				$$renderer.push(`<div class="onboarding"><div class="panel panel--question"><div class="panel__inner">`);
 				if (mode === "onboarding") {
 					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<div class="progress-dots svelte-j1vmuv"><!--[-->`);
+					$$renderer.push(`<div class="progress-dots"><!--[-->`);
 					const each_array = ensure_array_like(steps);
 					for (let i = 0, $$length = each_array.length; i < $$length; i++) {
 						let step = each_array[i];
-						$$renderer.push(`<button${attr_class("dot svelte-j1vmuv", void 0, {
+						$$renderer.push(`<button${attr_class("dot", void 0, {
 							"active": i === stepIndex,
 							"done": i < stepIndex
 						})}${attr("disabled", i > stepIndex, true)} type="button"${attr("aria-label", getStepLabel(step.id))}></button>`);
 					}
 					$$renderer.push(`<!--]--></div>`);
 				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--> <div class="question svelte-j1vmuv"><span class="question__num svelte-j1vmuv">${escape_html(String(stepIndex + 1).padStart(2, "0"))}</span> <h1 class="svelte-j1vmuv">${escape_html(stepTitle())}</h1> <p class="svelte-j1vmuv">${escape_html(stepSubtitle())}</p></div></div></div> <div class="panel panel--form svelte-j1vmuv"><div class="panel__inner svelte-j1vmuv"><div class="form-body svelte-j1vmuv">`);
+				$$renderer.push(`<!--]--> <div class="question"><span class="question__num">${escape_html(String(stepIndex + 1).padStart(2, "0"))}</span> <h1>${escape_html(stepTitle())}</h1> <p>${escape_html(stepSubtitle())}</p></div></div></div> <div class="panel panel--form"><div class="panel__inner"><div class="form-body">`);
 				if (currentStep().id === "experience") {
 					$$renderer.push("<!--[0-->");
 					ExperienceStep($$renderer, {
@@ -319,7 +319,7 @@ function OnboardingForm($$renderer, $$props) {
 						$$slots: { default: true }
 					});
 				} else $$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--]--></div> <div class="form-footer svelte-j1vmuv">`);
+				$$renderer.push(`<!--]--></div> <div class="form-footer">`);
 				if (!isFirst()) {
 					$$renderer.push("<!--[0-->");
 					Button_1($$renderer, {
@@ -334,7 +334,7 @@ function OnboardingForm($$renderer, $$props) {
 					});
 				} else {
 					$$renderer.push("<!--[-1-->");
-					$$renderer.push(`<span class="svelte-j1vmuv"></span>`);
+					$$renderer.push(`<span></span>`);
 				}
 				$$renderer.push(`<!--]--> `);
 				if (isLast()) {

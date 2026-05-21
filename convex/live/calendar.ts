@@ -7,6 +7,7 @@ import {
   availableOneOnOneCredits,
 } from "../credits/lib";
 import { missingRequiredEquipment } from "../lib/equipment";
+import { LIMITS } from "../lib/constants";
 
 export const listUpcoming = query({
   args: {},
@@ -18,12 +19,12 @@ export const listUpcoming = query({
         q.eq("status", "scheduled").gte("startsAt", now),
       )
       .order("asc")
-      .take(50);
+      .take(LIMITS.CALENDAR_UPCOMING);
     const live = await ctx.db
       .query("liveClasses")
       .withIndex("by_status_and_startsAt", (q) => q.eq("status", "live"))
       .order("asc")
-      .take(50);
+      .take(LIMITS.CALENDAR_UPCOMING);
 
     return [...live, ...scheduled].sort((a, b) => a.startsAt - b.startsAt).slice(0, 50);
   },
@@ -46,7 +47,7 @@ export const listRange = query({
         q.gte("startsAt", args.from).lt("startsAt", args.to),
       )
       .order("asc")
-      .take(100);
+      .take(LIMITS.CALENDAR_RANGE_CLASSES);
 
     const bucket =
       userId === null ? null : await getCurrentCreditBucket(ctx, userId);
@@ -57,7 +58,7 @@ export const listRange = query({
         : await ctx.db
             .query("liveReservations")
             .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
-            .take(200);
+            .take(LIMITS.CALENDAR_RESERVATIONS);
     const viewerReservationMap = new Map(
       viewerReservations.map((r) => [r.liveClassId, r]),
     );

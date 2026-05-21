@@ -13,7 +13,7 @@ import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 import { missingRequiredEquipment } from "../lib/equipment";
-import { MS, RULES } from "../lib/constants";
+import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 
 async function insertReminderEvents(
@@ -50,7 +50,7 @@ export const listMine = query({
       .query("liveReservations")
       .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
       .order("desc")
-      .take(50);
+      .take(LIMITS.LIVE_PARTICIPANTS);
   },
 });
 
@@ -65,23 +65,23 @@ export const reserve = mutation({
     requireRole(profile, ["customer", "instructor", "admin"]);
 
     const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
+    if (liveClass === null) throw new Error("השיעור לא נמצא");
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
-      throw new Error("Class is not available");
+      throw new Error("השיעור אינו זמין");
     }
     if (Date.now() > liveClass.joinClosesAt) {
-      throw new Error("Class RSVP window is closed");
+      throw new Error("חלון ההרשמה לשיעור נסגר");
     }
     const memberProfile = await ctx.db
       .query("memberProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (memberProfile === null) throw new Error("Pilates profile required");
+    if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
     if (
       missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment)
         .length > 0
     ) {
-      throw new Error("Required equipment missing");
+      throw new Error("חסר ציוד נדרש");
     }
 
     const existing = await ctx.db
@@ -108,17 +108,17 @@ export const reserve = mutation({
       (r) => r.status === "reserved" || r.status === "joined",
     ).length;
     if (activeCount >= liveClass.capacity) {
-      throw new Error("Class is full");
+      throw new Error("השיעור מלא");
     }
 
     const bucket = await getCurrentCreditBucket(ctx, userId);
-    if (bucket === null) throw new Error("No active credit bucket");
+    if (bucket === null) throw new Error("אין תיק נקודות פעיל");
     const available =
       liveClass.creditKind === "live"
         ? availableLiveCredits(bucket)
         : availableOneOnOneCredits(bucket);
     if (available < liveClass.creditCost) {
-      throw new Error("Insufficient credits");
+      throw new Error("אין מספיק נקודות");
     }
 
     const now = Date.now();

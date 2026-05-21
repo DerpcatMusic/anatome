@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 
 export const oneOnOneTimezone = "Asia/Jerusalem";
 export const dayMs = 24 * 60 * 60 * 1000;
@@ -33,11 +34,11 @@ export async function activeInstructorIds(ctx: QueryCtx) {
   const instructors = await ctx.db
     .query("appProfiles")
     .withIndex("by_role", (q) => q.eq("role", "instructor"))
-    .take(25);
+    .take(LIMITS.MAX_INSTRUCTORS);
   const admins = await ctx.db
     .query("appProfiles")
     .withIndex("by_role", (q) => q.eq("role", "admin"))
-    .take(10);
+    .take(LIMITS.MAX_ADMINS_CHECK);
   return [...instructors, ...admins]
     .filter((profile) => profile.role === "admin" || profile.instructorDisabledAt === undefined)
     .map((profile) => profile.userId);
@@ -54,7 +55,7 @@ export async function hasLiveClassConflict(
     .withIndex("by_instructorUserId_and_startsAt", (q) =>
       q.eq("instructorUserId", instructorUserId).gte("startsAt", startsAt - dayMs).lt("startsAt", endsAt + dayMs),
     )
-    .take(50);
+    .take(LIMITS.INSTRUCTOR_CLASSES);
   return classes.some((liveClass) =>
     liveClass.status !== "cancelled" && overlaps(startsAt, endsAt, liveClass.startsAt, liveClass.endsAt),
   );
@@ -73,7 +74,7 @@ export async function isOneOnOneSlotFree(
     .withIndex("by_instructorUserId_and_requestedStartsAt", (q) =>
       q.eq("instructorUserId", instructorUserId).gte("requestedStartsAt", startsAt - dayMs).lt("requestedStartsAt", endsAt + dayMs),
     )
-    .take(50);
+    .take(LIMITS.INSTRUCTOR_REQUESTS);
   return !requests.some((request) =>
     (request.status === "pending" || request.status === "approved") &&
     overlaps(startsAt, endsAt, request.requestedStartsAt, request.requestedEndsAt),
@@ -91,7 +92,7 @@ export async function slotMatchesAvailability(
     .withIndex("by_instructorUserId_and_weekday", (q) =>
       q.eq("instructorUserId", instructorUserId).eq("weekday", weekday(startsAt)),
     )
-    .take(12);
+    .take(LIMITS.MAX_INSTRUCTORS);
   const dayStart = startOfLocalDay(startsAt);
   return rules.some((rule) => {
     if (!rule.isActive) return false;
@@ -119,7 +120,7 @@ export async function buildAvailableSlots(
     const rules = await ctx.db
       .query("oneOnOneAvailabilityRules")
       .withIndex("by_isActive_and_weekday", (q) => q.eq("isActive", true).eq("weekday", weekday(dayStart)))
-      .take(100);
+      .take(LIMITS.CRON_ONE_ON_ONE);
 
     for (const rule of rules) {
       if (!instructorIdSet.has(rule.instructorUserId)) continue;

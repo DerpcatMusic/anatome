@@ -1,4 +1,5 @@
 import { internalMutation } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 
 export const due = internalMutation({
   args: {},
@@ -9,7 +10,7 @@ export const due = internalMutation({
       .withIndex("by_status_and_sendAt", (q) =>
         q.eq("status", "pending").lte("sendAt", now),
       )
-      .take(50);
+      .take(LIMITS.REMINDER_BATCH);
 
     const reservationIds = [...new Set(due.map((r) => r.reservationId))];
     const liveClassIds = [...new Set(due.map((r) => r.liveClassId))];

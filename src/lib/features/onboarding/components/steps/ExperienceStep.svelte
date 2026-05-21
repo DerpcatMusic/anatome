@@ -17,15 +17,13 @@
   })));
 </script>
 
-<div class="experience-options">
+<div class="experience-options flex flex-col gap-3">
   <RadioGroup bind:value={experience} {options} orientation="vertical" />
 </div>
 
 <style>
   .experience-options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+    min-width: 0;
   }
 
 

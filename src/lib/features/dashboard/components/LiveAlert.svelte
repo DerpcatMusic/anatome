@@ -12,7 +12,7 @@
 </script>
 
 {#if liveAlert}
-  <a class="live-alert" href={liveRoomHref(liveAlert.liveClassId)}>
+  <a class="live-alert flex items-center gap-3" href={liveRoomHref(liveAlert.liveClassId)}>
     <span class="live-alert__pulse"></span>
     <span>
       <strong>{t.dashboard.liveAlert.title()}</strong>
@@ -23,9 +23,6 @@
 
 <style>
   .live-alert {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
     border: var(--border);
     background: var(--ink);
     color: var(--white);

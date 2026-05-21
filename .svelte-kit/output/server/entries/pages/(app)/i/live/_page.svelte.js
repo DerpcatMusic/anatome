@@ -6125,7 +6125,7 @@ function WeeklyAgenda($$renderer, $$props) {
 //#region src/lib/features/app/components/FormSection.svelte
 function FormSection($$renderer, $$props) {
 	let { title, children } = $$props;
-	$$renderer.push(`<section class="form-section svelte-gohi6t"><h3 class="svelte-gohi6t">${escape_html(title)}</h3> <div class="form-section__body svelte-gohi6t">`);
+	$$renderer.push(`<section class="form-section flex flex-col gap-3 svelte-gohi6t"><h3 class="svelte-gohi6t">${escape_html(title)}</h3> <div class="form-section__body flex flex-col gap-3 svelte-gohi6t">`);
 	children($$renderer);
 	$$renderer.push(`<!----></div></section>`);
 }

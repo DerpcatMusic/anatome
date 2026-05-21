@@ -1,4 +1,5 @@
 import { internalMutation } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 
 export const expireStale = internalMutation({
@@ -10,7 +11,7 @@ export const expireStale = internalMutation({
       .withIndex("by_status_and_requestedStartsAt", (q) =>
         q.eq("status", "pending").lt("requestedStartsAt", now),
       )
-      .take(100);
+      .take(LIMITS.CRON_ONE_ON_ONE);
 
     for (const request of staleRequests) {
       const bucket = await ctx.db.get(request.creditBucketId);

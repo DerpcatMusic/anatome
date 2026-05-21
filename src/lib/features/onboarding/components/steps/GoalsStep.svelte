@@ -17,9 +17,9 @@
   }
 </script>
 
-<div class="chips">
+<div class="chips flex flex-wrap gap-3">
   {#each goalOptions as [value, label]}
-    <div class="chip">
+    <div class="chip inline-flex items-center">
       <Checkbox checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)}>
         <span>{label}</span>
       </Checkbox>
@@ -31,16 +31,8 @@
 {/if}
 
 <style>
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
   .chip {
-    display: inline-flex;
     min-height: 48px;
-    align-items: center;
     padding-inline: var(--space-5);
     font-size: var(--step-0);
   }

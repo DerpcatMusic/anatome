@@ -1,12 +1,13 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { internal } from "../_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import { equipmentListValidator } from "../lib/validators";
 import { missingRequiredEquipment } from "../lib/equipment";
-import { MS, RULES } from "../lib/constants";
+import { MS, RULES, LIMITS } from "../lib/constants";
 import { roomNameForClass } from "../lib/live";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
@@ -19,11 +20,11 @@ function validateClassCreditModel(
   kind: "live" | "oneOnOne",
   cost: number,
 ) {
-  if (cost !== 1) throw new Error("Live classes always cost 1 credit");
+  if (cost !== 1) throw new Error("שיעור חי תמיד עולה נקודה אחת");
   if (type === "group_live" && kind !== "live")
-    throw new Error("Group live must use live credits");
+    throw new Error("שיעור קבוצתי חייב להשתמש בנקודות שיעור חי");
   if (type === "one_on_one" && kind !== "oneOnOne")
-    throw new Error("1:1 live must use 1:1 credits");
+    throw new Error("שיעור 1:1 חייב להשתמש בנקודות 1:1");
 }
 
 export const get = query({
@@ -82,17 +83,17 @@ export const create = mutation({
     const profile = await requireAppProfile(ctx, userId);
     requireRole(profile, ["instructor", "admin"]);
 
-    if (args.title.trim().length < 3) throw new Error("Class title is too short");
+    if (args.title.trim().length < 3) throw new Error("כותרת השיעור קצרה מדי");
     if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
-      throw new Error(`Duration must be between ${RULES.MIN_CLASS_DURATION_MINUTES} and ${RULES.MAX_CLASS_DURATION_MINUTES} minutes`);
+      throw new Error(`משך השיעור חייב להיות בין ${RULES.MIN_CLASS_DURATION_MINUTES} ל-${RULES.MAX_CLASS_DURATION_MINUTES} דקות`);
     }
     const maxCapacity = args.type === "one_on_one" ? 1 : RULES.MAX_GROUP_CAPACITY;
     if (args.capacity < 1 || args.capacity > maxCapacity) {
-      throw new Error(args.type === "one_on_one" ? "1:1 capacity must be 1" : `Capacity must be between 1 and ${RULES.MAX_GROUP_CAPACITY}`);
+      throw new Error(args.type === "one_on_one" ? "קיבולת 1:1 חייבת להיות 1" : `קיבולת חייבת להיות בין 1 ל-${RULES.MAX_GROUP_CAPACITY}`);
     }
-    if (args.requiredEquipment.length === 0) throw new Error("At least one equipment item is required");
+    if (args.requiredEquipment.length === 0) throw new Error("חובה לבחור לפחות פריט ציוד אחד");
     if (args.joinOpensMinutesBefore < 0 || args.joinOpensMinutesBefore > 60) {
-      throw new Error("Join opens must be between 0 and 60 minutes before start");
+      throw new Error("זמן פתיחת כניסה חייב להיות בין 0 ל-60 דקות לפני תחילת השיעור");
     }
 
     const now = Date.now();
@@ -100,7 +101,7 @@ export const create = mutation({
     const joinOpensAt = args.startsAt - args.joinOpensMinutesBefore * 60 * 1000;
     const joinClosesAt = endsAt;
 
-    if (args.startsAt <= now - 5 * 60 * 1000) throw new Error("Can only schedule future classes");
+    if (args.startsAt <= now - MS.FIVE_MINUTES) throw new Error("ניתן לתזמן שיעור רק לעתיד");
 
     return await ctx.db.insert("liveClasses", {
       title: args.title.trim(),
@@ -133,20 +134,20 @@ export const start = mutation({
     requireRole(profile, ["instructor", "admin"]);
 
     const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
+    if (liveClass === null) throw new Error("השיעור לא נמצא");
     if (liveClass.type !== "group_live" && liveClass.type !== "one_on_one") {
-      throw new Error("Only live classes use LiveKit");
+      throw new Error("רק שיעורים חיים משתמשים ב-LiveKit");
     }
     if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("Unauthorized");
+      throw new Error("אין הרשאה");
     }
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
-      throw new Error("Class cannot be started");
+      throw new Error("לא ניתן להתחיל את השיעור");
     }
 
     const now = Date.now();
     if (now > liveClass.joinClosesAt) {
-      throw new Error("Class has already ended");
+      throw new Error("השיעור כבר הסתיים");
     }
 
     await ctx.db.patch(args.liveClassId, {
@@ -246,7 +247,7 @@ export const reschedule = mutation({
       throw new Error("Unauthorized");
     }
     if (liveClass.status !== "scheduled") {
-      throw new Error("Only scheduled classes can be rescheduled");
+      throw new Error("ניתן לתזמן מחדש רק שיעורים מתוזמנים");
     }
 
     if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
@@ -335,7 +336,7 @@ export const cancel = mutation({
       throw new Error("Unauthorized");
     }
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
-      throw new Error("Class cannot be cancelled in this status");
+      throw new Error("לא ניתן לבטל שיעור בסטטוס זה");
     }
 
     const now = Date.now();
@@ -401,6 +402,20 @@ export const listMine = query({
       .query("liveClasses")
       .withIndex("by_instructorUserId_and_startsAt", (q) => q.eq("instructorUserId", userId))
       .order("desc")
-      .take(50);
+      .take(LIMITS.INSTRUCTOR_CLASSES);
+  },
+});
+
+export const listMinePaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireRole(profile, ["instructor", "admin"]);
+    return await ctx.db
+      .query("liveClasses")
+      .withIndex("by_instructorUserId_and_startsAt", (q) => q.eq("instructorUserId", userId))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });

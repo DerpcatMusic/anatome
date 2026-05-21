@@ -1,5 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 
 export const get = query({
   args: {},
@@ -21,7 +22,7 @@ export const get = query({
       .query("liveReservations")
       .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", "reserved"))
       .order("desc")
-      .take(20);
+      .take(LIMITS.DASHBOARD_RESERVATIONS);
 
     let liveAlert: { liveClassId: string; title: string; startsAt: number } | null = null;
 
@@ -29,7 +30,7 @@ export const get = query({
       const liveClasses = await ctx.db
         .query("liveClasses")
         .withIndex("by_status_and_startsAt", (q) => q.eq("status", "live"))
-        .take(50);
+        .take(LIMITS.DASHBOARD_LIVE_CLASSES);
       const liveClassMap = new Map(liveClasses.map((c) => [c._id, c]));
 
       for (const reservation of reservations) {

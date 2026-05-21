@@ -75,27 +75,27 @@ function AppSidebar($$renderer, $$props) {
 			if (href.startsWith("/live-room")) return currentPath() === "/live-room";
 			return currentPath() === href;
 		}
-		$$renderer.push(`<aside class="sidebar svelte-1uyw6j7" aria-label="ניווט אזור אישי"><div class="sidebar__brand svelte-1uyw6j7"><span class="sidebar__tagline svelte-1uyw6j7">${escape_html(isInstructorPrefix() ? "סטודיו" : "אזור אישי")}</span> `);
+		$$renderer.push(`<aside class="sidebar" aria-label="ניווט אזור אישי"><div class="sidebar__brand"><span class="sidebar__tagline">${escape_html(isInstructorPrefix() ? "סטודיו" : "אזור אישי")}</span> `);
 		if (isInstructorPrefix() && ctx.role) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<span${attr_class(`role-badge role-badge--${stringify(ctx.role)}`, "svelte-1uyw6j7")}>${escape_html(ctx.role === "admin" ? "Admin" : "Instructor")}</span>`);
+			$$renderer.push(`<span${attr_class(`role-badge role-badge--${stringify(ctx.role)}`)}>${escape_html(ctx.role === "admin" ? "Admin" : "Instructor")}</span>`);
 		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--></div> <div class="sidebar__account svelte-1uyw6j7">`);
+		$$renderer.push(`<!--]--></div> <div class="sidebar__account">`);
 		if (auth.isAuthenticated) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<span class="sidebar__user svelte-1uyw6j7">מחוברת</span> <button type="button" class="sidebar__signout svelte-1uyw6j7">יציאה</button>`);
+			$$renderer.push(`<span class="sidebar__user">מחוברת</span> <button type="button" class="sidebar__signout">יציאה</button>`);
 		} else {
 			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<a href="/" class="sidebar__signout svelte-1uyw6j7">כניסה</a>`);
+			$$renderer.push(`<a href="/" class="sidebar__signout">כניסה</a>`);
 		}
-		$$renderer.push(`<!--]--></div> <nav class="sidebar__nav svelte-1uyw6j7" aria-label="ניווט פנימי"><!--[-->`);
+		$$renderer.push(`<!--]--></div> <nav class="sidebar__nav" aria-label="ניווט פנימי"><!--[-->`);
 		const each_array = ensure_array_like(navItems());
 		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 			let item = each_array[$$index];
-			$$renderer.push(`<a${attr("href", item.href)}${attr_class("sidebar__link svelte-1uyw6j7", void 0, { "sidebar__link--live": "isLive" in item && item.isLive })}${attr("aria-current", isCurrent(item.href) ? "page" : void 0)}>`);
+			$$renderer.push(`<a${attr("href", item.href)}${attr_class("sidebar__link", void 0, { "sidebar__link--live": "isLive" in item && item.isLive })}${attr("aria-current", isCurrent(item.href) ? "page" : void 0)}>`);
 			if ("isLive" in item && item.isLive) {
 				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<span class="live-pulse svelte-1uyw6j7"></span>`);
+				$$renderer.push(`<span class="live-pulse"></span>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> ${escape_html(item.label)}</a>`);
 		}

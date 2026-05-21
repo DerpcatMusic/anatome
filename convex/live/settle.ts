@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
+import { LIMITS } from "../lib/constants";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 
@@ -13,7 +14,7 @@ export const settle = internalMutation({
       .withIndex("by_liveClassId_and_status", (q) =>
         q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
       )
-      .take(200);
+      .take(LIMITS.CRON_SETTLE);
 
     const buckets = await Promise.all(
       reservations.map((r) => ctx.db.get(r.creditBucketId)),

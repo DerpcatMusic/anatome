@@ -59,6 +59,38 @@ export const LIMITS = {
   MAX_SLOTS: 80,
   /** Default pagination page size */
   PAGE_SIZE: 50,
-  /** Large page size for catalog */
+  /** Large page size for catalog / video grids */
   CATALOG_PAGE_SIZE: 200,
+  /** Admin video list per status */
+  ADMIN_VIDEO_PAGE: 100,
+  /** Category list page */
+  CATEGORY_PAGE: 100,
+  /** Videos per category group in catalog */
+  CATEGORY_GROUP_SIZE: 50,
+  /** Dashboard reservation preview */
+  DASHBOARD_RESERVATIONS: 20,
+  /** Dashboard live class lookup */
+  DASHBOARD_LIVE_CLASSES: 50,
+  /** Calendar upcoming classes */
+  CALENDAR_UPCOMING: 50,
+  /** Calendar range class lookup */
+  CALENDAR_RANGE_CLASSES: 100,
+  /** Calendar viewer reservations lookup */
+  CALENDAR_RESERVATIONS: 200,
+  /** Customer 1:1 request history */
+  CUSTOMER_REQUESTS: 25,
+  /** Instructor pending requests */
+  INSTRUCTOR_REQUESTS: 50,
+  /** Instructor class list */
+  INSTRUCTOR_CLASSES: 50,
+  /** Live class participant list */
+  LIVE_PARTICIPANTS: 50,
+  /** Playback token batch */
+  PLAYBACK_BATCH: 50,
+  /** Reminder processing batch */
+  REMINDER_BATCH: 50,
+  /** Cron job batch sizes */
+  CRON_CLASSES: 50,
+  CRON_SETTLE: 100,
+  CRON_ONE_ON_ONE: 100,
 } as const;

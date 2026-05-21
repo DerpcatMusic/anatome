@@ -29,7 +29,7 @@
   bind:value={email}
 />
 
-<div class="method-buttons">
+<div class="method-buttons grid gap-3">
   <Button type="button" tone="ink" disabled={pending} onclick={sendCode}>
     {pending && method === "code" ? t.auth.pendingSendCode() : `📩 ${t.auth.submitSendCode()}`}
   </Button>
@@ -40,7 +40,6 @@
 
 <style>
   .method-buttons {
-    display: grid;
-    gap: 12px;
+    min-width: 0;
   }
 </style>

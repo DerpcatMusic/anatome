@@ -1363,26 +1363,26 @@ function VideoList($$renderer, $$props) {
 		const filteredDrafts = derived(() => library ? filterVideos(library.drafts) : []);
 		const totalPublishedCount = derived(() => library?.published.length ?? 0);
 		const totalDraftsCount = derived(() => library?.drafts.length ?? 0);
-		$$renderer.push(`<div class="video-library-list svelte-1sltbmw"><div class="filter-controls-row svelte-1sltbmw"><div class="search-input-wrapper svelte-1sltbmw"><span class="material-symbols-rounded search-icon svelte-1sltbmw">search</span> <input type="text"${attr("value", searchQuery)} placeholder="חיפוש שיעורים לפי כותרת או תיאור..." class="search-input svelte-1sltbmw"/> `);
+		$$renderer.push(`<div class="video-library-list"><div class="filter-controls-row"><div class="search-input-wrapper"><span class="material-symbols-rounded search-icon">search</span> <input type="text"${attr("value", searchQuery)} placeholder="חיפוש שיעורים לפי כותרת או תיאור..." class="search-input"/> `);
 		$$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--></div> <div class="access-filter-chips svelte-1sltbmw"><button${attr_class("filter-chip svelte-1sltbmw", void 0, { "active": selectedAccessFilter === "all" })}>הכל</button> <button${attr_class("filter-chip macro svelte-1sltbmw", void 0, { "active": selectedAccessFilter === "macroflow" })}>Macroflow</button> <button${attr_class("filter-chip micro svelte-1sltbmw", void 0, { "active": selectedAccessFilter === "microflow" })}>Microflow</button></div></div> `);
+		$$renderer.push(`<!--]--></div> <div class="access-filter-chips"><button${attr_class("filter-chip", void 0, { "active": selectedAccessFilter === "all" })}>הכל</button> <button${attr_class("filter-chip macro", void 0, { "active": selectedAccessFilter === "macroflow" })}>Macroflow</button> <button${attr_class("filter-chip micro", void 0, { "active": selectedAccessFilter === "microflow" })}>Microflow</button></div></div> `);
 		if (!library) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="skeleton-grid svelte-1sltbmw"><div class="skeleton-card svelte-1sltbmw"></div> <div class="skeleton-card svelte-1sltbmw"></div> <div class="skeleton-card svelte-1sltbmw"></div></div>`);
+			$$renderer.push(`<div class="skeleton-grid"><div class="skeleton-card"></div> <div class="skeleton-card"></div> <div class="skeleton-card"></div></div>`);
 		} else {
 			$$renderer.push("<!--[-1-->");
 			ScrollArea_1($$renderer, {
 				class: "library-scroll-container",
 				children: ($$renderer) => {
-					$$renderer.push(`<div class="sections-stack svelte-1sltbmw">`);
+					$$renderer.push(`<div class="sections-stack">`);
 					if (filteredDrafts().length > 0) {
 						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<section class="library-group svelte-1sltbmw"><div class="group-header svelte-1sltbmw"><span class="material-symbols-rounded group-icon draft svelte-1sltbmw">edit_document</span> <h2 class="group-title svelte-1sltbmw">שיעורים בטיוטה (${escape_html(filteredDrafts().length)})</h2> `);
+						$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon draft">edit_document</span> <h2 class="group-title">שיעורים בטיוטה (${escape_html(filteredDrafts().length)})</h2> `);
 						if (totalDraftsCount() !== filteredDrafts().length) {
 							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="filtered-badge svelte-1sltbmw">מסונן</span>`);
+							$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
 						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div> <div class="video-grid svelte-1sltbmw"><!--[-->`);
+						$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
 						const each_array = ensure_array_like(filteredDrafts());
 						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 							let video = each_array[$$index];
@@ -1399,12 +1399,12 @@ function VideoList($$renderer, $$props) {
 					$$renderer.push(`<!--]--> `);
 					if (filteredPublished().length > 0) {
 						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<section class="library-group svelte-1sltbmw"><div class="group-header svelte-1sltbmw"><span class="material-symbols-rounded group-icon published svelte-1sltbmw">check_circle</span> <h2 class="group-title svelte-1sltbmw">שיעורים פעילים בספרייה (${escape_html(filteredPublished().length)})</h2> `);
+						$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon published">check_circle</span> <h2 class="group-title">שיעורים פעילים בספרייה (${escape_html(filteredPublished().length)})</h2> `);
 						if (totalPublishedCount() !== filteredPublished().length) {
 							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="filtered-badge svelte-1sltbmw">מסונן</span>`);
+							$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
 						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div> <div class="video-grid svelte-1sltbmw"><!--[-->`);
+						$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
 						const each_array_1 = ensure_array_like(filteredPublished());
 						for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
 							let video = each_array_1[$$index_1];
@@ -1421,10 +1421,10 @@ function VideoList($$renderer, $$props) {
 					$$renderer.push(`<!--]--> `);
 					if (totalPublishedCount() === 0 && totalDraftsCount() === 0) {
 						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<div class="empty-state-notice svelte-1sltbmw"><span class="material-symbols-rounded empty-icon svelte-1sltbmw">video_library</span> <h3 class="svelte-1sltbmw">אין עדיין שיעורים בספרייה</h3> <p class="svelte-1sltbmw">העלי את השיעור הראשון שלך באמצעות כרטיסיית "העלאה חדשה" למעלה.</p></div>`);
+						$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">video_library</span> <h3>אין עדיין שיעורים בספרייה</h3> <p>העלי את השיעור הראשון שלך באמצעות כרטיסיית "העלאה חדשה" למעלה.</p></div>`);
 					} else if (filteredPublished().length === 0 && filteredDrafts().length === 0) {
 						$$renderer.push("<!--[1-->");
-						$$renderer.push(`<div class="empty-state-notice svelte-1sltbmw"><span class="material-symbols-rounded empty-icon svelte-1sltbmw">search_off</span> <h3 class="svelte-1sltbmw">לא נמצאו תוצאות</h3> <p class="svelte-1sltbmw">נסי לשנות את מונח החיפוש או פילטר מודל הגישה.</p></div>`);
+						$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">search_off</span> <h3>לא נמצאו תוצאות</h3> <p>נסי לשנות את מונח החיפוש או פילטר מודל הגישה.</p></div>`);
 					} else $$renderer.push("<!--[-1-->");
 					$$renderer.push(`<!--]--></div>`);
 				},

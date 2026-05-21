@@ -415,7 +415,7 @@ function EmailStep($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----> <div class="method-buttons svelte-115ousx">`);
+			$$renderer.push(`<!----> <div class="method-buttons grid gap-3 svelte-115ousx">`);
 			Button_1($$renderer, {
 				type: "button",
 				tone: "ink",
@@ -548,7 +548,7 @@ function LoggedInState($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { signOut, closeModal } = $$props;
 		const { t } = useI18n();
-		$$renderer.push(`<div class="auth-state svelte-1si2n1d"><div class="auth-state__text svelte-1si2n1d"><p class="kicker svelte-1si2n1d">${escape_html(t.auth.loggedIn.kicker())}</p> <h2 class="svelte-1si2n1d">${escape_html(t.auth.loggedIn.title())}</h2> <p class="intro svelte-1si2n1d">${escape_html(t.auth.loggedIn.subtitle())}</p></div> `);
+		$$renderer.push(`<div class="auth-state grid gap-4"><div class="auth-state__text grid gap-2 svelte-1si2n1d"><p class="kicker svelte-1si2n1d">${escape_html(t.auth.loggedIn.kicker())}</p> <h2 class="svelte-1si2n1d">${escape_html(t.auth.loggedIn.title())}</h2> <p class="intro svelte-1si2n1d">${escape_html(t.auth.loggedIn.subtitle())}</p></div> `);
 		Button_1($$renderer, {
 			tone: "ink",
 			href: "/u/dashboard",

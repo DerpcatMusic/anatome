@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { requireUserId } from "../lib/authz";
+import { LIMITS } from "../lib/constants";
 
 export const listLibrary = query({
   args: {},
@@ -13,14 +14,14 @@ export const listLibrary = query({
     const entitlements = await ctx.db
       .query("videoEntitlements")
       .withIndex("by_userId_and_kind", (q) => q.eq("userId", userId).eq("kind", "macroflow"))
-      .take(200);
+      .take(LIMITS.CATALOG_PAGE_SIZE);
     const owned = new Set(entitlements.map((e) => e.videoId));
     const isStaff = profile !== null && (profile.role === "instructor" || profile.role === "admin");
     const categories = await ctx.db
       .query("videoCategories")
       .withIndex("by_isActive_and_sortOrder", (q) => q.eq("isActive", true))
       .order("asc")
-      .take(100);
+      .take(LIMITS.CATEGORY_PAGE);
     const videos = await ctx.db
       .query("videos")
       .withIndex("by_status", (q) => q.eq("status", "published"))
@@ -36,7 +37,7 @@ export const listLibrary = query({
         .query("videoCategoryVideos")
         .withIndex("by_categoryId_and_sortOrder", (q) => q.eq("categoryId", category._id))
         .order("asc")
-        .take(50);
+        .take(LIMITS.CATEGORY_GROUP_SIZE);
       const items = rows
         .map((row) => videoById.get(row.videoId))
         .filter((video): video is (typeof videos)[number] => Boolean(video))

@@ -24,7 +24,7 @@ type JoinContext = {
 
 /** Validates auth, class existence, and join window. Returns participant role. */
 async function validateJoinEligibility({ ctx, userId, profile, liveClass, now }: JoinContext) {
-  if (liveClass.status !== "live") throw new Error("Class is not live");
+  if (liveClass.status !== "live") throw new Error("השיעור אינו חי");
 
   const isAdmin = profile.role === "admin";
   const isInstructor = liveClass.instructorUserId === userId || isAdmin;
@@ -35,7 +35,7 @@ async function validateJoinEligibility({ ctx, userId, profile, liveClass, now }:
       : "customer";
 
   if (!isInstructor && (now < liveClass.joinOpensAt || now > liveClass.joinClosesAt)) {
-    throw new Error("Class is outside the join window");
+    throw new Error("השיעור מחוץ לחלון ההצטרפות");
   }
 
   return { isInstructor, participantRole };
@@ -47,11 +47,11 @@ async function checkMemberRequirements({ ctx, userId, liveClass }: JoinContext) 
     .query("memberProfiles")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
     .unique();
-  if (memberProfile === null) throw new Error("Pilates profile required");
+  if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
   if (
     missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment).length > 0
   ) {
-    throw new Error("Required equipment missing");
+    throw new Error("חסר ציוד נדרש");
   }
 }
 
@@ -61,7 +61,7 @@ async function upgradeReservation(
   reservation: Doc<"liveReservations">,
 ) {
   const bucket = await ctx.db.get(reservation.creditBucketId);
-  if (bucket === null) throw new Error("Reservation credit bucket not found");
+  if (bucket === null) throw new Error("תיק הנקודות המשויך להרשמה לא נמצא");
 
   if (reservation.creditKind === "live") {
     await consumeLiveCredits(ctx, bucket, reservation.creditsReserved);
@@ -85,17 +85,17 @@ async function handleWalkIn({ ctx, userId, liveClass, now }: JoinContext) {
     (r) => r.status === "reserved" || r.status === "joined",
   ).length;
   if (seatsTaken >= liveClass.capacity) {
-    throw new Error("Class is full");
+    throw new Error("השיעור מלא");
   }
 
   const bucket = await getCurrentCreditBucket(ctx, userId);
-  if (bucket === null) throw new Error("No active credit bucket");
+  if (bucket === null) throw new Error("אין תיק נקודות פעיל");
   const available =
     liveClass.creditKind === "live"
       ? availableLiveCredits(bucket)
       : availableOneOnOneCredits(bucket);
   if (available < liveClass.creditCost) {
-    throw new Error("Insufficient credits");
+    throw new Error("אין מספיק נקודות");
   }
 
   if (liveClass.creditKind === "live") {
@@ -174,9 +174,9 @@ export const prepareJoin = internalMutation({
     const liveClass = await ctx.db.get(args.liveClassId);
     const now = Date.now();
 
-    if (liveClass === null) throw new Error("Class not found");
+    if (liveClass === null) throw new Error("השיעור לא נמצא");
     if (liveClass.type !== "group_live" && liveClass.type !== "one_on_one") {
-      throw new Error("LiveKit is only enabled for live classes");
+      throw new Error("LiveKit זמין רק לשיעורים חיים");
     }
 
     const joinCtx: JoinContext = { ctx, userId, profile, liveClass, now };
@@ -202,7 +202,7 @@ export const prepareJoin = internalMutation({
         await handleWalkIn(joinCtx);
         joinReason = "mid_live_walk_in";
       } else {
-        throw new Error("Reservation required");
+        throw new Error("נדרשת הרשמה מראש");
       }
     }
 

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireUserId, requireAppProfile, requireRole } from "../lib/authz";
+import { LIMITS } from "../lib/constants";
 
 export const listCategories = query({
   args: {},
@@ -10,7 +11,7 @@ export const listCategories = query({
       .query("videoCategories")
       .withIndex("by_isActive_and_sortOrder", (q) => q.eq("isActive", true))
       .order("asc")
-      .take(100);
+      .take(LIMITS.CATEGORY_PAGE);
   },
 });
 
@@ -22,7 +23,7 @@ export const createCategory = mutation({
     requireRole(profile, ["instructor", "admin"]);
 
     const name = args.name.trim();
-    if (name.length < 2) throw new Error("Category name is too short");
+    if (name.length < 2) throw new Error("שם הקטגוריה קצר מדי");
     const now = Date.now();
     return await ctx.db.insert("videoCategories", {
       slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "category"}-${now}`,

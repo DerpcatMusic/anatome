@@ -2,7 +2,7 @@
   let { title = true, lines = 2, width = "60%" }: { title?: boolean; lines?: number; width?: string } = $props();
 </script>
 
-<div class="loading">
+<div class="loading grid gap-3">
   {#if title}
     <div class="skeleton skeleton--title"></div>
   {/if}
@@ -13,8 +13,6 @@
 
 <style>
   .loading {
-    display: grid;
-    gap: var(--space-3);
     max-width: 480px;
     margin-inline: auto;
     margin-top: 15vh;
