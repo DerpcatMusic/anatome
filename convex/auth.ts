@@ -8,6 +8,11 @@ declare const process: {
   };
 };
 
+function generateOtp() {
+  const digits = globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  return digits.toString().padStart(6, "0");
+}
+
 function getFrontendUrl(): string {
   const frontendUrl = process.env.FRONTEND_URL;
   if (frontendUrl) return frontendUrl.replace(/\/$/, "");
@@ -19,11 +24,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     Email({
       maxAge: 10 * 60,
       authorize: undefined,
+      generateVerificationToken: async () => generateOtp(),
       async sendVerificationRequest({ identifier, token }) {
         const siteUrl = getFrontendUrl();
         const magicLink = `${siteUrl}/callback?code=${encodeURIComponent(token)}&email=${encodeURIComponent(identifier)}`;
-        console.log(`HomeBody login code for ${identifier}: ${token}`);
-        console.log(`HomeBody magic link for ${identifier}: ${magicLink}`);
+        if (/localhost|127\.0\.0\.1/.test(siteUrl)) {
+          console.log(`HomeBody login OTP sent for ${identifier}`);
+          console.log(`HomeBody magic link for ${identifier}: ${magicLink}`);
+        }
       },
     }),
   ],

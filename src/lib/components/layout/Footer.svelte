@@ -11,7 +11,10 @@
 
     <div class="footer-links">
       <a href="/">דף הבית</a>
-      <!-- FILL IN: קישורים נוספים כשיהיו -->
+      <a href="/legal/terms">תנאי שימוש</a>
+      <a href="/legal/privacy">מדיניות פרטיות</a>
+      <a href="/legal/cancellations">ביטולים</a>
+      <a href="/legal/accessibility">נגישות</a>
     </div>
 
     <div class="footer-contact">
@@ -24,8 +27,8 @@
 
   <div class="footer-legal">
     <span>© {year} HomeBody</span>
-    <span>תנאי שימוש</span>
-    <span>מדיניות פרטיות</span>
+    <a href="/legal/health">הצהרת בריאות</a>
+    <a href="/legal/privacy">פרטיות</a>
   </div>
 </footer>
 
@@ -68,14 +71,16 @@
     gap: var(--space-2);
   }
 
-  .footer-links a {
+  .footer-links a,
+  .footer-legal a {
     font-size: var(--step-0);
     color: var(--ink);
     text-decoration: none;
     transition: color var(--duration-fast);
   }
 
-  .footer-links a:hover {
+  .footer-links a:hover,
+  .footer-legal a:hover {
     color: var(--muted);
   }
 
@@ -109,6 +114,11 @@
     border-top: var(--border);
     font-size: var(--step--1);
     color: var(--muted);
+  }
+
+  .footer-legal a {
+    font-size: inherit;
+    color: inherit;
   }
 
   @media (max-width: 520px) {

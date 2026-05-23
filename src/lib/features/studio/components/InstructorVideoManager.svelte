@@ -2,15 +2,13 @@
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
-  import Tabs from "$components/ui/Tabs.svelte";
-  import { Tabs as BitsTabs } from "bits-ui";
+  import { Button } from "bits-ui";
   import { resource } from "runed";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
   import { useQuery, useConvexClient } from "convex-svelte";
   import PageShell from "$features/app/components/PageShell.svelte";
   import Notice from "$components/ui/Notice.svelte";
 
-  // Subcomponents imports
   import VideoUploadForm from "./VideoUploadForm.svelte";
   import VideoList from "./VideoList.svelte";
   import VideoEditModal from "./VideoEditModal.svelte";
@@ -34,7 +32,9 @@
   }
 
   const auth = initAuth();
-  let tab = $state<"library" | "upload">("library");
+
+  // Upload panel toggle
+  let showUpload = $state(false);
 
   // Global actions state
   let actionId = $state<string | null>(null);
@@ -65,7 +65,6 @@
   );
   const categories = $derived(categoriesResource.current ?? []);
 
-  // Category creation mutation
   async function handleCreateCategory(name: string) {
     creatingCategory = true;
     categoryError = "";
@@ -79,7 +78,6 @@
     }
   }
 
-  // File uploading action orchestration
   async function handleStartUpload(data: {
     title: string;
     description: string;
@@ -96,7 +94,6 @@
     uploadError = "";
 
     try {
-      // Step 1: Request upload token and Mux url from Convex
       const result = await client.action(api.video.uploads.requestUpload, {
         title: data.title,
         description: data.description,
@@ -114,18 +111,18 @@
         return;
       }
 
-      // Step 2: Upload direct file payload to Mux bucket
       await uploadToMux(result.uploadUrl, data.file);
       uploadStatus = "processing";
 
-      // Step 3: Fast polling simulated success before background webhook finishes
+      // Processing happens server-side via Mux webhook.
+      // Show success and collapse panel after a brief moment.
       setTimeout(() => {
         if (uploadStatus === "processing") {
           uploadStatus = "ready";
-          tab = "library";
+          showUpload = false;
           uploadProgress = 0;
         }
-      }, 2500);
+      }, 1500);
 
     } catch (reason) {
       uploadStatus = "error";
@@ -133,7 +130,6 @@
     }
   }
 
-  // Upload raw stream tracking
   function uploadToMux(url: string, file: File): Promise<void> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -153,7 +149,6 @@
     });
   }
 
-  // Publishing existing draft video
   async function handlePublishVideo(videoId: Id<"videos">) {
     actionId = videoId;
     actionError = "";
@@ -166,7 +161,6 @@
     }
   }
 
-  // Archiving/deleting video record
   async function handleDeleteVideo(videoId: Id<"videos">) {
     actionId = videoId;
     actionError = "";
@@ -179,7 +173,6 @@
     }
   }
 
-  // Save metadata modifications inside modal dialog
   async function handleSaveEdit(videoId: Id<"videos">, editTitle: string, editDescription: string) {
     actionId = videoId;
     actionError = "";
@@ -207,23 +200,23 @@
     <Notice tone="danger">{actionError}</Notice>
   {/if}
 
-  <Tabs bind:value={tab} items={[{ value: "library", label: "ספריית שיעורים" }, { value: "upload", label: "העלאת וידאו חדש" }]} ariaLabel="ניהול סרטוני וידאו">
-    <!-- Tab 1: Video Library Grid -->
-    <BitsTabs.Content value="library">
-      <div class="library-tab-content">
-        <VideoList
-          {library}
-          {actionId}
-          onEdit={(video) => (editingVideoObj = video)}
-          onPublish={handlePublishVideo}
-          onDelete={handleDeleteVideo}
-        />
-      </div>
-    </BitsTabs.Content>
+  {#if uploadStatus === "ready"}
+    <Notice tone="success">הווידאו הועלה בהצלחה! מעבדים אותו בשרתי Mux — יופיע בספריה תוך כמה דקות.</Notice>
+  {/if}
 
-    <!-- Tab 2: Upload Panel Form -->
-    <BitsTabs.Content value="upload">
-      <div class="upload-tab-content">
+  <div class="manager-layout">
+    <div class="manager-toolbar">
+      <Button.Root class="hb-button {showUpload ? 'hb-button--paper' : 'hb-button--ink'}"
+        type="button"
+        onclick={() => { showUpload = !showUpload; }}
+      >
+        <span class="material-symbols-rounded">{showUpload ? "close" : "cloud_upload"}</span>
+        {showUpload ? "סגירת פאנל" : "העלאת וידאו חדש"}
+      </Button.Root>
+    </div>
+
+    {#if showUpload}
+      <div class="upload-panel">
         <VideoUploadForm
           {categories}
           {uploadStatus}
@@ -233,13 +226,21 @@
           {categoryError}
           onCreateCategory={handleCreateCategory}
           onSubmit={handleStartUpload}
+          onCancel={() => { showUpload = false; }}
         />
       </div>
-    </BitsTabs.Content>
-  </Tabs>
+    {/if}
+
+    <VideoList
+      {library}
+      {actionId}
+      onEdit={(video) => (editingVideoObj = video)}
+      onPublish={handlePublishVideo}
+      onDelete={handleDeleteVideo}
+    />
+  </div>
 </PageShell>
 
-<!-- Edit Video Metadata Popup Dialog Modal -->
 {#if editingVideoObj}
   <VideoEditModal
     video={editingVideoObj}
@@ -250,9 +251,27 @@
 {/if}
 
 <style>
-  .library-tab-content,
-  .upload-tab-content {
-    margin-top: var(--space-5);
+  .manager-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     direction: rtl;
+  }
+
+  .manager-toolbar {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .upload-panel {
+    border: var(--border);
+    background: var(--white);
+    padding: var(--space-5);
+    animation: slideDown 0.2s var(--ease-out);
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>

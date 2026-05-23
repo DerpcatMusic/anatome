@@ -8,8 +8,8 @@ import {
   availableLiveCredits,
   availableOneOnOneCredits,
 } from "../credits/lib";
-import { consumeLiveCredits } from "../credits/consumeLive";
-import { consumeOneOnOneCredits } from "../credits/consumeOneOnOne";
+import { reserveLiveCredits } from "../credits/reserveLive";
+import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { RULES } from "../lib/constants";
 import { roomNameForClass } from "../lib/live";
@@ -43,10 +43,11 @@ async function validateJoinEligibility({ ctx, userId, profile, liveClass, now }:
 
 /** Checks member profile and equipment for non-instructors. */
 async function checkMemberRequirements({ ctx, userId, liveClass }: JoinContext) {
-  const memberProfile = await ctx.db
+  const memberProfiles = await ctx.db
     .query("memberProfiles")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .unique();
+    .take(1);
+  const memberProfile = memberProfiles[0] ?? null;
   if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
   if (
     missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment).length > 0
@@ -55,35 +56,9 @@ async function checkMemberRequirements({ ctx, userId, liveClass }: JoinContext) 
   }
 }
 
-/** Handles reserved → joined transition (consumes credits). */
-async function upgradeReservation(
-  { ctx, now }: JoinContext,
-  reservation: Doc<"liveReservations">,
-) {
-  const bucket = await ctx.db.get(reservation.creditBucketId);
-  if (bucket === null) throw new Error("תיק הנקודות המשויך להרשמה לא נמצא");
-
-  if (reservation.creditKind === "live") {
-    await consumeLiveCredits(ctx, bucket, reservation.creditsReserved);
-  } else {
-    await consumeOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
-  }
-
-  await ctx.db.patch(reservation._id, {
-    status: "joined",
-    joinedAt: now,
-  });
-}
-
-/** Handles walk-in join: capacity check, credit consumption, reservation creation. */
+/** Handles walk-in join: capacity check, credit reservation, reservation creation. */
 async function handleWalkIn({ ctx, userId, liveClass, now }: JoinContext) {
-  const walkInReservations = await ctx.db
-    .query("liveReservations")
-    .withIndex("by_liveClassId_and_status", (q) => q.eq("liveClassId", liveClass._id))
-    .take(liveClass.capacity + 1);
-  const seatsTaken = walkInReservations.filter(
-    (r) => r.status === "reserved" || r.status === "joined",
-  ).length;
+  const seatsTaken = liveClass.seatsTaken ?? 0;
   if (seatsTaken >= liveClass.capacity) {
     throw new Error("השיעור מלא");
   }
@@ -99,20 +74,19 @@ async function handleWalkIn({ ctx, userId, liveClass, now }: JoinContext) {
   }
 
   if (liveClass.creditKind === "live") {
-    await ctx.db.patch(bucket._id, { liveUsed: bucket.liveUsed + liveClass.creditCost });
+    await reserveLiveCredits(ctx, bucket, liveClass.creditCost);
   } else {
-    await ctx.db.patch(bucket._id, { oneOnOneUsed: bucket.oneOnOneUsed + liveClass.creditCost });
+    await reserveOneOnOneCredits(ctx, bucket, liveClass.creditCost);
   }
 
   await ctx.db.insert("liveReservations", {
     liveClassId: liveClass._id,
     userId,
     creditBucketId: bucket._id,
-    status: "joined",
+    status: "reserved",
     creditKind: liveClass.creditKind,
     creditsReserved: liveClass.creditCost,
     reservedAt: now,
-    joinedAt: now,
   });
 
   await ctx.db.patch(liveClass._id, { seatsTaken: seatsTaken + 1 });
@@ -123,10 +97,11 @@ async function ensureRoomExists(
   { ctx, userId, liveClass, now }: JoinContext,
   isInstructor: boolean,
 ): Promise<Doc<"liveRooms">> {
-  let room = await ctx.db
+  const rooms = await ctx.db
     .query("liveRooms")
     .withIndex("by_liveClassId", (q) => q.eq("liveClassId", liveClass._id))
-    .unique();
+    .take(1);
+  let room: Doc<"liveRooms"> | null = rooms[0] ?? null;
 
   if (room === null) {
     const newRoom = {
@@ -185,19 +160,23 @@ export const prepareJoin = internalMutation({
     let joinReason = "join_token_issued";
 
     if (!isInstructor) {
-      const reservation = await ctx.db
+      const reservations = await ctx.db
         .query("liveReservations")
         .withIndex("by_liveClassId_and_userId", (q) =>
           q.eq("liveClassId", args.liveClassId).eq("userId", userId),
         )
-        .unique();
+        .take(10);
+      const reservation =
+        reservations.find((row) => row.status === "joined") ??
+        reservations.find((row) => row.status === "reserved") ??
+        null;
 
       await checkMemberRequirements(joinCtx);
 
       if (reservation !== null && reservation.status === "joined") {
         joinReason = "rejoin_token_issued";
       } else if (reservation !== null && reservation.status === "reserved") {
-        await upgradeReservation(joinCtx, reservation);
+        joinReason = "reserved_token_issued";
       } else if (reservation === null) {
         await handleWalkIn(joinCtx);
         joinReason = "mid_live_walk_in";

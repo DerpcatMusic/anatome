@@ -1,5 +1,5 @@
 import "./index-server.js";
-import { yt as getContext } from "./dev.js";
+import { _t as getContext } from "./dev.js";
 import { n as navigating$1, t as stores } from "./client.js";
 Object.defineProperty({
 	get from() {

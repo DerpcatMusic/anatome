@@ -1,5 +1,5 @@
 import { a as bind_props, i as attributes, o as derived } from "./dev.js";
-import { Z as mergeProps } from "./arrays.js";
+import { X as mergeProps } from "./arrays.js";
 import { t as srOnlyStyles } from "./sr-only-styles.js";
 //#region node_modules/bits-ui/dist/bits/utilities/hidden-input.svelte
 function Hidden_input($$renderer, $$props) {

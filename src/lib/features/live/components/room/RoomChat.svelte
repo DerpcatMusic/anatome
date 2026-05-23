@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from "svelte";
   import { ScrollState } from "runed";
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import type { ChatMessage } from "$lib/features/live/types";
 
@@ -94,9 +94,9 @@
         placeholder={t.live.room.chatPlaceholder()}
         aria-label={t.live.room.chatPlaceholder()}
       />
-      <Button type="submit" tone="ink" size="sm" disabled={!draft.trim()}>
+      <Button.Root class="hb-button hb-button--ink hb-button--sm" type="submit" disabled={!draft.trim()}>
         {t.live.room.chatSend()}
-      </Button>
+      </Button.Root>
     </form>
   </aside>
 {/if}

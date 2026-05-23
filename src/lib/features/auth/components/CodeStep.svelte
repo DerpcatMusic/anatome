@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
-  import Input from "$components/ui/Input.svelte";
+  import { Button, PinInput, REGEXP_ONLY_DIGITS, type PinInputRootSnippetProps } from "bits-ui";
+
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   let {
@@ -10,6 +10,7 @@
     method,
     reset,
     switchToCode,
+    submitCode,
   }: {
     code: string;
     email: string;
@@ -17,9 +18,12 @@
     method: "code" | "link" | null;
     reset: () => void;
     switchToCode: () => void;
+    submitCode: () => void;
   } = $props();
 
   const { t } = useI18n();
+
+  type CellProps = PinInputRootSnippetProps["cells"][0];
 
   function openEmailApp() {
     window.location.href = "mailto:";
@@ -27,29 +31,40 @@
 </script>
 
 {#if method === "code"}
-  <Input
-    label={t.auth.codeLabel()}
-    name="code"
-    inputmode="numeric"
-    autocomplete="one-time-code"
-    required
-    bind:value={code}
-  />
+  <div class="hb-input-field">
+    <label class="hb-field__label" for="auth-code-input">{t.auth.codeLabel()}</label>
+    <PinInput.Root
+      bind:value={code}
+      inputId="auth-code-input"
+      maxlength={6}
+      pattern={REGEXP_ONLY_DIGITS}
+      textalign="center"
+      onComplete={submitCode}
+    >
+      {#snippet children({ cells })}
+        <div class="otp-cells" dir="ltr">
+          {#each cells as cell, index (index)}
+            {@render Cell(cell)}
+          {/each}
+        </div>
+      {/snippet}
+    </PinInput.Root>
+  </div>
 
-  <Button type="submit" tone="ink" disabled={pending}>
+  <Button.Root class="hb-button hb-button--ink" type="submit" disabled={pending}>
     {pending ? t.auth.pendingVerify() : t.auth.submitEnter()}
-  </Button>
+  </Button.Root>
 
   <div class="auth-links">
-    <Button tone="ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button>
+    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button.Root>
   </div>
 {:else}
   <!-- link sent state -->
   <div class="link-sent">
     <p>{t.auth.linkSentText()}</p>
-    <Button type="button" tone="paper" onclick={openEmailApp}>
-      📧 {t.auth.openEmailApp()}
-    </Button>
+    <Button.Root class="hb-button hb-button--paper" type="button" onclick={openEmailApp}>
+      {t.auth.openEmailApp()}
+    </Button.Root>
   </div>
 
   <div class="auth-divider">
@@ -57,19 +72,19 @@
   </div>
 
   <div class="auth-links">
-    <Button tone="ghost" type="button" onclick={switchToCode}>
+    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={switchToCode}>
       {t.auth.enterCodeManually()}
-    </Button>
-    <Button tone="ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button>
+    </Button.Root>
+    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={reset}>{t.auth.switchEmail()}</Button.Root>
   </div>
 {/if}
 
 <style>
   .link-sent {
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
     text-align: center;
-    padding: var(--space-4) 0;
+    padding: var(--space-2) 0;
   }
 
   .link-sent p {
@@ -82,7 +97,7 @@
   .auth-divider {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     color: var(--muted);
     font-size: var(--step--1);
   }
@@ -102,4 +117,50 @@
     justify-content: center;
   }
 
+  .otp-cells {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-block-start: 0.25rem;
+  }
+
+  :global(.otp-cell) {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 3.5rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease,
+      transform 120ms ease;
+  }
+
+  :global(.otp-cell[data-active="true"]) {
+    border-color: var(--sky-strong);
+    box-shadow: 0 0 0 1px var(--sky-strong);
+  }
+
+  :global(.otp-cell:focus-within) {
+    border-color: var(--sky-strong);
+    box-shadow: 0 0 0 1px var(--sky-strong);
+  }
+
 </style>
+
+{#snippet Cell(cell: CellProps)}
+  <PinInput.Cell {cell} class="otp-cell">
+    {#if cell.char !== null}
+      <span>{cell.char}</span>
+    {/if}
+    {#if cell.hasFakeCaret}
+      <span class="otp-caret" aria-hidden="true"></span>
+    {/if}
+  </PinInput.Cell>
+{/snippet}

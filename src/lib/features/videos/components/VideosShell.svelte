@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import PageShell from "$features/app/components/PageShell.svelte";
   import InstructorVideoManager from "$features/studio/components/InstructorVideoManager.svelte";
@@ -79,7 +79,7 @@
 {:else if libraryResource.error}
   <div class="state-card">
     <Notice tone="danger">{libraryResource.error?.message ?? "שגיאה בטעינת הספרייה"}</Notice>
-    <Button type="button" tone="ghost" onclick={() => { void libraryResource.refetch(); }}>לנסות שוב</Button>
+    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { void libraryResource.refetch(); }}>לנסות שוב</Button.Root>
   </div>
 {:else if data}
   <PageShell
@@ -153,16 +153,15 @@
 
                   <div class="actions">
                     {#if item.owned}
-                      <a href={`/watch?videoId=${item._id}`}>לצפות</a>
+                      <Button.Root class="hb-button hb-button--ink" href={`/watch?videoId=${item._id}`}>לצפות</Button.Root>
                     {:else}
-                      <Button
+                      <Button.Root class="hb-button hb-button--sky"
                         type="button"
-                        tone="sky"
                         onclick={() => purchaseMacroflow(item._id)}
                         disabled={actionId === item._id}
                       >
                         לרכוש Macroflow
-                      </Button>
+                      </Button.Root>
                     {/if}
                   </div>
                 </article>

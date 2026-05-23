@@ -1,6 +1,7 @@
-import { c as ensure_array_like, et as attr, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../chunks/dev.js";
+import { Q as attr, c as ensure_array_like, et as escape_html, n as attr_class, o as derived, p as stringify } from "../../../chunks/dev.js";
 import { t as liveRoomHref } from "../../../chunks/context.js";
 import { _ as useQuery, r as initAuth, s as api } from "../../../chunks/session.svelte.js";
+import { t as theme } from "../../../chunks/theme.svelte.js";
 import { t as page } from "../../../chunks/state.js";
 import { n as setAppContext, t as getAppContext } from "../../../chunks/appContext.js";
 //#region src/lib/features/app/components/AppSidebar.svelte
@@ -83,7 +84,7 @@ function AppSidebar($$renderer, $$props) {
 		$$renderer.push(`<!--]--></div> <div class="sidebar__account">`);
 		if (auth.isAuthenticated) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<span class="sidebar__user">מחוברת</span> <button type="button" class="sidebar__signout">יציאה</button>`);
+			$$renderer.push(`<span class="sidebar__user">מחוברת</span> <div class="sidebar__actions"><button type="button" class="theme-toggle"${attr("title", theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה")}${attr("aria-label", theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה")}><span class="material-symbols-rounded">${escape_html(theme.value === "dark" ? "light_mode" : "dark_mode")}</span></button> <button type="button" class="sidebar__signout">יציאה</button></div>`);
 		} else {
 			$$renderer.push("<!--[-1-->");
 			$$renderer.push(`<a href="/" class="sidebar__signout">כניסה</a>`);

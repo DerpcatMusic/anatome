@@ -2,21 +2,21 @@ import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
-  getCurrentCreditBucket,
+  getCreditBucketForSubscription,
   availableLiveCredits,
   availableOneOnOneCredits,
 } from "../credits/lib";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { LIMITS } from "../lib/constants";
+import { getEntitledSubscription } from "../subscriptions/lib";
 
 export const listUpcoming = query({
   args: {},
   handler: async (ctx) => {
-    const now = Date.now();
     const scheduled = await ctx.db
       .query("liveClasses")
       .withIndex("by_status_and_startsAt", (q) =>
-        q.eq("status", "scheduled").gte("startsAt", now),
+        q.eq("status", "scheduled"),
       )
       .order("asc")
       .take(LIMITS.CALENDAR_UPCOMING);
@@ -49,8 +49,9 @@ export const listRange = query({
       .order("asc")
       .take(LIMITS.CALENDAR_RANGE_CLASSES);
 
-    const bucket =
-      userId === null ? null : await getCurrentCreditBucket(ctx, userId);
+    const subscription =
+      userId === null ? null : await getEntitledSubscription(ctx, userId);
+    const bucket = await getCreditBucketForSubscription(ctx, subscription);
 
     const viewerReservations =
       userId === null
@@ -63,22 +64,22 @@ export const listRange = query({
       viewerReservations.map((r) => [r.liveClassId, r]),
     );
 
-    const memberProfile =
+    const memberProfiles =
       userId === null
-        ? null
+        ? []
         : await ctx.db
             .query("memberProfiles")
             .withIndex("by_userId", (q) => q.eq("userId", userId))
-            .unique();
-    const appProfile =
+            .take(1);
+    const memberProfile = memberProfiles[0] ?? null;
+    const appProfiles =
       userId === null
-        ? null
+        ? []
         : await ctx.db
             .query("appProfiles")
             .withIndex("by_userId", (q) => q.eq("userId", userId))
-            .unique();
-    const now = Date.now();
-
+            .take(1);
+    const appProfile = appProfiles[0] ?? null;
     const results = [];
     for (const liveClass of classes) {
       const seatsTaken = liveClass.seatsTaken ?? 0;
@@ -104,8 +105,6 @@ export const listRange = query({
       const canWalkIn =
         userId !== null &&
         liveClass.status === "live" &&
-        now >= liveClass.joinOpensAt &&
-        now <= liveClass.joinClosesAt &&
         seatsRemaining > 0 &&
         available >= liveClass.creditCost &&
         viewerMissingEquipment.length === 0;
@@ -126,8 +125,6 @@ export const listRange = query({
           userId !== null &&
           (liveClass.type === "group_live" || liveClass.type === "one_on_one") &&
           liveClass.status === "live" &&
-          now >= liveClass.joinOpensAt &&
-          now <= liveClass.joinClosesAt &&
           (hasValidReservation || canWalkIn),
         viewerIsWalkIn: !hasValidReservation && canWalkIn,
         viewerAvailableCredits: available,

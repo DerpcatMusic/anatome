@@ -394,7 +394,7 @@ function in_webcontainer() {
 //#endregion
 //#region node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
-var UNINITIALIZED = Symbol();
+var UNINITIALIZED = Symbol("uninitialized");
 var ATTACHMENT_KEY = "@attach";
 /**
 * @returns {string[]}
@@ -1526,7 +1526,7 @@ var Batch = class Batch {
 						batch.schedule(effect);
 					} else batch.#dirty_effects.add(effect);
 				}
-				if (batch.#roots.length > 0) {
+				if (batch.#roots.length > 0 && !batch.#decrement_queued) {
 					batch.apply();
 					for (var root of batch.#roots) batch.#traverse(root, [], []);
 					batch.#roots = [];
@@ -2253,7 +2253,7 @@ function execute_derived(derived) {
 	var value;
 	var prev_active_effect = active_effect;
 	var parent = derived.parent;
-	if (!is_destroying_effect && parent !== null && (parent.f & 24576) !== 0) {
+	if (!is_destroying_effect && parent !== null && derived.v !== UNINITIALIZED && (parent.f & 24576) !== 0) {
 		derived_inert();
 		return derived.v;
 	}
@@ -2299,7 +2299,7 @@ function freeze_derived_effects(derived) {
 	for (const e of derived.effects) if (e.teardown || e.ac) {
 		e.teardown?.();
 		e.ac?.abort(STALE_REACTION);
-		e.teardown = noop;
+		if (e.fn !== null) e.teardown = noop;
 		e.ac = null;
 		remove_reactions(e, 0);
 		destroy_effect_children(e);
@@ -2310,7 +2310,7 @@ function freeze_derived_effects(derived) {
 */
 function unfreeze_derived_effects(derived) {
 	if (derived.effects === null) return;
-	for (const e of derived.effects) if (e.teardown) update_effect(e);
+	for (const e of derived.effects) if (e.teardown && e.fn !== null) update_effect(e);
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/sources.js
@@ -2608,6 +2608,17 @@ function proxy(value) {
 		}
 	});
 }
+new Set([
+	"copyWithin",
+	"fill",
+	"pop",
+	"push",
+	"reverse",
+	"shift",
+	"sort",
+	"splice",
+	"unshift"
+]);
 //#endregion
 //#region node_modules/svelte/src/internal/client/dom/operations.js
 /** @type {Window} */
@@ -3260,7 +3271,8 @@ function get(signal) {
 					else new_deps.push(signal);
 				}
 			} else {
-				(active_reaction.deps ??= []).push(signal);
+				active_reaction.deps ??= [];
+				if (!includes.call(active_reaction.deps, signal)) active_reaction.deps.push(signal);
 				var reactions = signal.reactions;
 				if (reactions === null) signal.reactions = [active_reaction];
 				else if (!includes.call(reactions, active_reaction)) reactions.push(active_reaction);
@@ -3341,25 +3353,6 @@ function untrack(fn) {
 	} finally {
 		untracking = previous_untracking;
 	}
-}
-//#endregion
-//#region node_modules/svelte/src/store/utils.js
-/** @import { Readable } from './public' */
-/**
-* @template T
-* @param {Readable<T> | null | undefined} store
-* @param {(value: T) => void} run
-* @param {(value: T) => void} [invalidate]
-* @returns {() => void}
-*/
-function subscribe_to_store(store, run, invalidate) {
-	if (store == null) {
-		run(void 0);
-		if (invalidate) invalidate(void 0);
-		return noop;
-	}
-	const unsub = untrack(() => store.subscribe(run, invalidate));
-	return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
 }
 var VOID_ELEMENT_NAMES = [
 	"area",
@@ -3591,33 +3584,6 @@ function attr_class(value, hash, directives) {
 function attr_style(value, directives) {
 	var result = to_style(value, directives);
 	return result ? ` style="${escape_html(result, true)}"` : "";
-}
-/**
-* @template V
-* @param {Record<string, [any, any, any]>} store_values
-* @param {string} store_name
-* @param {Store<V> | null | undefined} store
-* @returns {V}
-*/
-function store_get(store_values, store_name, store) {
-	if (store_name in store_values && store_values[store_name][0] === store) return store_values[store_name][2];
-	store_values[store_name]?.[1]();
-	store_values[store_name] = [
-		store,
-		null,
-		void 0
-	];
-	const unsub = subscribe_to_store(
-		store,
-		/** @param {any} v */
-		(v) => store_values[store_name][2] = v
-	);
-	store_values[store_name][1] = unsub;
-	return store_values[store_name][2];
-}
-/** @param {Record<string, [any, any, any]>} store_values */
-function unsubscribe_stores(store_values) {
-	for (const store_name of Object.keys(store_values)) store_values[store_name][1]();
 }
 /**
 * Legacy mode: If the prop has a fallback and is bound in the
@@ -4388,4 +4354,4 @@ function get_user_code_location() {
 	return get_stack().filter((line) => line.trim().startsWith("at ")).map((line) => line.replace(/\((.*):\d+:\d+\)$/, (_, file) => `(${file})`)).join("\n");
 }
 //#endregion
-export { rune_outside_svelte as $, get_first_child as A, component_context as B, component_root as C, hydratable_clobbering as Ct, clear_text_content as D, without_reactive_context as E, experimental_async_required as Et, boundary as F, hydrate_node as G, push as H, flushSync as I, set_hydrating as J, hydrating as K, readable as L, init_operations as M, mutable_source as N, create_element as O, set as P, hydration_failed as Q, writable as R, set_active_reaction as S, ssr_context as St, render_effect as T, lifecycle_function_unavailable as Tt, snapshot as U, pop as V, hydrate_next as W, lifecycle_double_unmount as X, hydration_mismatch as Y, state_proxy_unmount as Z, is_passive_event as _, createContext as _t, bind_props as a, get_render_context as at, get as b, hasContext as bt, ensure_array_like as c, LEGACY_PROPS as ct, render as d, array_from as dt, attr as et, spread_props as f, define_property as ft, html as g, to_array as gt, unsubscribe_stores as h, run as ht, attributes as i, HYDRATION_ERROR as it, get_next_sibling as j, create_text as k, head as l, REACTION_RAN as lt, stringify as m, object_keys as mt, attr_class as n, escape_html as nt, derived as o, async_mode_flag as ot, store_get as p, noop as pt, set_hydrate_node as q, attr_style as r, ATTACHMENT_KEY as rt, element as s, getAbortSignal as st, get_user_code_location as t, clsx$1 as tt, props_id as u, STATE_SYMBOL as ut, active_effect as v, getAllContexts as vt, effect_root as w, hydratable_serialization_failed as wt, set_active_effect as x, setContext as xt, active_reaction as y, getContext as yt, queue_micro_task as z };
+export { clsx$1 as $, init_operations as A, push as B, render_effect as C, lifecycle_function_unavailable as Ct, create_text as D, create_element as E, readable as F, set_hydrate_node as G, hydrate_next as H, writable as I, lifecycle_double_unmount as J, set_hydrating as K, queue_micro_task as L, set as M, boundary as N, get_first_child as O, flushSync as P, attr as Q, component_context as R, effect_root as S, hydratable_serialization_failed as St, clear_text_content as T, hydrate_node as U, snapshot as V, hydrating as W, hydration_failed as X, state_proxy_unmount as Y, rune_outside_svelte as Z, active_reaction as _, getContext as _t, bind_props as a, getAbortSignal as at, set_active_reaction as b, ssr_context as bt, ensure_array_like as c, STATE_SYMBOL as ct, render as d, noop as dt, escape_html as et, spread_props as f, object_keys as ft, active_effect as g, getAllContexts as gt, is_passive_event as h, createContext as ht, attributes as i, async_mode_flag as it, mutable_source as j, get_next_sibling as k, head as l, array_from as lt, html as m, to_array as mt, attr_class as n, HYDRATION_ERROR as nt, derived as o, LEGACY_PROPS as ot, stringify as p, run as pt, hydration_mismatch as q, attr_style as r, get_render_context as rt, element as s, REACTION_RAN as st, get_user_code_location as t, ATTACHMENT_KEY as tt, props_id as u, define_property as ut, get as v, hasContext as vt, without_reactive_context as w, experimental_async_required as wt, component_root as x, hydratable_clobbering as xt, set_active_effect as y, setContext as yt, pop as z };

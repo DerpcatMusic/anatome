@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import Tooltip from "$components/ui/Tooltip.svelte";
+  import { Tooltip, Separator } from "bits-ui";
   import LeaveModal from "./LeaveModal.svelte";
   import type { ConnectionState } from "$lib/features/live/types";
 
@@ -50,46 +50,67 @@
       <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
       <span>{t.live.room.back()}</span>
     </button>
-    <div class="lr-header__divider"></div>
+    <Separator.Root class="lr-header__divider" orientation="vertical" />
     <div class="lr-header__status">
       <span class="lr-header__status-dot" class:lr-header__status-dot--on={connectionState === "connected"}></span>
       <span class="lr-header__status-label">{connectionLabel}</span>
     </div>
-    <Tooltip label={t.live.room.participantsTitle()}>
-      <button
-        type="button"
-        class="lr-header__pill"
-        onclick={onToggleParticipants}
-        aria-label={t.live.room.participantsTitle()}
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">people</span>
-        <span>{participantCount}</span>
-      </button>
-    </Tooltip>
+    <Tooltip.Root>
+      <Tooltip.Trigger class="hb-tooltip-trigger">
+        <button
+          type="button"
+          class="lr-header__pill"
+          onclick={onToggleParticipants}
+          aria-label={t.live.room.participantsTitle()}
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">people</span>
+          <span>{participantCount}</span>
+        </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="hb-tooltip-content">
+          {t.live.room.participantsTitle()}
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   </div>
 
   <div class="lr-header__group">
     {#if isInstructorRoom}
-      <Tooltip label={t.live.stats.title()}>
+      <Tooltip.Root>
+        <Tooltip.Trigger class="hb-tooltip-trigger">
+          <button
+            type="button"
+            class="hb-button hb-button--icon"
+            onclick={onToggleQualityPanel}
+            aria-label={t.live.stats.title()}
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+          </button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="hb-tooltip-content">
+            {t.live.stats.title()}
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    {/if}
+    <Tooltip.Root>
+      <Tooltip.Trigger class="hb-tooltip-trigger">
         <button
           type="button"
-          class="hb-button hb-button--icon"
-          onclick={onToggleQualityPanel}
-          aria-label={t.live.stats.title()}
+          class="hb-button hb-button--icon-danger"
+          onclick={() => { showLeaveModal = true; }}
+          aria-label={t.live.room.leave()}
         >
-          <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
         </button>
-      </Tooltip>
-    {/if}
-    <Tooltip label={t.live.room.leave()}>
-      <button
-        type="button"
-        class="hb-button hb-button--icon-danger"
-        onclick={() => { showLeaveModal = true; }}
-        aria-label={t.live.room.leave()}
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">logout</span>
-      </button>
-    </Tooltip>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="hb-tooltip-content">
+          {t.live.room.leave()}
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   </div>
 </header>

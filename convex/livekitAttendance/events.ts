@@ -11,10 +11,11 @@ export const handleWebhook = internalMutation({
     event: v.string(),
   },
   handler: async (ctx, args) => {
-    const room = await ctx.db
+    const rooms = await ctx.db
       .query("liveRooms")
       .withIndex("by_roomName", (q) => q.eq("roomName", args.roomName))
-      .unique();
+      .take(1);
+    const room = rooms[0] ?? null;
 
     if (room === null) return { authorized: false };
 
@@ -27,30 +28,53 @@ export const handleWebhook = internalMutation({
     const roleStr = parts[0];
     const userIdStr = parts.slice(1).join("_");
     const userId = userIdStr as Id<"users">;
+    const profiles = await ctx.db
+      .query("appProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(1);
+    const profile = profiles[0] ?? null;
+    const isInstructor = roleStr === "instructor" && liveClass.instructorUserId === userId;
+    const isAdmin = roleStr === "admin" && profile?.role === "admin";
 
     if (args.event === "participant_joined") {
-      const reservation = await ctx.db
+      const reservations = await ctx.db
         .query("liveReservations")
         .withIndex("by_liveClassId_and_userId", (q) =>
           q.eq("liveClassId", room.liveClassId).eq("userId", userId),
         )
-        .unique();
+        .take(10);
+      const reservation =
+        reservations.find((row) => row.status === "joined") ??
+        reservations.find((row) => row.status === "reserved") ??
+        null;
 
       const isAuthorized =
+        isInstructor ||
+        isAdmin ||
         reservation !== null &&
         (reservation.status === "reserved" || reservation.status === "joined");
 
       if (isAuthorized) {
-        if (reservation !== null && reservation.status === "reserved") {
+        if (!isInstructor && !isAdmin && reservation !== null && reservation.status === "reserved") {
           const bucket = await ctx.db.get(reservation.creditBucketId);
-          if (bucket !== null) {
-            if (reservation.creditKind === "live") {
-              await consumeLiveCredits(ctx, bucket, reservation.creditsReserved);
-            } else {
-              await consumeOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
-            }
-            await ctx.db.patch(reservation._id, { status: "joined", joinedAt: Date.now() });
+          if (bucket === null) {
+            await ctx.db.insert("liveJoinEvents", {
+              liveClassId: room.liveClassId,
+              userId,
+              role: "customer",
+              result: "denied",
+              reason: "missing_credit_bucket",
+              createdAt: Date.now(),
+            });
+            return { authorized: false };
           }
+
+          if (reservation.creditKind === "live") {
+            await consumeLiveCredits(ctx, bucket, reservation.creditsReserved);
+          } else {
+            await consumeOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
+          }
+          await ctx.db.patch(reservation._id, { status: "joined", joinedAt: Date.now() });
         }
 
         const existing = await ctx.db
@@ -58,9 +82,9 @@ export const handleWebhook = internalMutation({
           .withIndex("by_liveClassId_and_identity", (q) =>
             q.eq("liveClassId", room.liveClassId).eq("identity", args.identity),
           )
-          .unique();
+          .take(1);
 
-        if (existing === null) {
+        if (existing[0] === undefined) {
           await ctx.db.insert("liveAttendance", {
             liveClassId: room.liveClassId,
             userId,
@@ -97,10 +121,10 @@ export const handleWebhook = internalMutation({
         .withIndex("by_liveClassId_and_identity", (q) =>
           q.eq("liveClassId", room.liveClassId).eq("identity", args.identity),
         )
-        .unique();
+        .take(1);
 
-      if (existing !== null && existing.leftAt === undefined) {
-        await ctx.db.patch(existing._id, { leftAt: Date.now() });
+      if (existing[0] !== undefined && existing[0].leftAt === undefined) {
+        await ctx.db.patch(existing[0]._id, { leftAt: Date.now() });
       }
 
       return { authorized: true };

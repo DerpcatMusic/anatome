@@ -1,11 +1,16 @@
 .skeleton-shell,
-.state-card,
 .hero,
 .category-panel {
   border: var(--border);
   background:
     linear-gradient(180deg, color-mix(in oklch, var(--sun) 18%, white), white 48%),
     white;
+}
+
+.state-card {
+  border: var(--border);
+  background: var(--white);
+  padding: var(--space-5);
 }
 
 .skeleton-shell {
@@ -211,14 +216,7 @@
   flex-wrap: wrap;
 }
 
-.actions a {
-  display: inline-flex;
-  padding: 0.75rem 1rem;
-  border: var(--border);
-  text-decoration: none;
-  background: var(--ink);
-  color: white;
-}
+
 
 .state-card {
   display: grid;
@@ -233,20 +231,6 @@
   letter-spacing: 0.08em;
   color: color-mix(in oklch, var(--sun) 50%, var(--ink));
   font-size: var(--step--1);
-  font-weight: 800;
-}
-
-.button-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  min-height: 44px;
-  padding-inline: var(--space-4);
-  border: var(--border);
-  background: var(--ink);
-  color: white;
-  text-decoration: none;
   font-weight: 800;
 }
 

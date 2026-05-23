@@ -1,10 +1,8 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import DatePicker from "$components/ui/DatePicker.svelte";
-  import NativeTimePicker from "$components/ui/NativeTimePicker.svelte";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
-  import RadioGroup from "$components/ui/RadioGroup.svelte";
-  import Slider from "$components/ui/Slider.svelte";
+  import { RadioGroup } from "bits-ui";
   import FormSection from "$features/app/components/FormSection.svelte";
   import type { Equipment } from "$lib/labels";
   import { TextareaAutosize } from "runed";
@@ -41,81 +39,88 @@
   ];
 
   let dateValue = $state<DateValue | undefined>(undefined);
-  let timeValue = $state("09:00");
   let descEl = $state<HTMLTextAreaElement | null>(null);
   const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => description });
 
-  // Computed end time display
-  const endTimeDisplay = $derived.by(() => {
-    if (!startsAtLocal) return "--:--";
-    const [_, timePart] = startsAtLocal.split("T");
-    if (!timePart) return "--:--";
-    const [h, m] = timePart.split(":").map(Number);
-    const start = new Date(2000, 0, 1, h, m);
-    const end = new Date(start.getTime() + durationMinutes * 60000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+  const hebrewDateFormatter = new Intl.DateTimeFormat("he-IL", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jerusalem",
+  });
+  const timeFormatter = new Intl.DateTimeFormat("he-IL", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem",
   });
 
-  // Sync dateValue + timeValue → startsAtLocal
-  function updateStartsAtLocal() {
-    if (!dateValue) return;
-    try {
-      const time = parseTime(timeValue);
-      const dateTime = toCalendarDateTime(dateValue as CalendarDate, time);
-      startsAtLocal = dateTime.toString().slice(0, 16);
-    } catch {
-      // ignore invalid time
-    }
+  // ── Derived displays ──
+  const timeSummary = $derived.by(() => {
+    if (!startsAtLocal) return { date: "", start: "", end: "", duration: "" };
+    const [datePart, timePart] = startsAtLocal.split("T");
+    if (!datePart || !timePart) return { date: "", start: "", end: "", duration: "" };
+
+    const startDate = new Date(startsAtLocal);
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+
+    return {
+      date: hebrewDateFormatter.format(startDate),
+      start: timeFormatter.format(startDate),
+      end: timeFormatter.format(endDate),
+      duration: `${durationMinutes} דק׳`,
+    };
+  });
+
+  // ── Sync dateValue ↔ startsAtLocal ──
+  function updateDateFromPicker(next: DateValue | undefined) {
+    if (!next || !startsAtLocal) return;
+    const timePart = startsAtLocal.split("T")[1] ?? "00:00";
+    startsAtLocal = `${next.toString()}T${timePart}`;
   }
 
-  // Initialize from startsAtLocal when it changes externally
+  // Initialize dateValue from startsAtLocal
   let previousStartsAtLocal = $state(startsAtLocal);
   $effect(() => {
     const current = startsAtLocal;
     if (current === previousStartsAtLocal) return;
     previousStartsAtLocal = current;
     if (!current) return;
-    const [datePart, timePart] = current.split("T");
-    if (!datePart || !timePart) return;
+    const [datePart] = current.split("T");
+    if (!datePart) return;
     try {
       dateValue = parseDate(datePart);
-      timeValue = timePart.slice(0, 5);
     } catch {
-      // Safe fallback
+      dateValue = undefined;
     }
   });
 </script>
 
 <form onsubmit={(event) => { event.preventDefault(); onSubmit(); }}>
-  <div class="studio-form-columns">
-    <!-- Left Column: Scheduling -->
-    <div class="studio-form-column">
-      <div class="column-fill">
-        <FormSection title="תאריך ושעה">
-        <DatePicker label="תאריך" bind:value={dateValue} onchange={updateStartsAtLocal} />
-
-        <div class="time-row">
-          <NativeTimePicker label="שעת התחלה" bind:value={timeValue} onchange={updateStartsAtLocal} />
-          <div class="end-time-display">
-            <span class="end-time-label">עד</span>
-            <span class="end-time-value">{endTimeDisplay}</span>
-          </div>
+  <div class="studio-form-layout">
+    <!-- Scheduling Summary -->
+    <section class="time-summary-section">
+      <div class="time-badge">
+        <span class="time-badge__date">{timeSummary.date}</span>
+        <div class="time-badge__range">
+          <span class="time-badge__start">{timeSummary.start}</span>
+          <span class="time-badge__sep">–</span>
+          <span class="time-badge__end">{timeSummary.end}</span>
+          <span class="time-badge__duration">({timeSummary.duration})</span>
         </div>
-
-        <div class="duration-row">
-          <Slider label="משך (דקות)" bind:value={durationMinutes} min={15} max={180} step={5} />
-          <span class="duration-badge">{durationMinutes} דק׳</span>
-        </div>
-      </FormSection>
       </div>
-    </div>
+      <div class="date-adjust">
+        <DatePicker label="שינוי תאריך" bind:value={dateValue} onchange={updateDateFromPicker} />
+      </div>
+    </section>
 
-    <!-- Right Column: Settings -->
-    <div class="studio-form-column">
-      <div class="column-fill">
-        <FormSection title="הגדרות שיעור">
-        <RadioGroup class="live-type-switch" bind:value={liveType} options={liveTypeOptions} />
+    <!-- Class Settings -->
+    <section class="settings-section">
+      <FormSection title="פרטי השיעור">
+        <RadioGroup.Root class="hb-choice-grid live-type-switch" bind:value={liveType} orientation="horizontal">
+          {#each liveTypeOptions as option}
+            <RadioGroup.Item class="hb-choice" value={option.value}>
+              <span class="hb-choice__title">{option.label}</span>
+              {#if option.description}
+                <span class="hb-choice__description">{option.description}</span>
+              {/if}
+            </RadioGroup.Item>
+          {/each}
+        </RadioGroup.Root>
 
         <div class="hb-input-field">
           <span class="hb-input-field__label">כותרת</span>
@@ -127,31 +132,48 @@
           <textarea class="hb-textarea" bind:value={description} bind:this={descEl} maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
         </div>
 
-        <div class="sliders-stack">
-          <Slider label="פתיחת כניסה (דקות לפני)" bind:value={joinOpensMinutesBefore} min={0} max={60} step={5} />
-
+        <div class="compact-settings-row">
           {#if liveType === "group_live"}
-            <Slider label="קיבולת (מקומות)" bind:value={capacity} min={1} max={12} step={1} />
+            <label class="compact-field">
+              <span class="compact-field__label">קיבולת</span>
+              <div class="compact-input-wrap">
+                <input
+                  type="number"
+                  class="compact-input"
+                  bind:value={capacity}
+                  min="1"
+                  max="12"
+                  step="1"
+                  required
+                />
+                <span class="compact-suffix">מקומות</span>
+              </div>
+            </label>
           {:else}
-            <div class="one-on-one-capacity">
-              <span class="hb-input-field__label">קיבולת</span>
-              <span class="one-on-one-badge">1 משתתפת (אישי)</span>
+            <div class="compact-field compact-field--readonly">
+              <span class="compact-field__label">קיבולת</span>
+              <div class="one-on-one-badge">1 משתתפת (אישי)</div>
             </div>
           {/if}
+
+          <div class="compact-field compact-field--readonly">
+            <span class="compact-field__label">כניסה לשיעור</span>
+            <span class="compact-suffix">נפתחת 10 דק׳ לפני תחילתו</span>
+          </div>
         </div>
       </FormSection>
-      </div>
-    </div>
-  </div>
+    </section>
 
-  <div class="picker-section">
-    <EquipmentPicker bind:selected={requiredEquipment} label="ציוד חובה לשיעור" />
+    <!-- Equipment -->
+    <section class="equipment-section">
+      <EquipmentPicker bind:selected={requiredEquipment} label="ציוד חובה לשיעור" />
+    </section>
   </div>
 
   <div class="form-actions">
-    <Button tone="ink" type="submit" disabled={pending || requiredEquipment.length === 0}>
+    <Button.Root class="hb-button hb-button--ink" type="submit" disabled={pending || requiredEquipment.length === 0}>
       {pending ? "יוצרות..." : "לתזמן לייב"}
-    </Button>
+    </Button.Root>
   </div>
 </form>
 
@@ -162,90 +184,137 @@
     gap: var(--space-5);
   }
 
-  .studio-form-columns {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .studio-form-layout {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-5);
-    align-items: stretch;
   }
 
-  .studio-form-column {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .column-fill {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .time-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-3);
-    align-items: end;
-  }
-
-  .end-time-display {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-width: 0;
-  }
-
-  .end-time-label {
-    font-size: var(--step--2);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .end-time-value {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* ── Time Summary Badge ── */
+  .time-summary-section {
     border: var(--border);
     background: var(--surface);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-weight: 800;
-    font-size: var(--step-0);
-    direction: ltr;
-  }
-
-  .duration-row {
+    padding: var(--space-4);
     display: flex;
-    align-items: center;
-    gap: var(--space-3);
+    flex-direction: column;
+    gap: var(--space-4);
   }
 
-  .duration-badge {
+  .time-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-1);
+  }
+
+  .time-badge__date {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .time-badge__range {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .time-badge__start,
+  .time-badge__end {
+    font-family: var(--font-mono);
+    font-size: var(--step-2);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .time-badge__sep {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .time-badge__duration {
     font-family: var(--font-mono);
     font-size: var(--step--1);
     font-weight: 800;
     color: var(--sky-strong);
-    white-space: nowrap;
-    flex-shrink: 0;
+    background: var(--sky-soft);
+    padding: 2px 8px;
+    border: 1px solid var(--sky);
   }
 
+  .date-adjust {
+    max-width: 280px;
+    margin: 0 auto;
+    width: 100%;
+  }
 
-  .sliders-stack {
+  /* ── Settings Section ── */
+  .settings-section {
     display: flex;
     flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* ── Compact Settings Row ── */
+  .compact-settings-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: var(--space-4);
     border-top: 1px solid var(--line-light);
     padding-block-start: var(--space-4);
   }
 
-  .one-on-one-capacity {
+  .compact-field {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .compact-field__label {
+    font-weight: 800;
+    font-size: var(--step--1);
+    color: var(--ink);
+  }
+
+  .compact-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .compact-input {
     min-height: 44px;
-    justify-content: center;
+    width: 72px;
+    border: var(--border);
+    background: var(--white);
+    color: var(--ink);
+    padding: var(--space-2) var(--space-2);
+    font: inherit;
+    font-weight: 800;
+    font-size: var(--step-0);
+    text-align: center;
+    font-family: var(--font-mono);
+  }
+
+  .compact-input:focus {
+    outline: none;
+    border-color: var(--sky-strong);
+  }
+
+  .compact-suffix {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .compact-field--readonly {
+    justify-content: flex-start;
   }
 
   .one-on-one-badge {
@@ -259,21 +328,18 @@
     font-weight: 800;
     font-size: var(--step--1);
     width: fit-content;
+    min-height: 44px;
   }
 
-  .picker-section {
-    padding: var(--space-3) 0;
+  /* ── Equipment ── */
+  .equipment-section {
+    padding-block: var(--space-2);
   }
 
+  /* ── Actions ── */
   .form-actions {
     display: flex;
     justify-content: flex-end;
     margin-block-start: var(--space-2);
-  }
-
-  @media (max-width: 1024px) {
-    .studio-form-columns {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

@@ -29,7 +29,7 @@
         <p class="kicker">{kicker}</p>
       {/if}
       <div class="title-row">
-        <h1>{title}</h1>
+        <h1 class="page-title">{title}</h1>
         {#if badge}
           <span class="badge">{badge}</span>
         {/if}
@@ -65,6 +65,7 @@
     flex-direction: column;
     gap: var(--space-4);
     min-width: 0;
+    flex: 1;
   }
 
   .page-shell__header {
@@ -98,7 +99,7 @@
     margin: 0;
   }
 
-  h1 {
+  .page-title {
     font-size: clamp(2.25rem, 4vw, 4.5rem);
     line-height: 1.1;
     margin: 0;

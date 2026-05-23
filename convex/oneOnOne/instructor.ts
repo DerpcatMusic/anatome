@@ -6,6 +6,8 @@ import { requireAppProfile, requireInstructorOrAdmin, requireUserId } from "../l
 import { hasLiveClassConflict, minuteMs, oneOnOneTimezone } from "../lib/oneOnOne";
 import { LIMITS } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { scheduleLiveClassLifecycle } from "../live/schedule";
+import { createReminderEventsForReservation } from "../liveReminders/create";
 
 export const listRequests = query({
   args: {},
@@ -117,11 +119,25 @@ export const approveRequest = mutation({
       capacity: 1, requiredEquipment: ["mat"], creditKind: "oneOnOne", creditCost: 1,
       status: "scheduled", seatsTaken: 1, createdAt: now, updatedAt: now,
     });
+    const scheduled = await scheduleLiveClassLifecycle(
+      ctx,
+      liveClassId,
+      request.requestedStartsAt,
+      request.requestedEndsAt,
+    );
+    await ctx.db.patch(liveClassId, scheduled);
 
-    await ctx.db.insert("liveReservations", {
+    const reservationId = await ctx.db.insert("liveReservations", {
       liveClassId, userId: request.customerUserId, creditBucketId: request.creditBucketId,
       status: "reserved", creditKind: "oneOnOne", creditsReserved: 1, reservedAt: now,
     });
+    await createReminderEventsForReservation(
+      ctx,
+      liveClassId,
+      reservationId,
+      request.customerUserId,
+      request.requestedStartsAt,
+    );
 
     await ctx.db.patch(request._id, { status: "approved", liveClassId, updatedAt: now, decidedAt: now });
     return liveClassId;

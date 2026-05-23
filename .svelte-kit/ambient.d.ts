@@ -64,8 +64,8 @@ declare module '$env/static/private' {
 	export const XCURSOR_SIZE: string;
 	export const XDG_SEAT: string;
 	export const PWD: string;
-	export const LOGNAME: string;
 	export const XDG_SESSION_DESKTOP: string;
+	export const LOGNAME: string;
 	export const QT_QPA_PLATFORMTHEME: string;
 	export const DOTNET_TOOLS_PATH: string;
 	export const XDG_SESSION_TYPE: string;
@@ -75,8 +75,8 @@ declare module '$env/static/private' {
 	export const QT_STYLE_OVERRIDE: string;
 	export const MOTD_SHOWN: string;
 	export const HOME: string;
-	export const LANG: string;
 	export const LC_PAPER: string;
+	export const LANG: string;
 	export const _JAVA_AWT_WM_NONREPARENTING: string;
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
@@ -245,8 +245,8 @@ declare module '$env/dynamic/private' {
 		XCURSOR_SIZE: string;
 		XDG_SEAT: string;
 		PWD: string;
-		LOGNAME: string;
 		XDG_SESSION_DESKTOP: string;
+		LOGNAME: string;
 		QT_QPA_PLATFORMTHEME: string;
 		DOTNET_TOOLS_PATH: string;
 		XDG_SESSION_TYPE: string;
@@ -256,8 +256,8 @@ declare module '$env/dynamic/private' {
 		QT_STYLE_OVERRIDE: string;
 		MOTD_SHOWN: string;
 		HOME: string;
-		LANG: string;
 		LC_PAPER: string;
+		LANG: string;
 		_JAVA_AWT_WM_NONREPARENTING: string;
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;

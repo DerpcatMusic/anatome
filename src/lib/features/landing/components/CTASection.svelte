@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -15,9 +15,9 @@
   <div class="final-cta-inner">
     <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
     <p>{t.landing.cta.subheadline()}</p>
-    <Button tone="ink" onclick={openAuthOverlay}>
+    <Button.Root class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
       {t.landing.cta.button()}
-    </Button>
+    </Button.Root>
     <p class="final-cta-note">{t.landing.cta.note()}</p>
   </div>
 </section>

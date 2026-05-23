@@ -1,10 +1,8 @@
-import * as universal from '../entries/pages/התאמה/_page.js';
+
 
 export const index = 37;
 let component_cache;
-export const component = async () => component_cache ??= (await import('../entries/pages/התאמה/_page.svelte.js')).default;
-export { universal };
-export const universal_id = "src/routes/התאמה/+page.js";
-export const imports = ["_app/immutable/nodes/37.G7iBRIgV.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DCbV68uA.js","_app/immutable/chunks/qCpTV9sU.js","_app/immutable/chunks/CkqqHaGC.js","_app/immutable/chunks/hNfF-DrT.js","_app/immutable/chunks/CuOZrXZT.js","_app/immutable/chunks/D5TglNO2.js","_app/immutable/chunks/_6F-Yb0n.js","_app/immutable/chunks/DJ4RyLIz.js","_app/immutable/chunks/BcR1FczD.js","_app/immutable/chunks/CxkLmIT9.js","_app/immutable/chunks/D1O6j5JF.js","_app/immutable/chunks/BGLLBNVa.js","_app/immutable/chunks/D42Sqqha.js","_app/immutable/chunks/Cby09Fr0.js"];
-export const stylesheets = ["_app/immutable/assets/Notice.DLRT_-Qh.css","_app/immutable/assets/OnboardingForm.CE_igvWo.css","_app/immutable/assets/OnboardingShell.CBQyazNE.css"];
+export const component = async () => component_cache ??= (await import('../entries/pages/legal/cancellations/_page.svelte.js')).default;
+export const imports = ["_app/immutable/nodes/37.j-LliS6v.js","_app/immutable/chunks/DBgQEYmP.js","_app/immutable/chunks/DK3Fl9T5.js","_app/immutable/chunks/xihTtKlq.js","_app/immutable/chunks/CtHCqe6S.js"];
+export const stylesheets = ["_app/immutable/assets/37.DXxd-MNj.css"];
 export const fonts = [];

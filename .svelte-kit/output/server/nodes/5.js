@@ -8,6 +8,6 @@ export const universal = {
   "ssr": false
 };
 export const universal_id = "src/routes/(app)/חדר-לייב/+layout.js";
-export const imports = ["_app/immutable/nodes/5.WofircB8.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DCbV68uA.js"];
+export const imports = ["_app/immutable/nodes/5.XS8FlpGs.js","_app/immutable/chunks/DK3Fl9T5.js","_app/immutable/chunks/DBgQEYmP.js","_app/immutable/chunks/xihTtKlq.js"];
 export const stylesheets = [];
 export const fonts = [];

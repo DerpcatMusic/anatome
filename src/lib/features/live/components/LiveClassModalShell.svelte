@@ -42,7 +42,7 @@
           {icon}
         </span>
         <h2 class="modal-title">{title}</h2>
-        <button class="close-button" aria-label="סגור" onclick={() => { open = false; onClose?.(); }}>
+        <button type="button" class="close-button" aria-label="סגור" onclick={() => { open = false; onClose?.(); }}>
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>

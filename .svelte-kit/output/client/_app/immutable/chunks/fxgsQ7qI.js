@@ -1,0 +1,1 @@
+import{bt as e,wt as t}from"./DBgQEYmP.js";var n=Symbol(`app`);function r(e){t(n,e)}function i(){return e(n)??{role:null,isLoading:!0}}export{r as n,i as t};

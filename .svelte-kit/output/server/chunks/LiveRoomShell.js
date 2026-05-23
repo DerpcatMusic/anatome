@@ -1,18 +1,79 @@
 import "./index-server.js";
-import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id } from "./dev.js";
+import { Q as attr, a as bind_props, c as ensure_array_like, et as escape_html, f as spread_props, i as attributes, n as attr_class, o as derived, p as stringify, r as attr_style, u as props_id } from "./dev.js";
 import "./events.js";
 import { f as useDebounce, g as useConvexClient, l as ScrollState, n as getCachedRole, r as initAuth, s as api } from "./session.svelte.js";
-import { G as watch, I as boolToTrueOrUndef, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, P as boolToStr, R as getAriaChecked, V as getDataTransitionAttrs, Z as mergeProps, at as boxWith, c as createId, d as isElement, l as noop, lt as simpleBox, p as isFocusVisible, q as Context, z as getDataChecked } from "./arrays.js";
+import { B as getDataChecked, F as boolToStr, H as getDataTransitionAttrs, I as boolToStrTrueOrUndef, J as Context, K as watch, L as boolToTrueOrUndef, P as boolToEmptyStrOrUndef, R as createBitsAttrs, X as mergeProps, Y as attachRef, c as createId, f as isElement, l as noop, m as isFocusVisible, nt as boxWith, rt as simpleBox, z as getAriaChecked } from "./arrays.js";
 import { m as PresenceManager, p as Portal } from "./scroll-lock.js";
-import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
+import "./on-mount-effect.svelte.js";
 import { i as DOMContext } from "./use-id.js";
-import { t as Button_1 } from "./Button.js";
+import { n as Dialog, r as Dialog_overlay, t as Dialog_content } from "./dialog-content.js";
+import { a as Dialog_title, i as Scroll_area, n as Scroll_area_scrollbar, r as Scroll_area_viewport, t as Scroll_area_thumb } from "./scroll-area-thumb.js";
+import { t as Button } from "./button.js";
 import { t as Hidden_input } from "./hidden-input.js";
-import { t as Select_1 } from "./Select.js";
+import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
+import { a as Select_content, i as Select_item, n as Select, r as Select_viewport, t as Select_trigger } from "./select-trigger.js";
 import { i as SafePolygon, n as Popover_content, r as PopoverRootState, t as Popover_trigger } from "./popover-trigger.js";
-import { t as ScrollArea_1 } from "./ScrollArea.js";
 import { t as Notice } from "./Notice.js";
 import { t as useI18n } from "./runes.svelte.js";
+//#region node_modules/bits-ui/dist/bits/separator/separator.svelte.js
+var separatorAttrs = createBitsAttrs({
+	component: "separator",
+	parts: ["root"]
+});
+var SeparatorRootState = class SeparatorRootState {
+	static create(opts) {
+		return new SeparatorRootState(opts);
+	}
+	opts;
+	attachment;
+	constructor(opts) {
+		this.opts = opts;
+		this.attachment = attachRef(opts.ref);
+	}
+	#props = derived(() => ({
+		id: this.opts.id.current,
+		role: this.opts.decorative.current ? "none" : "separator",
+		"aria-orientation": this.opts.orientation.current,
+		"aria-hidden": boolToStrTrueOrUndef(this.opts.decorative.current),
+		"data-orientation": this.opts.orientation.current,
+		[separatorAttrs.root]: "",
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+//#endregion
+//#region node_modules/bits-ui/dist/bits/separator/components/separator.svelte
+function Separator($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { id = createId(uid), ref = null, child, children, decorative = false, orientation = "horizontal", $$slots, $$events, ...restProps } = $$props;
+		const rootState = SeparatorRootState.create({
+			ref: boxWith(() => ref, (v) => ref = v),
+			id: boxWith(() => id),
+			decorative: boxWith(() => decorative),
+			orientation: boxWith(() => orientation)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, rootState.props));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, { props: mergedProps() });
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer);
+			$$renderer.push(`<!----></div>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
+	});
+}
+//#endregion
 //#region node_modules/bits-ui/dist/bits/meter/meter.svelte.js
 var meterAttrs = createBitsAttrs({
 	component: "meter",
@@ -2066,45 +2127,6 @@ function PreConnectPreview($$renderer, $$props) {
 	});
 }
 //#endregion
-//#region src/lib/components/ui/Switch.svelte
-function Switch_1($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { label, checked = false, disabled = false, class: className = "", onchange } = $$props;
-		function updateChecked(next) {
-			checked = next;
-			onchange?.();
-		}
-		$$renderer.push(`<span${attr_class(clsx(`hb-switch ${className}`.trim()))}>`);
-		if (Switch) {
-			$$renderer.push("<!--[-->");
-			Switch($$renderer, {
-				class: "hb-switch__root",
-				"aria-label": label,
-				checked,
-				disabled,
-				onCheckedChange: updateChecked,
-				children: ($$renderer) => {
-					if (Switch_thumb) {
-						$$renderer.push("<!--[-->");
-						Switch_thumb($$renderer, { class: "hb-switch__thumb" });
-						$$renderer.push("<!--]-->");
-					} else {
-						$$renderer.push("<!--[!-->");
-						$$renderer.push("<!--]-->");
-					}
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push("<!--]-->");
-		} else {
-			$$renderer.push("<!--[!-->");
-			$$renderer.push("<!--]-->");
-		}
-		$$renderer.push(` <span>${escape_html(label)}</span></span>`);
-		bind_props($$props, { checked });
-	});
-}
-//#endregion
 //#region src/lib/features/live/components/room/PreConnectSettings.svelte
 function PreConnectSettings($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
@@ -2128,69 +2150,367 @@ function PreConnectSettings($$renderer, $$props) {
 				$$renderer.push(`<!--]-->`);
 			} else {
 				$$renderer.push("<!--[-1-->");
-				Select_1($$renderer, {
-					label: t.live.preConnect.resolutionLabel(),
-					options: customerResolutionOptions,
-					get value() {
-						return room.selectedResolution;
-					},
-					set value($$value) {
-						room.selectedResolution = $$value;
-						$$settled = false;
-					}
-				});
+				$$renderer.push(`<div class="hb-field"><span class="hb-field__label">${escape_html(t.live.preConnect.resolutionLabel())}</span> `);
+				if (Select) {
+					$$renderer.push("<!--[-->");
+					Select($$renderer, {
+						type: "single",
+						value: String(room.selectedResolution),
+						onValueChange: (selected) => room.selectedResolution = selected,
+						children: ($$renderer) => {
+							if (Select_trigger) {
+								$$renderer.push("<!--[-->");
+								Select_trigger($$renderer, {
+									class: "hb-select__trigger",
+									"aria-label": t.live.preConnect.resolutionLabel(),
+									children: ($$renderer) => {
+										$$renderer.push(`<span class="hb-select__value">${escape_html(customerResolutionOptions.find((o) => String(o.value) === String(room.selectedResolution))?.label ?? "")}</span> <span class="hb-select__chevron" aria-hidden="true"></span>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Select_content) {
+											$$renderer.push("<!--[-->");
+											Select_content($$renderer, {
+												class: "hb-select__content",
+												sideOffset: 6,
+												children: ($$renderer) => {
+													if (Select_viewport) {
+														$$renderer.push("<!--[-->");
+														Select_viewport($$renderer, {
+															class: "hb-select__viewport",
+															children: ($$renderer) => {
+																$$renderer.push(`<!--[-->`);
+																const each_array_6 = ensure_array_like(customerResolutionOptions);
+																for (let $$index_6 = 0, $$length = each_array_6.length; $$index_6 < $$length; $$index_6++) {
+																	let option = each_array_6[$$index_6];
+																	{
+																		function children($$renderer, { selected }) {
+																			$$renderer.push(`<span>${escape_html(option.label)}</span> `);
+																			if (selected) {
+																				$$renderer.push("<!--[0-->");
+																				$$renderer.push(`<span class="hb-select__check" aria-hidden="true"></span>`);
+																			} else $$renderer.push("<!--[-1-->");
+																			$$renderer.push(`<!--]-->`);
+																		}
+																		if (Select_item) {
+																			$$renderer.push("<!--[-->");
+																			Select_item($$renderer, {
+																				class: "hb-select__item",
+																				value: String(option.value),
+																				label: option.label,
+																				children,
+																				$$slots: { default: true }
+																			});
+																			$$renderer.push("<!--]-->");
+																		} else {
+																			$$renderer.push("<!--[!-->");
+																			$$renderer.push("<!--]-->");
+																		}
+																	}
+																}
+																$$renderer.push(`<!--]-->`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div>`);
 			}
 			$$renderer.push(`<!--]--> `);
 			if (room.videoDevices.length > 1) {
 				$$renderer.push("<!--[0-->");
-				Select_1($$renderer, {
-					label: t.live.preConnect.cameraLabel(),
-					options: room.videoDevices.map((d) => ({
-						value: d.deviceId,
-						label: d.label
-					})),
-					onchange: () => room.switchPreviewDevice(),
-					get value() {
-						return room.selectedVideoDevice;
-					},
-					set value($$value) {
-						room.selectedVideoDevice = $$value;
-						$$settled = false;
-					}
-				});
+				const cameraOptions = room.videoDevices.map((d) => ({
+					value: d.deviceId,
+					label: d.label
+				}));
+				$$renderer.push(`<div class="hb-field"><span class="hb-field__label">${escape_html(t.live.preConnect.cameraLabel())}</span> `);
+				if (Select) {
+					$$renderer.push("<!--[-->");
+					Select($$renderer, {
+						type: "single",
+						value: room.selectedVideoDevice,
+						onValueChange: (v) => {
+							room.selectedVideoDevice = v;
+							room.switchPreviewDevice();
+						},
+						children: ($$renderer) => {
+							if (Select_trigger) {
+								$$renderer.push("<!--[-->");
+								Select_trigger($$renderer, {
+									class: "hb-select__trigger",
+									"aria-label": t.live.preConnect.cameraLabel(),
+									children: ($$renderer) => {
+										$$renderer.push(`<span class="hb-select__value">${escape_html(cameraOptions.find((o) => o.value === room.selectedVideoDevice)?.label ?? "")}</span> <span class="hb-select__chevron" aria-hidden="true"></span>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Select_content) {
+											$$renderer.push("<!--[-->");
+											Select_content($$renderer, {
+												class: "hb-select__content",
+												sideOffset: 6,
+												children: ($$renderer) => {
+													if (Select_viewport) {
+														$$renderer.push("<!--[-->");
+														Select_viewport($$renderer, {
+															class: "hb-select__viewport",
+															children: ($$renderer) => {
+																$$renderer.push(`<!--[-->`);
+																const each_array_7 = ensure_array_like(cameraOptions);
+																for (let $$index_7 = 0, $$length = each_array_7.length; $$index_7 < $$length; $$index_7++) {
+																	let option = each_array_7[$$index_7];
+																	{
+																		function children($$renderer, { selected }) {
+																			$$renderer.push(`<span>${escape_html(option.label)}</span> `);
+																			if (selected) {
+																				$$renderer.push("<!--[0-->");
+																				$$renderer.push(`<span class="hb-select__check" aria-hidden="true"></span>`);
+																			} else $$renderer.push("<!--[-1-->");
+																			$$renderer.push(`<!--]-->`);
+																		}
+																		if (Select_item) {
+																			$$renderer.push("<!--[-->");
+																			Select_item($$renderer, {
+																				class: "hb-select__item",
+																				value: option.value,
+																				label: option.label,
+																				children,
+																				$$slots: { default: true }
+																			});
+																			$$renderer.push("<!--]-->");
+																		} else {
+																			$$renderer.push("<!--[!-->");
+																			$$renderer.push("<!--]-->");
+																		}
+																	}
+																}
+																$$renderer.push(`<!--]-->`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> `);
 			if (room.audioDevices.length > 1) {
 				$$renderer.push("<!--[0-->");
-				Select_1($$renderer, {
-					label: t.live.preConnect.micLabel(),
-					options: room.audioDevices.map((d) => ({
-						value: d.deviceId,
-						label: d.label
-					})),
-					onchange: () => room.switchPreviewDevice(),
-					get value() {
-						return room.selectedAudioDevice;
-					},
-					set value($$value) {
-						room.selectedAudioDevice = $$value;
-						$$settled = false;
-					}
-				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <div class="settings-panel__toggles svelte-arx5f7">`);
-			Switch_1($$renderer, {
-				label: t.live.room.echoCancel(),
-				onchange: () => room.switchPreviewDevice(),
-				get checked() {
-					return room.audioProcessingEnabled;
-				},
-				set checked($$value) {
-					room.audioProcessingEnabled = $$value;
-					$$settled = false;
+				const micOptions = room.audioDevices.map((d) => ({
+					value: d.deviceId,
+					label: d.label
+				}));
+				$$renderer.push(`<div class="hb-field"><span class="hb-field__label">${escape_html(t.live.preConnect.micLabel())}</span> `);
+				if (Select) {
+					$$renderer.push("<!--[-->");
+					Select($$renderer, {
+						type: "single",
+						value: room.selectedAudioDevice,
+						onValueChange: (v) => {
+							room.selectedAudioDevice = v;
+							room.switchPreviewDevice();
+						},
+						children: ($$renderer) => {
+							if (Select_trigger) {
+								$$renderer.push("<!--[-->");
+								Select_trigger($$renderer, {
+									class: "hb-select__trigger",
+									"aria-label": t.live.preConnect.micLabel(),
+									children: ($$renderer) => {
+										$$renderer.push(`<span class="hb-select__value">${escape_html(micOptions.find((o) => o.value === room.selectedAudioDevice)?.label ?? "")}</span> <span class="hb-select__chevron" aria-hidden="true"></span>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Select_content) {
+											$$renderer.push("<!--[-->");
+											Select_content($$renderer, {
+												class: "hb-select__content",
+												sideOffset: 6,
+												children: ($$renderer) => {
+													if (Select_viewport) {
+														$$renderer.push("<!--[-->");
+														Select_viewport($$renderer, {
+															class: "hb-select__viewport",
+															children: ($$renderer) => {
+																$$renderer.push(`<!--[-->`);
+																const each_array_8 = ensure_array_like(micOptions);
+																for (let $$index_8 = 0, $$length = each_array_8.length; $$index_8 < $$length; $$index_8++) {
+																	let option = each_array_8[$$index_8];
+																	{
+																		function children($$renderer, { selected }) {
+																			$$renderer.push(`<span>${escape_html(option.label)}</span> `);
+																			if (selected) {
+																				$$renderer.push("<!--[0-->");
+																				$$renderer.push(`<span class="hb-select__check" aria-hidden="true"></span>`);
+																			} else $$renderer.push("<!--[-1-->");
+																			$$renderer.push(`<!--]-->`);
+																		}
+																		if (Select_item) {
+																			$$renderer.push("<!--[-->");
+																			Select_item($$renderer, {
+																				class: "hb-select__item",
+																				value: option.value,
+																				label: option.label,
+																				children,
+																				$$slots: { default: true }
+																			});
+																			$$renderer.push("<!--]-->");
+																		} else {
+																			$$renderer.push("<!--[!-->");
+																			$$renderer.push("<!--]-->");
+																		}
+																	}
+																}
+																$$renderer.push(`<!--]-->`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
-			});
-			$$renderer.push(`<!----></div> `);
+				$$renderer.push(`</div>`);
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <div class="settings-panel__toggles svelte-arx5f7"><span class="hb-switch">`);
+			if (Switch) {
+				$$renderer.push("<!--[-->");
+				Switch($$renderer, {
+					class: "hb-switch__root",
+					"aria-label": t.live.room.echoCancel(),
+					onCheckedChange: () => room.switchPreviewDevice(),
+					get checked() {
+						return room.audioProcessingEnabled;
+					},
+					set checked($$value) {
+						room.audioProcessingEnabled = $$value;
+						$$settled = false;
+					},
+					children: ($$renderer) => {
+						if (Switch_thumb) {
+							$$renderer.push("<!--[-->");
+							Switch_thumb($$renderer, { class: "hb-switch__thumb" });
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(` <span>${escape_html(t.live.room.echoCancel())}</span></span></div> `);
 			if (room.hasPreviewMic) {
 				$$renderer.push("<!--[0-->");
 				LiveAudioMeter($$renderer, {
@@ -2246,27 +2566,41 @@ function PreConnectState($$renderer, $$props) {
 		$$renderer.push(`<div class="entry-state__actions svelte-17jvehl">`);
 		if (actionLabel) {
 			$$renderer.push("<!--[0-->");
-			Button_1($$renderer, {
-				tone: "primary",
-				href: actionHref,
-				onclick: onAction,
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(actionLabel)}`);
-				},
-				$$slots: { default: true }
-			});
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--primary",
+					href: actionHref,
+					onclick: onAction,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(actionLabel)}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]--> `);
 		if (secondaryLabel && secondaryHref) {
 			$$renderer.push("<!--[0-->");
-			Button_1($$renderer, {
-				tone: "secondary",
-				href: secondaryHref,
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(secondaryLabel)}`);
-				},
-				$$slots: { default: true }
-			});
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--secondary",
+					href: secondaryHref,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(secondaryLabel)}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]--></div>`);
 	} else $$renderer.push("<!--[-1-->");
@@ -2282,262 +2616,88 @@ function PreConnectOverlay($$renderer, $$props) {
 		const isPrep = derived(() => room.status === "prep");
 		const isReady = derived(() => room.status === "ready" && room.joinInfo && room.connectionState === "idle");
 		const showSetup = derived(() => isPrep() || isReady());
-		let $$settled = true;
-		let $$inner_renderer;
-		function $$render_inner($$renderer) {
-			PreConnectFrame($$renderer, {
-				title: t.live.preConnect.title(),
-				backHref: backHref(),
-				children: ($$renderer) => {
-					if (room.status === "checking") {
+		PreConnectFrame($$renderer, {
+			title: t.live.preConnect.title(),
+			backHref: backHref(),
+			children: ($$renderer) => {
+				if (room.status === "checking") {
+					$$renderer.push("<!--[0-->");
+					PreConnectState($$renderer, {
+						loading: true,
+						message: t.live.preConnect.checking()
+					});
+				} else if (room.status === "locked") {
+					$$renderer.push("<!--[1-->");
+					PreConnectState($$renderer, {
+						title: t.live.preConnect.lockedTitle(),
+						message: room.auth.error,
+						actionLabel: t.live.preConnect.lockedCta(),
+						actionHref: "/"
+					});
+				} else if (room.status === "missing") {
+					$$renderer.push("<!--[2-->");
+					PreConnectState($$renderer, {
+						title: t.live.preConnect.missingTitle(),
+						actionLabel: t.live.preConnect.missingCta(),
+						actionHref: "/u/calendar"
+					});
+				} else if (room.status === "error") {
+					$$renderer.push("<!--[3-->");
+					PreConnectState($$renderer, {
+						title: t.live.preConnect.errorTitle(),
+						message: room.error,
+						tone: "danger",
+						actionLabel: t.live.preConnect.retry(),
+						onAction: () => room.loadToken(),
+						secondaryLabel: t.live.preConnect.backCalendar(),
+						secondaryHref: "/u/calendar"
+					});
+				} else if (showSetup()) {
+					$$renderer.push("<!--[4-->");
+					$$renderer.push(`<div class="entry-stack svelte-ikmx6e">`);
+					if (room.preConnectStep === "requesting") {
 						$$renderer.push("<!--[0-->");
 						PreConnectState($$renderer, {
 							loading: true,
-							message: t.live.preConnect.checking()
+							message: t.live.preConnect.requesting()
 						});
-					} else if (room.status === "locked") {
+					} else if (room.preConnectStep === "preview" && room.previewStream) {
 						$$renderer.push("<!--[1-->");
-						PreConnectState($$renderer, {
-							title: t.live.preConnect.lockedTitle(),
-							message: room.auth.error,
-							actionLabel: t.live.preConnect.lockedCta(),
-							actionHref: "/"
-						});
-					} else if (room.status === "missing") {
-						$$renderer.push("<!--[2-->");
-						PreConnectState($$renderer, {
-							title: t.live.preConnect.missingTitle(),
-							actionLabel: t.live.preConnect.missingCta(),
-							actionHref: "/u/calendar"
-						});
-					} else if (room.status === "error") {
-						$$renderer.push("<!--[3-->");
-						PreConnectState($$renderer, {
-							title: t.live.preConnect.errorTitle(),
-							message: room.error,
-							tone: "danger",
-							actionLabel: t.live.preConnect.retry(),
-							onAction: () => room.loadToken(),
-							secondaryLabel: t.live.preConnect.backCalendar(),
-							secondaryHref: "/u/calendar"
-						});
-					} else if (showSetup()) {
-						$$renderer.push("<!--[4-->");
-						$$renderer.push(`<div class="entry-stack svelte-ikmx6e">`);
-						if (room.preConnectStep === "requesting") {
+						if (room.isInstructorRoom) {
 							$$renderer.push("<!--[0-->");
-							PreConnectState($$renderer, {
-								loading: true,
-								message: t.live.preConnect.requesting()
-							});
-						} else if (room.preConnectStep === "preview" && room.previewStream) {
-							$$renderer.push("<!--[1-->");
-							if (room.isInstructorRoom) {
+							$$renderer.push(`<div class="entry-console svelte-ikmx6e"><aside class="entry-console__side svelte-ikmx6e">`);
+							PreConnectSettings($$renderer, { room });
+							$$renderer.push(`<!----> <div class="entry-actions svelte-ikmx6e">`);
+							if (isPrep()) {
 								$$renderer.push("<!--[0-->");
-								$$renderer.push(`<div class="entry-console svelte-ikmx6e"><aside class="entry-console__side svelte-ikmx6e">`);
-								PreConnectSettings($$renderer, { room });
-								$$renderer.push(`<!----> <div class="entry-actions svelte-ikmx6e">`);
-								if (isPrep()) {
-									$$renderer.push("<!--[0-->");
-									Button_1($$renderer, {
-										tone: "primary",
-										size: "lg",
+								if (Button) {
+									$$renderer.push("<!--[-->");
+									Button($$renderer, {
+										class: "hb-button hb-button--primary hb-button--lg",
+										type: "button",
 										onclick: () => room.startLiveAndConnect(true),
 										children: ($$renderer) => {
 											$$renderer.push(`<!---->${escape_html(t.live.preConnect.startLive())}`);
 										},
 										$$slots: { default: true }
 									});
+									$$renderer.push("<!--]-->");
 								} else {
-									$$renderer.push("<!--[-1-->");
-									Button_1($$renderer, {
-										tone: "primary",
-										size: "lg",
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+							} else {
+								$$renderer.push("<!--[-1-->");
+								if (Button) {
+									$$renderer.push("<!--[-->");
+									Button($$renderer, {
+										class: "hb-button hb-button--primary hb-button--lg",
+										type: "button",
 										onclick: () => room.enterRoom(true),
 										children: ($$renderer) => {
 											$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterRoom())}`);
 										},
 										$$slots: { default: true }
-									});
-								}
-								$$renderer.push(`<!--]--> `);
-								Button_1($$renderer, {
-									tone: "ghost",
-									onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
-									children: ($$renderer) => {
-										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
-									},
-									$$slots: { default: true }
-								});
-								$$renderer.push(`<!----></div></aside> <div class="entry-console__main svelte-ikmx6e">`);
-								PreConnectPreview($$renderer, {
-									previewStream: room.previewStream,
-									hasPreviewCamera: room.hasPreviewCamera
-								});
-								$$renderer.push(`<!----></div></div>`);
-							} else {
-								$$renderer.push("<!--[-1-->");
-								$$renderer.push(`<div class="customer-connect svelte-ikmx6e"><div class="customer-connect__preview svelte-ikmx6e">`);
-								PreConnectPreview($$renderer, {
-									previewStream: room.previewStream,
-									hasPreviewCamera: room.hasPreviewCamera
-								});
-								$$renderer.push(`<!----></div> <div class="customer-connect__tools svelte-ikmx6e">`);
-								if (room.videoDevices.length > 1) {
-									$$renderer.push("<!--[0-->");
-									Select_1($$renderer, {
-										label: t.live.preConnect.cameraLabel(),
-										options: room.videoDevices.map((d) => ({
-											value: d.deviceId,
-											label: d.label
-										})),
-										onchange: () => room.switchPreviewDevice(),
-										get value() {
-											return room.selectedVideoDevice;
-										},
-										set value($$value) {
-											room.selectedVideoDevice = $$value;
-											$$settled = false;
-										}
-									});
-								} else $$renderer.push("<!--[-1-->");
-								$$renderer.push(`<!--]--> `);
-								if (room.audioDevices.length > 1) {
-									$$renderer.push("<!--[0-->");
-									Select_1($$renderer, {
-										label: t.live.preConnect.micLabel(),
-										options: room.audioDevices.map((d) => ({
-											value: d.deviceId,
-											label: d.label
-										})),
-										onchange: () => room.switchPreviewDevice(),
-										get value() {
-											return room.selectedAudioDevice;
-										},
-										set value($$value) {
-											room.selectedAudioDevice = $$value;
-											$$settled = false;
-										}
-									});
-								} else $$renderer.push("<!--[-1-->");
-								$$renderer.push(`<!--]--> `);
-								if (room.hasPreviewMic) {
-									$$renderer.push("<!--[0-->");
-									LiveAudioMeter($$renderer, {
-										label: t.live.preConnect.audioLevel(),
-										level: room.audioLevel
-									});
-								} else $$renderer.push("<!--[-1-->");
-								$$renderer.push(`<!--]--> <div class="customer-connect__actions svelte-ikmx6e">`);
-								Button_1($$renderer, {
-									tone: "primary",
-									size: "lg",
-									onclick: () => room.enterRoom(true),
-									children: ($$renderer) => {
-										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterRoom())}`);
-									},
-									$$slots: { default: true }
-								});
-								$$renderer.push(`<!----> `);
-								Button_1($$renderer, {
-									tone: "ghost",
-									onclick: () => room.enterRoom(false),
-									children: ($$renderer) => {
-										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
-									},
-									$$slots: { default: true }
-								});
-								$$renderer.push(`<!----></div></div></div>`);
-							}
-							$$renderer.push(`<!--]-->`);
-						} else if (room.preConnectStep === "denied" || room.preConnectStep === "no-devices") {
-							$$renderer.push("<!--[2-->");
-							PreConnectState($$renderer, {
-								title: t.live.preConnect.enterNoDevices(),
-								message: room.mediaError,
-								tone: "caution",
-								actionLabel: t.live.preConnect.retryDevices(),
-								onAction: () => room.startPreview()
-							});
-							$$renderer.push(`<!----> <div class="entry-actions entry-actions--single svelte-ikmx6e">`);
-							Button_1($$renderer, {
-								tone: "ghost",
-								onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
-								children: ($$renderer) => {
-									$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutCamera())}`);
-								},
-								$$slots: { default: true }
-							});
-							$$renderer.push(`<!----></div>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]-->`);
-				},
-				$$slots: { default: true }
-			});
-		}
-		do {
-			$$settled = true;
-			$$inner_renderer = $$renderer.copy();
-			$$render_inner($$inner_renderer);
-		} while (!$$settled);
-		$$renderer.subsume($$inner_renderer);
-	});
-}
-//#endregion
-//#region src/lib/components/ui/Tooltip.svelte
-function Tooltip_1($$renderer, $$props) {
-	let { label, children, sideOffset = 8, openDelay = 160, side = "top", align = "center" } = $$props;
-	if (Tooltip) {
-		$$renderer.push("<!--[-->");
-		Tooltip($$renderer, {
-			children: ($$renderer) => {
-				{
-					function child($$renderer, { props }) {
-						$$renderer.push(`<span${attributes({
-							...props,
-							class: "hb-tooltip-trigger"
-						})}>`);
-						children($$renderer);
-						$$renderer.push(`<!----></span>`);
-					}
-					if (Tooltip_trigger) {
-						$$renderer.push("<!--[-->");
-						Tooltip_trigger($$renderer, {
-							child,
-							$$slots: { child: true }
-						});
-						$$renderer.push("<!--]-->");
-					} else {
-						$$renderer.push("<!--[!-->");
-						$$renderer.push("<!--]-->");
-					}
-				}
-				$$renderer.push(` `);
-				if (Portal) {
-					$$renderer.push("<!--[-->");
-					Portal($$renderer, {
-						children: ($$renderer) => {
-							{
-								function child($$renderer, { wrapperProps, props, open }) {
-									if (open) {
-										$$renderer.push("<!--[0-->");
-										$$renderer.push(`<div${attributes({ ...wrapperProps })}><div${attributes({
-											...props,
-											class: "hb-tooltip-content"
-										})}>${escape_html(label)}</div></div>`);
-									} else $$renderer.push("<!--[-1-->");
-									$$renderer.push(`<!--]-->`);
-								}
-								if (Tooltip_content) {
-									$$renderer.push("<!--[-->");
-									Tooltip_content($$renderer, {
-										side,
-										align,
-										sideOffset,
-										child,
-										$$slots: { child: true }
 									});
 									$$renderer.push("<!--]-->");
 								} else {
@@ -2545,80 +2705,509 @@ function Tooltip_1($$renderer, $$props) {
 									$$renderer.push("<!--]-->");
 								}
 							}
-						},
-						$$slots: { default: true }
-					});
-					$$renderer.push("<!--]-->");
-				} else {
-					$$renderer.push("<!--[!-->");
-					$$renderer.push("<!--]-->");
-				}
+							$$renderer.push(`<!--]--> `);
+							if (Button) {
+								$$renderer.push("<!--[-->");
+								Button($$renderer, {
+									class: "hb-button hb-button--ghost",
+									type: "button",
+									onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(`</div></aside> <div class="entry-console__main svelte-ikmx6e">`);
+							PreConnectPreview($$renderer, {
+								previewStream: room.previewStream,
+								hasPreviewCamera: room.hasPreviewCamera
+							});
+							$$renderer.push(`<!----></div></div>`);
+						} else {
+							$$renderer.push("<!--[-1-->");
+							$$renderer.push(`<div class="customer-connect svelte-ikmx6e"><div class="customer-connect__preview svelte-ikmx6e">`);
+							PreConnectPreview($$renderer, {
+								previewStream: room.previewStream,
+								hasPreviewCamera: room.hasPreviewCamera
+							});
+							$$renderer.push(`<!----></div> <div class="customer-connect__tools svelte-ikmx6e">`);
+							if (room.videoDevices.length > 1) {
+								$$renderer.push("<!--[0-->");
+								const cameraOptions = room.videoDevices.map((d) => ({
+									value: d.deviceId,
+									label: d.label
+								}));
+								$$renderer.push(`<div class="hb-field"><span class="hb-field__label">${escape_html(t.live.preConnect.cameraLabel())}</span> `);
+								if (Select) {
+									$$renderer.push("<!--[-->");
+									Select($$renderer, {
+										type: "single",
+										value: room.selectedVideoDevice,
+										onValueChange: (v) => {
+											room.selectedVideoDevice = v;
+											room.switchPreviewDevice();
+										},
+										items: cameraOptions.map((o) => ({
+											value: o.value,
+											label: o.label
+										})),
+										children: ($$renderer) => {
+											if (Select_trigger) {
+												$$renderer.push("<!--[-->");
+												Select_trigger($$renderer, {
+													class: "hb-select__trigger",
+													"aria-label": t.live.preConnect.cameraLabel(),
+													children: ($$renderer) => {
+														$$renderer.push(`<span class="hb-select__value">${escape_html(cameraOptions.find((o) => o.value === room.selectedVideoDevice)?.label ?? "")}</span> <span class="hb-select__chevron" aria-hidden="true"></span>`);
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+											$$renderer.push(` `);
+											if (Portal) {
+												$$renderer.push("<!--[-->");
+												Portal($$renderer, {
+													children: ($$renderer) => {
+														if (Select_content) {
+															$$renderer.push("<!--[-->");
+															Select_content($$renderer, {
+																class: "hb-select__content",
+																sideOffset: 6,
+																children: ($$renderer) => {
+																	if (Select_viewport) {
+																		$$renderer.push("<!--[-->");
+																		Select_viewport($$renderer, {
+																			class: "hb-select__viewport",
+																			children: ($$renderer) => {
+																				$$renderer.push(`<!--[-->`);
+																				const each_array = ensure_array_like(cameraOptions);
+																				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+																					let option = each_array[$$index];
+																					{
+																						function children($$renderer, { selected }) {
+																							$$renderer.push(`<span>${escape_html(option.label)}</span> `);
+																							if (selected) {
+																								$$renderer.push("<!--[0-->");
+																								$$renderer.push(`<span class="hb-select__check" aria-hidden="true"></span>`);
+																							} else $$renderer.push("<!--[-1-->");
+																							$$renderer.push(`<!--]-->`);
+																						}
+																						if (Select_item) {
+																							$$renderer.push("<!--[-->");
+																							Select_item($$renderer, {
+																								class: "hb-select__item",
+																								value: option.value,
+																								label: option.label,
+																								children,
+																								$$slots: { default: true }
+																							});
+																							$$renderer.push("<!--]-->");
+																						} else {
+																							$$renderer.push("<!--[!-->");
+																							$$renderer.push("<!--]-->");
+																						}
+																					}
+																				}
+																				$$renderer.push(`<!--]-->`);
+																			},
+																			$$slots: { default: true }
+																		});
+																		$$renderer.push("<!--]-->");
+																	} else {
+																		$$renderer.push("<!--[!-->");
+																		$$renderer.push("<!--]-->");
+																	}
+																},
+																$$slots: { default: true }
+															});
+															$$renderer.push("<!--]-->");
+														} else {
+															$$renderer.push("<!--[!-->");
+															$$renderer.push("<!--]-->");
+														}
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+										},
+										$$slots: { default: true }
+									});
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+								$$renderer.push(`</div>`);
+							} else $$renderer.push("<!--[-1-->");
+							$$renderer.push(`<!--]--> `);
+							if (room.audioDevices.length > 1) {
+								$$renderer.push("<!--[0-->");
+								const micOptions = room.audioDevices.map((d) => ({
+									value: d.deviceId,
+									label: d.label
+								}));
+								$$renderer.push(`<div class="hb-field"><span class="hb-field__label">${escape_html(t.live.preConnect.micLabel())}</span> `);
+								if (Select) {
+									$$renderer.push("<!--[-->");
+									Select($$renderer, {
+										type: "single",
+										value: room.selectedAudioDevice,
+										onValueChange: (v) => {
+											room.selectedAudioDevice = v;
+											room.switchPreviewDevice();
+										},
+										items: micOptions.map((o) => ({
+											value: o.value,
+											label: o.label
+										})),
+										children: ($$renderer) => {
+											if (Select_trigger) {
+												$$renderer.push("<!--[-->");
+												Select_trigger($$renderer, {
+													class: "hb-select__trigger",
+													"aria-label": t.live.preConnect.micLabel(),
+													children: ($$renderer) => {
+														$$renderer.push(`<span class="hb-select__value">${escape_html(micOptions.find((o) => o.value === room.selectedAudioDevice)?.label ?? "")}</span> <span class="hb-select__chevron" aria-hidden="true"></span>`);
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+											$$renderer.push(` `);
+											if (Portal) {
+												$$renderer.push("<!--[-->");
+												Portal($$renderer, {
+													children: ($$renderer) => {
+														if (Select_content) {
+															$$renderer.push("<!--[-->");
+															Select_content($$renderer, {
+																class: "hb-select__content",
+																sideOffset: 6,
+																children: ($$renderer) => {
+																	if (Select_viewport) {
+																		$$renderer.push("<!--[-->");
+																		Select_viewport($$renderer, {
+																			class: "hb-select__viewport",
+																			children: ($$renderer) => {
+																				$$renderer.push(`<!--[-->`);
+																				const each_array_1 = ensure_array_like(micOptions);
+																				for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+																					let option = each_array_1[$$index_1];
+																					{
+																						function children($$renderer, { selected }) {
+																							$$renderer.push(`<span>${escape_html(option.label)}</span> `);
+																							if (selected) {
+																								$$renderer.push("<!--[0-->");
+																								$$renderer.push(`<span class="hb-select__check" aria-hidden="true"></span>`);
+																							} else $$renderer.push("<!--[-1-->");
+																							$$renderer.push(`<!--]-->`);
+																						}
+																						if (Select_item) {
+																							$$renderer.push("<!--[-->");
+																							Select_item($$renderer, {
+																								class: "hb-select__item",
+																								value: option.value,
+																								label: option.label,
+																								children,
+																								$$slots: { default: true }
+																							});
+																							$$renderer.push("<!--]-->");
+																						} else {
+																							$$renderer.push("<!--[!-->");
+																							$$renderer.push("<!--]-->");
+																						}
+																					}
+																				}
+																				$$renderer.push(`<!--]-->`);
+																			},
+																			$$slots: { default: true }
+																		});
+																		$$renderer.push("<!--]-->");
+																	} else {
+																		$$renderer.push("<!--[!-->");
+																		$$renderer.push("<!--]-->");
+																	}
+																},
+																$$slots: { default: true }
+															});
+															$$renderer.push("<!--]-->");
+														} else {
+															$$renderer.push("<!--[!-->");
+															$$renderer.push("<!--]-->");
+														}
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+										},
+										$$slots: { default: true }
+									});
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+								$$renderer.push(`</div>`);
+							} else $$renderer.push("<!--[-1-->");
+							$$renderer.push(`<!--]--> `);
+							if (room.hasPreviewMic) {
+								$$renderer.push("<!--[0-->");
+								LiveAudioMeter($$renderer, {
+									label: t.live.preConnect.audioLevel(),
+									level: room.audioLevel
+								});
+							} else $$renderer.push("<!--[-1-->");
+							$$renderer.push(`<!--]--> <div class="customer-connect__actions svelte-ikmx6e">`);
+							if (Button) {
+								$$renderer.push("<!--[-->");
+								Button($$renderer, {
+									class: "hb-button hb-button--primary hb-button--lg",
+									type: "button",
+									onclick: () => room.enterRoom(true),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterRoom())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Button) {
+								$$renderer.push("<!--[-->");
+								Button($$renderer, {
+									class: "hb-button hb-button--ghost",
+									type: "button",
+									onclick: () => room.enterRoom(false),
+									children: ($$renderer) => {
+										$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutDevices())}`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(`</div></div></div>`);
+						}
+						$$renderer.push(`<!--]-->`);
+					} else if (room.preConnectStep === "denied" || room.preConnectStep === "no-devices") {
+						$$renderer.push("<!--[2-->");
+						PreConnectState($$renderer, {
+							title: t.live.preConnect.enterNoDevices(),
+							message: room.mediaError,
+							tone: "caution",
+							actionLabel: t.live.preConnect.retryDevices(),
+							onAction: () => room.startPreview()
+						});
+						$$renderer.push(`<!----> <div class="entry-actions entry-actions--single svelte-ikmx6e">`);
+						if (Button) {
+							$$renderer.push("<!--[-->");
+							Button($$renderer, {
+								class: "hb-button hb-button--ghost",
+								type: "button",
+								onclick: () => isPrep() ? room.startLiveAndConnect(false) : room.enterRoom(false),
+								children: ($$renderer) => {
+									$$renderer.push(`<!---->${escape_html(t.live.preConnect.enterWithoutCamera())}`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(`</div>`);
+					} else $$renderer.push("<!--[-1-->");
+					$$renderer.push(`<!--]--></div>`);
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]-->`);
 			},
 			$$slots: { default: true }
 		});
-		$$renderer.push("<!--]-->");
-	} else {
-		$$renderer.push("<!--[!-->");
-		$$renderer.push("<!--]-->");
-	}
+	});
 }
 //#endregion
 //#region src/lib/features/live/components/room/LeaveModal.svelte
 function LeaveModal($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { isInstructorRoom, open = false, onLeave, onEndLive } = $$props;
-		if (open) {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="leave-modal-backdrop svelte-1hgbduj" role="dialog" aria-modal="true" aria-label="יציאה מהחדר"><div class="leave-modal svelte-1hgbduj"><h2 class="svelte-1hgbduj">${escape_html(isInstructorRoom ? "סיום שידור" : "יציאה מהחדר")}</h2> <p class="svelte-1hgbduj">${escape_html(isInstructorRoom ? "האם לסיים את השידור לכל המשתתפות?" : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח.")}</p> <div class="leave-modal__actions svelte-1hgbduj">`);
-			if (isInstructorRoom && onEndLive) {
-				$$renderer.push("<!--[0-->");
-				Button_1($$renderer, {
-					tone: "danger",
-					size: "md",
-					onclick: onEndLive,
+		let $$settled = true;
+		let $$inner_renderer;
+		function $$render_inner($$renderer) {
+			if (Dialog) {
+				$$renderer.push("<!--[-->");
+				Dialog($$renderer, {
+					get open() {
+						return open;
+					},
+					set open($$value) {
+						open = $$value;
+						$$settled = false;
+					},
 					children: ($$renderer) => {
-						$$renderer.push(`<!---->סיום שידור`);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Dialog_overlay) {
+										$$renderer.push("<!--[-->");
+										Dialog_overlay($$renderer, { class: "hb-dialog-overlay" });
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+									$$renderer.push(` `);
+									if (Dialog_content) {
+										$$renderer.push("<!--[-->");
+										Dialog_content($$renderer, {
+											class: "hb-dialog-content leave-modal",
+											"aria-label": "יציאה מהחדר",
+											children: ($$renderer) => {
+												if (Dialog_title) {
+													$$renderer.push("<!--[-->");
+													Dialog_title($$renderer, {
+														class: "leave-modal__title",
+														children: ($$renderer) => {
+															$$renderer.push(`<!---->${escape_html(isInstructorRoom ? "סיום שידור" : "יציאה מהחדר")}`);
+														},
+														$$slots: { default: true }
+													});
+													$$renderer.push("<!--]-->");
+												} else {
+													$$renderer.push("<!--[!-->");
+													$$renderer.push("<!--]-->");
+												}
+												$$renderer.push(` <p class="leave-modal__text">${escape_html(isInstructorRoom ? "האם לסיים את השידור לכל המשתתפות?" : "האם לצאת מהחדר? תוכלי להיכנס שוב דרך הלוח.")}</p> <div class="leave-modal__actions">`);
+												if (isInstructorRoom && onEndLive) {
+													$$renderer.push("<!--[0-->");
+													if (Button) {
+														$$renderer.push("<!--[-->");
+														Button($$renderer, {
+															class: "hb-button hb-button--danger hb-button--md",
+															type: "button",
+															onclick: onEndLive,
+															children: ($$renderer) => {
+																$$renderer.push(`<!---->סיום שידור`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+													$$renderer.push(` `);
+													if (Button) {
+														$$renderer.push("<!--[-->");
+														Button($$renderer, {
+															class: "hb-button hb-button--paper hb-button--md",
+															type: "button",
+															onclick: onLeave,
+															children: ($$renderer) => {
+																$$renderer.push(`<!---->יציאה בלבד`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+												} else {
+													$$renderer.push("<!--[-1-->");
+													if (Button) {
+														$$renderer.push("<!--[-->");
+														Button($$renderer, {
+															class: "hb-button hb-button--ink hb-button--md",
+															type: "button",
+															onclick: onLeave,
+															children: ($$renderer) => {
+																$$renderer.push(`<!---->יציאה מהחדר`);
+															},
+															$$slots: { default: true }
+														});
+														$$renderer.push("<!--]-->");
+													} else {
+														$$renderer.push("<!--[!-->");
+														$$renderer.push("<!--]-->");
+													}
+												}
+												$$renderer.push(`<!--]--> `);
+												if (Button) {
+													$$renderer.push("<!--[-->");
+													Button($$renderer, {
+														class: "hb-button hb-button--ghost hb-button--sm",
+														type: "button",
+														onclick: () => {
+															open = false;
+														},
+														children: ($$renderer) => {
+															$$renderer.push(`<!---->ביטול`);
+														},
+														$$slots: { default: true }
+													});
+													$$renderer.push("<!--]-->");
+												} else {
+													$$renderer.push("<!--[!-->");
+													$$renderer.push("<!--]-->");
+												}
+												$$renderer.push(`</div>`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
 					},
 					$$slots: { default: true }
 				});
-				$$renderer.push(`<!----> `);
-				Button_1($$renderer, {
-					tone: "paper",
-					size: "md",
-					onclick: onLeave,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->יציאה בלבד`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!---->`);
+				$$renderer.push("<!--]-->");
 			} else {
-				$$renderer.push("<!--[-1-->");
-				Button_1($$renderer, {
-					tone: "ink",
-					size: "md",
-					onclick: onLeave,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->יציאה מהחדר`);
-					},
-					$$slots: { default: true }
-				});
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
 			}
-			$$renderer.push(`<!--]--> `);
-			Button_1($$renderer, {
-				tone: "ghost",
-				size: "sm",
-				onclick: () => {
-					open = false;
-				},
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->ביטול`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div></div></div>`);
-		} else $$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]-->`);
+		}
+		do {
+			$$settled = true;
+			$$inner_renderer = $$renderer.copy();
+			$$render_inner($$inner_renderer);
+		} while (!$$settled);
+		$$renderer.subsume($$inner_renderer);
 		bind_props($$props, { open });
 	});
 }
@@ -2644,34 +3233,184 @@ function RoomHeader($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----> <header class="lr-header lr-glass"><div class="lr-header__group"><button type="button" class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></button> <div class="lr-header__divider"></div> <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(connectionLabel)}</span></div> `);
-			Tooltip_1($$renderer, {
-				label: t.live.room.participantsTitle(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(participantCount)}</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div> <div class="lr-header__group">`);
-			if (isInstructorRoom) {
-				$$renderer.push("<!--[0-->");
-				Tooltip_1($$renderer, {
-					label: t.live.stats.title(),
+			$$renderer.push(`<!----> <header class="lr-header lr-glass"><div class="lr-header__group"><button type="button" class="lr-header__back"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span> <span>${escape_html(t.live.room.back())}</span></button> `);
+			if (Separator) {
+				$$renderer.push("<!--[-->");
+				Separator($$renderer, {
+					class: "lr-header__divider",
+					orientation: "vertical"
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(` <div class="lr-header__status"><span${attr_class("lr-header__status-dot", void 0, { "lr-header__status-dot--on": connectionState === "connected" })}></span> <span class="lr-header__status-label">${escape_html(connectionLabel)}</span></div> `);
+			if (Tooltip) {
+				$$renderer.push("<!--[-->");
+				Tooltip($$renderer, {
 					children: ($$renderer) => {
-						$$renderer.push(`<button type="button" class="hb-button hb-button--icon"${attr("aria-label", t.live.stats.title())}><span class="material-symbols-rounded" aria-hidden="true">monitoring</span></button>`);
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="lr-header__pill"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span>${escape_html(participantCount)}</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(t.live.room.participantsTitle())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
 					},
 					$$slots: { default: true }
 				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div> <div class="lr-header__group">`);
+			if (isInstructorRoom) {
+				$$renderer.push("<!--[0-->");
+				if (Tooltip) {
+					$$renderer.push("<!--[-->");
+					Tooltip($$renderer, {
+						children: ($$renderer) => {
+							if (Tooltip_trigger) {
+								$$renderer.push("<!--[-->");
+								Tooltip_trigger($$renderer, {
+									class: "hb-tooltip-trigger",
+									children: ($$renderer) => {
+										$$renderer.push(`<button type="button" class="hb-button hb-button--icon"${attr("aria-label", t.live.stats.title())}><span class="material-symbols-rounded" aria-hidden="true">monitoring</span></button>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Tooltip_content) {
+											$$renderer.push("<!--[-->");
+											Tooltip_content($$renderer, {
+												class: "hb-tooltip-content",
+												children: ($$renderer) => {
+													$$renderer.push(`<!---->${escape_html(t.live.stats.title())}`);
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> `);
-			Tooltip_1($$renderer, {
-				label: t.live.room.leave(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="hb-button hb-button--icon-danger"${attr("aria-label", t.live.room.leave())}><span class="material-symbols-rounded" aria-hidden="true">logout</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div></header>`);
+			if (Tooltip) {
+				$$renderer.push("<!--[-->");
+				Tooltip($$renderer, {
+					children: ($$renderer) => {
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="hb-button hb-button--icon-danger"${attr("aria-label", t.live.room.leave())}><span class="material-symbols-rounded" aria-hidden="true">logout</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(t.live.room.leave())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div></header>`);
 		}
 		do {
 			$$settled = true;
@@ -2772,39 +3511,82 @@ function ParticipantSidebar($$renderer, $$props) {
 		if (open) {
 			$$renderer.push("<!--[0-->");
 			$$renderer.push(`<aside class="lr-panel lr-glass lr-panel--participants"${attr("aria-label", t.live.room.participantsTitle())}><div class="lr-panel__header"><h3>${escape_html(t.live.room.participantsTitle())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> `);
-			ScrollArea_1($$renderer, {
-				class: "lr-panel__scroll",
-				children: ($$renderer) => {
-					$$renderer.push(`<div class="lr-participant-list"><!--[-->`);
-					const each_array = ensure_array_like(participants);
-					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-						let p = each_array[$$index];
-						$$renderer.push(`<div${attr_class("lr-participant", void 0, {
-							"lr-participant--speaking": p.isSpeaking,
-							"lr-participant--instructor": p.isInstructor
-						})}><div class="lr-participant__left"><span class="lr-participant__name">${escape_html(p.name)}</span> `);
-						if (p.isInstructor) {
-							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.instructor())}</span>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--> `);
-						if (p.isLocal) {
-							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.you())}</span>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div> <div class="lr-participant__indicators"><span${attr_class("lr-indicator", void 0, {
-							"lr-indicator--on": p.hasMic,
-							"lr-indicator--off": !p.hasMic
-						})}${attr("title", p.hasMic ? t.live.room.micOn() : t.live.room.micOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasMic ? "mic" : "mic_off")}</span></span> <span${attr_class("lr-indicator", void 0, {
-							"lr-indicator--on": p.hasCamera,
-							"lr-indicator--off": !p.hasCamera
-						})}${attr("title", p.hasCamera ? t.live.room.cameraOn() : t.live.room.cameraOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasCamera ? "videocam" : "videocam_off")}</span></span></div></div>`);
-					}
-					$$renderer.push(`<!--]--></div>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></aside>`);
+			if (Scroll_area) {
+				$$renderer.push("<!--[-->");
+				Scroll_area($$renderer, {
+					class: "hb-scroll-area lr-panel__scroll",
+					children: ($$renderer) => {
+						if (Scroll_area_viewport) {
+							$$renderer.push("<!--[-->");
+							Scroll_area_viewport($$renderer, {
+								class: "hb-scroll-area__viewport",
+								children: ($$renderer) => {
+									$$renderer.push(`<div class="lr-participant-list"><!--[-->`);
+									const each_array = ensure_array_like(participants);
+									for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+										let p = each_array[$$index];
+										$$renderer.push(`<div${attr_class("lr-participant", void 0, {
+											"lr-participant--speaking": p.isSpeaking,
+											"lr-participant--instructor": p.isInstructor
+										})}><div class="lr-participant__left"><span class="lr-participant__name">${escape_html(p.name)}</span> `);
+										if (p.isInstructor) {
+											$$renderer.push("<!--[0-->");
+											$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.instructor())}</span>`);
+										} else $$renderer.push("<!--[-1-->");
+										$$renderer.push(`<!--]--> `);
+										if (p.isLocal) {
+											$$renderer.push("<!--[0-->");
+											$$renderer.push(`<span class="lr-participant__role">${escape_html(t.live.room.you())}</span>`);
+										} else $$renderer.push("<!--[-1-->");
+										$$renderer.push(`<!--]--></div> <div class="lr-participant__indicators"><span${attr_class("lr-indicator", void 0, {
+											"lr-indicator--on": p.hasMic,
+											"lr-indicator--off": !p.hasMic
+										})}${attr("title", p.hasMic ? t.live.room.micOn() : t.live.room.micOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasMic ? "mic" : "mic_off")}</span></span> <span${attr_class("lr-indicator", void 0, {
+											"lr-indicator--on": p.hasCamera,
+											"lr-indicator--off": !p.hasCamera
+										})}${attr("title", p.hasCamera ? t.live.room.cameraOn() : t.live.room.cameraOff())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(p.hasCamera ? "videocam" : "videocam_off")}</span></span></div></div>`);
+									}
+									$$renderer.push(`<!--]--></div>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Scroll_area_scrollbar) {
+							$$renderer.push("<!--[-->");
+							Scroll_area_scrollbar($$renderer, {
+								class: "hb-scroll-area__bar",
+								orientation: "vertical",
+								children: ($$renderer) => {
+									if (Scroll_area_thumb) {
+										$$renderer.push("<!--[-->");
+										Scroll_area_thumb($$renderer, { class: "hb-scroll-area__thumb" });
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});
@@ -2840,94 +3622,77 @@ function RoomChat($$renderer, $$props) {
 				$$renderer.push(`<button type="button" class="lr-chat__scroll-btn svelte-1ss84dm"${attr("aria-label", t.live.room.newMessages())}><span class="material-symbols-rounded">arrow_downward</span></button>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> <form class="lr-chat__form"><input class="lr-chat__input"${attr("value", draft)} maxlength="500"${attr("placeholder", t.live.room.chatPlaceholder())}${attr("aria-label", t.live.room.chatPlaceholder())}/> `);
-			Button_1($$renderer, {
-				type: "submit",
-				tone: "ink",
-				size: "sm",
-				disabled: !draft.trim(),
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(t.live.room.chatSend())}`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></form></aside>`);
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--ink hb-button--sm",
+					type: "submit",
+					disabled: !draft.trim(),
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.live.room.chatSend())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</form></aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 		bind_props($$props, { draft });
 	});
 }
 //#endregion
-//#region src/lib/components/ui/Popover.svelte
-function Popover_1($$renderer, $$props) {
+//#region src/lib/features/live/components/room/ControlBar.svelte
+function ControlBar($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { open = false, children, trigger, side = "bottom", align = "center", sideOffset = 6 } = $$props;
+		let { room } = $$props;
+		const { t } = useI18n();
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
-			if (Popover) {
+			$$renderer.push(`<footer class="lr-control-bar"><div${attr_class("lr-control", void 0, {
+				"lr-control--on": room.micEnabled,
+				"lr-control--off": !room.micEnabled
+			})}>`);
+			if (Tooltip) {
 				$$renderer.push("<!--[-->");
-				Popover($$renderer, {
-					get open() {
-						return open;
-					},
-					set open($$value) {
-						open = $$value;
-						$$settled = false;
-					},
+				Tooltip($$renderer, {
 					children: ($$renderer) => {
-						{
-							function child($$renderer, { props }) {
-								$$renderer.push(`<span${attributes({
-									...props,
-									class: "hb-popover-trigger"
-								})}>`);
-								trigger($$renderer);
-								$$renderer.push(`<!----></span>`);
-							}
-							if (Popover_trigger) {
-								$$renderer.push("<!--[-->");
-								Popover_trigger($$renderer, {
-									child,
-									$$slots: { child: true }
-								});
-								$$renderer.push("<!--]-->");
-							} else {
-								$$renderer.push("<!--[!-->");
-								$$renderer.push("<!--]-->");
-							}
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.micEnabled ? "mic" : "mic_off")}</span> <span class="lr-control__label">${escape_html(room.micEnabled ? t.live.controls.micOnLabel() : t.live.controls.micOffLabel())}</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
 						}
 						$$renderer.push(` `);
 						if (Portal) {
 							$$renderer.push("<!--[-->");
 							Portal($$renderer, {
 								children: ($$renderer) => {
-									{
-										function child($$renderer, { wrapperProps, props, open: isOpen }) {
-											if (isOpen) {
-												$$renderer.push("<!--[0-->");
-												$$renderer.push(`<div${attributes({ ...wrapperProps })}><div${attributes({
-													...props,
-													class: "hb-popover-content"
-												})}>`);
-												children($$renderer);
-												$$renderer.push(`<!----></div></div>`);
-											} else $$renderer.push("<!--[-1-->");
-											$$renderer.push(`<!--]-->`);
-										}
-										if (Popover_content) {
-											$$renderer.push("<!--[-->");
-											Popover_content($$renderer, {
-												side,
-												align,
-												sideOffset,
-												child,
-												$$slots: { child: true }
-											});
-											$$renderer.push("<!--]-->");
-										} else {
-											$$renderer.push("<!--[!-->");
-											$$renderer.push("<!--]-->");
-										}
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
 									}
 								},
 								$$slots: { default: true }
@@ -2945,103 +3710,193 @@ function Popover_1($$renderer, $$props) {
 				$$renderer.push("<!--[!-->");
 				$$renderer.push("<!--]-->");
 			}
-		}
-		do {
-			$$settled = true;
-			$$inner_renderer = $$renderer.copy();
-			$$render_inner($$inner_renderer);
-		} while (!$$settled);
-		$$renderer.subsume($$inner_renderer);
-		bind_props($$props, { open });
-	});
-}
-//#endregion
-//#region src/lib/features/live/components/room/ControlBar.svelte
-function ControlBar($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { room } = $$props;
-		const { t } = useI18n();
-		let $$settled = true;
-		let $$inner_renderer;
-		function $$render_inner($$renderer) {
-			$$renderer.push(`<footer class="lr-control-bar"><div${attr_class("lr-control", void 0, {
-				"lr-control--on": room.micEnabled,
-				"lr-control--off": !room.micEnabled
-			})}>`);
-			Tooltip_1($$renderer, {
-				label: room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.micEnabled ? "mic" : "mic_off")}</span> <span class="lr-control__label">${escape_html(room.micEnabled ? t.live.controls.micOnLabel() : t.live.controls.micOffLabel())}</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----> `);
+			$$renderer.push(` `);
 			if (room.audioDevices.length > 1) {
 				$$renderer.push("<!--[0-->");
-				{
-					function trigger($$renderer) {
-						$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.micLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
-					}
-					function children($$renderer) {
-						$$renderer.push(`<div class="lr-device-list"><!--[-->`);
-						const each_array = ensure_array_like(room.audioDevices);
-						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-							let device = each_array[$$index];
-							$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedAudioDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
-						}
-						$$renderer.push(`<!--]--></div>`);
-					}
-					Popover_1($$renderer, {
-						side: "top",
-						align: "center",
-						sideOffset: 8,
-						trigger,
-						children,
-						$$slots: {
-							trigger: true,
-							default: true
-						}
+				if (Popover) {
+					$$renderer.push("<!--[-->");
+					Popover($$renderer, {
+						children: ($$renderer) => {
+							if (Popover_trigger) {
+								$$renderer.push("<!--[-->");
+								Popover_trigger($$renderer, {
+									class: "hb-popover-trigger",
+									children: ($$renderer) => {
+										$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.micLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Popover_content) {
+											$$renderer.push("<!--[-->");
+											Popover_content($$renderer, {
+												class: "hb-popover-content",
+												side: "top",
+												align: "center",
+												sideOffset: 8,
+												children: ($$renderer) => {
+													$$renderer.push(`<div class="lr-device-list"><!--[-->`);
+													const each_array = ensure_array_like(room.audioDevices);
+													for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+														let device = each_array[$$index];
+														$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedAudioDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
+													}
+													$$renderer.push(`<!--]--></div>`);
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
 					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--></div> <div${attr_class("lr-control", void 0, {
 				"lr-control--on": room.cameraEnabled,
 				"lr-control--off": !room.cameraEnabled
 			})}>`);
-			Tooltip_1($$renderer, {
-				label: room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.cameraEnabled ? "videocam" : "videocam_off")}</span> <span class="lr-control__label">${escape_html(room.cameraEnabled ? t.live.controls.cameraOnLabel() : t.live.controls.cameraOffLabel())}</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----> `);
+			if (Tooltip) {
+				$$renderer.push("<!--[-->");
+				Tooltip($$renderer, {
+					children: ($$renderer) => {
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.cameraEnabled ? "videocam" : "videocam_off")}</span> <span class="lr-control__label">${escape_html(room.cameraEnabled ? t.live.controls.cameraOnLabel() : t.live.controls.cameraOffLabel())}</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(` `);
 			if (room.videoDevices.length > 1) {
 				$$renderer.push("<!--[0-->");
-				{
-					function trigger($$renderer) {
-						$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.cameraLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
-					}
-					function children($$renderer) {
-						$$renderer.push(`<div class="lr-device-list"><!--[-->`);
-						const each_array_1 = ensure_array_like(room.videoDevices);
-						for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-							let device = each_array_1[$$index_1];
-							$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedVideoDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
-						}
-						$$renderer.push(`<!--]--></div>`);
-					}
-					Popover_1($$renderer, {
-						side: "top",
-						align: "center",
-						sideOffset: 8,
-						trigger,
-						children,
-						$$slots: {
-							trigger: true,
-							default: true
-						}
+				if (Popover) {
+					$$renderer.push("<!--[-->");
+					Popover($$renderer, {
+						children: ($$renderer) => {
+							if (Popover_trigger) {
+								$$renderer.push("<!--[-->");
+								Popover_trigger($$renderer, {
+									class: "hb-popover-trigger",
+									children: ($$renderer) => {
+										$$renderer.push(`<button type="button" class="lr-control__arrow"${attr("aria-label", t.live.preConnect.cameraLabel())}><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Popover_content) {
+											$$renderer.push("<!--[-->");
+											Popover_content($$renderer, {
+												class: "hb-popover-content",
+												side: "top",
+												align: "center",
+												sideOffset: 8,
+												children: ($$renderer) => {
+													$$renderer.push(`<div class="lr-device-list"><!--[-->`);
+													const each_array_1 = ensure_array_like(room.videoDevices);
+													for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+														let device = each_array_1[$$index_1];
+														$$renderer.push(`<button type="button"${attr_class("lr-device-row", void 0, { "lr-device-row--active": room.selectedVideoDevice === device.deviceId })}>${escape_html(device.label)}</button>`);
+													}
+													$$renderer.push(`<!--]--></div>`);
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
 					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--></div> `);
@@ -3051,75 +3906,269 @@ function ControlBar($$renderer, $$props) {
 					"lr-control--on": room.screenShareEnabled,
 					"lr-control--off": !room.screenShareEnabled
 				})}>`);
-				Tooltip_1($$renderer, {
-					label: room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen(),
-					children: ($$renderer) => {
-						$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.screenShareEnabled ? "stop_screen_share" : "screen_share")}</span> <span class="lr-control__label">${escape_html(room.screenShareEnabled ? t.live.controls.screenOnLabel() : t.live.controls.screenOffLabel())}</span></button>`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!----></div>`);
+				if (Tooltip) {
+					$$renderer.push("<!--[-->");
+					Tooltip($$renderer, {
+						children: ($$renderer) => {
+							if (Tooltip_trigger) {
+								$$renderer.push("<!--[-->");
+								Tooltip_trigger($$renderer, {
+									class: "hb-tooltip-trigger",
+									children: ($$renderer) => {
+										$$renderer.push(`<button type="button" class="lr-control__main"${attr("disabled", room.pendingControl !== null, true)}${attr("aria-label", room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.screenShareEnabled ? "stop_screen_share" : "screen_share")}</span> <span class="lr-control__label">${escape_html(room.screenShareEnabled ? t.live.controls.screenOnLabel() : t.live.controls.screenOffLabel())}</span></button>`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(` `);
+							if (Portal) {
+								$$renderer.push("<!--[-->");
+								Portal($$renderer, {
+									children: ($$renderer) => {
+										if (Tooltip_content) {
+											$$renderer.push("<!--[-->");
+											Tooltip_content($$renderer, {
+												class: "hb-tooltip-content",
+												children: ($$renderer) => {
+													$$renderer.push(`<!---->${escape_html(room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen())}`);
+												},
+												$$slots: { default: true }
+											});
+											$$renderer.push("<!--]-->");
+										} else {
+											$$renderer.push("<!--[!-->");
+											$$renderer.push("<!--]-->");
+										}
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div>`);
 			} else $$renderer.push("<!--[-1-->");
 			$$renderer.push(`<!--]--> <div${attr_class("lr-control", void 0, {
 				"lr-control--active": room.showParticipants,
 				"lr-control--off": !room.showParticipants
 			})}>`);
-			Tooltip_1($$renderer, {
-				label: room.showParticipants ? t.live.room.hideParticipants() : t.live.room.showParticipants(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span class="lr-control__label">${escape_html(t.live.room.participantsTitle())}</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div> <div${attr_class("lr-control", void 0, {
+			if (Tooltip) {
+				$$renderer.push("<!--[-->");
+				Tooltip($$renderer, {
+					children: ($$renderer) => {
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.participantsTitle())}><span class="material-symbols-rounded" aria-hidden="true">people</span> <span class="lr-control__label">${escape_html(t.live.room.participantsTitle())}</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(room.showParticipants ? t.live.room.hideParticipants() : t.live.room.showParticipants())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div> <div${attr_class("lr-control", void 0, {
 				"lr-control--active": room.showChat,
 				"lr-control--off": !room.showChat
 			})}>`);
-			Tooltip_1($$renderer, {
-				label: room.showChat ? t.live.room.hideChat() : t.live.room.showChat(),
-				children: ($$renderer) => {
-					$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.showChat())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.showChat ? "chat" : "chat_bubble_outline")}</span> <span class="lr-control__label">${escape_html(t.live.room.chatTitle())}</span></button>`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div> `);
-			{
-				function trigger($$renderer) {
-					$$renderer.push(`<div class="lr-control lr-control--off"><button type="button" class="lr-control__main"${attr("aria-label", t.live.room.settingsTitle())}><span class="material-symbols-rounded" aria-hidden="true">settings</span> <span class="lr-control__label">${escape_html(t.live.room.settingsTitle())}</span></button></div>`);
-				}
-				function children($$renderer) {
-					$$renderer.push(`<div class="lr-settings"><strong class="lr-settings__title">${escape_html(t.live.room.settingsTitle())}</strong> `);
-					Switch_1($$renderer, {
-						label: t.live.room.echoCancel(),
-						onchange: () => room.switchPreviewDevice(),
-						get checked() {
-							return room.audioProcessingEnabled;
-						},
-						set checked($$value) {
-							room.audioProcessingEnabled = $$value;
-							$$settled = false;
+			if (Tooltip) {
+				$$renderer.push("<!--[-->");
+				Tooltip($$renderer, {
+					children: ($$renderer) => {
+						if (Tooltip_trigger) {
+							$$renderer.push("<!--[-->");
+							Tooltip_trigger($$renderer, {
+								class: "hb-tooltip-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<button type="button" class="lr-control__main"${attr("aria-label", t.live.room.showChat())}><span class="material-symbols-rounded" aria-hidden="true">${escape_html(room.showChat ? "chat" : "chat_bubble_outline")}</span> <span class="lr-control__label">${escape_html(t.live.room.chatTitle())}</span></button>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
 						}
-					});
-					$$renderer.push(`<!----> `);
-					if (room.isInstructorRoom) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<button type="button" class="lr-settings__link">${escape_html(t.live.stats.title())}</button>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--></div>`);
-				}
-				Popover_1($$renderer, {
-					side: "top",
-					align: "end",
-					sideOffset: 8,
-					trigger,
-					children,
-					$$slots: {
-						trigger: true,
-						default: true
-					}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Tooltip_content) {
+										$$renderer.push("<!--[-->");
+										Tooltip_content($$renderer, {
+											class: "hb-tooltip-content",
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->${escape_html(room.showChat ? t.live.room.hideChat() : t.live.room.showChat())}`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
 				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
 			}
-			$$renderer.push(`<!----></footer>`);
+			$$renderer.push(`</div> `);
+			if (Popover) {
+				$$renderer.push("<!--[-->");
+				Popover($$renderer, {
+					children: ($$renderer) => {
+						if (Popover_trigger) {
+							$$renderer.push("<!--[-->");
+							Popover_trigger($$renderer, {
+								class: "hb-popover-trigger",
+								children: ($$renderer) => {
+									$$renderer.push(`<div class="lr-control lr-control--off"><button type="button" class="lr-control__main"${attr("aria-label", t.live.room.settingsTitle())}><span class="material-symbols-rounded" aria-hidden="true">settings</span> <span class="lr-control__label">${escape_html(t.live.room.settingsTitle())}</span></button></div>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(` `);
+						if (Portal) {
+							$$renderer.push("<!--[-->");
+							Portal($$renderer, {
+								children: ($$renderer) => {
+									if (Popover_content) {
+										$$renderer.push("<!--[-->");
+										Popover_content($$renderer, {
+											class: "hb-popover-content",
+											side: "top",
+											align: "end",
+											sideOffset: 8,
+											children: ($$renderer) => {
+												$$renderer.push(`<div class="lr-settings"><strong class="lr-settings__title">${escape_html(t.live.room.settingsTitle())}</strong> <span class="hb-switch">`);
+												if (Switch) {
+													$$renderer.push("<!--[-->");
+													Switch($$renderer, {
+														class: "hb-switch__root",
+														"aria-label": t.live.room.echoCancel(),
+														onCheckedChange: () => room.switchPreviewDevice(),
+														get checked() {
+															return room.audioProcessingEnabled;
+														},
+														set checked($$value) {
+															room.audioProcessingEnabled = $$value;
+															$$settled = false;
+														},
+														children: ($$renderer) => {
+															if (Switch_thumb) {
+																$$renderer.push("<!--[-->");
+																Switch_thumb($$renderer, { class: "hb-switch__thumb" });
+																$$renderer.push("<!--]-->");
+															} else {
+																$$renderer.push("<!--[!-->");
+																$$renderer.push("<!--]-->");
+															}
+														},
+														$$slots: { default: true }
+													});
+													$$renderer.push("<!--]-->");
+												} else {
+													$$renderer.push("<!--[!-->");
+													$$renderer.push("<!--]-->");
+												}
+												$$renderer.push(` <span>${escape_html(t.live.room.echoCancel())}</span></span> `);
+												if (room.isInstructorRoom) {
+													$$renderer.push("<!--[0-->");
+													$$renderer.push(`<button type="button" class="lr-settings__link">${escape_html(t.live.stats.title())}</button>`);
+												} else $$renderer.push("<!--[-1-->");
+												$$renderer.push(`<!--]--></div>`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</footer>`);
 		}
 		do {
 			$$settled = true;
@@ -3138,25 +4187,68 @@ function QualityPanel($$renderer, $$props) {
 		if (room.isInstructorRoom && room.showQualityPanel) {
 			$$renderer.push("<!--[0-->");
 			$$renderer.push(`<aside class="lr-quality lr-glass"${attr("aria-label", t.live.stats.title())}><div class="lr-panel__header"><h3>${escape_html(t.live.stats.title())}</h3> <button type="button" class="hb-button hb-button--close"${attr("aria-label", t.live.room.close())}><span class="material-symbols-rounded">close</span></button></div> `);
-			ScrollArea_1($$renderer, {
-				class: "lr-panel__scroll",
-				children: ($$renderer) => {
-					$$renderer.push(`<dl class="lr-quality__headline"><div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.participants())}</dt> <dd class="lr-quality__value">${escape_html(room.participants.length)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.video())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.videoTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.audio())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.audioTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.bitrate())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedBitrate)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.resolution())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedResolution)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.fps())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedFps)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.packetLoss())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedPacketLoss)}</dd></div></dl> `);
-					if (room.trackStats.length > 0) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<details class="lr-quality__track-list" open=""><summary>${escape_html(t.live.stats.videoSources())}</summary> <div class="lr-quality__tracks"><!--[-->`);
-						const each_array = ensure_array_like(room.trackStats.filter((t) => t.kind === "video"));
-						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-							let stat = each_array[$$index];
-							$$renderer.push(`<div class="lr-track-stat"><span class="lr-track-stat__name">${escape_html(stat.name)}</span> <span${attr_class("lr-track-stat__badge", void 0, { "lr-track-stat__badge--screen": stat.source === "screen_share" })}>${escape_html(stat.source === "screen_share" ? t.live.stats.sourceScreen() : stat.source === "camera" ? t.live.stats.sourceCamera() : t.live.stats.sourceUnknown())}</span> <span class="lr-track-stat__detail">${escape_html(stat.width ?? "—")}×${escape_html(stat.height ?? "—")} @ ${escape_html(stat.bitrateKbps > 0 ? `${stat.bitrateKbps} kbps` : "—")}</span></div>`);
+			if (Scroll_area) {
+				$$renderer.push("<!--[-->");
+				Scroll_area($$renderer, {
+					class: "hb-scroll-area lr-panel__scroll",
+					children: ($$renderer) => {
+						if (Scroll_area_viewport) {
+							$$renderer.push("<!--[-->");
+							Scroll_area_viewport($$renderer, {
+								class: "hb-scroll-area__viewport",
+								children: ($$renderer) => {
+									$$renderer.push(`<dl class="lr-quality__headline"><div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.participants())}</dt> <dd class="lr-quality__value">${escape_html(room.participants.length)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.video())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.videoTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.audio())}</dt> <dd class="lr-quality__value">${escape_html(room.streamStats.audioTracks)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.bitrate())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedBitrate)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.resolution())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedResolution)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.fps())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedFps)}</dd></div> <div class="lr-quality__row"><dt class="lr-quality__label">${escape_html(t.live.stats.packetLoss())}</dt> <dd class="lr-quality__value">${escape_html(room.formattedPacketLoss)}</dd></div></dl> `);
+									if (room.trackStats.length > 0) {
+										$$renderer.push("<!--[0-->");
+										$$renderer.push(`<details class="lr-quality__track-list" open=""><summary>${escape_html(t.live.stats.videoSources())}</summary> <div class="lr-quality__tracks"><!--[-->`);
+										const each_array = ensure_array_like(room.trackStats.filter((t) => t.kind === "video"));
+										for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+											let stat = each_array[$$index];
+											$$renderer.push(`<div class="lr-track-stat"><span class="lr-track-stat__name">${escape_html(stat.name)}</span> <span${attr_class("lr-track-stat__badge", void 0, { "lr-track-stat__badge--screen": stat.source === "screen_share" })}>${escape_html(stat.source === "screen_share" ? t.live.stats.sourceScreen() : stat.source === "camera" ? t.live.stats.sourceCamera() : t.live.stats.sourceUnknown())}</span> <span class="lr-track-stat__detail">${escape_html(stat.width ?? "—")}×${escape_html(stat.height ?? "—")} @ ${escape_html(stat.bitrateKbps > 0 ? `${stat.bitrateKbps} kbps` : "—")}</span></div>`);
+										}
+										$$renderer.push(`<!--]--></div></details>`);
+									} else $$renderer.push("<!--[-1-->");
+									$$renderer.push(`<!--]-->`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
 						}
-						$$renderer.push(`<!--]--></div></details>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]-->`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></aside>`);
+						$$renderer.push(` `);
+						if (Scroll_area_scrollbar) {
+							$$renderer.push("<!--[-->");
+							Scroll_area_scrollbar($$renderer, {
+								class: "hb-scroll-area__bar",
+								orientation: "vertical",
+								children: ($$renderer) => {
+									if (Scroll_area_thumb) {
+										$$renderer.push("<!--[-->");
+										Scroll_area_thumb($$renderer, { class: "hb-scroll-area__thumb" });
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</aside>`);
 		} else $$renderer.push("<!--[-1-->");
 		$$renderer.push(`<!--]-->`);
 	});
@@ -3178,29 +4270,43 @@ function LiveRoomShell($$renderer, $$props) {
 			} else if (room.connectionState === "disconnected") {
 				$$renderer.push("<!--[2-->");
 				$$renderer.push(`<div class="disconnect-overlay svelte-8bmq7k"><div class="disconnect-card svelte-8bmq7k"><span class="material-symbols-rounded svelte-8bmq7k" aria-hidden="true">wifi_off</span> <h2 class="svelte-8bmq7k">החיבור נותק</h2> <p class="svelte-8bmq7k">ניתן לנסות להתחבר שוב או לצאת מהחדר.</p> <div class="disconnect-actions svelte-8bmq7k">`);
-				Button_1($$renderer, {
-					tone: "ink",
-					size: "md",
-					onclick: () => room.reconnect(),
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->התחברות מחדש`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!----> `);
-				Button_1($$renderer, {
-					tone: "ghost",
-					size: "sm",
-					onclick: () => {
-						room.destroy();
-						window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
-					},
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->יציאה`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!----></div></div></div>`);
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--ink hb-button--md",
+						type: "button",
+						onclick: () => room.reconnect(),
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->התחברות מחדש`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(` `);
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--ghost hb-button--sm",
+						type: "button",
+						onclick: () => {
+							room.destroy();
+							window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
+						},
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->יציאה`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div></div></div>`);
 			} else if (room.status === "ready" && room.joinInfo && room.connectionState === "idle") {
 				$$renderer.push("<!--[3-->");
 				PreConnectOverlay($$renderer, { room });

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Notice from "$components/ui/Notice.svelte";
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
 
   let {
     title,
@@ -40,10 +40,10 @@
   {#if actionLabel || secondaryLabel}
     <div class="entry-state__actions">
       {#if actionLabel}
-        <Button tone="primary" href={actionHref} onclick={onAction}>{actionLabel}</Button>
+        <Button.Root class="hb-button hb-button--primary" href={actionHref} onclick={onAction}>{actionLabel}</Button.Root>
       {/if}
       {#if secondaryLabel && secondaryHref}
-        <Button tone="secondary" href={secondaryHref}>{secondaryLabel}</Button>
+        <Button.Root class="hb-button hb-button--secondary" href={secondaryHref}>{secondaryLabel}</Button.Root>
       {/if}
     </div>
   {/if}

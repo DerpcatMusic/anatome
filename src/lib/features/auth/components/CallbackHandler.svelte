@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
   import { storeTokens } from "$lib/auth/session.svelte";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
-
 
   let message = $state("מעבירים אותך...");
   let error = $state("");
@@ -20,7 +20,7 @@
     try {
       const result = await client.action(api.auth.signIn, { provider: "email", params: { code } });
       storeTokens(result.tokens ?? null);
-      window.location.assign("/u/dashboard");
+      window.location.assign("/onboarding");
     } catch (err) {
       console.error("Magic link failed:", err);
       error = "הקוד פג תוקף או כבר נוצל. נסי להתחבר שוב.";
@@ -29,7 +29,9 @@
     }
   }
 
-  handle();
+  if (browser) {
+    handle();
+  }
 </script>
 
 <div class="callback">

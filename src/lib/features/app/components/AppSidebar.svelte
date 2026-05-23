@@ -5,6 +5,7 @@
   import { useQuery } from "convex-svelte";
   import { getAppContext } from "$features/app/context/appContext";
   import { liveRoomHref } from "$lib/i18n/context";
+  import { theme } from "$features/app/theme.svelte";
   import "./AppSidebar.css";
 
   const auth = initAuth();
@@ -66,7 +67,20 @@
   <div class="sidebar__account">
     {#if auth.isAuthenticated}
       <span class="sidebar__user">מחוברת</span>
-      <button type="button" class="sidebar__signout" onclick={signOut}>יציאה</button>
+      <div class="sidebar__actions">
+        <button
+          type="button"
+          class="theme-toggle"
+          onclick={() => theme.toggle()}
+          title={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+          aria-label={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+        >
+          <span class="material-symbols-rounded">
+            {theme.value === "dark" ? "light_mode" : "dark_mode"}
+          </span>
+        </button>
+        <button type="button" class="sidebar__signout" onclick={signOut}>יציאה</button>
+      </div>
     {:else}
       <a href="/" class="sidebar__signout">כניסה</a>
     {/if}

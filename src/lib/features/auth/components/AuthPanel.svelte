@@ -63,8 +63,7 @@
     }
   }
 
-  async function verifyCode(event: SubmitEvent) {
-    event.preventDefault();
+  async function verifyCode() {
     if (!code.trim()) return;
 
     status = "";
@@ -76,7 +75,7 @@
         params: { email, code: code.trim() },
       });
       storeTokens(result.tokens ?? null);
-      window.location.assign("/u/dashboard");
+      window.location.assign("/onboarding");
     } catch (reason) {
       status = reason instanceof Error ? reason.message : t.auth.statusCodeError();
     } finally {
@@ -109,7 +108,7 @@
 {:else if auth.isAuthenticated}
   <LoggedInState {signOut} {closeModal} />
 {:else}
-  <form class="auth-form" onsubmit={step === "verify" && method === "code" ? verifyCode : (e) => e.preventDefault()}>
+  <form class="auth-form" onsubmit={(e) => { e.preventDefault(); if (step === "verify" && method === "code") verifyCode(); }}>
     <div class="auth-form__header">
       <p class="kicker">{t.auth.title()}</p>
 
@@ -128,7 +127,7 @@
     {#if step === "email"}
       <EmailStep bind:email {pending} {method} {sendCode} {sendLink} />
     {:else}
-      <CodeStep bind:code {email} {pending} {method} {reset} {switchToCode} />
+      <CodeStep bind:code {email} {pending} {method} {reset} {switchToCode} submitCode={verifyCode} />
     {/if}
 
     {#if auth.error}
@@ -147,13 +146,13 @@
   .auth-form,
   .auth-state {
     display: grid;
-    gap: 16px;
+    gap: var(--space-4);
   }
 
   .auth-form__header {
     display: grid;
-    gap: 8px;
-    margin-block-end: 4px;
+    gap: var(--space-2);
+    margin-block-end: var(--space-1);
   }
 
   .kicker {
@@ -173,7 +172,8 @@
   .intro {
     margin: 0;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.4;
+    font-size: var(--step-0);
   }
 
 </style>

@@ -30,6 +30,7 @@
     FAQSection,
     CTASection,
   } from "$lib/features/landing/components";
+  import { browser } from "$app/environment";
   import { useI18n } from "$lib/i18n/runes";
 
   const { t } = useI18n();
@@ -49,8 +50,10 @@
     authOpen = true;
   }
 
-  useEventListener(window, "homebody:auth-open", () => { authOpen = true; });
-  useEventListener(window, "homebody:auth-close", () => { authOpen = false; });
+  if (browser) {
+    useEventListener(window, "homebody:auth-open", () => { authOpen = true; });
+    useEventListener(window, "homebody:auth-close", () => { authOpen = false; });
+  }
 
   /* ─── Structured Data (honest — no fake reviews) ─── */
   const pageUrl = SITE.domain;

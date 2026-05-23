@@ -1,0 +1,1 @@
+import{At as e,D as t,I as n,Mt as r,R as i,a,st as o,tt as s,v as c}from"./DBgQEYmP.js";import"./xihTtKlq.js";var l=i(`<p><!></p>`);function u(i,u){let d=a(u,`tone`,3,`neutral`);var f=l();t(o(f),()=>u.children??r),e(f),s(()=>c(f,1,`notice notice--${d()}`,`svelte-py96rb`)),n(i,f)}export{u as t};

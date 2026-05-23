@@ -1,8 +1,9 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
   import type { LiveRoom } from "$lib/features/live/room.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
-  import Switch from "$lib/components/ui/Switch.svelte";
+  import type { VideoResolutionChoice, VideoCodecChoice, BitrateChoice, VideoFramerateChoice, AudioPresetChoice, DegradationPreferenceChoice } from "$lib/features/live/types";
+  import { Select } from "bits-ui";
+  import { Switch } from "bits-ui";
   import LiveAudioMeter from "./ui/LiveAudioMeter.svelte";
 
   let { room }: { room: LiveRoom } = $props();
@@ -108,32 +109,320 @@
 
       {#if showAdvanced}
         <div class="advanced-grid">
-          <Select label={t.live.preConnect.resolutionLabel()} bind:value={room.selectedResolution} options={instructorResolutionOptions} />
-          <Select label={t.live.preConnect.codecLabel()} bind:value={room.selectedCodec} options={codecOptions} />
-          <Select label={t.live.preConnect.bitrateLabel()} bind:value={room.selectedBitrateMbps} options={bitrateOptions} />
-          <Select label={t.live.preConnect.framerateLabel()} bind:value={room.selectedFramerate} options={framerateOptions} />
-          <Select label={t.live.preConnect.audioLabel()} bind:value={room.selectedAudioPreset} options={audioOptions} />
-          <Select label={t.live.preConnect.priorityLabel()} bind:value={room.degradationPreference} options={priorityOptions} />
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.resolutionLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedResolution)}
+     onValueChange={(selected) => room.selectedResolution = selected as VideoResolutionChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.resolutionLabel()}>
+      <span class="hb-select__value">{instructorResolutionOptions.find((o) => String(o.value) === String(room.selectedResolution))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each instructorResolutionOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.codecLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedCodec)}
+     onValueChange={(selected) => room.selectedCodec = selected as VideoCodecChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.codecLabel()}>
+      <span class="hb-select__value">{codecOptions.find((o) => String(o.value) === String(room.selectedCodec))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each codecOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.bitrateLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedBitrateMbps)}
+     onValueChange={(selected) => room.selectedBitrateMbps = Number(selected) as BitrateChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.bitrateLabel()}>
+      <span class="hb-select__value">{bitrateOptions.find((o) => String(o.value) === String(room.selectedBitrateMbps))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each bitrateOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.framerateLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedFramerate)}
+     onValueChange={(selected) => room.selectedFramerate = Number(selected) as VideoFramerateChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.framerateLabel()}>
+      <span class="hb-select__value">{framerateOptions.find((o) => String(o.value) === String(room.selectedFramerate))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each framerateOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.audioLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedAudioPreset)}
+     onValueChange={(selected) => room.selectedAudioPreset = selected as AudioPresetChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.audioLabel()}>
+      <span class="hb-select__value">{audioOptions.find((o) => String(o.value) === String(room.selectedAudioPreset))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each audioOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
+          <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.priorityLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.degradationPreference)}
+     onValueChange={(selected) => room.degradationPreference = selected as DegradationPreferenceChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.priorityLabel()}>
+      <span class="hb-select__value">{priorityOptions.find((o) => String(o.value) === String(room.degradationPreference))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each priorityOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
           <div class="settings-panel__toggles">
-            <Switch bind:checked={room.simulcastEnabled} label={t.live.preConnect.simulcastLabel()} />
-            <Switch bind:checked={room.forceStereo} label={t.live.preConnect.stereoLabel()} />
+            <span class="hb-switch">
+  <Switch.Root
+    class="hb-switch__root"
+    aria-label={t.live.preConnect.simulcastLabel()}
+    bind:checked={room.simulcastEnabled}
+  >
+    <Switch.Thumb class="hb-switch__thumb" />
+  </Switch.Root>
+  <span>{t.live.preConnect.simulcastLabel()}</span>
+</span>
+            <span class="hb-switch">
+  <Switch.Root
+    class="hb-switch__root"
+    aria-label={t.live.preConnect.stereoLabel()}
+    bind:checked={room.forceStereo}
+  >
+    <Switch.Thumb class="hb-switch__thumb" />
+  </Switch.Root>
+  <span>{t.live.preConnect.stereoLabel()}</span>
+</span>
           </div>
         </div>
       {/if}
     {:else}
-      <Select label={t.live.preConnect.resolutionLabel()} bind:value={room.selectedResolution} options={customerResolutionOptions} />
+      <div class="hb-field">
+  <span class="hb-field__label">{t.live.preConnect.resolutionLabel()}</span>
+  <Select.Root
+    type="single"
+    value={String(room.selectedResolution)}
+     onValueChange={(selected) => room.selectedResolution = selected as VideoResolutionChoice}
+
+  >
+    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.resolutionLabel()}>
+      <span class="hb-select__value">{customerResolutionOptions.find((o) => String(o.value) === String(room.selectedResolution))?.label ?? ""}</span>
+      <span class="hb-select__chevron" aria-hidden="true"></span>
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Content class="hb-select__content" sideOffset={6}>
+        <Select.Viewport class="hb-select__viewport">
+          {#each customerResolutionOptions as option}
+            <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+              {#snippet children({ selected })}
+                <span>{option.label}</span>
+                {#if selected}
+                  <span class="hb-select__check" aria-hidden="true"></span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/each}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>
     {/if}
 
     {#if room.videoDevices.length > 1}
-      <Select label={t.live.preConnect.cameraLabel()} bind:value={room.selectedVideoDevice} options={room.videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))} onchange={() => room.switchPreviewDevice()} />
+      {@const cameraOptions = room.videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
+      <div class="hb-field">
+        <span class="hb-field__label">{t.live.preConnect.cameraLabel()}</span>
+        <Select.Root
+          type="single"
+          value={room.selectedVideoDevice}
+          onValueChange={(v) => { room.selectedVideoDevice = v; room.switchPreviewDevice(); }}
+        >
+          <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.cameraLabel()}>
+            <span class="hb-select__value">{cameraOptions.find((o) => o.value === room.selectedVideoDevice)?.label ?? ""}</span>
+            <span class="hb-select__chevron" aria-hidden="true"></span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class="hb-select__content" sideOffset={6}>
+              <Select.Viewport class="hb-select__viewport">
+                {#each cameraOptions as option}
+                  <Select.Item class="hb-select__item" value={option.value} label={option.label}>
+                    {#snippet children({ selected })}
+                      <span>{option.label}</span>
+                      {#if selected}
+                        <span class="hb-select__check" aria-hidden="true"></span>
+                      {/if}
+                    {/snippet}
+                  </Select.Item>
+                {/each}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+      </div>
     {/if}
 
     {#if room.audioDevices.length > 1}
-      <Select label={t.live.preConnect.micLabel()} bind:value={room.selectedAudioDevice} options={room.audioDevices.map((d) => ({ value: d.deviceId, label: d.label }))} onchange={() => room.switchPreviewDevice()} />
+      {@const micOptions = room.audioDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
+      <div class="hb-field">
+        <span class="hb-field__label">{t.live.preConnect.micLabel()}</span>
+        <Select.Root
+          type="single"
+          value={room.selectedAudioDevice}
+          onValueChange={(v) => { room.selectedAudioDevice = v; room.switchPreviewDevice(); }}
+        >
+          <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.micLabel()}>
+            <span class="hb-select__value">{micOptions.find((o) => o.value === room.selectedAudioDevice)?.label ?? ""}</span>
+            <span class="hb-select__chevron" aria-hidden="true"></span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class="hb-select__content" sideOffset={6}>
+              <Select.Viewport class="hb-select__viewport">
+                {#each micOptions as option}
+                  <Select.Item class="hb-select__item" value={option.value} label={option.label}>
+                    {#snippet children({ selected })}
+                      <span>{option.label}</span>
+                      {#if selected}
+                        <span class="hb-select__check" aria-hidden="true"></span>
+                      {/if}
+                    {/snippet}
+                  </Select.Item>
+                {/each}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+      </div>
     {/if}
 
     <div class="settings-panel__toggles">
-      <Switch bind:checked={room.audioProcessingEnabled} label={t.live.room.echoCancel()} onchange={() => room.switchPreviewDevice()} />
+      <span class="hb-switch">
+  <Switch.Root
+    class="hb-switch__root"
+    aria-label={t.live.room.echoCancel()}
+    bind:checked={room.audioProcessingEnabled} onCheckedChange={() => room.switchPreviewDevice()}
+  >
+    <Switch.Thumb class="hb-switch__thumb" />
+  </Switch.Root>
+  <span>{t.live.room.echoCancel()}</span>
+</span>
     </div>
 
     {#if room.hasPreviewMic}

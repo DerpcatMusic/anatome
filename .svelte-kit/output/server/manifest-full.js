@@ -10,7 +10,7 @@ return {
 	assets: new Set(["_redirects","favicon.ico","favicon.svg"]),
 	mimeTypes: {".svg":"image/svg+xml"},
 	_: {
-		client: {start:"_app/immutable/entry/start.D15b0HjD.js",app:"_app/immutable/entry/app.DX9j3ZvJ.js",imports:["_app/immutable/entry/start.D15b0HjD.js","_app/immutable/chunks/D84R6owN.js","_app/immutable/chunks/BVopJGLV.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/entry/app.DX9j3ZvJ.js","_app/immutable/chunks/DFaIazTc.js","_app/immutable/chunks/DU2SdQ_i.js","_app/immutable/chunks/DNelhIy7.js","_app/immutable/chunks/DCbV68uA.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.B9RnNHJr.js",app:"_app/immutable/entry/app.17otOFer.js",imports:["_app/immutable/entry/start.B9RnNHJr.js","_app/immutable/chunks/3h1GKgYo.js","_app/immutable/chunks/BuFlayix.js","_app/immutable/chunks/DBgQEYmP.js","_app/immutable/chunks/DK3Fl9T5.js","_app/immutable/entry/app.17otOFer.js","_app/immutable/chunks/kNaey6uv.js","_app/immutable/chunks/DBgQEYmP.js","_app/immutable/chunks/DK3Fl9T5.js","_app/immutable/chunks/xihTtKlq.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
@@ -49,7 +49,12 @@ return {
 			__memo(() => import('./nodes/34.js')),
 			__memo(() => import('./nodes/35.js')),
 			__memo(() => import('./nodes/36.js')),
-			__memo(() => import('./nodes/37.js'))
+			__memo(() => import('./nodes/37.js')),
+			__memo(() => import('./nodes/38.js')),
+			__memo(() => import('./nodes/39.js')),
+			__memo(() => import('./nodes/40.js')),
+			__memo(() => import('./nodes/41.js')),
+			__memo(() => import('./nodes/42.js'))
 		],
 		remotes: {
 			
@@ -119,6 +124,41 @@ return {
 				endpoint: null
 			},
 			{
+				id: "/legal/accessibility",
+				pattern: /^\/legal\/accessibility\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 36 },
+				endpoint: null
+			},
+			{
+				id: "/legal/cancellations",
+				pattern: /^\/legal\/cancellations\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 37 },
+				endpoint: null
+			},
+			{
+				id: "/legal/health",
+				pattern: /^\/legal\/health\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 38 },
+				endpoint: null
+			},
+			{
+				id: "/legal/privacy",
+				pattern: /^\/legal\/privacy\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 39 },
+				endpoint: null
+			},
+			{
+				id: "/legal/terms",
+				pattern: /^\/legal\/terms\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 40 },
+				endpoint: null
+			},
+			{
 				id: "/(app)/live-room",
 				pattern: /^\/live-room\/?$/,
 				params: [],
@@ -136,7 +176,7 @@ return {
 				id: "/onboarding",
 				pattern: /^\/onboarding\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 36 },
+				page: { layouts: [0,], errors: [1,], leaf: 41 },
 				endpoint: null
 			},
 			{
@@ -241,7 +281,7 @@ return {
 				id: "/התאמה",
 				pattern: /^\/התאמה\/?$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 37 },
+				page: { layouts: [0,], errors: [1,], leaf: 42 },
 				endpoint: null
 			},
 			{

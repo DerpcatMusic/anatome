@@ -4,10 +4,11 @@ import { internalMutation, internalQuery } from "../_generated/server";
 export const findByMuxId = internalQuery({
   args: { muxUploadId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const uploads = await ctx.db
       .query("videoUploads")
       .withIndex("by_muxUploadId", (q) => q.eq("muxUploadId", args.muxUploadId))
-      .unique();
+      .take(1);
+    return uploads[0] ?? null;
   },
 });
 

@@ -30,22 +30,24 @@ export async function checkRateLimit(
   const now = Date.now();
   const { max, windowMs } = { ...DEFAULT_CONFIGS[action], ...config };
 
-  // Purge old entries for this user+action
+  // Purge a bounded batch of old entries for this user+action.
   const old = await ctx.db
     .query("rateLimits")
-    .withIndex("by_userId_and_action", (q) =>
-      q.eq("userId", userId).eq("action", action),
+    .withIndex("by_userId_and_action_and_timestamp", (q) =>
+      q.eq("userId", userId).eq("action", action).lt("timestamp", now - windowMs),
     )
-    .collect();
+    .take(100);
 
   for (const entry of old) {
-    if (now - entry.timestamp > windowMs) {
-      await ctx.db.delete(entry._id);
-    }
+    await ctx.db.delete(entry._id);
   }
 
-  // Count remaining entries in window
-  const recent = old.filter((e) => now - e.timestamp <= windowMs);
+  const recent = await ctx.db
+    .query("rateLimits")
+    .withIndex("by_userId_and_action_and_timestamp", (q) =>
+      q.eq("userId", userId).eq("action", action).gte("timestamp", now - windowMs),
+    )
+    .take(max);
   if (recent.length >= max) {
     throw new Error("נא להמתין מעט לפני הניסיון הבא");
   }

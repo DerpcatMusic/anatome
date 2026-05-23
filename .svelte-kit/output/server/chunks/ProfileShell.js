@@ -1,6 +1,6 @@
-import { et as attr, nt as escape_html, o as derived } from "./dev.js";
+import { Q as attr, et as escape_html, o as derived } from "./dev.js";
 import { c as TextareaAutosize, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
-import { t as Button_1 } from "./Button.js";
+import { t as Button } from "./button.js";
 import { t as Notice } from "./Notice.js";
 import { t as PageShell } from "./PageShell.js";
 import { n as AppLocked, r as AppSkeleton, t as OnboardingForm } from "./OnboardingForm.js";
@@ -23,9 +23,8 @@ function ProfileShell($$renderer, $$props) {
 		let instructorName = "";
 		let instructorSurname = "";
 		let instructorCredentials = "";
-		let credentialsEl = null;
 		new TextareaAutosize({
-			element: () => credentialsEl ?? void 0,
+			element: () => void 0,
 			input: () => instructorCredentials
 		});
 		let certificateFile = null;
@@ -94,15 +93,22 @@ function ProfileShell($$renderer, $$props) {
 			$$renderer.push("<!--[2-->");
 			{
 				function actions($$renderer) {
-					Button_1($$renderer, {
-						tone: "ghost",
-						type: "button",
-						onclick: retryDashboard,
-						children: ($$renderer) => {
-							$$renderer.push(`<!---->לנסות שוב`);
-						},
-						$$slots: { default: true }
-					});
+					if (Button) {
+						$$renderer.push("<!--[-->");
+						Button($$renderer, {
+							class: "hb-button hb-button--ghost",
+							type: "button",
+							onclick: retryDashboard,
+							children: ($$renderer) => {
+								$$renderer.push(`<!---->לנסות שוב`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
 				}
 				AppLocked($$renderer, {
 					title: "לא הצלחנו לטעון",
@@ -157,19 +163,26 @@ function ProfileShell($$renderer, $$props) {
 							$$renderer.push(`<span class="doc-icon svelte-aafcxl">קובץ</span>`);
 						}
 						$$renderer.push(`<!--]--> <span class="doc-name svelte-aafcxl">${escape_html(certificateFile?.name || "תעודה")}</span> `);
-						Button_1($$renderer, {
-							tone: "ghost",
-							type: "button",
-							onclick: () => {
-								certificateFile = null;
-								certificateDataUrl = "";
-							},
-							children: ($$renderer) => {
-								$$renderer.push(`<!---->מחק`);
-							},
-							$$slots: { default: true }
-						});
-						$$renderer.push(`<!----></div>`);
+						if (Button) {
+							$$renderer.push("<!--[-->");
+							Button($$renderer, {
+								class: "hb-button hb-button--ghost",
+								type: "button",
+								onclick: () => {
+									certificateFile = null;
+									certificateDataUrl = "";
+								},
+								children: ($$renderer) => {
+									$$renderer.push(`<!---->מחק`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(`</div>`);
 					} else {
 						$$renderer.push("<!--[-1-->");
 						$$renderer.push(`<label class="file-drop svelte-aafcxl"><input type="file" accept="image/*,.pdf" class="svelte-aafcxl"/> <span class="drop-text svelte-aafcxl">גררי תמונה או PDF<br/><small>עד 2MB</small></span></label>`);
@@ -189,34 +202,49 @@ function ProfileShell($$renderer, $$props) {
 							$$renderer.push(`<span class="doc-icon svelte-aafcxl">קובץ</span>`);
 						}
 						$$renderer.push(`<!--]--> <span class="doc-name svelte-aafcxl">${escape_html(insuranceFile?.name || "ביטוח")}</span> `);
-						Button_1($$renderer, {
-							tone: "ghost",
-							type: "button",
-							onclick: () => {
-								insuranceFile = null;
-								insuranceDataUrl = "";
-							},
-							children: ($$renderer) => {
-								$$renderer.push(`<!---->מחק`);
-							},
-							$$slots: { default: true }
-						});
-						$$renderer.push(`<!----></div>`);
+						if (Button) {
+							$$renderer.push("<!--[-->");
+							Button($$renderer, {
+								class: "hb-button hb-button--ghost",
+								type: "button",
+								onclick: () => {
+									insuranceFile = null;
+									insuranceDataUrl = "";
+								},
+								children: ($$renderer) => {
+									$$renderer.push(`<!---->מחק`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(`</div>`);
 					} else {
 						$$renderer.push("<!--[-1-->");
 						$$renderer.push(`<label class="file-drop svelte-aafcxl"><input type="file" accept="image/*,.pdf" class="svelte-aafcxl"/> <span class="drop-text svelte-aafcxl">גררי תמונה או PDF<br/><small>עד 2MB</small></span></label>`);
 					}
 					$$renderer.push(`<!--]--></div></section> `);
-					Button_1($$renderer, {
-						tone: "ink",
-						onclick: saveInstructorProfile,
-						disabled: saving,
-						children: ($$renderer) => {
-							$$renderer.push(`<!---->${escape_html(saving ? "שומר..." : "שמור פרופיל")}`);
-						},
-						$$slots: { default: true }
-					});
-					$$renderer.push(`<!----></div>`);
+					if (Button) {
+						$$renderer.push("<!--[-->");
+						Button($$renderer, {
+							class: "hb-button hb-button--ink",
+							type: "button",
+							onclick: saveInstructorProfile,
+							disabled: saving,
+							children: ($$renderer) => {
+								$$renderer.push(`<!---->${escape_html(saving ? "שומר..." : "שמור פרופיל")}`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(`</div>`);
 				},
 				$$slots: { default: true }
 			});

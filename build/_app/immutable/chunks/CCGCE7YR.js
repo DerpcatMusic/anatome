@@ -1,1 +1,0 @@
-import{Ct as e,Dt as t}from"./DU2SdQ_i.js";var n=Symbol(`app`);function r(e){t(n,e)}function i(){return e(n)??{role:null,isLoading:!0}}export{r as n,i as t};

@@ -51,6 +51,21 @@
 		"src/routes/(app)/+layout.js",
 		"src/routes/+layout.js"
 	],
+	"/legal/accessibility": [
+		"src/routes/+layout.js"
+	],
+	"/legal/cancellations": [
+		"src/routes/+layout.js"
+	],
+	"/legal/health": [
+		"src/routes/+layout.js"
+	],
+	"/legal/privacy": [
+		"src/routes/+layout.js"
+	],
+	"/legal/terms": [
+		"src/routes/+layout.js"
+	],
 	"/(app)/live-room": [
 		"src/routes/(app)/+layout.js",
 		"src/routes/+layout.js"

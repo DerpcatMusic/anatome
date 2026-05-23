@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useI18n } from '$lib/i18n/runes.svelte';
   import { goalOptions } from '$lib/labels';
-  import Checkbox from '$components/ui/Checkbox.svelte';
+  import { Checkbox } from "bits-ui";
   import Notice from '$components/ui/Notice.svelte';
 
   let {
@@ -17,13 +17,11 @@
   }
 </script>
 
-<div class="chips flex flex-wrap gap-3">
+<div class="goals-wrap">
   {#each goalOptions as [value, label]}
-    <div class="chip inline-flex items-center">
-      <Checkbox checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)}>
-        <span>{label}</span>
-      </Checkbox>
-    </div>
+    <Checkbox.Root class="hb-choice goal-choice" checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)}>
+      <span>{label}</span>
+    </Checkbox.Root>
   {/each}
 </div>
 {#if goals.length === 0}
@@ -31,9 +29,10 @@
 {/if}
 
 <style>
-  .chip {
-    min-height: 48px;
-    padding-inline: var(--space-5);
-    font-size: var(--step-0);
+  .goals-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    min-width: 0;
   }
 </style>

@@ -1,5 +1,5 @@
-import { a as bind_props, c as ensure_array_like, nt as escape_html } from "./dev.js";
-import { n as EquipmentIcon, r as Checkbox_1 } from "./RadioGroup.js";
+import { a as bind_props, c as ensure_array_like, et as escape_html } from "./dev.js";
+import { i as Checkbox, t as EquipmentIcon } from "./EquipmentIcon.js";
 import { o as equipmentOptions } from "./labels.js";
 //#region src/lib/components/ui/EquipmentPicker.svelte
 function EquipmentPicker($$renderer, $$props) {
@@ -15,18 +15,26 @@ function EquipmentPicker($$renderer, $$props) {
 		const each_array = ensure_array_like(equipmentOptions);
 		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
 			let [value, itemLabel] = each_array[$$index];
-			Checkbox_1($$renderer, {
-				checked: selected.includes(value),
-				readonly,
-				disabled,
-				onchange: () => toggle(value),
-				children: ($$renderer) => {
-					$$renderer.push(`<div class="equipment-choice-content svelte-smumyd"><div class="icon-wrapper svelte-smumyd">`);
-					EquipmentIcon($$renderer, { name: value });
-					$$renderer.push(`<!----></div> <span class="choice-label svelte-smumyd">${escape_html(itemLabel)}</span></div>`);
-				},
-				$$slots: { default: true }
-			});
+			if (Checkbox) {
+				$$renderer.push("<!--[-->");
+				Checkbox($$renderer, {
+					class: "hb-choice",
+					checked: selected.includes(value),
+					readonly,
+					disabled,
+					onchange: () => toggle(value),
+					children: ($$renderer) => {
+						$$renderer.push(`<div class="equipment-choice-content svelte-smumyd"><div class="icon-wrapper svelte-smumyd">`);
+						EquipmentIcon($$renderer, { name: value });
+						$$renderer.push(`<!----></div> <span class="choice-label svelte-smumyd">${escape_html(itemLabel)}</span></div>`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		}
 		$$renderer.push(`<!--]--></div></div>`);
 		bind_props($$props, { selected });

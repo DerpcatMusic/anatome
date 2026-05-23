@@ -1,4 +1,4 @@
-import { nt as escape_html } from "./dev.js";
+import { et as escape_html } from "./dev.js";
 import { t as Notice } from "./Notice.js";
 //#region src/lib/features/app/components/PageShell.svelte
 function PageShell($$renderer, $$props) {
@@ -8,7 +8,7 @@ function PageShell($$renderer, $$props) {
 		$$renderer.push("<!--[0-->");
 		$$renderer.push(`<p class="kicker svelte-1c9cbyf">${escape_html(kicker)}</p>`);
 	} else $$renderer.push("<!--[-1-->");
-	$$renderer.push(`<!--]--> <div class="title-row svelte-1c9cbyf"><h1 class="svelte-1c9cbyf">${escape_html(title)}</h1> `);
+	$$renderer.push(`<!--]--> <div class="title-row svelte-1c9cbyf"><h1 class="page-title svelte-1c9cbyf">${escape_html(title)}</h1> `);
 	if (badge) {
 		$$renderer.push("<!--[0-->");
 		$$renderer.push(`<span class="badge svelte-1c9cbyf">${escape_html(badge)}</span>`);

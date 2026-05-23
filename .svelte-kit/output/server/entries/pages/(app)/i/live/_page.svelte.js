@@ -1,22 +1,23 @@
 import { r as tick } from "../../../../../chunks/index-server.js";
-import { a as bind_props, c as ensure_array_like, et as attr, f as spread_props, gt as to_array, ht as run, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, r as attr_style, tt as clsx, u as props_id, xt as setContext, yt as getContext } from "../../../../../chunks/dev.js";
+import { $ as clsx, Q as attr, _t as getContext, a as bind_props, c as ensure_array_like, et as escape_html, f as spread_props, i as attributes, mt as to_array, n as attr_class, o as derived, p as stringify, pt as run, r as attr_style, u as props_id, yt as setContext } from "../../../../../chunks/dev.js";
 import "../../../../../chunks/events.js";
 import { t as liveRoomHref } from "../../../../../chunks/context.js";
 import { c as TextareaAutosize, g as useConvexClient, i as setCachedRole, p as SvelteMap, s as api, t as authQuery } from "../../../../../chunks/session.svelte.js";
-import { C as ARROW_UP, F as boolToStrTrueOrUndef, G as watch, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, O as HOME, P as boolToStr, S as ARROW_RIGHT, Z as mergeProps, _ as isNull, a as isValidIndex, at as boxWith, b as ARROW_DOWN, c as createId, f as isElementOrSVGElement, l as noop$2, lt as simpleBox, m as isHTMLElement, q as Context, u as isBrowser, x as ARROW_LEFT } from "../../../../../chunks/arrays.js";
+import { C as ARROW_RIGHT, F as boolToStr, I as boolToStrTrueOrUndef, J as Context, K as watch, P as boolToEmptyStrOrUndef, R as createBitsAttrs, S as ARROW_LEFT, X as mergeProps, Y as attachRef, a as isValidIndex, c as createId, d as isBrowser, h as isHTMLElement, k as HOME, l as noop$2, nt as boxWith, p as isElementOrSVGElement, rt as simpleBox, v as isNull, w as ARROW_UP, x as ARROW_DOWN } from "../../../../../chunks/arrays.js";
 import { p as Portal } from "../../../../../chunks/scroll-lock.js";
-import { i as Floating_layer } from "../../../../../chunks/popper-layer-force-mount.js";
+import "../../../../../chunks/on-mount-effect.svelte.js";
 import { i as DOMContext, n as resolveLocaleProp, t as useId } from "../../../../../chunks/use-id.js";
 import { n as Dialog, r as Dialog_overlay, t as Dialog_content } from "../../../../../chunks/dialog-content.js";
-import { t as Button_1 } from "../../../../../chunks/Button.js";
+import { t as Button } from "../../../../../chunks/button.js";
 import { _ as hasTime, a as Calendar_grid_row, b as toDate, c as Calendar_cell, d as Calendar_day, f as CalendarRootState, g as getDefaultDate, h as getDaysInMonth, i as Calendar_header, l as Calendar_grid_body, m as createFormatter, n as Calendar_next_button, o as Calendar_head_cell, p as pickerOpenFocus, r as Calendar_heading, s as Calendar_grid_head, t as Calendar_prev_button, u as Calendar_grid, v as isBefore, x as getAnnouncer, y as isZonedDateTime } from "../../../../../chunks/calendar-prev-button.js";
-import { t as RadioGroup_1 } from "../../../../../chunks/RadioGroup.js";
+import { n as Radio_group_item, r as Radio_group } from "../../../../../chunks/EquipmentIcon.js";
+import { i as Floating_layer } from "../../../../../chunks/popper-layer-force-mount.js";
 import { n as Popover_content, r as PopoverRootState, t as Popover_trigger } from "../../../../../chunks/popover-trigger.js";
 import { t as SvelteResizeObserver } from "../../../../../chunks/svelte-resize-observer.svelte.js";
 import { t as PageShell } from "../../../../../chunks/PageShell.js";
 import { r as durationLabel } from "../../../../../chunks/labels.js";
 import { t as EquipmentPicker } from "../../../../../chunks/EquipmentPicker.js";
-import { CalendarDate, parseTime, toCalendarDateTime } from "@internationalized/date";
+import { CalendarDate } from "@internationalized/date";
 //#region node_modules/bits-ui/dist/internal/date-time/field/parts.js
 var DATE_SEGMENT_PARTS = [
 	"day",
@@ -4155,8 +4156,8 @@ function Action($$renderer, $$props) {
 						} else {
 							subtractDuration(minResize, snapDuration);
 							if (minResize < event.start) minResize = event.start;
-							date = event.start;
 						}
+						date = event.start;
 					} else {
 						minResize = cloneDate(event.start);
 						if (allDay) {
@@ -4165,9 +4166,9 @@ function Action($$renderer, $$props) {
 						} else {
 							addDuration(minResize, snapDuration);
 							if (minResize > event.end) minResize = event.end;
-							date = event.end;
-							if (!zeroDuration) date = subtractDuration(cloneDate(date), snapDuration);
 						}
+						date = event.end;
+						if (!zeroDuration) date = subtractDuration(cloneDate(date), snapDuration);
 						if (zeroDuration && !allDay) extraDuration = snapDuration;
 					}
 					move(jsEvent);
@@ -5316,7 +5317,7 @@ function LiveClassModalShell($$renderer, $$props) {
 											class: contentClass(),
 											"aria-label": title,
 											children: ($$renderer) => {
-												$$renderer.push(`<div class="modal-header svelte-1x8z7yc"><span class="material-symbols-rounded header-icon svelte-1x8z7yc"${attr_style("", { color: iconColor })}>${escape_html(icon)}</span> <h2 class="modal-title svelte-1x8z7yc">${escape_html(title)}</h2> <button class="close-button svelte-1x8z7yc" aria-label="סגור"><span class="material-symbols-rounded">close</span></button></div> <div class="modal-body svelte-1x8z7yc">`);
+												$$renderer.push(`<div class="modal-header svelte-1x8z7yc"><span class="material-symbols-rounded header-icon svelte-1x8z7yc"${attr_style("", { color: iconColor })}>${escape_html(icon)}</span> <h2 class="modal-title svelte-1x8z7yc">${escape_html(title)}</h2> <button type="button" class="close-button svelte-1x8z7yc" aria-label="סגור"><span class="material-symbols-rounded">close</span></button></div> <div class="modal-body svelte-1x8z7yc">`);
 												children($$renderer);
 												$$renderer.push(`<!----></div>`);
 											},
@@ -5351,62 +5352,6 @@ function LiveClassModalShell($$renderer, $$props) {
 		} while (!$$settled);
 		$$renderer.subsume($$inner_renderer);
 		bind_props($$props, { open });
-	});
-}
-//#endregion
-//#region src/lib/components/ui/Slider.svelte
-function Slider_1($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { value = 0, min = 0, max = 100, step = 1, label, disabled = false } = $$props;
-		const displayValue = derived(() => value);
-		function updateValue(v) {
-			value = v;
-		}
-		$$renderer.push(`<div class="hb-slider"><span class="hb-slider__label">${escape_html(label)}</span> <span class="hb-slider__value">${escape_html(displayValue())}</span> `);
-		if (Slider) {
-			$$renderer.push("<!--[-->");
-			Slider($$renderer, {
-				class: "hb-slider__root",
-				type: "single",
-				min,
-				max,
-				step,
-				disabled,
-				value,
-				onValueChange: updateValue,
-				"aria-label": label,
-				children: ($$renderer) => {
-					$$renderer.push(`<span class="hb-slider__track">`);
-					if (Slider_range) {
-						$$renderer.push("<!--[-->");
-						Slider_range($$renderer, { class: "hb-slider__range" });
-						$$renderer.push("<!--]-->");
-					} else {
-						$$renderer.push("<!--[!-->");
-						$$renderer.push("<!--]-->");
-					}
-					$$renderer.push(`</span> `);
-					if (Slider_thumb) {
-						$$renderer.push("<!--[-->");
-						Slider_thumb($$renderer, {
-							class: "hb-slider__thumb",
-							index: 0
-						});
-						$$renderer.push("<!--]-->");
-					} else {
-						$$renderer.push("<!--[!-->");
-						$$renderer.push("<!--]-->");
-					}
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push("<!--]-->");
-		} else {
-			$$renderer.push("<!--[!-->");
-			$$renderer.push("<!--]-->");
-		}
-		$$renderer.push(`</div>`);
-		bind_props($$props, { value });
 	});
 }
 //#endregion
@@ -5696,15 +5641,6 @@ function DatePicker_1($$renderer, $$props) {
 	});
 }
 //#endregion
-//#region src/lib/components/ui/NativeTimePicker.svelte
-function NativeTimePicker($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { value = "09:00", label, disabled = false, onchange } = $$props;
-		$$renderer.push(`<div class="hb-input-field"><span class="hb-input-field__label">${escape_html(label)}</span> <input type="time" class="hb-input svelte-1rtt28j"${attr("disabled", disabled, true)}${attr("value", value)} step="60"/></div>`);
-		bind_props($$props, { value });
-	});
-}
-//#endregion
 //#region src/lib/features/live/components/EditLiveClassForm.svelte
 function EditLiveClassForm($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
@@ -5719,9 +5655,8 @@ function EditLiveClassForm($$renderer, $$props) {
 		}
 		let editTitle = "";
 		let editDescription = "";
-		let descEl = null;
 		new TextareaAutosize({
-			element: () => descEl ?? void 0,
+			element: () => void 0,
 			input: () => editDescription
 		});
 		let editTime = "";
@@ -5743,17 +5678,24 @@ function EditLiveClassForm($$renderer, $$props) {
 			if (liveClass.status === "ended") {
 				$$renderer.push("<!--[0-->");
 				$$renderer.push(`<div class="ended-class-details svelte-1kb5poz"><div class="read-only-banner svelte-1kb5poz"><span class="material-symbols-rounded completed-tick svelte-1kb5poz">check_circle</span> <div class="banner-text svelte-1kb5poz"><h3 class="svelte-1kb5poz">השיעור הושלם בהצלחה</h3> <p class="svelte-1kb5poz">שיעורים שהסתיימו נעולים לעריכה מטעמי שלמות היסטוריית אימונים וקרדיטים.</p></div></div> <div class="details-section svelte-1kb5poz"><div class="detail-row svelte-1kb5poz"><span class="detail-label svelte-1kb5poz">שם השיעור:</span> <span class="detail-value svelte-1kb5poz">${escape_html(liveClass.title)}</span></div> <div class="detail-row svelte-1kb5poz"><span class="detail-label svelte-1kb5poz">מועד השידור:</span> <span class="detail-value svelte-1kb5poz">${escape_html(formatLocalDate(liveClass.startsAt))} בשעה ${escape_html(formatLocalTime(liveClass.startsAt))}</span></div> <div class="detail-row svelte-1kb5poz"><span class="detail-label svelte-1kb5poz">משך השיעור:</span> <span class="detail-value svelte-1kb5poz">${escape_html(durationLabel(Math.round((liveClass.endsAt - liveClass.startsAt) / 6e4)))}</span></div> <div class="detail-row svelte-1kb5poz"><span class="detail-label svelte-1kb5poz">סוג שידור:</span> <span class="detail-value svelte-1kb5poz">${escape_html(liveClass.type === "one_on_one" ? "אימון אישי 1:1" : "שיעור קבוצתי")}</span></div></div> <div class="modal-actions svelte-1kb5poz">`);
-				Button_1($$renderer, {
-					tone: "ink",
-					type: "button",
-					onclick: onCancel,
-					disabled: submitting,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->סגור פרטים`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!----></div></div>`);
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--ink",
+						type: "button",
+						onclick: onCancel,
+						disabled: submitting,
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->סגור פרטים`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div></div>`);
 			} else {
 				$$renderer.push("<!--[-1-->");
 				$$renderer.push(`<form class="edit-form svelte-1kb5poz"><div class="form-grid svelte-1kb5poz"><div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", editTitle)} required=""${attr("disabled", submitting, true)} maxlength="120"/></div> <div class="hb-input-field span-2 svelte-1kb5poz"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea"${attr("disabled", submitting, true)} maxlength="500">`);
@@ -5771,66 +5713,139 @@ function EditLiveClassForm($$renderer, $$props) {
 						$$settled = false;
 					}
 				});
-				$$renderer.push(`<!----> `);
-				NativeTimePicker($$renderer, {
-					label: "שעת התחלה",
-					disabled: submitting,
-					get value() {
-						return editTime;
-					},
-					set value($$value) {
-						editTime = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----></div> <div class="form-row-split span-2 svelte-1kb5poz"><div class="hb-input-field"><span class="hb-input-field__label">משך (דקות)</span> `);
-				Slider_1($$renderer, {
-					label: "משך",
-					min: 15,
-					max: 180,
-					step: 5,
-					get value() {
-						return editDuration;
-					},
-					set value($$value) {
-						editDuration = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> <span class="duration-badge svelte-1kb5poz">${escape_html(durationLabel(editDuration))}</span></div> <div class="hb-input-field"><span class="hb-input-field__label">עד</span> <div class="end-time-box svelte-1kb5poz">${escape_html(endTimeDisplay())}</div></div></div> <div class="form-row-split span-2 svelte-1kb5poz"><div class="hb-input-field"><span class="hb-input-field__label">פתיחת כניסה (דקות לפני)</span> `);
-				Slider_1($$renderer, {
-					label: "פתיחה",
-					min: 0,
-					max: 60,
-					step: 5,
-					get value() {
-						return editJoinOpens;
-					},
-					set value($$value) {
-						editJoinOpens = $$value;
-						$$settled = false;
-					}
-				});
-				$$renderer.push(`<!----> <span class="duration-badge svelte-1kb5poz">${escape_html(editJoinOpens)} דק׳</span></div> <div class="hb-input-field"><span class="hb-input-field__label">קיבולת</span> `);
+				$$renderer.push(`<!----> <div class="hb-input-field"><span class="hb-input-field__label">שעת התחלה</span> <input type="time" class="hb-input time-input"${attr("disabled", submitting, true)}${attr("value", editTime)} step="60"/></div></div> <div class="form-row-split span-2 svelte-1kb5poz"><div class="hb-input-field"><span class="hb-input-field__label">משך (דקות)</span> <div class="hb-slider"><span class="hb-slider__label">משך</span> <span class="hb-slider__value">${escape_html(editDuration)}</span> `);
+				if (Slider) {
+					$$renderer.push("<!--[-->");
+					Slider($$renderer, {
+						class: "hb-slider__root",
+						type: "single",
+						min: 15,
+						max: 180,
+						step: 5,
+						value: editDuration,
+						onValueChange: (v) => editDuration = v,
+						"aria-label": "משך",
+						children: ($$renderer) => {
+							$$renderer.push(`<span class="hb-slider__track">`);
+							if (Slider_range) {
+								$$renderer.push("<!--[-->");
+								Slider_range($$renderer, { class: "hb-slider__range" });
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(`</span> `);
+							if (Slider_thumb) {
+								$$renderer.push("<!--[-->");
+								Slider_thumb($$renderer, {
+									class: "hb-slider__thumb",
+									index: 0
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div> <span class="duration-badge svelte-1kb5poz">${escape_html(durationLabel(editDuration))}</span></div> <div class="hb-input-field"><span class="hb-input-field__label">עד</span> <div class="end-time-box svelte-1kb5poz">${escape_html(endTimeDisplay())}</div></div></div> <div class="form-row-split span-2 svelte-1kb5poz"><div class="hb-input-field"><span class="hb-input-field__label">פתיחת כניסה (דקות לפני)</span> <div class="hb-slider"><span class="hb-slider__label">פתיחה</span> <span class="hb-slider__value">${escape_html(editJoinOpens)}</span> `);
+				if (Slider) {
+					$$renderer.push("<!--[-->");
+					Slider($$renderer, {
+						class: "hb-slider__root",
+						type: "single",
+						min: 0,
+						max: 60,
+						step: 5,
+						value: editJoinOpens,
+						onValueChange: (v) => editJoinOpens = v,
+						"aria-label": "פתיחה",
+						children: ($$renderer) => {
+							$$renderer.push(`<span class="hb-slider__track">`);
+							if (Slider_range) {
+								$$renderer.push("<!--[-->");
+								Slider_range($$renderer, { class: "hb-slider__range" });
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+							$$renderer.push(`</span> `);
+							if (Slider_thumb) {
+								$$renderer.push("<!--[-->");
+								Slider_thumb($$renderer, {
+									class: "hb-slider__thumb",
+									index: 0
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div> <span class="duration-badge svelte-1kb5poz">${escape_html(editJoinOpens)} דק׳</span></div> <div class="hb-input-field"><span class="hb-input-field__label">קיבולת</span> `);
 				if (liveClass.type === "one_on_one") {
 					$$renderer.push("<!--[0-->");
 					$$renderer.push(`<div class="one-on-one-badge svelte-1kb5poz">1 משתתפת (אישי)</div>`);
 				} else {
 					$$renderer.push("<!--[-1-->");
-					Slider_1($$renderer, {
-						label: "קיבולת",
-						min: 1,
-						max: 50,
-						step: 1,
-						get value() {
-							return editCapacity;
-						},
-						set value($$value) {
-							editCapacity = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> <span class="duration-badge svelte-1kb5poz">${escape_html(editCapacity)} מקומות</span>`);
+					$$renderer.push(`<div class="hb-slider"><span class="hb-slider__label">קיבולת</span> <span class="hb-slider__value">${escape_html(editCapacity)}</span> `);
+					if (Slider) {
+						$$renderer.push("<!--[-->");
+						Slider($$renderer, {
+							class: "hb-slider__root",
+							type: "single",
+							min: 1,
+							max: 50,
+							step: 1,
+							value: editCapacity,
+							onValueChange: (v) => editCapacity = v,
+							"aria-label": "קיבולת",
+							children: ($$renderer) => {
+								$$renderer.push(`<span class="hb-slider__track">`);
+								if (Slider_range) {
+									$$renderer.push("<!--[-->");
+									Slider_range($$renderer, { class: "hb-slider__range" });
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+								$$renderer.push(`</span> `);
+								if (Slider_thumb) {
+									$$renderer.push("<!--[-->");
+									Slider_thumb($$renderer, {
+										class: "hb-slider__thumb",
+										index: 0
+									});
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(`</div> <span class="duration-badge svelte-1kb5poz">${escape_html(editCapacity)} מקומות</span>`);
 				}
 				$$renderer.push(`<!--]--></div></div> <div class="form-field-group span-2 svelte-1kb5poz"><span class="field-group-label svelte-1kb5poz">ציוד נדרש</span> `);
 				EquipmentPicker($$renderer, {
@@ -5846,53 +5861,80 @@ function EditLiveClassForm($$renderer, $$props) {
 				if (liveClass.status === "live") {
 					$$renderer.push("<!--[0-->");
 					$$renderer.push(`<div class="live-action-buttons svelte-1kb5poz">`);
-					Button_1($$renderer, {
-						tone: "ink",
-						type: "button",
-						onclick: onEndLive,
-						disabled: submitting,
-						children: ($$renderer) => {
-							$$renderer.push(`<!---->לסיים שידור`);
-						},
-						$$slots: { default: true }
-					});
-					$$renderer.push(`<!----> <span class="live-badge-glow svelte-1kb5poz">🔴 שידור חי פעיל</span></div>`);
+					if (Button) {
+						$$renderer.push("<!--[-->");
+						Button($$renderer, {
+							class: "hb-button hb-button--ink",
+							type: "button",
+							onclick: onEndLive,
+							disabled: submitting,
+							children: ($$renderer) => {
+								$$renderer.push(`<!---->לסיים שידור`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(` <span class="live-badge-glow svelte-1kb5poz">🔴 שידור חי פעיל</span></div>`);
 				} else {
 					$$renderer.push("<!--[-1-->");
-					Button_1($$renderer, {
-						tone: "ink",
-						type: "submit",
-						disabled: submitting,
-						children: ($$renderer) => {
-							$$renderer.push(`<!---->${escape_html(submitting ? "מעדכן..." : "שמירת שינויים")}`);
-						},
-						$$slots: { default: true }
-					});
-					$$renderer.push(`<!----> `);
-					Button_1($$renderer, {
-						tone: "danger",
-						type: "button",
-						onclick: onDelete,
-						disabled: submitting,
-						children: ($$renderer) => {
-							$$renderer.push(`<!---->ביטול שיעור`);
-						},
-						$$slots: { default: true }
-					});
-					$$renderer.push(`<!---->`);
+					if (Button) {
+						$$renderer.push("<!--[-->");
+						Button($$renderer, {
+							class: "hb-button hb-button--ink",
+							type: "submit",
+							disabled: submitting,
+							children: ($$renderer) => {
+								$$renderer.push(`<!---->${escape_html(submitting ? "מעדכן..." : "שמירת שינויים")}`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(` `);
+					if (Button) {
+						$$renderer.push("<!--[-->");
+						Button($$renderer, {
+							class: "hb-button hb-button--danger",
+							type: "button",
+							onclick: onDelete,
+							disabled: submitting,
+							children: ($$renderer) => {
+								$$renderer.push(`<!---->ביטול שיעור`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
 				}
 				$$renderer.push(`<!--]--> `);
-				Button_1($$renderer, {
-					tone: "paper",
-					type: "button",
-					onclick: onCancel,
-					disabled: submitting,
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->ביטול`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push(`<!----></div></form>`);
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--paper",
+						type: "button",
+						onclick: onCancel,
+						disabled: submitting,
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->ביטול`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div></form>`);
 			}
 			$$renderer.push(`<!--]-->`);
 		}
@@ -5989,8 +6031,8 @@ function WeeklyAgenda($$renderer, $$props) {
 			locale: "he",
 			direction: "rtl",
 			firstDay: 0,
-			slotMinTime: "00:00:00",
-			slotMaxTime: "24:00:00",
+			slotMinTime: "06:00:00",
+			slotMaxTime: "23:00:00",
 			allDaySlot: false,
 			headerToolbar: {
 				start: "today prev,next",
@@ -5998,8 +6040,9 @@ function WeeklyAgenda($$renderer, $$props) {
 				end: ""
 			},
 			buttonText: { today: "היום" },
-			height: "calc(100vh - 260px)",
-			slotDuration: "00:30:00",
+			height: "100%",
+			slotDuration: "00:15:00",
+			snapDuration: "00:15:00",
 			slotLabelInterval: "01:00:00",
 			slotEventOverlap: false,
 			selectable: true,
@@ -6045,6 +6088,17 @@ function WeeklyAgenda($$renderer, $$props) {
 			},
 			eventContent(info) {
 				const c = info.event.extendedProps?.originalClass;
+				if (info.event.display === "preview") {
+					const start = formatLocalTime(info.event.start.getTime());
+					const end = formatLocalTime(info.event.end.getTime());
+					return { html: `
+            <div class="calendar-preview-event">
+              <span class="preview-start">${start}</span>
+              <span class="preview-divider">${Math.round((info.event.end.getTime() - info.event.start.getTime()) / 6e4)} דק׳</span>
+              <span class="preview-end">${end}</span>
+            </div>
+          ` };
+				}
 				if (!c) return { html: "" };
 				const formattedTime = `${formatLocalTime(c.startsAt)} – ${formatLocalTime(c.endsAt)}`;
 				let statusDot = "";
@@ -6067,7 +6121,7 @@ function WeeklyAgenda($$renderer, $$props) {
 			var bind_set = (v) => {
 				if (!v) activeEditClass = null;
 			};
-			$$renderer.push(`<div class="weekly-agenda-container svelte-1u0ub2e"><div class="calendar-wrapper svelte-1u0ub2e">`);
+			$$renderer.push(`<div class="weekly-agenda-container ec-auto-dark svelte-1u0ub2e"><div class="calendar-wrapper svelte-1u0ub2e">`);
 			Calendar($$renderer, {
 				plugins,
 				options: calendarOptions()
@@ -6144,133 +6198,132 @@ function StudioLiveClassForm($$renderer, $$props) {
 			description: "משתתפת אחת, קרדיט 1:1 אחד"
 		}];
 		let dateValue = void 0;
-		let timeValue = "09:00";
-		let descEl = null;
 		new TextareaAutosize({
-			element: () => descEl ?? void 0,
+			element: () => void 0,
 			input: () => description
 		});
-		const endTimeDisplay = derived(() => {
-			if (!startsAtLocal) return "--:--";
-			const [_, timePart] = startsAtLocal.split("T");
-			if (!timePart) return "--:--";
-			const [h, m] = timePart.split(":").map(Number);
-			const end = new Date(new Date(2e3, 0, 1, h, m).getTime() + durationMinutes * 6e4);
-			const pad = (n) => String(n).padStart(2, "0");
-			return `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+		const hebrewDateFormatter = new Intl.DateTimeFormat("he-IL", {
+			weekday: "long",
+			day: "numeric",
+			month: "long",
+			year: "numeric",
+			timeZone: "Asia/Jerusalem"
 		});
-		function updateStartsAtLocal() {
-			if (!dateValue) return;
-			try {
-				const time = parseTime(timeValue);
-				startsAtLocal = toCalendarDateTime(dateValue, time).toString().slice(0, 16);
-			} catch {}
+		const timeFormatter = new Intl.DateTimeFormat("he-IL", {
+			hour: "2-digit",
+			minute: "2-digit",
+			timeZone: "Asia/Jerusalem"
+		});
+		const timeSummary = derived(() => {
+			if (!startsAtLocal) return {
+				date: "",
+				start: "",
+				end: "",
+				duration: ""
+			};
+			const [datePart, timePart] = startsAtLocal.split("T");
+			if (!datePart || !timePart) return {
+				date: "",
+				start: "",
+				end: "",
+				duration: ""
+			};
+			const startDate = new Date(startsAtLocal);
+			const endDate = new Date(startDate.getTime() + durationMinutes * 6e4);
+			return {
+				date: hebrewDateFormatter.format(startDate),
+				start: timeFormatter.format(startDate),
+				end: timeFormatter.format(endDate),
+				duration: `${durationMinutes} דק׳`
+			};
+		});
+		function updateDateFromPicker(next) {
+			if (!next || !startsAtLocal) return;
+			const timePart = startsAtLocal.split("T")[1] ?? "00:00";
+			startsAtLocal = `${next.toString()}T${timePart}`;
 		}
 		let $$settled = true;
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
-			$$renderer.push(`<form class="svelte-1hw0dn5"><div class="studio-form-columns svelte-1hw0dn5"><div class="studio-form-column svelte-1hw0dn5"><div class="column-fill svelte-1hw0dn5">`);
-			FormSection($$renderer, {
-				title: "תאריך ושעה",
-				children: ($$renderer) => {
-					DatePicker_1($$renderer, {
-						label: "תאריך",
-						onchange: updateStartsAtLocal,
-						get value() {
-							return dateValue;
-						},
-						set value($$value) {
-							dateValue = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> <div class="time-row svelte-1hw0dn5">`);
-					NativeTimePicker($$renderer, {
-						label: "שעת התחלה",
-						onchange: updateStartsAtLocal,
-						get value() {
-							return timeValue;
-						},
-						set value($$value) {
-							timeValue = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> <div class="end-time-display svelte-1hw0dn5"><span class="end-time-label svelte-1hw0dn5">עד</span> <span class="end-time-value svelte-1hw0dn5">${escape_html(endTimeDisplay())}</span></div></div> <div class="duration-row svelte-1hw0dn5">`);
-					Slider_1($$renderer, {
-						label: "משך (דקות)",
-						min: 15,
-						max: 180,
-						step: 5,
-						get value() {
-							return durationMinutes;
-						},
-						set value($$value) {
-							durationMinutes = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> <span class="duration-badge svelte-1hw0dn5">${escape_html(durationMinutes)} דק׳</span></div>`);
+			$$renderer.push(`<form class="svelte-1hw0dn5"><div class="studio-form-layout svelte-1hw0dn5"><section class="time-summary-section svelte-1hw0dn5"><div class="time-badge svelte-1hw0dn5"><span class="time-badge__date svelte-1hw0dn5">${escape_html(timeSummary().date)}</span> <div class="time-badge__range svelte-1hw0dn5"><span class="time-badge__start svelte-1hw0dn5">${escape_html(timeSummary().start)}</span> <span class="time-badge__sep svelte-1hw0dn5">–</span> <span class="time-badge__end svelte-1hw0dn5">${escape_html(timeSummary().end)}</span> <span class="time-badge__duration svelte-1hw0dn5">(${escape_html(timeSummary().duration)})</span></div></div> <div class="date-adjust svelte-1hw0dn5">`);
+			DatePicker_1($$renderer, {
+				label: "שינוי תאריך",
+				onchange: updateDateFromPicker,
+				get value() {
+					return dateValue;
 				},
-				$$slots: { default: true }
+				set value($$value) {
+					dateValue = $$value;
+					$$settled = false;
+				}
 			});
-			$$renderer.push(`<!----></div></div> <div class="studio-form-column svelte-1hw0dn5"><div class="column-fill svelte-1hw0dn5">`);
+			$$renderer.push(`<!----></div></section> <section class="settings-section svelte-1hw0dn5">`);
 			FormSection($$renderer, {
-				title: "הגדרות שיעור",
+				title: "פרטי השיעור",
 				children: ($$renderer) => {
-					RadioGroup_1($$renderer, {
-						class: "live-type-switch",
-						options: liveTypeOptions,
-						get value() {
-							return liveType;
-						},
-						set value($$value) {
-							liveType = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> <div class="hb-input-field"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", title)} required="" maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי"/></div> <div class="hb-input-field"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea" maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים...">`);
-					const $$body = escape_html(description);
-					if ($$body) $$renderer.push(`${$$body}`);
-					$$renderer.push(`</textarea></div> <div class="sliders-stack svelte-1hw0dn5">`);
-					Slider_1($$renderer, {
-						label: "פתיחת כניסה (דקות לפני)",
-						min: 0,
-						max: 60,
-						step: 5,
-						get value() {
-							return joinOpensMinutesBefore;
-						},
-						set value($$value) {
-							joinOpensMinutesBefore = $$value;
-							$$settled = false;
-						}
-					});
-					$$renderer.push(`<!----> `);
-					if (liveType === "group_live") {
-						$$renderer.push("<!--[0-->");
-						Slider_1($$renderer, {
-							label: "קיבולת (מקומות)",
-							min: 1,
-							max: 12,
-							step: 1,
+					if (Radio_group) {
+						$$renderer.push("<!--[-->");
+						Radio_group($$renderer, {
+							class: "hb-choice-grid live-type-switch",
+							orientation: "horizontal",
 							get value() {
-								return capacity;
+								return liveType;
 							},
 							set value($$value) {
-								capacity = $$value;
+								liveType = $$value;
 								$$settled = false;
-							}
+							},
+							children: ($$renderer) => {
+								$$renderer.push(`<!--[-->`);
+								const each_array = ensure_array_like(liveTypeOptions);
+								for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+									let option = each_array[$$index];
+									if (Radio_group_item) {
+										$$renderer.push("<!--[-->");
+										Radio_group_item($$renderer, {
+											class: "hb-choice",
+											value: option.value,
+											children: ($$renderer) => {
+												$$renderer.push(`<span class="hb-choice__title">${escape_html(option.label)}</span> `);
+												if (option.description) {
+													$$renderer.push("<!--[0-->");
+													$$renderer.push(`<span class="hb-choice__description">${escape_html(option.description)}</span>`);
+												} else $$renderer.push("<!--[-1-->");
+												$$renderer.push(`<!--]-->`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
+								}
+								$$renderer.push(`<!--]-->`);
+							},
+							$$slots: { default: true }
 						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(` <div class="hb-input-field"><span class="hb-input-field__label">כותרת</span> <input class="hb-input"${attr("value", title)} required="" maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי"/></div> <div class="hb-input-field"><span class="hb-input-field__label">תיאור</span> <textarea class="hb-textarea" maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים...">`);
+					const $$body = escape_html(description);
+					if ($$body) $$renderer.push(`${$$body}`);
+					$$renderer.push(`</textarea></div> <div class="compact-settings-row svelte-1hw0dn5">`);
+					if (liveType === "group_live") {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<label class="compact-field svelte-1hw0dn5"><span class="compact-field__label svelte-1hw0dn5">קיבולת</span> <div class="compact-input-wrap svelte-1hw0dn5"><input type="number" class="compact-input svelte-1hw0dn5"${attr("value", capacity)} min="1" max="12" step="1" required=""/> <span class="compact-suffix svelte-1hw0dn5">מקומות</span></div></label>`);
 					} else {
 						$$renderer.push("<!--[-1-->");
-						$$renderer.push(`<div class="one-on-one-capacity svelte-1hw0dn5"><span class="hb-input-field__label">קיבולת</span> <span class="one-on-one-badge svelte-1hw0dn5">1 משתתפת (אישי)</span></div>`);
+						$$renderer.push(`<div class="compact-field compact-field--readonly svelte-1hw0dn5"><span class="compact-field__label svelte-1hw0dn5">קיבולת</span> <div class="one-on-one-badge svelte-1hw0dn5">1 משתתפת (אישי)</div></div>`);
 					}
-					$$renderer.push(`<!--]--></div>`);
+					$$renderer.push(`<!--]--> <div class="compact-field compact-field--readonly svelte-1hw0dn5"><span class="compact-field__label svelte-1hw0dn5">כניסה לשיעור</span> <span class="compact-suffix svelte-1hw0dn5">נפתחת 10 דק׳ לפני תחילתו</span></div></div>`);
 				},
 				$$slots: { default: true }
 			});
-			$$renderer.push(`<!----></div></div></div> <div class="picker-section svelte-1hw0dn5">`);
+			$$renderer.push(`<!----></section> <section class="equipment-section svelte-1hw0dn5">`);
 			EquipmentPicker($$renderer, {
 				label: "ציוד חובה לשיעור",
 				get selected() {
@@ -6281,17 +6334,24 @@ function StudioLiveClassForm($$renderer, $$props) {
 					$$settled = false;
 				}
 			});
-			$$renderer.push(`<!----></div> <div class="form-actions svelte-1hw0dn5">`);
-			Button_1($$renderer, {
-				tone: "ink",
-				type: "submit",
-				disabled: pending || requiredEquipment.length === 0,
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(pending ? "יוצרות..." : "לתזמן לייב")}`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div></form>`);
+			$$renderer.push(`<!----></section></div> <div class="form-actions svelte-1hw0dn5">`);
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--ink",
+					type: "submit",
+					disabled: pending || requiredEquipment.length === 0,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(pending ? "יוצרות..." : "לתזמן לייב")}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div></form>`);
 		}
 		do {
 			$$settled = true;
@@ -6431,16 +6491,23 @@ function LiveStudioShell($$renderer, $$props) {
 					if (!loading && !error) {
 						$$renderer.push("<!--[0-->");
 						$$renderer.push(`<div class="studio-container svelte-5z869d"><div class="calendar-actions-header svelte-5z869d">`);
-						Button_1($$renderer, {
-							tone: "ink",
-							type: "button",
-							onclick: openCreateModal,
-							children: ($$renderer) => {
-								$$renderer.push(`<span class="material-symbols-rounded">add_circle</span> שיעור לייב חדש`);
-							},
-							$$slots: { default: true }
-						});
-						$$renderer.push(`<!----></div> `);
+						if (Button) {
+							$$renderer.push("<!--[-->");
+							Button($$renderer, {
+								class: "hb-button hb-button--ink",
+								type: "button",
+								onclick: openCreateModal,
+								children: ($$renderer) => {
+									$$renderer.push(`<span class="material-symbols-rounded">add_circle</span> שיעור לייב חדש`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(`</div> `);
 						WeeklyAgenda($$renderer, {
 							classes,
 							onStart: startLive,
@@ -6536,16 +6603,23 @@ function LiveStudioShell($$renderer, $$props) {
 					} else if (error) {
 						$$renderer.push("<!--[1-->");
 						$$renderer.push(`<div class="retry-state svelte-5z869d">`);
-						Button_1($$renderer, {
-							tone: "ghost",
-							type: "button",
-							onclick: retryLoad,
-							children: ($$renderer) => {
-								$$renderer.push(`<!---->נסה שוב`);
-							},
-							$$slots: { default: true }
-						});
-						$$renderer.push(`<!----></div>`);
+						if (Button) {
+							$$renderer.push("<!--[-->");
+							Button($$renderer, {
+								class: "hb-button hb-button--ghost",
+								type: "button",
+								onclick: retryLoad,
+								children: ($$renderer) => {
+									$$renderer.push(`<!---->נסה שוב`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+						$$renderer.push(`</div>`);
 					} else $$renderer.push("<!--[-1-->");
 					$$renderer.push(`<!--]-->`);
 				},

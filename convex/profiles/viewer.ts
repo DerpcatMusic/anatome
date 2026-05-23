@@ -5,9 +5,10 @@ export const get = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    return await ctx.db
+    const profiles = await ctx.db
       .query("appProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(1);
+    return profiles[0] ?? null;
   },
 });

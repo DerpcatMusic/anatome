@@ -9,30 +9,33 @@
       "_internal.js"
     ]
   },
-  "_AppShell.DGGmQF03.css": {
-    "file": "_app/immutable/assets/AppShell.DGGmQF03.css",
-    "src": "_AppShell.DGGmQF03.css"
+  "_AppShell.Bcfr4tA5.css": {
+    "file": "_app/immutable/assets/AppShell.Bcfr4tA5.css",
+    "src": "_AppShell.Bcfr4tA5.css"
   },
   "_AppShell.js": {
     "file": "chunks/AppShell.js",
     "name": "AppShell",
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
+      "_button.js",
       "_dev.js",
+      "_Notice.js",
       "_PageShell.js",
       "_context.js",
       "_runes.svelte.js",
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/AppShell.DGGmQF03.css"
+      "_app/immutable/assets/AppShell.Bcfr4tA5.css"
     ]
   },
-  "_Button.js": {
-    "file": "chunks/Button.js",
-    "name": "Button",
+  "_EquipmentIcon.js": {
+    "file": "chunks/EquipmentIcon.js",
+    "name": "EquipmentIcon",
     "imports": [
+      "_hidden-input.js",
+      "_arrays.js",
       "_dev.js"
     ]
   },
@@ -44,7 +47,7 @@
     "file": "chunks/EquipmentPicker.js",
     "name": "EquipmentPicker",
     "imports": [
-      "_RadioGroup.js",
+      "_EquipmentIcon.js",
       "_dev.js",
       "_labels.js"
     ],
@@ -52,24 +55,22 @@
       "_app/immutable/assets/EquipmentPicker.Id4HjV_2.css"
     ]
   },
-  "_InstructorVideoManager.B7HFtntz.css": {
-    "file": "_app/immutable/assets/InstructorVideoManager.B7HFtntz.css",
-    "src": "_InstructorVideoManager.B7HFtntz.css"
+  "_InstructorVideoManager.EF3cu3YF.css": {
+    "file": "_app/immutable/assets/InstructorVideoManager.EF3cu3YF.css",
+    "src": "_InstructorVideoManager.EF3cu3YF.css"
   },
   "_InstructorVideoManager.js": {
     "file": "chunks/InstructorVideoManager.js",
     "name": "InstructorVideoManager",
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
-      "_RadioGroup.js",
+      "_button.js",
+      "_EquipmentIcon.js",
       "_dialog-content.js",
+      "_scroll-area-thumb.js",
       "_scroll-lock.js",
-      "_ScrollArea.js",
-      "_Select.js",
       "_popper-layer-force-mount.js",
       "_arrays.js",
-      "_roving-focus-group.js",
       "_dev.js",
       "_EquipmentPicker.js",
       "_Notice.js",
@@ -77,12 +78,8 @@
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/InstructorVideoManager.B7HFtntz.css"
+      "_app/immutable/assets/InstructorVideoManager.EF3cu3YF.css"
     ]
-  },
-  "_LiveRoomShell.DlypLCb4.css": {
-    "file": "_app/immutable/assets/LiveRoomShell.DlypLCb4.css",
-    "src": "_LiveRoomShell.DlypLCb4.css"
   },
   "_LiveRoomShell.js": {
     "file": "chunks/LiveRoomShell.js",
@@ -90,23 +87,29 @@
     "imports": [
       "_index-server.js",
       "_session.svelte.js",
-      "_Button.js",
+      "_button.js",
+      "_dialog-content.js",
+      "_scroll-area-thumb.js",
       "_scroll-lock.js",
       "_popover-trigger.js",
-      "_ScrollArea.js",
-      "_Select.js",
+      "_select-trigger.js",
       "_use-id.js",
       "_popper-layer-force-mount.js",
       "_hidden-input.js",
       "_arrays.js",
+      "_on-mount-effect.svelte.js",
       "_dev.js",
       "_events.js",
       "_Notice.js",
       "_runes.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/LiveRoomShell.DlypLCb4.css"
+      "_app/immutable/assets/LiveRoomShell.sIuT6Slh.css"
     ]
+  },
+  "_LiveRoomShell.sIuT6Slh.css": {
+    "file": "_app/immutable/assets/LiveRoomShell.sIuT6Slh.css",
+    "src": "_LiveRoomShell.sIuT6Slh.css"
   },
   "_Notice.DLRT_-Qh.css": {
     "file": "_app/immutable/assets/Notice.DLRT_-Qh.css",
@@ -122,24 +125,24 @@
       "_app/immutable/assets/Notice.DLRT_-Qh.css"
     ]
   },
-  "_OnboardingForm.CE_igvWo.css": {
-    "file": "_app/immutable/assets/OnboardingForm.CE_igvWo.css",
-    "src": "_OnboardingForm.CE_igvWo.css"
+  "_OnboardingForm.Dxn9-oqS.css": {
+    "file": "_app/immutable/assets/OnboardingForm.Dxn9-oqS.css",
+    "src": "_OnboardingForm.Dxn9-oqS.css"
   },
   "_OnboardingForm.js": {
     "file": "chunks/OnboardingForm.js",
     "name": "OnboardingForm",
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
-      "_RadioGroup.js",
+      "_button.js",
+      "_EquipmentIcon.js",
       "_dev.js",
       "_Notice.js",
       "_runes.svelte.js",
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/OnboardingForm.CE_igvWo.css"
+      "_app/immutable/assets/OnboardingForm.Dxn9-oqS.css"
     ]
   },
   "_OnboardingShell.CBQyazNE.css": {
@@ -160,28 +163,29 @@
       "_app/immutable/assets/OnboardingShell.CBQyazNE.css"
     ]
   },
-  "_OneOnOneShell.XI695IdN.css": {
-    "file": "_app/immutable/assets/OneOnOneShell.XI695IdN.css",
-    "src": "_OneOnOneShell.XI695IdN.css"
+  "_OneOnOneShell.BWqqPId6.css": {
+    "file": "_app/immutable/assets/OneOnOneShell.BWqqPId6.css",
+    "src": "_OneOnOneShell.BWqqPId6.css"
   },
   "_OneOnOneShell.js": {
     "file": "chunks/OneOnOneShell.js",
     "name": "OneOnOneShell",
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
-      "_Select.js",
+      "_button.js",
+      "_scroll-lock.js",
+      "_select-trigger.js",
       "_dev.js",
       "_Notice.js",
       "_PageShell.js"
     ],
     "css": [
-      "_app/immutable/assets/OneOnOneShell.XI695IdN.css"
+      "_app/immutable/assets/OneOnOneShell.BWqqPId6.css"
     ]
   },
-  "_PageShell.Dx_29Ai9.css": {
-    "file": "_app/immutable/assets/PageShell.Dx_29Ai9.css",
-    "src": "_PageShell.Dx_29Ai9.css"
+  "_PageShell.BWKumsPl.css": {
+    "file": "_app/immutable/assets/PageShell.BWKumsPl.css",
+    "src": "_PageShell.BWKumsPl.css"
   },
   "_PageShell.js": {
     "file": "chunks/PageShell.js",
@@ -191,7 +195,7 @@
       "_Notice.js"
     ],
     "css": [
-      "_app/immutable/assets/PageShell.Dx_29Ai9.css"
+      "_app/immutable/assets/PageShell.BWKumsPl.css"
     ]
   },
   "_ProfileShell.js": {
@@ -199,7 +203,7 @@
     "name": "ProfileShell",
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
+      "_button.js",
       "_dev.js",
       "_Notice.js",
       "_OnboardingForm.js",
@@ -212,57 +216,6 @@
   "_ProfileShell.otTON-lc.css": {
     "file": "_app/immutable/assets/ProfileShell.otTON-lc.css",
     "src": "_ProfileShell.otTON-lc.css"
-  },
-  "_RadioGroup.js": {
-    "file": "chunks/RadioGroup.js",
-    "name": "RadioGroup",
-    "imports": [
-      "_hidden-input.js",
-      "_arrays.js",
-      "_roving-focus-group.js",
-      "_dev.js"
-    ]
-  },
-  "_ScrollArea.QE5ZuEV4.css": {
-    "file": "_app/immutable/assets/ScrollArea.QE5ZuEV4.css",
-    "src": "_ScrollArea.QE5ZuEV4.css"
-  },
-  "_ScrollArea.js": {
-    "file": "chunks/ScrollArea.js",
-    "name": "ScrollArea",
-    "imports": [
-      "_index-server.js",
-      "_session.svelte.js",
-      "_scroll-lock.js",
-      "_use-id.js",
-      "_arrays.js",
-      "_svelte-resize-observer.svelte.js",
-      "_dev.js"
-    ],
-    "css": [
-      "_app/immutable/assets/ScrollArea.QE5ZuEV4.css"
-    ]
-  },
-  "_Select.CV-KWLNP.css": {
-    "file": "_app/immutable/assets/Select.CV-KWLNP.css",
-    "src": "_Select.CV-KWLNP.css"
-  },
-  "_Select.js": {
-    "file": "chunks/Select.js",
-    "name": "Select",
-    "imports": [
-      "_session.svelte.js",
-      "_scroll-lock.js",
-      "_use-id.js",
-      "_popper-layer-force-mount.js",
-      "_hidden-input.js",
-      "_arrays.js",
-      "_dev.js",
-      "_events.js"
-    ],
-    "css": [
-      "_app/immutable/assets/Select.CV-KWLNP.css"
-    ]
   },
   "_appContext.js": {
     "file": "chunks/appContext.js",
@@ -281,6 +234,13 @@
       "_dev.js",
       "_events.js",
       "_legacy-client.js"
+    ]
+  },
+  "_button.js": {
+    "file": "chunks/button.js",
+    "name": "button",
+    "imports": [
+      "_dev.js"
     ]
   },
   "_calendar-prev-button.js": {
@@ -393,6 +353,14 @@
       "_client.js"
     ]
   },
+  "_on-mount-effect.svelte.js": {
+    "file": "chunks/on-mount-effect.svelte.js",
+    "name": "on-mount-effect.svelte",
+    "imports": [
+      "_index-server.js",
+      "_dev.js"
+    ]
+  },
   "_popover-trigger.js": {
     "file": "chunks/popover-trigger.js",
     "name": "popover-trigger",
@@ -417,19 +385,32 @@
       "_dev.js"
     ]
   },
-  "_roving-focus-group.js": {
-    "file": "chunks/roving-focus-group.js",
-    "name": "roving-focus-group",
-    "imports": [
-      "_arrays.js",
-      "_dev.js"
-    ]
-  },
   "_runes.svelte.js": {
     "file": "chunks/runes.svelte.js",
     "name": "runes.svelte",
     "imports": [
       "_dev.js"
+    ]
+  },
+  "_scroll-area-thumb.QE5ZuEV4.css": {
+    "file": "_app/immutable/assets/scroll-area-thumb.QE5ZuEV4.css",
+    "src": "_scroll-area-thumb.QE5ZuEV4.css"
+  },
+  "_scroll-area-thumb.js": {
+    "file": "chunks/scroll-area-thumb.js",
+    "name": "scroll-area-thumb",
+    "imports": [
+      "_index-server.js",
+      "_session.svelte.js",
+      "_dialog-content.js",
+      "_scroll-lock.js",
+      "_use-id.js",
+      "_arrays.js",
+      "_svelte-resize-observer.svelte.js",
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/scroll-area-thumb.QE5ZuEV4.css"
     ]
   },
   "_scroll-lock.js": {
@@ -440,9 +421,30 @@
       "_session.svelte.js",
       "_use-id.js",
       "_arrays.js",
-      "_roving-focus-group.js",
       "_dev.js",
       "_events.js"
+    ]
+  },
+  "_select-trigger.CV-KWLNP.css": {
+    "file": "_app/immutable/assets/select-trigger.CV-KWLNP.css",
+    "src": "_select-trigger.CV-KWLNP.css"
+  },
+  "_select-trigger.js": {
+    "file": "chunks/select-trigger.js",
+    "name": "select-trigger",
+    "imports": [
+      "_session.svelte.js",
+      "_scroll-lock.js",
+      "_use-id.js",
+      "_popper-layer-force-mount.js",
+      "_hidden-input.js",
+      "_arrays.js",
+      "_on-mount-effect.svelte.js",
+      "_dev.js",
+      "_events.js"
+    ],
+    "css": [
+      "_app/immutable/assets/select-trigger.CV-KWLNP.css"
     ]
   },
   "_session.svelte.js": {
@@ -484,6 +486,13 @@
       "_dev.js"
     ]
   },
+  "_theme.svelte.js": {
+    "file": "chunks/theme.svelte.js",
+    "name": "theme.svelte",
+    "imports": [
+      "_dev.js"
+    ]
+  },
   "_use-id.js": {
     "file": "chunks/use-id.js",
     "name": "use-id",
@@ -497,7 +506,6 @@
     "file": "chunks/utils.js",
     "name": "utils",
     "imports": [
-      "_environment.js",
       "_shared.js"
     ]
   },
@@ -552,10 +560,11 @@
       "_state.js",
       "_dev.js",
       "_appContext.js",
+      "_theme.svelte.js",
       "_context.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.DCPQdlL9.css"
+      "_app/immutable/assets/_layout.Cgiagexn.css"
     ]
   },
   "src/routes/(app)/calendar/+page.ts": {
@@ -585,9 +594,6 @@
       "_navigation.js",
       "_dev.js",
       "_appContext.js"
-    ],
-    "css": [
-      "_app/immutable/assets/_layout.BkjAaIr8.css"
     ]
   },
   "src/routes/(app)/i/dashboard/+page.svelte": {
@@ -608,9 +614,9 @@
     "imports": [
       "_index-server.js",
       "_session.svelte.js",
-      "_Button.js",
+      "_button.js",
       "_calendar-prev-button.js",
-      "_RadioGroup.js",
+      "_EquipmentIcon.js",
       "_dialog-content.js",
       "_scroll-lock.js",
       "_popover-trigger.js",
@@ -618,6 +624,7 @@
       "_popper-layer-force-mount.js",
       "_arrays.js",
       "_svelte-resize-observer.svelte.js",
+      "_on-mount-effect.svelte.js",
       "_dev.js",
       "_events.js",
       "_EquipmentPicker.js",
@@ -626,7 +633,7 @@
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.C6mtLrFR.css"
+      "_app/immutable/assets/_page.ByNF4sSB.css"
     ]
   },
   "src/routes/(app)/i/one-on-one/+page.svelte": {
@@ -708,9 +715,6 @@
       "_navigation.js",
       "_dev.js",
       "_appContext.js"
-    ],
-    "css": [
-      "_app/immutable/assets/_layout.WZkJq0Ta.css"
     ]
   },
   "src/routes/(app)/u/calendar/+page.svelte": {
@@ -720,18 +724,19 @@
     "isEntry": true,
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
+      "_button.js",
       "_calendar-prev-button.js",
       "_use-id.js",
       "_arrays.js",
       "_dev.js",
       "_Notice.js",
+      "_PageShell.js",
       "_context.js",
       "_runes.svelte.js",
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.DznJe74g.css"
+      "_app/immutable/assets/_page.BYjFeALj.css"
     ]
   },
   "src/routes/(app)/u/dashboard/+page.svelte": {
@@ -772,14 +777,14 @@
     "imports": [
       "_session.svelte.js",
       "_InstructorVideoManager.js",
-      "_Button.js",
+      "_button.js",
       "_dev.js",
       "_Notice.js",
       "_PageShell.js",
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.Duaae-Iz.css"
+      "_app/immutable/assets/_page.BrqK7cXA.css"
     ]
   },
   "src/routes/(app)/videos/+page.ts": {
@@ -794,13 +799,14 @@
     "src": "src/routes/(app)/watch/+page.svelte",
     "isEntry": true,
     "imports": [
+      "_index-server.js",
       "_session.svelte.js",
       "_dev.js",
       "_Notice.js",
       "_labels.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CsZfh72B.css"
+      "_app/immutable/assets/_page.CBmD1UC-.css"
     ]
   },
   "src/routes/(app)/אזור-אישי/+page.ts": {
@@ -889,11 +895,12 @@
     "isEntry": true,
     "imports": [
       "_session.svelte.js",
-      "_Button.js",
-      "_dev.js"
+      "_button.js",
+      "_dev.js",
+      "_theme.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.CuOrzIdV.css"
+      "_app/immutable/assets/_layout.Ta5jKXRE.css"
     ]
   },
   "src/routes/+page.svelte": {
@@ -902,18 +909,22 @@
     "src": "src/routes/+page.svelte",
     "isEntry": true,
     "imports": [
+      "_index-server.js",
       "_session.svelte.js",
       "_state.js",
-      "_Button.js",
+      "_button.js",
       "_dialog-content.js",
       "_scroll-lock.js",
+      "_use-id.js",
+      "_arrays.js",
       "_dev.js",
+      "_events.js",
       "_Notice.js",
       "_runes.svelte.js",
       "_config.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BWavlc_C.css"
+      "_app/immutable/assets/_page.C-lIjKnm.css"
     ]
   },
   "src/routes/callback/+page.js": {
@@ -933,6 +944,66 @@
     ],
     "css": [
       "_app/immutable/assets/_page.BE0nr9Kh.css"
+    ]
+  },
+  "src/routes/legal/accessibility/+page.svelte": {
+    "file": "entries/pages/legal/accessibility/_page.svelte.js",
+    "name": "entries/pages/legal/accessibility/_page.svelte",
+    "src": "src/routes/legal/accessibility/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.CYdjgz3P.css"
+    ]
+  },
+  "src/routes/legal/cancellations/+page.svelte": {
+    "file": "entries/pages/legal/cancellations/_page.svelte.js",
+    "name": "entries/pages/legal/cancellations/_page.svelte",
+    "src": "src/routes/legal/cancellations/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.DXxd-MNj.css"
+    ]
+  },
+  "src/routes/legal/health/+page.svelte": {
+    "file": "entries/pages/legal/health/_page.svelte.js",
+    "name": "entries/pages/legal/health/_page.svelte",
+    "src": "src/routes/legal/health/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.CRKyrmsr.css"
+    ]
+  },
+  "src/routes/legal/privacy/+page.svelte": {
+    "file": "entries/pages/legal/privacy/_page.svelte.js",
+    "name": "entries/pages/legal/privacy/_page.svelte",
+    "src": "src/routes/legal/privacy/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BQXWin7H.css"
+    ]
+  },
+  "src/routes/legal/terms/+page.svelte": {
+    "file": "entries/pages/legal/terms/_page.svelte.js",
+    "name": "entries/pages/legal/terms/_page.svelte",
+    "src": "src/routes/legal/terms/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_dev.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.B6borZ2f.css"
     ]
   },
   "src/routes/onboarding/+page.js": {

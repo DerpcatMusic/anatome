@@ -4,7 +4,7 @@
   import { useEventListener } from "runed";
   import { LiveRoom } from "$lib/features/live/room.svelte";
   import { mountMedia } from "$lib/features/live/types";
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import PreConnectOverlay from "./PreConnectOverlay.svelte";
   import RoomHeader from "./RoomHeader.svelte";
   import VideoStage from "./VideoStage.svelte";
@@ -63,11 +63,11 @@
       <h2>החיבור נותק</h2>
       <p>ניתן לנסות להתחבר שוב או לצאת מהחדר.</p>
       <div class="disconnect-actions">
-        <Button tone="ink" size="md" onclick={() => room.reconnect()}>התחברות מחדש</Button>
-        <Button tone="ghost" size="sm" onclick={() => {
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => room.reconnect()}>התחברות מחדש</Button.Root>
+        <Button.Root class="hb-button hb-button--ghost hb-button--sm" type="button" onclick={() => {
           room.destroy();
           window.location.href = room.isInstructorRoom ? '/i/live' : '/u/calendar';
-        }}>יציאה</Button>
+        }}>יציאה</Button.Root>
       </div>
     </div>
   </div>

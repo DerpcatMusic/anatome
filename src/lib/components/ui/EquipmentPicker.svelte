@@ -1,6 +1,6 @@
 <script lang="ts">
   import { equipmentOptions, type Equipment } from "$lib/labels";
-  import Checkbox from "$components/ui/Checkbox.svelte";
+  import { Checkbox } from "bits-ui";
   import EquipmentIcon from "$components/icons/EquipmentIcon.svelte";
 
   let {
@@ -31,7 +31,7 @@
   <p class="equipment-picker__label">{label}</p>
   <div class="equipment-grid">
     {#each equipmentOptions as [value, itemLabel]}
-      <Checkbox
+      <Checkbox.Root class="hb-choice"
         checked={selected.includes(value)}
         {readonly}
         {disabled}
@@ -43,7 +43,7 @@
           </div>
           <span class="choice-label">{itemLabel}</span>
         </div>
-      </Checkbox>
+      </Checkbox.Root>
     {/each}
   </div>
 </div>

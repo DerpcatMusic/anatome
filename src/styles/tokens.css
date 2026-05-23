@@ -137,6 +137,75 @@
   --subgrid-card-span: span 6;
 }
 
+/* Manual dark mode override (wins over system preference) */
+html[data-theme="dark"] {
+  --ink: #f0ece6;
+  --ink-secondary: #e0dcd6;
+  --ink-gradient-end: #d4d0ca;
+  --ink-gradient-end-hover: #c8c4be;
+
+  --paper: #121210;
+  --white: #1a1a18;
+  --surface: #222220;
+
+  --line: #3a3834;
+  --line-light: #4a4844;
+
+  --muted: #a09990;
+
+  --sky: #7ec8f0;
+  --sky-soft: #2a3a4a;
+  --sky-strong: #4ab3f0;
+  --beige: #5a5040;
+
+  --terra: #d46d4a;
+  --terra-soft: #3a2a24;
+  --terra-strong: #b05438;
+  --terra-muted: #c4775e;
+
+  --danger: #e04433;
+  --danger-soft: #3a1a18;
+  --danger-soft-hover: #4a2a28;
+  --danger-border: #5a3a38;
+  --danger-text: #e04433;
+
+  --success: #28a048;
+  --success-strong: #1a8840;
+  --success-soft: color-mix(in srgb, var(--success) 20%, transparent);
+  --success-bg: #1a3a28;
+  --success-border: #28a048;
+  --success-text: #3acc70;
+
+  --warning: #e04433;
+  --warning-bg: #3a2a1a;
+  --warning-text: #f0a070;
+  --caution: #e4b027;
+  --caution-soft: #3a3020;
+
+  --accent-purple: #a57cf8;
+
+  --surface-warm: #2a2220;
+  --surface-terra: #2a201c;
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-primary-button: 6px 6px 0 color-mix(in srgb, var(--sky) 32%, transparent);
+  --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
+  --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 20%, transparent);
+  --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
+
+  --glass-bg: color-mix(in srgb, var(--white) 78%, transparent);
+  --glass-strong-bg: color-mix(in srgb, var(--white) 88%, transparent);
+  --glass-border: 1px solid var(--line-light);
+
+  --chat-bg: color-mix(in srgb, var(--surface) 85%, transparent);
+  --participant-bg: color-mix(in srgb, var(--white) 72%, transparent);
+  --participant-speaking-bg: color-mix(in srgb, var(--success-bg) 90%, var(--white));
+  --quality-row-bg: color-mix(in srgb, var(--surface) 85%, transparent);
+}
+
+/* System dark mode preference */
 @media (prefers-color-scheme: dark) {
   :root {
     --ink: #f0ece6;
@@ -204,4 +273,72 @@
     --participant-speaking-bg: color-mix(in srgb, var(--success-bg) 90%, var(--white));
     --quality-row-bg: color-mix(in srgb, var(--surface) 85%, transparent);
   }
+}
+
+/* Explicit light override — wins over system dark when user chooses light */
+html[data-theme="light"] {
+  --ink: #0a0a0a;
+  --ink-secondary: #1a1a1a;
+  --ink-gradient-end: #16191f;
+  --ink-gradient-end-hover: #232830;
+
+  --paper: #fffdf8;
+  --white: #ffffff;
+  --surface: #faf8f3;
+
+  --line: #0a0a0a;
+  --line-light: #ddd8ce;
+
+  --muted: #6b6560;
+
+  --sky: #9fd8ff;
+  --sky-soft: #d4eeff;
+  --sky-strong: #2aa3f0;
+  --beige: #eadcc5;
+
+  --terra: #c45d3a;
+  --terra-soft: #f3ddd5;
+  --terra-strong: #a04428;
+  --terra-muted: #d4876e;
+
+  --danger: #c93322;
+  --danger-soft: #fff1f0;
+  --danger-soft-hover: #fde8e7;
+  --danger-border: #fecaca;
+  --danger-text: #c93322;
+
+  --success: #188038;
+  --success-strong: #137333;
+  --success-soft: color-mix(in srgb, var(--success) 16%, transparent);
+  --success-bg: #e8f5ee;
+  --success-border: #137333;
+  --success-text: #137333;
+
+  --warning: #c93322;
+  --warning-bg: #fff7ed;
+  --warning-text: #7c2d12;
+  --caution: #d4a017;
+  --caution-soft: #fdf6e3;
+
+  --accent-purple: #8c5cf6;
+
+  --surface-warm: #fdf6f0;
+  --surface-terra: #faf0ec;
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --shadow-primary-button: 6px 6px 0 color-mix(in srgb, var(--sky) 52%, transparent);
+  --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
+  --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 34%, transparent);
+  --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
+
+  --glass-bg: color-mix(in srgb, var(--white) 82%, transparent);
+  --glass-strong-bg: color-mix(in srgb, var(--white) 92%, transparent);
+  --glass-border: 1px solid var(--line-light);
+
+  --chat-bg: color-mix(in srgb, var(--surface) 72%, transparent);
+  --participant-bg: color-mix(in srgb, var(--white) 62%, transparent);
+  --participant-speaking-bg: color-mix(in srgb, var(--success-bg) 80%, var(--white));
+  --quality-row-bg: color-mix(in srgb, var(--surface) 68%, transparent);
 }

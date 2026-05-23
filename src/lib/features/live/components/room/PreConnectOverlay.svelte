@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
+  import { Button } from "bits-ui";
+  import { Select } from "bits-ui";
   import LiveAudioMeter from "./ui/LiveAudioMeter.svelte";
 
   import { useI18n } from "$lib/i18n/runes.svelte";
@@ -69,11 +69,11 @@
               <PreConnectSettings {room} />
               <div class="entry-actions">
                 {#if isPrep}
-                  <Button tone="primary" size="lg" onclick={() => room.startLiveAndConnect(true)}>{t.live.preConnect.startLive()}</Button>
+                  <Button.Root class="hb-button hb-button--primary hb-button--lg" type="button" onclick={() => room.startLiveAndConnect(true)}>{t.live.preConnect.startLive()}</Button.Root>
                 {:else}
-                  <Button tone="primary" size="lg" onclick={() => room.enterRoom(true)}>{t.live.preConnect.enterRoom()}</Button>
+                  <Button.Root class="hb-button hb-button--primary hb-button--lg" type="button" onclick={() => room.enterRoom(true)}>{t.live.preConnect.enterRoom()}</Button.Root>
                 {/if}
-                <Button tone="ghost" onclick={() => isPrep ? room.startLiveAndConnect(false) : room.enterRoom(false)}>{t.live.preConnect.enterWithoutDevices()}</Button>
+                <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => isPrep ? room.startLiveAndConnect(false) : room.enterRoom(false)}>{t.live.preConnect.enterWithoutDevices()}</Button.Root>
               </div>
             </aside>
             <div class="entry-console__main">
@@ -88,27 +88,77 @@
             </div>
             <div class="customer-connect__tools">
               {#if room.videoDevices.length > 1}
-                <Select
-                  label={t.live.preConnect.cameraLabel()}
-                  bind:value={room.selectedVideoDevice}
-                  options={room.videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
-                  onchange={() => room.switchPreviewDevice()}
-                />
+                {@const cameraOptions = room.videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
+                <div class="hb-field">
+                  <span class="hb-field__label">{t.live.preConnect.cameraLabel()}</span>
+                  <Select.Root
+                    type="single"
+                    value={room.selectedVideoDevice}
+                    onValueChange={(v) => { room.selectedVideoDevice = v; room.switchPreviewDevice(); }}
+                    items={cameraOptions.map((o) => ({ value: o.value, label: o.label }))}
+                  >
+                    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.cameraLabel()}>
+                      <span class="hb-select__value">{cameraOptions.find((o) => o.value === room.selectedVideoDevice)?.label ?? ""}</span>
+                      <span class="hb-select__chevron" aria-hidden="true"></span>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content class="hb-select__content" sideOffset={6}>
+                        <Select.Viewport class="hb-select__viewport">
+                          {#each cameraOptions as option}
+                            <Select.Item class="hb-select__item" value={option.value} label={option.label}>
+                              {#snippet children({ selected })}
+                                <span>{option.label}</span>
+                                {#if selected}
+                                  <span class="hb-select__check" aria-hidden="true"></span>
+                                {/if}
+                              {/snippet}
+                            </Select.Item>
+                          {/each}
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                </div>
               {/if}
               {#if room.audioDevices.length > 1}
-                <Select
-                  label={t.live.preConnect.micLabel()}
-                  bind:value={room.selectedAudioDevice}
-                  options={room.audioDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
-                  onchange={() => room.switchPreviewDevice()}
-                />
+                {@const micOptions = room.audioDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
+                <div class="hb-field">
+                  <span class="hb-field__label">{t.live.preConnect.micLabel()}</span>
+                  <Select.Root
+                    type="single"
+                    value={room.selectedAudioDevice}
+                    onValueChange={(v) => { room.selectedAudioDevice = v; room.switchPreviewDevice(); }}
+                    items={micOptions.map((o) => ({ value: o.value, label: o.label }))}
+                  >
+                    <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.micLabel()}>
+                      <span class="hb-select__value">{micOptions.find((o) => o.value === room.selectedAudioDevice)?.label ?? ""}</span>
+                      <span class="hb-select__chevron" aria-hidden="true"></span>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content class="hb-select__content" sideOffset={6}>
+                        <Select.Viewport class="hb-select__viewport">
+                          {#each micOptions as option}
+                            <Select.Item class="hb-select__item" value={option.value} label={option.label}>
+                              {#snippet children({ selected })}
+                                <span>{option.label}</span>
+                                {#if selected}
+                                  <span class="hb-select__check" aria-hidden="true"></span>
+                                {/if}
+                              {/snippet}
+                            </Select.Item>
+                          {/each}
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                </div>
               {/if}
               {#if room.hasPreviewMic}
                 <LiveAudioMeter label={t.live.preConnect.audioLevel()} level={room.audioLevel} />
               {/if}
               <div class="customer-connect__actions">
-                <Button tone="primary" size="lg" onclick={() => room.enterRoom(true)}>{t.live.preConnect.enterRoom()}</Button>
-                <Button tone="ghost" onclick={() => room.enterRoom(false)}>{t.live.preConnect.enterWithoutDevices()}</Button>
+                <Button.Root class="hb-button hb-button--primary hb-button--lg" type="button" onclick={() => room.enterRoom(true)}>{t.live.preConnect.enterRoom()}</Button.Root>
+                <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => room.enterRoom(false)}>{t.live.preConnect.enterWithoutDevices()}</Button.Root>
               </div>
             </div>
           </div>
@@ -122,7 +172,7 @@
           onAction={() => room.startPreview()}
         />
         <div class="entry-actions entry-actions--single">
-          <Button tone="ghost" onclick={() => isPrep ? room.startLiveAndConnect(false) : room.enterRoom(false)}>{t.live.preConnect.enterWithoutCamera()}</Button>
+          <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => isPrep ? room.startLiveAndConnect(false) : room.enterRoom(false)}>{t.live.preConnect.enterWithoutCamera()}</Button.Root>
         </div>
       {/if}
     </div>

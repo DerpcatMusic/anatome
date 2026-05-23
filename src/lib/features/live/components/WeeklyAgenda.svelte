@@ -3,7 +3,7 @@
   import "@event-calendar/core/index.css";
   import "$features/live/styles/calendar-theme.css";
 
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
@@ -152,8 +152,8 @@
     locale: "he",
     direction: "rtl" as const,
     firstDay: 0, // Sunday first
-    slotMinTime: "00:00:00",
-    slotMaxTime: "24:00:00",
+    slotMinTime: "06:00:00",
+    slotMaxTime: "23:00:00",
     allDaySlot: false,
     headerToolbar: {
       start: "today prev,next",
@@ -163,8 +163,9 @@
     buttonText: {
       today: "היום"
     },
-    height: "calc(100vh - 260px)",
-    slotDuration: "00:30:00",
+    height: "100%",
+    slotDuration: "00:15:00",
+    snapDuration: "00:15:00",
     slotLabelInterval: "01:00:00",
     slotEventOverlap: false,
     selectable: true,
@@ -222,11 +223,27 @@
       handleDragDropReschedule(liveClass._id, info.event.start.getTime(), info.event.end.getTime());
     },
 
-    // Clean minimal event card render
-    eventContent: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date } }) {
+    // Event content — show start/end times on preview/ghost during drag
+    eventContent: function(info: { event: { display: string; extendedProps: { originalClass?: LiveClass }; start: Date; end: Date } }) {
       const c = info.event.extendedProps?.originalClass;
+
+      // Selection preview (drag-to-create) or dragged copy (drag-to-move)
+      if (info.event.display === "preview") {
+        const start = formatLocalTime(info.event.start.getTime());
+        const end = formatLocalTime(info.event.end.getTime());
+        const duration = Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60000);
+        return {
+          html: `
+            <div class="calendar-preview-event">
+              <span class="preview-start">${start}</span>
+              <span class="preview-divider">${duration} דק׳</span>
+              <span class="preview-end">${end}</span>
+            </div>
+          `
+        };
+      }
+
       if (!c) {
-        // This is a preview/selection event — render nothing custom
         return { html: "" };
       }
 
@@ -252,7 +269,7 @@
   });
 </script>
 
-<div class="weekly-agenda-container">
+<div class="weekly-agenda-container ec-auto-dark">
   <div class="calendar-wrapper">
     <Calendar {plugins} options={calendarOptions} />
   </div>
@@ -287,12 +304,20 @@
 
 <style>
   .weekly-agenda-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     direction: rtl;
     contain: layout paint;
   }
 
   .calendar-wrapper {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     background: var(--white);
     border: 1px solid var(--line-light);
     padding: var(--space-2);

@@ -1,7 +1,7 @@
-import { c as ensure_array_like, et as attr, n as attr_class, nt as escape_html, o as derived } from "../../../../../chunks/dev.js";
+import { Q as attr, c as ensure_array_like, et as escape_html, n as attr_class, o as derived } from "../../../../../chunks/dev.js";
 import { _ as useQuery, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "../../../../../chunks/session.svelte.js";
 import { t as InstructorVideoManager } from "../../../../../chunks/InstructorVideoManager.js";
-import { t as Button_1 } from "../../../../../chunks/Button.js";
+import { t as Button } from "../../../../../chunks/button.js";
 import { t as Notice } from "../../../../../chunks/Notice.js";
 import { t as PageShell } from "../../../../../chunks/PageShell.js";
 import { i as equipmentLabel, r as durationLabel } from "../../../../../chunks/labels.js";
@@ -59,18 +59,25 @@ function VideosShell($$renderer, $$props) {
 				$$slots: { default: true }
 			});
 			$$renderer.push(`<!----> `);
-			Button_1($$renderer, {
-				type: "button",
-				tone: "ghost",
-				onclick: () => {
-					libraryResource.refetch();
-				},
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->לנסות שוב`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div>`);
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--ghost",
+					type: "button",
+					onclick: () => {
+						libraryResource.refetch();
+					},
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->לנסות שוב`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div>`);
 		} else if (data()) {
 			$$renderer.push("<!--[4-->");
 			PageShell($$renderer, {
@@ -126,19 +133,40 @@ function VideosShell($$renderer, $$props) {
 								$$renderer.push(`<!--]--></div> <div class="actions">`);
 								if (item.owned) {
 									$$renderer.push("<!--[0-->");
-									$$renderer.push(`<a${attr("href", `/watch?videoId=${item._id}`)}>לצפות</a>`);
+									if (Button) {
+										$$renderer.push("<!--[-->");
+										Button($$renderer, {
+											class: "hb-button hb-button--ink",
+											href: `/watch?videoId=${item._id}`,
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->לצפות`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
 								} else {
 									$$renderer.push("<!--[-1-->");
-									Button_1($$renderer, {
-										type: "button",
-										tone: "sky",
-										onclick: () => purchaseMacroflow(item._id),
-										disabled: actionId === item._id,
-										children: ($$renderer) => {
-											$$renderer.push(`<!---->לרכוש Macroflow`);
-										},
-										$$slots: { default: true }
-									});
+									if (Button) {
+										$$renderer.push("<!--[-->");
+										Button($$renderer, {
+											class: "hb-button hb-button--sky",
+											type: "button",
+											onclick: () => purchaseMacroflow(item._id),
+											disabled: actionId === item._id,
+											children: ($$renderer) => {
+												$$renderer.push(`<!---->לרכוש Macroflow`);
+											},
+											$$slots: { default: true }
+										});
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
+									}
 								}
 								$$renderer.push(`<!--]--></div></article>`);
 							}

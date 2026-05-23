@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
-  import ScrollArea from "$components/ui/ScrollArea.svelte";
+  import { ScrollArea } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import VideoCard from "./VideoCard.svelte";
   import "./VideoList.css";
@@ -73,7 +73,7 @@
         class="search-input"
       />
       {#if searchQuery}
-        <button class="clear-search-button" onclick={() => searchQuery = ""} aria-label="נקה חיפוש">
+        <button type="button" class="clear-search-button" onclick={() => searchQuery = ""} aria-label="נקה חיפוש">
           <span class="material-symbols-rounded">close</span>
         </button>
       {/if}
@@ -81,6 +81,7 @@
 
     <div class="access-filter-chips">
       <button
+        type="button"
         class="filter-chip"
         class:active={selectedAccessFilter === "all"}
         onclick={() => selectedAccessFilter = "all"}
@@ -88,6 +89,7 @@
         הכל
       </button>
       <button
+        type="button"
         class="filter-chip macro"
         class:active={selectedAccessFilter === "macroflow"}
         onclick={() => selectedAccessFilter = "macroflow"}
@@ -95,6 +97,7 @@
         Macroflow
       </button>
       <button
+        type="button"
         class="filter-chip micro"
         class:active={selectedAccessFilter === "microflow"}
         onclick={() => selectedAccessFilter = "microflow"}
@@ -111,8 +114,9 @@
       <div class="skeleton-card"></div>
     </div>
   {:else}
-    <ScrollArea class="library-scroll-container">
-      <div class="sections-stack">
+    <ScrollArea.Root class="hb-scroll-area library-scroll-container">
+  <ScrollArea.Viewport class="hb-scroll-area__viewport">
+    <div class="sections-stack">
         <!-- Drafts Section -->
         {#if filteredDrafts.length > 0}
           <section class="library-group">
@@ -177,7 +181,11 @@
           </div>
         {/if}
       </div>
-    </ScrollArea>
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar class="hb-scroll-area__bar" orientation="vertical">
+    <ScrollArea.Thumb class="hb-scroll-area__thumb" />
+  </ScrollArea.Scrollbar>
+</ScrollArea.Root>
   {/if}
 </div>
 

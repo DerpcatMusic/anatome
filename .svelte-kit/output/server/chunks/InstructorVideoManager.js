@@ -1,44 +1,16 @@
-import { R as writable, a as bind_props, c as ensure_array_like, et as attr, f as spread_props, h as unsubscribe_stores, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived, p as store_get, r as attr_style, u as props_id } from "./dev.js";
-import { _ as useQuery, c as TextareaAutosize, g as useConvexClient, p as SvelteMap, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
-import { G as watch, I as boolToTrueOrUndef, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, P as boolToStr, X as raf, Y as loop, Z as mergeProps, at as boxWith, c as createId, l as noop, q as Context } from "./arrays.js";
-import { t as RovingFocusGroup } from "./roving-focus-group.js";
+import { Q as attr, a as bind_props, c as ensure_array_like, et as escape_html, f as spread_props, i as attributes, n as attr_class, o as derived, p as stringify, r as attr_style, u as props_id } from "./dev.js";
+import { _ as useQuery, c as TextareaAutosize, g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "./session.svelte.js";
+import { R as createBitsAttrs, X as mergeProps, Y as attachRef, c as createId, l as noop, nt as boxWith } from "./arrays.js";
 import { c as MenuItemState, l as MenuMenuState, o as DropdownMenuTriggerState, p as Portal, s as MenuContentState, u as MenuRootState } from "./scroll-lock.js";
+import { i as DialogCloseState, n as Dialog, r as Dialog_overlay, t as Dialog_content } from "./dialog-content.js";
+import { a as Dialog_title, i as Scroll_area, n as Scroll_area_scrollbar, r as Scroll_area_viewport, t as Scroll_area_thumb } from "./scroll-area-thumb.js";
+import { t as Button } from "./button.js";
+import { n as Radio_group_item, r as Radio_group } from "./EquipmentIcon.js";
 import { a as getFloatingContentCSSVars, i as Floating_layer, n as Popper_layer, r as Floating_layer_anchor, t as Popper_layer_force_mount } from "./popper-layer-force-mount.js";
-import { a as DialogTitleState, i as DialogCloseState, n as Dialog, r as Dialog_overlay, t as Dialog_content } from "./dialog-content.js";
-import { t as Button_1 } from "./Button.js";
-import { t as RadioGroup_1 } from "./RadioGroup.js";
-import "./Select.js";
-import { t as ScrollArea_1 } from "./ScrollArea.js";
 import { t as Notice } from "./Notice.js";
 import { t as PageShell } from "./PageShell.js";
 import { i as equipmentLabel, r as durationLabel } from "./labels.js";
 import { t as EquipmentPicker } from "./EquipmentPicker.js";
-//#region node_modules/bits-ui/dist/bits/dialog/components/dialog-title.svelte
-function Dialog_title($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		const uid = props_id($$renderer);
-		let { id = createId(uid), ref = null, child, children, level = 2, $$slots, $$events, ...restProps } = $$props;
-		const titleState = DialogTitleState.create({
-			id: boxWith(() => id),
-			level: boxWith(() => level),
-			ref: boxWith(() => ref, (v) => ref = v)
-		});
-		const mergedProps = derived(() => mergeProps(restProps, titleState.props));
-		if (child) {
-			$$renderer.push("<!--[0-->");
-			child($$renderer, { props: mergedProps() });
-			$$renderer.push(`<!---->`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
-			children?.($$renderer);
-			$$renderer.push(`<!----></div>`);
-		}
-		$$renderer.push(`<!--]-->`);
-		bind_props($$props, { ref });
-	});
-}
-//#endregion
 //#region node_modules/bits-ui/dist/bits/aspect-ratio/aspect-ratio.svelte.js
 var aspectRatioAttrs = createBitsAttrs({
 	component: "aspect-ratio",
@@ -405,580 +377,15 @@ function Progress($$renderer, $$props) {
 	});
 }
 //#endregion
-//#region node_modules/bits-ui/dist/bits/tabs/tabs.svelte.js
-var tabsAttrs = createBitsAttrs({
-	component: "tabs",
-	parts: [
-		"root",
-		"list",
-		"trigger",
-		"content"
-	]
-});
-var TabsRootContext = new Context("Tabs.Root");
-var TabsRootState = class TabsRootState {
-	static create(opts) {
-		return TabsRootContext.set(new TabsRootState(opts));
-	}
-	opts;
-	attachment;
-	rovingFocusGroup;
-	triggerIds = [];
-	valueToTriggerId = new SvelteMap();
-	valueToContentId = new SvelteMap();
-	constructor(opts) {
-		this.opts = opts;
-		this.attachment = attachRef(opts.ref);
-		this.rovingFocusGroup = new RovingFocusGroup({
-			candidateAttr: tabsAttrs.trigger,
-			rootNode: this.opts.ref,
-			loop: this.opts.loop,
-			orientation: this.opts.orientation
-		});
-	}
-	registerTrigger(id, value) {
-		this.triggerIds.push(id);
-		this.valueToTriggerId.set(value, id);
-		return () => {
-			this.triggerIds = this.triggerIds.filter((triggerId) => triggerId !== id);
-			this.valueToTriggerId.delete(value);
-		};
-	}
-	registerContent(id, value) {
-		this.valueToContentId.set(value, id);
-		return () => {
-			this.valueToContentId.delete(value);
-		};
-	}
-	setValue(v) {
-		this.opts.value.current = v;
-	}
-	#props = derived(() => ({
-		id: this.opts.id.current,
-		"data-orientation": this.opts.orientation.current,
-		[tabsAttrs.root]: "",
-		...this.attachment
-	}));
-	get props() {
-		return this.#props();
-	}
-	set props($$value) {
-		return this.#props($$value);
-	}
-};
-var TabsListState = class TabsListState {
-	static create(opts) {
-		return new TabsListState(opts, TabsRootContext.get());
-	}
-	opts;
-	root;
-	attachment;
-	#isDisabled = derived(() => this.root.opts.disabled.current);
-	constructor(opts, root) {
-		this.opts = opts;
-		this.root = root;
-		this.attachment = attachRef(opts.ref);
-	}
-	#props = derived(() => ({
-		id: this.opts.id.current,
-		role: "tablist",
-		"aria-orientation": this.root.opts.orientation.current,
-		"data-orientation": this.root.opts.orientation.current,
-		[tabsAttrs.list]: "",
-		"data-disabled": boolToEmptyStrOrUndef(this.#isDisabled()),
-		...this.attachment
-	}));
-	get props() {
-		return this.#props();
-	}
-	set props($$value) {
-		return this.#props($$value);
-	}
-};
-var TabsTriggerState = class TabsTriggerState {
-	static create(opts) {
-		return new TabsTriggerState(opts, TabsRootContext.get());
-	}
-	opts;
-	root;
-	attachment;
-	#tabIndex = 0;
-	#isActive = derived(() => this.root.opts.value.current === this.opts.value.current);
-	#isDisabled = derived(() => this.opts.disabled.current || this.root.opts.disabled.current);
-	#ariaControls = derived(() => this.root.valueToContentId.get(this.opts.value.current));
-	constructor(opts, root) {
-		this.opts = opts;
-		this.root = root;
-		this.attachment = attachRef(opts.ref);
-		watch([() => this.opts.id.current, () => this.opts.value.current], ([id, value]) => {
-			return this.root.registerTrigger(id, value);
-		});
-		this.onfocus = this.onfocus.bind(this);
-		this.onclick = this.onclick.bind(this);
-		this.onkeydown = this.onkeydown.bind(this);
-	}
-	#activate() {
-		if (this.root.opts.value.current === this.opts.value.current) return;
-		this.root.setValue(this.opts.value.current);
-	}
-	onfocus(_) {
-		if (this.root.opts.activationMode.current !== "automatic" || this.#isDisabled()) return;
-		this.#activate();
-	}
-	onclick(_) {
-		if (this.#isDisabled()) return;
-		this.#activate();
-	}
-	onkeydown(e) {
-		if (this.#isDisabled()) return;
-		if (e.key === " " || e.key === "Enter") {
-			e.preventDefault();
-			this.#activate();
-			return;
-		}
-		this.root.rovingFocusGroup.handleKeydown(this.opts.ref.current, e);
-	}
-	#props = derived(() => ({
-		id: this.opts.id.current,
-		role: "tab",
-		"data-state": getTabDataState(this.#isActive()),
-		"data-value": this.opts.value.current,
-		"data-orientation": this.root.opts.orientation.current,
-		"data-disabled": boolToEmptyStrOrUndef(this.#isDisabled()),
-		"aria-selected": boolToStr(this.#isActive()),
-		"aria-controls": this.#ariaControls(),
-		[tabsAttrs.trigger]: "",
-		disabled: boolToTrueOrUndef(this.#isDisabled()),
-		tabindex: this.#tabIndex,
-		onclick: this.onclick,
-		onfocus: this.onfocus,
-		onkeydown: this.onkeydown,
-		...this.attachment
-	}));
-	get props() {
-		return this.#props();
-	}
-	set props($$value) {
-		return this.#props($$value);
-	}
-};
-var TabsContentState = class TabsContentState {
-	static create(opts) {
-		return new TabsContentState(opts, TabsRootContext.get());
-	}
-	opts;
-	root;
-	attachment;
-	#isActive = derived(() => this.root.opts.value.current === this.opts.value.current);
-	#ariaLabelledBy = derived(() => this.root.valueToTriggerId.get(this.opts.value.current));
-	constructor(opts, root) {
-		this.opts = opts;
-		this.root = root;
-		this.attachment = attachRef(opts.ref);
-		watch([() => this.opts.id.current, () => this.opts.value.current], ([id, value]) => {
-			return this.root.registerContent(id, value);
-		});
-	}
-	#props = derived(() => ({
-		id: this.opts.id.current,
-		role: "tabpanel",
-		hidden: boolToTrueOrUndef(!this.#isActive()),
-		tabindex: 0,
-		"data-value": this.opts.value.current,
-		"data-state": getTabDataState(this.#isActive()),
-		"aria-labelledby": this.#ariaLabelledBy(),
-		"data-orientation": this.root.opts.orientation.current,
-		[tabsAttrs.content]: "",
-		...this.attachment
-	}));
-	get props() {
-		return this.#props();
-	}
-	set props($$value) {
-		return this.#props($$value);
-	}
-};
-function getTabDataState(condition) {
-	return condition ? "active" : "inactive";
-}
-//#endregion
-//#region node_modules/bits-ui/dist/bits/tabs/components/tabs.svelte
-function Tabs($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		const uid = props_id($$renderer);
-		let { id = createId(uid), ref = null, value = "", onValueChange = noop, orientation = "horizontal", loop = true, activationMode = "automatic", disabled = false, children, child, $$slots, $$events, ...restProps } = $$props;
-		const rootState = TabsRootState.create({
-			id: boxWith(() => id),
-			value: boxWith(() => value, (v) => {
-				value = v;
-				onValueChange(v);
-			}),
-			orientation: boxWith(() => orientation),
-			loop: boxWith(() => loop),
-			activationMode: boxWith(() => activationMode),
-			disabled: boxWith(() => disabled),
-			ref: boxWith(() => ref, (v) => ref = v)
-		});
-		const mergedProps = derived(() => mergeProps(restProps, rootState.props));
-		if (child) {
-			$$renderer.push("<!--[0-->");
-			child($$renderer, { props: mergedProps() });
-			$$renderer.push(`<!---->`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
-			children?.($$renderer);
-			$$renderer.push(`<!----></div>`);
-		}
-		$$renderer.push(`<!--]-->`);
-		bind_props($$props, {
-			ref,
-			value
-		});
-	});
-}
-//#endregion
-//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-content.svelte
-function Tabs_content($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		const uid = props_id($$renderer);
-		let { children, child, id = createId(uid), ref = null, value, $$slots, $$events, ...restProps } = $$props;
-		const contentState = TabsContentState.create({
-			value: boxWith(() => value),
-			id: boxWith(() => id),
-			ref: boxWith(() => ref, (v) => ref = v)
-		});
-		const mergedProps = derived(() => mergeProps(restProps, contentState.props));
-		if (child) {
-			$$renderer.push("<!--[0-->");
-			child($$renderer, { props: mergedProps() });
-			$$renderer.push(`<!---->`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
-			children?.($$renderer);
-			$$renderer.push(`<!----></div>`);
-		}
-		$$renderer.push(`<!--]-->`);
-		bind_props($$props, { ref });
-	});
-}
-//#endregion
-//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-list.svelte
-function Tabs_list($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		const uid = props_id($$renderer);
-		let { child, children, id = createId(uid), ref = null, $$slots, $$events, ...restProps } = $$props;
-		const listState = TabsListState.create({
-			id: boxWith(() => id),
-			ref: boxWith(() => ref, (v) => ref = v)
-		});
-		const mergedProps = derived(() => mergeProps(restProps, listState.props));
-		if (child) {
-			$$renderer.push("<!--[0-->");
-			child($$renderer, { props: mergedProps() });
-			$$renderer.push(`<!---->`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
-			children?.($$renderer);
-			$$renderer.push(`<!----></div>`);
-		}
-		$$renderer.push(`<!--]-->`);
-		bind_props($$props, { ref });
-	});
-}
-//#endregion
-//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-trigger.svelte
-function Tabs_trigger($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		const uid = props_id($$renderer);
-		let { child, children, disabled = false, id = createId(uid), type = "button", value, ref = null, $$slots, $$events, ...restProps } = $$props;
-		const triggerState = TabsTriggerState.create({
-			id: boxWith(() => id),
-			disabled: boxWith(() => disabled ?? false),
-			value: boxWith(() => value),
-			ref: boxWith(() => ref, (v) => ref = v)
-		});
-		const mergedProps = derived(() => mergeProps(restProps, triggerState.props, { type }));
-		if (child) {
-			$$renderer.push("<!--[0-->");
-			child($$renderer, { props: mergedProps() });
-			$$renderer.push(`<!---->`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<button${attributes({ ...mergedProps() })}>`);
-			children?.($$renderer);
-			$$renderer.push(`<!----></button>`);
-		}
-		$$renderer.push(`<!--]-->`);
-		bind_props($$props, { ref });
-	});
-}
-//#endregion
-//#region node_modules/svelte/src/motion/utils.js
-/**
-* @param {any} obj
-* @returns {obj is Date}
-*/
-function is_date(obj) {
-	return Object.prototype.toString.call(obj) === "[object Date]";
-}
-//#endregion
-//#region node_modules/svelte/src/motion/spring.js
-/** @import { Task } from '#client' */
-/** @import { TickContext } from './private.js' */
-/** @import { Spring as SpringStore, SpringOptions, SpringUpdateOptions } from './public.js' */
-/**
-* @template T
-* @param {TickContext} ctx
-* @param {T} last_value
-* @param {T} current_value
-* @param {T} target_value
-* @returns {T}
-*/
-function tick_spring(ctx, last_value, current_value, target_value) {
-	if (typeof current_value === "number" || is_date(current_value)) {
-		const delta = target_value - current_value;
-		const velocity = (current_value - last_value) / (ctx.dt || 1 / 60);
-		const d = (velocity + (ctx.opts.stiffness * delta - ctx.opts.damping * velocity) * ctx.inv_mass) * ctx.dt;
-		if (Math.abs(d) < ctx.opts.precision && Math.abs(delta) < ctx.opts.precision) return target_value;
-		else {
-			ctx.settled = false;
-			return is_date(current_value) ? new Date(current_value.getTime() + d) : current_value + d;
-		}
-	} else if (Array.isArray(current_value)) return current_value.map((_, i) => tick_spring(ctx, last_value[i], current_value[i], target_value[i]));
-	else if (typeof current_value === "object") {
-		const next_value = {};
-		for (const k in current_value) next_value[k] = tick_spring(ctx, last_value[k], current_value[k], target_value[k]);
-		return next_value;
-	} else throw new Error(`Cannot spring ${typeof current_value} values`);
-}
-/**
-* The spring function in Svelte creates a store whose value is animated, with a motion that simulates the behavior of a spring. This means when the value changes, instead of transitioning at a steady rate, it "bounces" like a spring would, depending on the physics parameters provided. This adds a level of realism to the transitions and can enhance the user experience.
-*
-* @deprecated Use [`Spring`](https://svelte.dev/docs/svelte/svelte-motion#Spring) instead
-* @template [T=any]
-* @param {T} [value]
-* @param {SpringOptions} [opts]
-* @returns {SpringStore<T>}
-*/
-function spring(value, opts = {}) {
-	const store = writable(value);
-	const { stiffness = .15, damping = .8, precision = .01 } = opts;
-	/** @type {number} */
-	let last_time;
-	/** @type {Task | null} */
-	let task;
-	/** @type {object} */
-	let current_token;
-	let last_value = value;
-	let target_value = value;
-	let inv_mass = 1;
-	let inv_mass_recovery_rate = 0;
-	let cancel_task = false;
-	/**
-	* @param {T} new_value
-	* @param {SpringUpdateOptions} opts
-	* @returns {Promise<void>}
-	*/
-	function set(new_value, opts = {}) {
-		target_value = new_value;
-		const token = current_token = {};
-		if (value == null || opts.hard || spring.stiffness >= 1 && spring.damping >= 1) {
-			cancel_task = true;
-			last_time = raf.now();
-			last_value = new_value;
-			store.set(value = target_value);
-			return Promise.resolve();
-		} else if (opts.soft) {
-			inv_mass_recovery_rate = 1 / ((opts.soft === true ? .5 : +opts.soft) * 60);
-			inv_mass = 0;
-		}
-		if (!task) {
-			last_time = raf.now();
-			cancel_task = false;
-			task = loop((now) => {
-				if (cancel_task) {
-					cancel_task = false;
-					task = null;
-					return false;
-				}
-				inv_mass = Math.min(inv_mass + inv_mass_recovery_rate, 1);
-				const elapsed = Math.min(now - last_time, 1e3 / 30);
-				/** @type {TickContext} */
-				const ctx = {
-					inv_mass,
-					opts: spring,
-					settled: true,
-					dt: elapsed * 60 / 1e3
-				};
-				const next_value = tick_spring(ctx, last_value, value, target_value);
-				last_time = now;
-				last_value = value;
-				store.set(value = next_value);
-				if (ctx.settled) task = null;
-				return !ctx.settled;
-			});
-		}
-		return new Promise((fulfil) => {
-			/** @type {Task} */ task.promise.then(() => {
-				if (token === current_token) fulfil();
-			});
-		});
-	}
-	/** @type {SpringStore<T>} */
-	const spring = {
-		set,
-		update: (fn, opts) => set(fn(target_value, value), opts),
-		subscribe: store.subscribe,
-		stiffness,
-		damping,
-		precision
-	};
-	return spring;
-}
-//#endregion
-//#region src/lib/components/ui/Tabs.svelte
-function Tabs_1($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		var $$store_subs;
-		let { value = void 0, items, children, ariaLabel, activationMode = "automatic" } = $$props;
-		let listEl = null;
-		let triggerElements = {};
-		const position = spring({
-			left: 0,
-			width: 0
-		}, {
-			stiffness: .12,
-			damping: .65
-		});
-		let $$settled = true;
-		let $$inner_renderer;
-		function $$render_inner($$renderer) {
-			if (Tabs) {
-				$$renderer.push("<!--[-->");
-				Tabs($$renderer, {
-					activationMode,
-					get value() {
-						return value;
-					},
-					set value($$value) {
-						value = $$value;
-						$$settled = false;
-					},
-					children: ($$renderer) => {
-						if (Tabs_list) {
-							$$renderer.push("<!--[-->");
-							Tabs_list($$renderer, {
-								class: "hb-tabs-list",
-								style: "position: relative;",
-								"aria-label": ariaLabel,
-								get ref() {
-									return listEl;
-								},
-								set ref($$value) {
-									listEl = $$value;
-									$$settled = false;
-								},
-								children: ($$renderer) => {
-									if (store_get($$store_subs ??= {}, "$position", position).width > 0) {
-										$$renderer.push("<!--[0-->");
-										$$renderer.push(`<div class="hb-tab-indicator"${attr_style(` position: absolute; top: 0; bottom: 0; left: 0; width: ${stringify(store_get($$store_subs ??= {}, "$position", position).width)}px; transform: translateX(${stringify(store_get($$store_subs ??= {}, "$position", position).left)}px); background: var(--ink); border: var(--border); pointer-events: none; z-index: 0; `)}></div>`);
-									} else $$renderer.push("<!--[-1-->");
-									$$renderer.push(`<!--]--> <!--[-->`);
-									const each_array = ensure_array_like(items);
-									for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-										let item = each_array[$$index];
-										if (Tabs_trigger) {
-											$$renderer.push("<!--[-->");
-											Tabs_trigger($$renderer, {
-												class: "hb-tab",
-												value: item.value,
-												style: "position: relative; z-index: 1; background: transparent; transition: color var(--duration-base);",
-												get ref() {
-													return triggerElements[item.value];
-												},
-												set ref($$value) {
-													triggerElements[item.value] = $$value;
-													$$settled = false;
-												},
-												children: ($$renderer) => {
-													$$renderer.push(`<span${attr_style(`color: ${stringify(value === item.value ? "var(--white)" : "var(--ink)")}; transition: color var(--duration-fast) var(--ease-out);`)}>${escape_html(item.label)}</span>`);
-												},
-												$$slots: { default: true }
-											});
-											$$renderer.push("<!--]-->");
-										} else {
-											$$renderer.push("<!--[!-->");
-											$$renderer.push("<!--]-->");
-										}
-									}
-									$$renderer.push(`<!--]-->`);
-								},
-								$$slots: { default: true }
-							});
-							$$renderer.push("<!--]-->");
-						} else {
-							$$renderer.push("<!--[!-->");
-							$$renderer.push("<!--]-->");
-						}
-						$$renderer.push(` `);
-						children($$renderer);
-						$$renderer.push(`<!---->`);
-					},
-					$$slots: { default: true }
-				});
-				$$renderer.push("<!--]-->");
-			} else {
-				$$renderer.push("<!--[!-->");
-				$$renderer.push("<!--]-->");
-			}
-		}
-		do {
-			$$settled = true;
-			$$inner_renderer = $$renderer.copy();
-			$$render_inner($$inner_renderer);
-		} while (!$$settled);
-		$$renderer.subsume($$inner_renderer);
-		if ($$store_subs) unsubscribe_stores($$store_subs);
-		bind_props($$props, { value });
-	});
-}
-//#endregion
-//#region src/lib/components/ui/Progress.svelte
-function Progress_1($$renderer, $$props) {
-	let { value = 0, max = 100, label } = $$props;
-	const percent = derived(() => Math.min(100, Math.max(0, Math.round(value / max * 100))));
-	if (Progress) {
-		$$renderer.push("<!--[-->");
-		Progress($$renderer, {
-			class: "hb-progress-track",
-			value,
-			max,
-			"aria-label": label,
-			children: ($$renderer) => {
-				$$renderer.push(`<div class="hb-progress-fill"${attr_style(`transform: translateX(-${stringify(100 - percent())}%)`)}></div>`);
-			},
-			$$slots: { default: true }
-		});
-		$$renderer.push("<!--]-->");
-	} else {
-		$$renderer.push("<!--[!-->");
-		$$renderer.push("<!--]-->");
-	}
-}
-//#endregion
 //#region src/lib/features/studio/components/VideoUploadForm.svelte
 function VideoUploadForm($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { categories = [], uploadStatus = "idle", uploadProgress = 0, uploadError = "", creatingCategory = false, categoryError = "", onCreateCategory, onSubmit } = $$props;
+		let { categories = [], uploadStatus = "idle", uploadProgress = 0, uploadError = "", creatingCategory = false, categoryError = "", onCreateCategory, onSubmit, onCancel } = $$props;
 		let showAdvanced = false;
 		let title = "";
 		let description = "";
-		let descEl = null;
 		new TextareaAutosize({
-			element: () => descEl ?? void 0,
+			element: () => void 0,
 			input: () => description
 		});
 		let requiredEquipment = ["mat"];
@@ -986,6 +393,7 @@ function VideoUploadForm($$renderer, $$props) {
 		let selectedCategoryIds = [];
 		let newCategoryName = "";
 		let videoFile = null;
+		let isDragOver = false;
 		const accessOptions = [{
 			value: "macroflow",
 			label: "Macroflow",
@@ -1006,20 +414,8 @@ function VideoUploadForm($$renderer, $$props) {
 		let $$inner_renderer;
 		function $$render_inner($$renderer) {
 			$$renderer.push(`<div class="video-upload-form">`);
-			if (uploadStatus === "ready") {
+			if (uploadStatus === "error" || categoryError) {
 				$$renderer.push("<!--[0-->");
-				Notice($$renderer, {
-					tone: "success",
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->הווידאו הועלה בהצלחה! מעבדים אותו עכשיו — יופיע בספריה תוך כמה דקות.`);
-					},
-					$$slots: { default: true }
-				});
-			} else if (uploadStatus === "processing") {
-				$$renderer.push("<!--[1-->");
-				$$renderer.push(`<div class="upload-processing-notice"><span class="material-symbols-rounded spinner">sync</span> <p>הקובץ הועלה בהצלחה. מעבדים בשרתי Mux...</p></div>`);
-			} else if (uploadStatus === "error" || categoryError) {
-				$$renderer.push("<!--[2-->");
 				Notice($$renderer, {
 					tone: "danger",
 					children: ($$renderer) => {
@@ -1028,48 +424,89 @@ function VideoUploadForm($$renderer, $$props) {
 					$$slots: { default: true }
 				});
 			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <form><div class="uploader-grid"><div class="uploader-column"><label${attr_class("file-drop", void 0, { "has-file": Boolean(videoFile) })}><input type="file" accept="video/*"${attr("disabled", uploadStatus === "uploading", true)}/> `);
+			$$renderer.push(`<!--]--> <form><div${attr_class("file-drop", void 0, {
+				"has-file": Boolean(videoFile),
+				"drag-over": isDragOver
+			})} role="region" aria-label="אזור גרירת קובץ וידאו">`);
 			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<span class="material-symbols-rounded drop-icon">video_library</span> <span class="drop-text">גררי קובץ וידאו לכאן<br/><small>או לחצי לבחירה מהמחשב</small></span>`);
-			$$renderer.push(`<!--]--></label> `);
+			$$renderer.push(`<label class="drop-label"><input type="file" accept="video/*"${attr("disabled", uploadStatus === "uploading", true)}/> <span class="material-symbols-rounded drop-icon">video_library</span> <span class="drop-text"><strong>גררי קובץ וידאו לכאן</strong> <span class="drop-hint">או לחצי לבחירה מהמחשב · עד 2GB</span></span></label>`);
+			$$renderer.push(`<!--]--></div> `);
 			if (uploadStatus === "uploading") {
 				$$renderer.push("<!--[0-->");
 				$$renderer.push(`<div class="progress-container"><div class="progress-meta"><span>מעלה קובץ...</span> <span>${escape_html(uploadProgress)}%</span></div> `);
-				Progress_1($$renderer, {
-					value: uploadProgress,
-					max: 100,
-					label: `העלאה ${uploadProgress}%`
-				});
-				$$renderer.push(`<!----></div>`);
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <div class="form-field-group"><label class="form-field-label" for="equipment"><span class="material-symbols-rounded">fitness_center</span> ציוד נדרש לשיעור</label> `);
-			EquipmentPicker($$renderer, {
-				disabled: uploadStatus === "uploading",
-				get selected() {
-					return requiredEquipment;
-				},
-				set selected($$value) {
-					requiredEquipment = $$value;
-					$$settled = false;
+				if (Progress) {
+					$$renderer.push("<!--[-->");
+					Progress($$renderer, {
+						class: "hb-progress-track",
+						value: uploadProgress,
+						max: 100,
+						children: ($$renderer) => {
+							$$renderer.push(`<div class="hb-progress-fill"${attr_style("", { width: `${stringify(uploadProgress)}%` })}></div>`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
-			});
-			$$renderer.push(`<!----></div></div> <div class="uploader-column"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120" placeholder="למשל: יסודות הרפורמר למתחילות"${attr("disabled", uploadStatus === "uploading", true)}/></label> <label class="field"><span class="field__label">תיאור קצר</span> <textarea maxlength="500" placeholder="ספרי למתאמנות מה נעשה בשיעור זה..."${attr("disabled", uploadStatus === "uploading", true)}>`);
+				$$renderer.push(`</div>`);
+			} else if (uploadStatus === "processing") {
+				$$renderer.push("<!--[1-->");
+				$$renderer.push(`<div class="processing-bar"><span class="material-symbols-rounded spinner">sync</span> <span>הקובץ הועלה בהצלחה. מעבדים בשרתי Mux...</span></div>`);
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> <div class="details-section"><label class="field"><span class="field__label">כותרת השיעור</span> <input${attr("value", title)} required="" maxlength="120" placeholder="למשל: יסודות הרפורמר למתחילות"${attr("disabled", uploadStatus === "uploading", true)}/></label> <label class="field"><span class="field__label">תיאור קצר</span> <textarea maxlength="500" placeholder="ספרי למתאמנות מה נעשה בשיעור זה..."${attr("disabled", uploadStatus === "uploading", true)}>`);
 			const $$body = escape_html(description);
 			if ($$body) $$renderer.push(`${$$body}`);
-			$$renderer.push(`</textarea></label> <div class="form-field-group"><label class="form-field-label" for="access"><span class="material-symbols-rounded">key</span> מודל גישה לספרייה</label> `);
-			RadioGroup_1($$renderer, {
-				options: accessOptions,
-				orientation: "horizontal",
-				class: "studio-choice-grid",
-				get value() {
-					return accessKind;
-				},
-				set value($$value) {
-					accessKind = $$value;
-					$$settled = false;
-				}
-			});
-			$$renderer.push(`<!----></div> <div class="form-field-group"><label class="form-field-label" for="categories"><span class="material-symbols-rounded">folder_open</span> שיוך לקטגוריות <span class="count-badge">${escape_html(selectedCategoryIds.length)}</span></label> `);
+			$$renderer.push(`</textarea></label> <div class="form-field-group"><div class="form-field-label"><span class="material-symbols-rounded">key</span> מודל גישה</div> `);
+			if (Radio_group) {
+				$$renderer.push("<!--[-->");
+				Radio_group($$renderer, {
+					orientation: "horizontal",
+					class: "hb-choice-grid",
+					get value() {
+						return accessKind;
+					},
+					set value($$value) {
+						accessKind = $$value;
+						$$settled = false;
+					},
+					children: ($$renderer) => {
+						$$renderer.push(`<!--[-->`);
+						const each_array = ensure_array_like(accessOptions);
+						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+							let option = each_array[$$index];
+							if (Radio_group_item) {
+								$$renderer.push("<!--[-->");
+								Radio_group_item($$renderer, {
+									class: "hb-choice",
+									value: option.value,
+									children: ($$renderer) => {
+										$$renderer.push(`<span class="hb-choice__title">${escape_html(option.label)}</span> `);
+										if (option.description) {
+											$$renderer.push("<!--[0-->");
+											$$renderer.push(`<span class="hb-choice__description">${escape_html(option.description)}</span>`);
+										} else $$renderer.push("<!--[-1-->");
+										$$renderer.push(`<!--]-->`);
+									},
+									$$slots: { default: true }
+								});
+								$$renderer.push("<!--]-->");
+							} else {
+								$$renderer.push("<!--[!-->");
+								$$renderer.push("<!--]-->");
+							}
+						}
+						$$renderer.push(`<!--]-->`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div> <div class="form-field-group"><div class="form-field-label"><span class="material-symbols-rounded">folder_open</span> קטגוריות <span class="count-badge">${escape_html(selectedCategoryIds.length)}</span></div> `);
 			if (categories.length === 0) {
 				$$renderer.push("<!--[0-->");
 				Notice($$renderer, {
@@ -1082,48 +519,93 @@ function VideoUploadForm($$renderer, $$props) {
 			} else {
 				$$renderer.push("<!--[-1-->");
 				$$renderer.push(`<div class="category-grid"><!--[-->`);
-				const each_array = ensure_array_like(categories);
-				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-					let category = each_array[$$index];
-					$$renderer.push(`<button${attr_class("category-token", void 0, { "selected": selectedCategoryIds.includes(category._id) })} type="button"${attr("disabled", uploadStatus === "uploading", true)}><span>${escape_html(category.name)}</span></button>`);
+				const each_array_1 = ensure_array_like(categories);
+				for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+					let category = each_array_1[$$index_1];
+					$$renderer.push(`<button${attr_class("category-token", void 0, { "selected": selectedCategoryIds.includes(category._id) })} type="button"${attr("disabled", uploadStatus === "uploading", true)}>${escape_html(category.name)}</button>`);
 				}
 				$$renderer.push(`<!--]--></div>`);
 			}
 			$$renderer.push(`<!--]--> <div class="new-category-input-row"><input type="text"${attr("value", newCategoryName)} placeholder="שם קטגוריה חדשה..."${attr("disabled", creatingCategory || uploadStatus === "uploading", true)}/> `);
-			Button_1($$renderer, {
-				tone: "paper",
-				type: "button",
-				onclick: handleAddCategory,
-				disabled: creatingCategory || !newCategoryName.trim() || uploadStatus === "uploading",
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->הוסף`);
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--paper",
+					type: "button",
+					onclick: handleAddCategory,
+					disabled: creatingCategory || !newCategoryName.trim() || uploadStatus === "uploading",
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->הוסף`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div></div> <div class="form-field-group"><div class="form-field-label"><span class="material-symbols-rounded">fitness_center</span> ציוד נדרש</div> `);
+			EquipmentPicker($$renderer, {
+				disabled: uploadStatus === "uploading",
+				get selected() {
+					return requiredEquipment;
 				},
-				$$slots: { default: true }
+				set selected($$value) {
+					requiredEquipment = $$value;
+					$$settled = false;
+				}
 			});
-			$$renderer.push(`<!----></div></div> <div class="advanced-collapsible-wrapper"><button type="button" class="advanced-toggle"><span>הגדרות קידוד מתקדמות (Mux)</span> <span${attr_class("material-symbols-rounded arrow-icon", void 0, { "rotated": showAdvanced })}>expand_more</span></button> `);
+			$$renderer.push(`<!----></div> <div class="advanced-collapsible-wrapper"><button type="button" class="advanced-toggle"><span>הגדרות קידוד מתקדמות (Mux)</span> <span${attr_class("material-symbols-rounded arrow-icon", void 0, { "rotated": showAdvanced })}>expand_more</span></button> `);
 			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--></div> <div class="submit-action-row">`);
-			Button_1($$renderer, {
-				tone: "ink",
-				type: "submit",
-				disabled: !canSubmit() || uploadStatus === "uploading",
-				class: "upload-submit-button",
-				children: ($$renderer) => {
-					if (uploadStatus === "uploading") {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`מעלה קובץ...`);
-					} else if (uploadStatus === "processing") {
-						$$renderer.push("<!--[1-->");
-						$$renderer.push(`מעבד בשרת...`);
-					} else {
-						$$renderer.push("<!--[-1-->");
-						$$renderer.push(`<span class="material-symbols-rounded">cloud_upload</span> התחילי העלאה לספריה`);
-					}
-					$$renderer.push(`<!--]-->`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></div></div></div></form></div>`);
+			$$renderer.push(`<!--]--></div></div> <div class="submit-action-row">`);
+			if (onCancel) {
+				$$renderer.push("<!--[0-->");
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--paper",
+						type: "button",
+						onclick: onCancel,
+						disabled: uploadStatus === "uploading",
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->ביטול`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+			} else $$renderer.push("<!--[-1-->");
+			$$renderer.push(`<!--]--> `);
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--ink upload-submit-button",
+					type: "submit",
+					disabled: !canSubmit() || uploadStatus === "uploading",
+					children: ($$renderer) => {
+						if (uploadStatus === "uploading") {
+							$$renderer.push("<!--[0-->");
+							$$renderer.push(`מעלה...`);
+						} else if (uploadStatus === "processing") {
+							$$renderer.push("<!--[1-->");
+							$$renderer.push(`מעבד...`);
+						} else {
+							$$renderer.push("<!--[-1-->");
+							$$renderer.push(`<span class="material-symbols-rounded">cloud_upload</span> העלאה לספריה`);
+						}
+						$$renderer.push(`<!--]-->`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
+			$$renderer.push(`</div></form></div>`);
 		}
 		do {
 			$$settled = true;
@@ -1134,18 +616,34 @@ function VideoUploadForm($$renderer, $$props) {
 	});
 }
 //#endregion
-//#region src/lib/components/ui/AspectRatio.svelte
-function AspectRatio_1($$renderer, $$props) {
+//#region src/lib/features/studio/components/VideoCard.svelte
+function VideoCard($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { ratio = 16 / 9, children, class: className = "" } = $$props;
+		let { video, actionId = null, onEdit, onPublish, onDelete } = $$props;
+		const isPending = derived(() => actionId === video._id);
+		function getStatusLabel(status) {
+			if (status === "published") return "פעיל";
+			if (status === "draft") return "טיוטה";
+			return "בארכיון";
+		}
+		$$renderer.push(`<article${attr_class("video-card", void 0, {
+			"is-draft": video.status === "draft",
+			"is-pending": isPending()
+		})}><div class="thumbnail-wrapper">`);
 		if (Aspect_ratio) {
 			$$renderer.push("<!--[-->");
 			Aspect_ratio($$renderer, {
-				class: `hb-aspect-ratio ${className}`.trim(),
-				ratio,
+				class: "hb-aspect-ratio",
+				ratio: 16 / 9,
 				children: ($$renderer) => {
-					children($$renderer);
-					$$renderer.push(`<!---->`);
+					if (video.thumbnailUrl) {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<img${attr("src", video.thumbnailUrl)}${attr("alt", video.title)} loading="lazy" class="thumbnail-img"/>`);
+					} else {
+						$$renderer.push("<!--[-1-->");
+						$$renderer.push(`<div class="thumbnail-placeholder"><span class="material-symbols-rounded placeholder-icon">movie</span> <span class="placeholder-duration">${escape_html(durationLabel(video.durationSeconds))}</span></div>`);
+					}
+					$$renderer.push(`<!--]-->`);
 				},
 				$$slots: { default: true }
 			});
@@ -1154,99 +652,231 @@ function AspectRatio_1($$renderer, $$props) {
 			$$renderer.push("<!--[!-->");
 			$$renderer.push("<!--]-->");
 		}
+		$$renderer.push(` <span${attr_class("status-badge", void 0, {
+			"published": video.status === "published",
+			"draft": video.status === "draft"
+		})}>${escape_html(getStatusLabel(video.status))}</span></div> <div class="card-body"><div class="card-header"><h3 class="video-title">${escape_html(video.title)}</h3> `);
+		if (Menu) {
+			$$renderer.push("<!--[-->");
+			Menu($$renderer, {
+				children: ($$renderer) => {
+					if (Menu_trigger) {
+						$$renderer.push("<!--[-->");
+						Menu_trigger($$renderer, {
+							class: "hb-dropdown-trigger",
+							children: ($$renderer) => {
+								$$renderer.push(`<button class="menu-trigger-button" type="button" aria-label="תפריט פעולות"><span class="material-symbols-rounded">more_vert</span></button>`);
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+					$$renderer.push(` `);
+					if (Portal) {
+						$$renderer.push("<!--[-->");
+						Portal($$renderer, {
+							children: ($$renderer) => {
+								if (Dropdown_menu_content) {
+									$$renderer.push("<!--[-->");
+									Dropdown_menu_content($$renderer, {
+										class: "hb-dropdown-content",
+										children: ($$renderer) => {
+											if (Menu_item) {
+												$$renderer.push("<!--[-->");
+												Menu_item($$renderer, {
+													class: "hb-dropdown-item",
+													onclick: () => onEdit(video),
+													children: ($$renderer) => {
+														$$renderer.push(`<!---->ערוך פרטים`);
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+											$$renderer.push(` `);
+											if (Menu_item) {
+												$$renderer.push("<!--[-->");
+												Menu_item($$renderer, {
+													class: "hb-dropdown-item",
+													onclick: () => onPublish(video._id),
+													disabled: isPending() || video.status === "published",
+													children: ($$renderer) => {
+														$$renderer.push(`<!---->פרסם שיעור`);
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+											$$renderer.push(` `);
+											if (Menu_item) {
+												$$renderer.push("<!--[-->");
+												Menu_item($$renderer, {
+													class: "hb-dropdown-item hb-dropdown-item--danger",
+													onclick: () => onDelete(video._id),
+													disabled: isPending(),
+													children: ($$renderer) => {
+														$$renderer.push(`<!---->מחק וידאו`);
+													},
+													$$slots: { default: true }
+												});
+												$$renderer.push("<!--]-->");
+											} else {
+												$$renderer.push("<!--[!-->");
+												$$renderer.push("<!--]-->");
+											}
+										},
+										$$slots: { default: true }
+									});
+									$$renderer.push("<!--]-->");
+								} else {
+									$$renderer.push("<!--[!-->");
+									$$renderer.push("<!--]-->");
+								}
+							},
+							$$slots: { default: true }
+						});
+						$$renderer.push("<!--]-->");
+					} else {
+						$$renderer.push("<!--[!-->");
+						$$renderer.push("<!--]-->");
+					}
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push("<!--]-->");
+		} else {
+			$$renderer.push("<!--[!-->");
+			$$renderer.push("<!--]-->");
+		}
+		$$renderer.push(`</div> <p class="video-desc">${escape_html(video.description || "אין תיאור לשיעור זה.")}</p> <div class="metadata-tags"><span class="meta-tag duration">${escape_html(durationLabel(video.durationSeconds))}</span> <span${attr_class("meta-tag access", void 0, {
+			"macroflow": video.accessKind === "macroflow",
+			"microflow": video.accessKind === "microflow"
+		})}>${escape_html(video.accessKind === "macroflow" ? "Macroflow" : "Microflow")}</span> <span class="meta-tag quality">${escape_html(video.muxVideoQuality)}</span> <span class="meta-tag resolution">${escape_html(video.muxMaxResolutionTier)}</span> <!--[-->`);
+		const each_array = ensure_array_like(video.requiredEquipment);
+		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+			let eq = each_array[$$index];
+			$$renderer.push(`<span class="meta-tag equipment">${escape_html(equipmentLabel(eq))}</span>`);
+		}
+		$$renderer.push(`<!--]--></div></div></article>`);
 	});
 }
 //#endregion
-//#region src/lib/components/ui/DropdownMenu.svelte
-function DropdownMenu_1($$renderer, $$props) {
+//#region src/lib/features/studio/components/VideoList.svelte
+function VideoList($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
-		let { open = false, items, trigger, side = "bottom", align = "end", sideOffset = 6 } = $$props;
-		let $$settled = true;
-		let $$inner_renderer;
-		function $$render_inner($$renderer) {
-			if (Menu) {
+		let { library = null, actionId = null, onEdit, onPublish, onDelete } = $$props;
+		let searchQuery = "";
+		function filterVideos(list) {
+			return list.filter((video) => {
+				return (video.title.toLowerCase().includes(searchQuery.toLowerCase()) || video.description.toLowerCase().includes(searchQuery.toLowerCase())) && true;
+			});
+		}
+		const filteredPublished = derived(() => library ? filterVideos(library.published) : []);
+		const filteredDrafts = derived(() => library ? filterVideos(library.drafts) : []);
+		const totalPublishedCount = derived(() => library?.published.length ?? 0);
+		const totalDraftsCount = derived(() => library?.drafts.length ?? 0);
+		$$renderer.push(`<div class="video-library-list"><div class="filter-controls-row"><div class="search-input-wrapper"><span class="material-symbols-rounded search-icon">search</span> <input type="text"${attr("value", searchQuery)} placeholder="חיפוש שיעורים לפי כותרת או תיאור..." class="search-input"/> `);
+		$$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]--></div> <div class="access-filter-chips"><button type="button"${attr_class("filter-chip", void 0, { "active": true })}>הכל</button> <button type="button"${attr_class("filter-chip macro", void 0, { "active": false })}>Macroflow</button> <button type="button"${attr_class("filter-chip micro", void 0, { "active": false })}>Microflow</button></div></div> `);
+		if (!library) {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<div class="skeleton-grid"><div class="skeleton-card"></div> <div class="skeleton-card"></div> <div class="skeleton-card"></div></div>`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			if (Scroll_area) {
 				$$renderer.push("<!--[-->");
-				Menu($$renderer, {
-					get open() {
-						return open;
-					},
-					set open($$value) {
-						open = $$value;
-						$$settled = false;
-					},
+				Scroll_area($$renderer, {
+					class: "hb-scroll-area library-scroll-container",
 					children: ($$renderer) => {
-						{
-							function child($$renderer, { props }) {
-								$$renderer.push(`<span${attributes({
-									...props,
-									class: "hb-dropdown-trigger"
-								})}>`);
-								trigger($$renderer);
-								$$renderer.push(`<!----></span>`);
-							}
-							if (Menu_trigger) {
-								$$renderer.push("<!--[-->");
-								Menu_trigger($$renderer, {
-									child,
-									$$slots: { child: true }
-								});
-								$$renderer.push("<!--]-->");
-							} else {
-								$$renderer.push("<!--[!-->");
-								$$renderer.push("<!--]-->");
-							}
+						if (Scroll_area_viewport) {
+							$$renderer.push("<!--[-->");
+							Scroll_area_viewport($$renderer, {
+								class: "hb-scroll-area__viewport",
+								children: ($$renderer) => {
+									$$renderer.push(`<div class="sections-stack">`);
+									if (filteredDrafts().length > 0) {
+										$$renderer.push("<!--[0-->");
+										$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon draft">edit_document</span> <h2 class="group-title">שיעורים בטיוטה (${escape_html(filteredDrafts().length)})</h2> `);
+										if (totalDraftsCount() !== filteredDrafts().length) {
+											$$renderer.push("<!--[0-->");
+											$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
+										} else $$renderer.push("<!--[-1-->");
+										$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
+										const each_array = ensure_array_like(filteredDrafts());
+										for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+											let video = each_array[$$index];
+											VideoCard($$renderer, {
+												video,
+												actionId,
+												onEdit,
+												onPublish,
+												onDelete
+											});
+										}
+										$$renderer.push(`<!--]--></div></section>`);
+									} else $$renderer.push("<!--[-1-->");
+									$$renderer.push(`<!--]--> `);
+									if (filteredPublished().length > 0) {
+										$$renderer.push("<!--[0-->");
+										$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon published">check_circle</span> <h2 class="group-title">שיעורים פעילים בספרייה (${escape_html(filteredPublished().length)})</h2> `);
+										if (totalPublishedCount() !== filteredPublished().length) {
+											$$renderer.push("<!--[0-->");
+											$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
+										} else $$renderer.push("<!--[-1-->");
+										$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
+										const each_array_1 = ensure_array_like(filteredPublished());
+										for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+											let video = each_array_1[$$index_1];
+											VideoCard($$renderer, {
+												video,
+												actionId,
+												onEdit,
+												onPublish,
+												onDelete
+											});
+										}
+										$$renderer.push(`<!--]--></div></section>`);
+									} else $$renderer.push("<!--[-1-->");
+									$$renderer.push(`<!--]--> `);
+									if (totalPublishedCount() === 0 && totalDraftsCount() === 0) {
+										$$renderer.push("<!--[0-->");
+										$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">video_library</span> <h3>אין עדיין שיעורים בספרייה</h3> <p>העלי את השיעור הראשון שלך באמצעות כרטיסיית "העלאה חדשה" למעלה.</p></div>`);
+									} else if (filteredPublished().length === 0 && filteredDrafts().length === 0) {
+										$$renderer.push("<!--[1-->");
+										$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">search_off</span> <h3>לא נמצאו תוצאות</h3> <p>נסי לשנות את מונח החיפוש או פילטר מודל הגישה.</p></div>`);
+									} else $$renderer.push("<!--[-1-->");
+									$$renderer.push(`<!--]--></div>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
 						}
 						$$renderer.push(` `);
-						if (Portal) {
+						if (Scroll_area_scrollbar) {
 							$$renderer.push("<!--[-->");
-							Portal($$renderer, {
+							Scroll_area_scrollbar($$renderer, {
+								class: "hb-scroll-area__bar",
+								orientation: "vertical",
 								children: ($$renderer) => {
-									{
-										function child($$renderer, { wrapperProps, props, open: isOpen }) {
-											if (isOpen) {
-												$$renderer.push("<!--[0-->");
-												$$renderer.push(`<div${attributes({ ...wrapperProps })}><div${attributes({
-													...props,
-													class: "hb-dropdown-content"
-												})}><!--[-->`);
-												const each_array = ensure_array_like(items);
-												for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-													let item = each_array[$$index];
-													if (Menu_item) {
-														$$renderer.push("<!--[-->");
-														Menu_item($$renderer, {
-															class: `hb-dropdown-item ${item.danger ? "hb-dropdown-item--danger" : ""}`.trim(),
-															disabled: item.disabled,
-															onclick: item.onclick,
-															children: ($$renderer) => {
-																$$renderer.push(`<!---->${escape_html(item.label)}`);
-															},
-															$$slots: { default: true }
-														});
-														$$renderer.push("<!--]-->");
-													} else {
-														$$renderer.push("<!--[!-->");
-														$$renderer.push("<!--]-->");
-													}
-												}
-												$$renderer.push(`<!--]--></div></div>`);
-											} else $$renderer.push("<!--[-1-->");
-											$$renderer.push(`<!--]-->`);
-										}
-										if (Dropdown_menu_content) {
-											$$renderer.push("<!--[-->");
-											Dropdown_menu_content($$renderer, {
-												side,
-												align,
-												sideOffset,
-												child,
-												$$slots: { child: true }
-											});
-											$$renderer.push("<!--]-->");
-										} else {
-											$$renderer.push("<!--[!-->");
-											$$renderer.push("<!--]-->");
-										}
+									if (Scroll_area_thumb) {
+										$$renderer.push("<!--[-->");
+										Scroll_area_thumb($$renderer, { class: "hb-scroll-area__thumb" });
+										$$renderer.push("<!--]-->");
+									} else {
+										$$renderer.push("<!--[!-->");
+										$$renderer.push("<!--]-->");
 									}
 								},
 								$$slots: { default: true }
@@ -1265,172 +895,6 @@ function DropdownMenu_1($$renderer, $$props) {
 				$$renderer.push("<!--]-->");
 			}
 		}
-		do {
-			$$settled = true;
-			$$inner_renderer = $$renderer.copy();
-			$$render_inner($$inner_renderer);
-		} while (!$$settled);
-		$$renderer.subsume($$inner_renderer);
-		bind_props($$props, { open });
-	});
-}
-//#endregion
-//#region src/lib/features/studio/components/VideoCard.svelte
-function VideoCard($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { video, actionId = null, onEdit, onPublish, onDelete } = $$props;
-		const isPending = derived(() => actionId === video._id);
-		function getStatusLabel(status) {
-			if (status === "published") return "פעיל";
-			if (status === "draft") return "טיוטה";
-			return "בארכיון";
-		}
-		$$renderer.push(`<article${attr_class("video-card svelte-avpgnm", void 0, {
-			"is-draft": video.status === "draft",
-			"is-pending": isPending()
-		})}><div class="thumbnail-wrapper svelte-avpgnm">`);
-		AspectRatio_1($$renderer, {
-			ratio: 16 / 9,
-			children: ($$renderer) => {
-				if (video.thumbnailUrl) {
-					$$renderer.push("<!--[0-->");
-					$$renderer.push(`<img${attr("src", video.thumbnailUrl)}${attr("alt", video.title)} loading="lazy" class="thumbnail-img svelte-avpgnm"/>`);
-				} else {
-					$$renderer.push("<!--[-1-->");
-					$$renderer.push(`<div class="thumbnail-placeholder svelte-avpgnm"><span class="material-symbols-rounded placeholder-icon svelte-avpgnm">movie</span> <span class="placeholder-duration svelte-avpgnm">${escape_html(durationLabel(video.durationSeconds))}</span></div>`);
-				}
-				$$renderer.push(`<!--]-->`);
-			},
-			$$slots: { default: true }
-		});
-		$$renderer.push(`<!----> <span${attr_class("status-badge svelte-avpgnm", void 0, {
-			"published": video.status === "published",
-			"draft": video.status === "draft"
-		})}>${escape_html(getStatusLabel(video.status))}</span></div> <div class="card-body svelte-avpgnm"><div class="card-header svelte-avpgnm"><h3 class="video-title svelte-avpgnm">${escape_html(video.title)}</h3> `);
-		{
-			function trigger($$renderer) {
-				$$renderer.push(`<button class="menu-trigger-button svelte-avpgnm" type="button" aria-label="תפריט פעולות"><span class="material-symbols-rounded">more_vert</span></button>`);
-			}
-			DropdownMenu_1($$renderer, {
-				items: [
-					{
-						label: "ערוך פרטים",
-						onclick: () => onEdit(video)
-					},
-					{
-						label: "פרסם שיעור",
-						onclick: () => onPublish(video._id),
-						disabled: isPending() || video.status === "published"
-					},
-					{
-						label: "מחק וידאו",
-						danger: true,
-						onclick: () => onDelete(video._id),
-						disabled: isPending()
-					}
-				],
-				trigger,
-				$$slots: { trigger: true }
-			});
-		}
-		$$renderer.push(`<!----></div> <p class="video-desc svelte-avpgnm">${escape_html(video.description || "אין תיאור לשיעור זה.")}</p> <div class="metadata-tags svelte-avpgnm"><span class="meta-tag duration svelte-avpgnm">${escape_html(durationLabel(video.durationSeconds))}</span> <span${attr_class("meta-tag access svelte-avpgnm", void 0, {
-			"macroflow": video.accessKind === "macroflow",
-			"microflow": video.accessKind === "microflow"
-		})}>${escape_html(video.accessKind === "macroflow" ? "Macroflow" : "Microflow")}</span> <span class="meta-tag quality svelte-avpgnm">${escape_html(video.muxVideoQuality)}</span> <span class="meta-tag resolution svelte-avpgnm">${escape_html(video.muxMaxResolutionTier)}</span> <!--[-->`);
-		const each_array = ensure_array_like(video.requiredEquipment);
-		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-			let eq = each_array[$$index];
-			$$renderer.push(`<span class="meta-tag equipment svelte-avpgnm">${escape_html(equipmentLabel(eq))}</span>`);
-		}
-		$$renderer.push(`<!--]--></div></div></article>`);
-	});
-}
-//#endregion
-//#region src/lib/features/studio/components/VideoList.svelte
-function VideoList($$renderer, $$props) {
-	$$renderer.component(($$renderer) => {
-		let { library = null, actionId = null, onEdit, onPublish, onDelete } = $$props;
-		let searchQuery = "";
-		let selectedAccessFilter = "all";
-		function filterVideos(list) {
-			return list.filter((video) => {
-				const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) || video.description.toLowerCase().includes(searchQuery.toLowerCase());
-				const matchesAccess = selectedAccessFilter === "all" || video.accessKind === selectedAccessFilter;
-				return matchesSearch && matchesAccess;
-			});
-		}
-		const filteredPublished = derived(() => library ? filterVideos(library.published) : []);
-		const filteredDrafts = derived(() => library ? filterVideos(library.drafts) : []);
-		const totalPublishedCount = derived(() => library?.published.length ?? 0);
-		const totalDraftsCount = derived(() => library?.drafts.length ?? 0);
-		$$renderer.push(`<div class="video-library-list"><div class="filter-controls-row"><div class="search-input-wrapper"><span class="material-symbols-rounded search-icon">search</span> <input type="text"${attr("value", searchQuery)} placeholder="חיפוש שיעורים לפי כותרת או תיאור..." class="search-input"/> `);
-		$$renderer.push("<!--[-1-->");
-		$$renderer.push(`<!--]--></div> <div class="access-filter-chips"><button${attr_class("filter-chip", void 0, { "active": selectedAccessFilter === "all" })}>הכל</button> <button${attr_class("filter-chip macro", void 0, { "active": selectedAccessFilter === "macroflow" })}>Macroflow</button> <button${attr_class("filter-chip micro", void 0, { "active": selectedAccessFilter === "microflow" })}>Microflow</button></div></div> `);
-		if (!library) {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="skeleton-grid"><div class="skeleton-card"></div> <div class="skeleton-card"></div> <div class="skeleton-card"></div></div>`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			ScrollArea_1($$renderer, {
-				class: "library-scroll-container",
-				children: ($$renderer) => {
-					$$renderer.push(`<div class="sections-stack">`);
-					if (filteredDrafts().length > 0) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon draft">edit_document</span> <h2 class="group-title">שיעורים בטיוטה (${escape_html(filteredDrafts().length)})</h2> `);
-						if (totalDraftsCount() !== filteredDrafts().length) {
-							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
-						const each_array = ensure_array_like(filteredDrafts());
-						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-							let video = each_array[$$index];
-							VideoCard($$renderer, {
-								video,
-								actionId,
-								onEdit,
-								onPublish,
-								onDelete
-							});
-						}
-						$$renderer.push(`<!--]--></div></section>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> `);
-					if (filteredPublished().length > 0) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<section class="library-group"><div class="group-header"><span class="material-symbols-rounded group-icon published">check_circle</span> <h2 class="group-title">שיעורים פעילים בספרייה (${escape_html(filteredPublished().length)})</h2> `);
-						if (totalPublishedCount() !== filteredPublished().length) {
-							$$renderer.push("<!--[0-->");
-							$$renderer.push(`<span class="filtered-badge">מסונן</span>`);
-						} else $$renderer.push("<!--[-1-->");
-						$$renderer.push(`<!--]--></div> <div class="video-grid"><!--[-->`);
-						const each_array_1 = ensure_array_like(filteredPublished());
-						for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-							let video = each_array_1[$$index_1];
-							VideoCard($$renderer, {
-								video,
-								actionId,
-								onEdit,
-								onPublish,
-								onDelete
-							});
-						}
-						$$renderer.push(`<!--]--></div></section>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> `);
-					if (totalPublishedCount() === 0 && totalDraftsCount() === 0) {
-						$$renderer.push("<!--[0-->");
-						$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">video_library</span> <h3>אין עדיין שיעורים בספרייה</h3> <p>העלי את השיעור הראשון שלך באמצעות כרטיסיית "העלאה חדשה" למעלה.</p></div>`);
-					} else if (filteredPublished().length === 0 && filteredDrafts().length === 0) {
-						$$renderer.push("<!--[1-->");
-						$$renderer.push(`<div class="empty-state-notice"><span class="material-symbols-rounded empty-icon">search_off</span> <h3>לא נמצאו תוצאות</h3> <p>נסי לשנות את מונח החיפוש או פילטר מודל הגישה.</p></div>`);
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--></div>`);
-				},
-				$$slots: { default: true }
-			});
-		}
 		$$renderer.push(`<!--]--></div>`);
 	});
 }
@@ -1441,9 +905,8 @@ function VideoEditModal($$renderer, $$props) {
 		let { video, actionId = null, onClose, onSave } = $$props;
 		let title = "";
 		let description = "";
-		let descEl = null;
 		new TextareaAutosize({
-			element: () => descEl ?? void 0,
+			element: () => void 0,
 			input: () => description
 		});
 		let isSaving = false;
@@ -1513,27 +976,41 @@ function VideoEditModal($$renderer, $$props) {
 												const $$body = escape_html(description);
 												if ($$body) $$renderer.push(`${$$body}`);
 												$$renderer.push(`</textarea></label> <div class="modal-actions">`);
-												Button_1($$renderer, {
-													tone: "ink",
-													type: "submit",
-													disabled: isPending() || !title.trim(),
-													children: ($$renderer) => {
-														$$renderer.push(`<!---->${escape_html(isPending() ? "שומר..." : "שמירת שינויים")}`);
-													},
-													$$slots: { default: true }
-												});
-												$$renderer.push(`<!----> `);
-												Button_1($$renderer, {
-													tone: "paper",
-													type: "button",
-													onclick: onClose,
-													disabled: isPending(),
-													children: ($$renderer) => {
-														$$renderer.push(`<!---->ביטול`);
-													},
-													$$slots: { default: true }
-												});
-												$$renderer.push(`<!----></div></form>`);
+												if (Button) {
+													$$renderer.push("<!--[-->");
+													Button($$renderer, {
+														class: "hb-button hb-button--ink",
+														type: "submit",
+														disabled: isPending() || !title.trim(),
+														children: ($$renderer) => {
+															$$renderer.push(`<!---->${escape_html(isPending() ? "שומר..." : "שמירת שינויים")}`);
+														},
+														$$slots: { default: true }
+													});
+													$$renderer.push("<!--]-->");
+												} else {
+													$$renderer.push("<!--[!-->");
+													$$renderer.push("<!--]-->");
+												}
+												$$renderer.push(` `);
+												if (Button) {
+													$$renderer.push("<!--[-->");
+													Button($$renderer, {
+														class: "hb-button hb-button--paper",
+														type: "button",
+														onclick: onClose,
+														disabled: isPending(),
+														children: ($$renderer) => {
+															$$renderer.push(`<!---->ביטול`);
+														},
+														$$slots: { default: true }
+													});
+													$$renderer.push("<!--]-->");
+												} else {
+													$$renderer.push("<!--[!-->");
+													$$renderer.push("<!--]-->");
+												}
+												$$renderer.push(`</div></form>`);
 											} else $$renderer.push("<!--[-1-->");
 											$$renderer.push(`<!--]-->`);
 										},
@@ -1567,7 +1044,7 @@ function VideoEditModal($$renderer, $$props) {
 function InstructorVideoManager($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		const auth = initAuth();
-		let tab = "library";
+		let showUpload = false;
 		let actionId = null;
 		let actionError = "";
 		let uploadStatus = "idle";
@@ -1621,10 +1098,10 @@ function InstructorVideoManager($$renderer, $$props) {
 				setTimeout(() => {
 					if (uploadStatus === "processing") {
 						uploadStatus = "ready";
-						tab = "library";
+						showUpload = false;
 						uploadProgress = 0;
 					}
-				}, 2500);
+				}, 1500);
 			} catch (reason) {
 				uploadStatus = "error";
 				uploadError = reason instanceof Error ? reason.message : "העלאת קובץ הווידאו נכשלה.";
@@ -1691,114 +1168,92 @@ function InstructorVideoManager($$renderer, $$props) {
 				actionId = null;
 			}
 		}
-		let $$settled = true;
-		let $$inner_renderer;
-		function $$render_inner($$renderer) {
-			PageShell($$renderer, {
-				title: "ספריית שיעורי וידאו",
-				description: "העלאת שיעורים חדשים, שיוך לקטגוריות Macroflow/Microflow, וניהול תוכן מתוזמן.",
-				children: ($$renderer) => {
-					if (actionError) {
-						$$renderer.push("<!--[0-->");
-						Notice($$renderer, {
-							tone: "danger",
-							children: ($$renderer) => {
-								$$renderer.push(`<!---->${escape_html(actionError)}`);
-							},
-							$$slots: { default: true }
-						});
-					} else $$renderer.push("<!--[-1-->");
-					$$renderer.push(`<!--]--> `);
-					Tabs_1($$renderer, {
-						items: [{
-							value: "library",
-							label: "ספריית שיעורים"
-						}, {
-							value: "upload",
-							label: "העלאת וידאו חדש"
-						}],
-						ariaLabel: "ניהול סרטוני וידאו",
-						get value() {
-							return tab;
-						},
-						set value($$value) {
-							tab = $$value;
-							$$settled = false;
-						},
+		PageShell($$renderer, {
+			title: "ספריית שיעורי וידאו",
+			description: "העלאת שיעורים חדשים, שיוך לקטגוריות Macroflow/Microflow, וניהול תוכן מתוזמן.",
+			children: ($$renderer) => {
+				if (actionError) {
+					$$renderer.push("<!--[0-->");
+					Notice($$renderer, {
+						tone: "danger",
 						children: ($$renderer) => {
-							if (Tabs_content) {
-								$$renderer.push("<!--[-->");
-								Tabs_content($$renderer, {
-									value: "library",
-									children: ($$renderer) => {
-										$$renderer.push(`<div class="library-tab-content svelte-19auows">`);
-										VideoList($$renderer, {
-											library: library(),
-											actionId,
-											onEdit: (video) => editingVideoObj = video,
-											onPublish: handlePublishVideo,
-											onDelete: handleDeleteVideo
-										});
-										$$renderer.push(`<!----></div>`);
-									},
-									$$slots: { default: true }
-								});
-								$$renderer.push("<!--]-->");
-							} else {
-								$$renderer.push("<!--[!-->");
-								$$renderer.push("<!--]-->");
-							}
-							$$renderer.push(` `);
-							if (Tabs_content) {
-								$$renderer.push("<!--[-->");
-								Tabs_content($$renderer, {
-									value: "upload",
-									children: ($$renderer) => {
-										$$renderer.push(`<div class="upload-tab-content svelte-19auows">`);
-										VideoUploadForm($$renderer, {
-											categories: categories(),
-											uploadStatus,
-											uploadProgress,
-											uploadError,
-											creatingCategory,
-											categoryError,
-											onCreateCategory: handleCreateCategory,
-											onSubmit: handleStartUpload
-										});
-										$$renderer.push(`<!----></div>`);
-									},
-									$$slots: { default: true }
-								});
-								$$renderer.push("<!--]-->");
-							} else {
-								$$renderer.push("<!--[!-->");
-								$$renderer.push("<!--]-->");
-							}
+							$$renderer.push(`<!---->${escape_html(actionError)}`);
 						},
 						$$slots: { default: true }
 					});
-					$$renderer.push(`<!---->`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----> `);
-			if (editingVideoObj) {
-				$$renderer.push("<!--[0-->");
-				VideoEditModal($$renderer, {
-					video: editingVideoObj,
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]--> `);
+				if (uploadStatus === "ready") {
+					$$renderer.push("<!--[0-->");
+					Notice($$renderer, {
+						tone: "success",
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->הווידאו הועלה בהצלחה! מעבדים אותו בשרתי Mux — יופיע בספריה תוך כמה דקות.`);
+						},
+						$$slots: { default: true }
+					});
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]--> <div class="manager-layout svelte-19auows"><div class="manager-toolbar svelte-19auows">`);
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: `hb-button ${showUpload ? "hb-button--paper" : "hb-button--ink"}`,
+						type: "button",
+						onclick: () => {
+							showUpload = !showUpload;
+						},
+						children: ($$renderer) => {
+							$$renderer.push(`<span class="material-symbols-rounded">${escape_html(showUpload ? "close" : "cloud_upload")}</span> ${escape_html(showUpload ? "סגירת פאנל" : "העלאת וידאו חדש")}`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
+				$$renderer.push(`</div> `);
+				if (showUpload) {
+					$$renderer.push("<!--[0-->");
+					$$renderer.push(`<div class="upload-panel svelte-19auows">`);
+					VideoUploadForm($$renderer, {
+						categories: categories(),
+						uploadStatus,
+						uploadProgress,
+						uploadError,
+						creatingCategory,
+						categoryError,
+						onCreateCategory: handleCreateCategory,
+						onSubmit: handleStartUpload,
+						onCancel: () => {
+							showUpload = false;
+						}
+					});
+					$$renderer.push(`<!----></div>`);
+				} else $$renderer.push("<!--[-1-->");
+				$$renderer.push(`<!--]--> `);
+				VideoList($$renderer, {
+					library: library(),
 					actionId,
-					onClose: () => editingVideoObj = null,
-					onSave: handleSaveEdit
+					onEdit: (video) => editingVideoObj = video,
+					onPublish: handlePublishVideo,
+					onDelete: handleDeleteVideo
 				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]-->`);
-		}
-		do {
-			$$settled = true;
-			$$inner_renderer = $$renderer.copy();
-			$$render_inner($$inner_renderer);
-		} while (!$$settled);
-		$$renderer.subsume($$inner_renderer);
+				$$renderer.push(`<!----></div>`);
+			},
+			$$slots: { default: true }
+		});
+		$$renderer.push(`<!----> `);
+		if (editingVideoObj) {
+			$$renderer.push("<!--[0-->");
+			VideoEditModal($$renderer, {
+				video: editingVideoObj,
+				actionId,
+				onClose: () => editingVideoObj = null,
+				onSave: handleSaveEdit
+			});
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]-->`);
 	});
 }
 //#endregion

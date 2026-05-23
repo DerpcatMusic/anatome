@@ -1,5 +1,5 @@
 import { a as bind_props, f as spread_props, i as attributes, o as derived, u as props_id } from "./dev.js";
-import { B as getDataOpenClosed, G as watch, J as attachRef, L as createBitsAttrs, N as boolToEmptyStrOrUndef, V as getDataTransitionAttrs, Z as mergeProps, at as boxWith, c as createId, l as noop, q as Context } from "./arrays.js";
+import { H as getDataTransitionAttrs, J as Context, K as watch, P as boolToEmptyStrOrUndef, R as createBitsAttrs, V as getDataOpenClosed, X as mergeProps, Y as attachRef, c as createId, l as noop, nt as boxWith } from "./arrays.js";
 import { a as Dismissible_layer, i as Escape_layer, m as PresenceManager, n as Text_selection_layer, r as Focus_scope, t as Scroll_lock } from "./scroll-lock.js";
 //#region node_modules/bits-ui/dist/bits/dialog/dialog.svelte.js
 var dialogAttrs = createBitsAttrs({

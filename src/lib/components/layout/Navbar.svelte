@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { initAuth, signOut } from "$lib/auth/session.svelte";
-
+  import { theme } from "$features/app/theme.svelte";
 
   const auth = initAuth();
 
@@ -19,13 +19,25 @@
     </a>
 
     <div class="navbar__actions">
+      <button
+        type="button"
+        class="navbar__theme"
+        onclick={() => theme.toggle()}
+        title={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+        aria-label={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+      >
+        <span class="material-symbols-rounded">
+          {theme.value === "dark" ? "light_mode" : "dark_mode"}
+        </span>
+      </button>
+
       {#if auth.isLoading}
         <span class="navbar__status">טוען...</span>
       {:else if auth.isAuthenticated}
-        <Button tone="sky" size="sm" onclick={() => window.location.assign("/u/dashboard")}>אזור אישי</Button>
-        <Button tone="paper" size="sm" onclick={signOut}>יציאה</Button>
+        <Button.Root class="hb-button hb-button--sky hb-button--sm" type="button" onclick={() => window.location.assign("/u/dashboard")}>אזור אישי</Button.Root>
+        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={signOut}>יציאה</Button.Root>
       {:else}
-        <Button tone="ink" size="sm" onclick={openAuth}>כניסה</Button>
+        <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={openAuth}>כניסה</Button.Root>
       {/if}
     </div>
   </div>
@@ -81,6 +93,29 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
+  }
+
+  .navbar__theme {
+    width: 36px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    background: transparent;
+    border: var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--duration-fast), border-color var(--duration-fast), background var(--duration-fast);
+  }
+
+  .navbar__theme:hover {
+    color: var(--ink);
+    border-color: var(--sky-strong);
+    background: var(--surface);
+  }
+
+  .navbar__theme .material-symbols-rounded {
+    font-size: 20px;
   }
 
   .navbar__status {

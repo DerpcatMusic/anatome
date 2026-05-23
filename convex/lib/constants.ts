@@ -93,4 +93,5 @@ export const LIMITS = {
   CRON_CLASSES: 50,
   CRON_SETTLE: 100,
   CRON_ONE_ON_ONE: 100,
+  SUBSCRIPTION_RENEWALS: 100,
 } as const;

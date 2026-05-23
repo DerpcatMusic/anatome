@@ -18,17 +18,3 @@
 {:else if ctx.role !== "customer"}
   {@render children()}
 {/if}
-
-<style>
-  .route-guard-skeleton {
-    min-height: 60vh;
-    animation: pulse 1.6s ease-in-out infinite;
-    background: var(--line-light);
-    margin: var(--space-6);
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
-  }
-</style>

@@ -1,7 +1,8 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import MonthCalendar from "$components/ui/MonthCalendar.svelte";
+  import PageShell from "$features/app/components/PageShell.svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
@@ -127,60 +128,49 @@
       actionId = null;
     }
   }
+
+  const errorMessage = $derived((query.error?.message ?? actionError) || null);
 </script>
 
-{#if query.isLoading}
-  <div class="state-card">
-    <div class="skeleton skeleton--wide"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-  </div>
-{:else}
-  <div class="calendar-page">
-    <header class="page-header">
-      <div>
-        <p class="kicker">{t.calendar.kicker()}</p>
-        <h1>{t.calendar.title()}</h1>
-      </div>
-      <Button type="button" tone="paper" size="sm" onclick={() => { selectedDay = rangeStart; }}>
-        {t.calendar.today()}
-      </Button>
-    </header>
+<PageShell
+  kicker={t.calendar.kicker()}
+  title={t.calendar.title()}
+  loading={query.isLoading}
+  error={errorMessage}
+>
+  {#snippet headerExtra()}
+    <Button.Root
+      class="hb-button hb-button--paper hb-button--sm"
+      type="button"
+      onclick={() => { selectedDay = rangeStart; }}
+    >
+      {t.calendar.today()}
+    </Button.Root>
+  {/snippet}
 
-    {#if query.error || actionError}
-      <Notice tone="danger">{query.error?.message ?? actionError}</Notice>
-    {/if}
+  <div class="calendar-layout">
+    <div class="calendar-month">
+      <MonthCalendar value={calendarValue} onchange={onCalendarSelect} events={calendarEvents} />
+    </div>
 
-    <div class="calendar-layout">
-      <div class="calendar-month">
-        <MonthCalendar value={calendarValue} onchange={onCalendarSelect} events={calendarEvents} />
-      </div>
+    <DayStrip {days} {selectedDay} onSelect={(date) => { selectedDay = date; }} />
 
-      <DayStrip {days} {selectedDay} onSelect={(date) => { selectedDay = date; }} />
-
-      <div class="agenda" aria-live="polite">
-        {#if visibleClasses.length === 0}
-          <div class="empty-agenda">
-            <p class="empty-agenda__kicker">{t.calendar.empty.kicker()}</p>
-            <p>{t.calendar.empty.text()}</p>
-          </div>
-        {:else}
-          {#each visibleClasses as item}
-            <ClassCard {item} {actionId} onReserve={reserve} onCancel={cancel} />
-          {/each}
-        {/if}
-      </div>
+    <div class="agenda" aria-live="polite">
+      {#if visibleClasses.length === 0}
+        <div class="empty-state">
+          <p class="empty-state__kicker">{t.calendar.empty.kicker()}</p>
+          <p>{t.calendar.empty.text()}</p>
+        </div>
+      {:else}
+        {#each visibleClasses as item}
+          <ClassCard {item} {actionId} onReserve={reserve} onCancel={cancel} />
+        {/each}
+      {/if}
     </div>
   </div>
-{/if}
+</PageShell>
 
 <style>
-  .calendar-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
   .calendar-layout {
     display: flex;
     flex-direction: column;
@@ -194,29 +184,6 @@
     padding: var(--space-3);
   }
 
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-
-  .kicker {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 0;
-  }
-
-  h1 {
-    font-size: var(--step-3);
-    line-height: 1.1;
-    margin: 0;
-  }
-
   .agenda {
     display: flex;
     flex-direction: column;
@@ -225,35 +192,23 @@
     border: var(--border);
   }
 
-  .empty-agenda,
-  .state-card {
+  .empty-state {
     display: grid;
     gap: var(--space-3);
-    border: var(--border);
-    background: var(--white);
     padding: var(--space-6);
+    text-align: center;
   }
 
-  .empty-agenda__kicker {
+  .empty-state__kicker {
     font-family: var(--font-mono);
     font-size: var(--step--1);
     color: var(--muted);
     font-weight: 700;
-    margin: 0 0 var(--space-2);
+    margin: 0;
   }
 
-  .skeleton {
-    height: 64px;
-    background: var(--line-light);
-    animation: skeleton-pulse 1.6s ease-in-out infinite;
-  }
-
-  .skeleton--wide {
-    height: 120px;
-  }
-
-  @keyframes skeleton-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
+  .empty-state p {
+    color: var(--muted);
+    margin: 0;
   }
 </style>

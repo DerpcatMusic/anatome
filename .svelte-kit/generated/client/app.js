@@ -38,7 +38,12 @@ export const nodes = [
 	() => import('./nodes/34'),
 	() => import('./nodes/35'),
 	() => import('./nodes/36'),
-	() => import('./nodes/37')
+	() => import('./nodes/37'),
+	() => import('./nodes/38'),
+	() => import('./nodes/39'),
+	() => import('./nodes/40'),
+	() => import('./nodes/41'),
+	() => import('./nodes/42')
 ];
 
 export const server_loads = [];
@@ -53,9 +58,14 @@ export const dictionary = {
 		"/(app)/i/one-on-one": [11,[2,3]],
 		"/(app)/i/profile": [12,[2,3]],
 		"/(app)/i/videos": [13,[2,3]],
+		"/legal/accessibility": [36],
+		"/legal/cancellations": [37],
+		"/legal/health": [38],
+		"/legal/privacy": [39],
+		"/legal/terms": [40],
 		"/(app)/live-room": [15,[2]],
 		"/(app)/live": [14,[2]],
-		"/onboarding": [36],
+		"/onboarding": [41],
 		"/(app)/one-on-one": [16,[2]],
 		"/(app)/profile": [17,[2]],
 		"/(app)/studio/videos": [18,[2]],
@@ -68,7 +78,7 @@ export const dictionary = {
 		"/(app)/watch": [25,[2]],
 		"/(app)/אזור-אישי": [26,[2]],
 		"/(app)/אחד-על-אחד": [27,[2]],
-		"/התאמה": [37],
+		"/התאמה": [42],
 		"/(app)/וידאו": [28,[2]],
 		"/(app)/חדר-לייב": [29,[5]],
 		"/(app)/לוח": [30,[2]],

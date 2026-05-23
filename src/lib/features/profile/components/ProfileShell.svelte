@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
@@ -154,7 +154,7 @@
 {:else if dashboardResource.error}
   <AppLocked title="לא הצלחנו לטעון" subtitle="נסי לרענן את הדף.">
     {#snippet actions()}
-      <Button tone="ghost" type="button" onclick={retryDashboard}>לנסות שוב</Button>
+      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>לנסות שוב</Button.Root>
     {/snippet}
   </AppLocked>
 {:else if isStaff}
@@ -202,7 +202,7 @@
                 <span class="doc-icon">קובץ</span>
               {/if}
               <span class="doc-name">{certificateFile?.name || "תעודה"}</span>
-              <Button tone="ghost" type="button" onclick={() => { certificateFile = null; certificateDataUrl = ""; }}>מחק</Button>
+              <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { certificateFile = null; certificateDataUrl = ""; }}>מחק</Button.Root>
             </div>
           {:else}
             <label class="file-drop">
@@ -224,7 +224,7 @@
                 <span class="doc-icon">קובץ</span>
               {/if}
               <span class="doc-name">{insuranceFile?.name || "ביטוח"}</span>
-              <Button tone="ghost" type="button" onclick={() => { insuranceFile = null; insuranceDataUrl = ""; }}>מחק</Button>
+              <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { insuranceFile = null; insuranceDataUrl = ""; }}>מחק</Button.Root>
             </div>
           {:else}
             <label class="file-drop">
@@ -235,9 +235,9 @@
         </div>
       </section>
 
-      <Button tone="ink" onclick={saveInstructorProfile} disabled={saving}>
+      <Button.Root class="hb-button hb-button--ink" type="button" onclick={saveInstructorProfile} disabled={saving}>
         {saving ? "שומר..." : "שמור פרופיל"}
-      </Button>
+      </Button.Root>
     </div>
   </PageShell>
 {:else if profile}

@@ -11,7 +11,8 @@ export const promote = mutation({
     if (!expected || args.secret.trim() !== expected) throw new Error("Invalid secret");
 
     const email = args.email.trim().toLowerCase();
-    const user = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", email)).unique();
+    const users = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", email)).take(1);
+    const user = users[0] ?? null;
     if (user === null) throw new Error("No user found for email");
 
     const profile = await getOrCreateAppProfile(ctx, user._id);

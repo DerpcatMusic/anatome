@@ -1,5 +1,5 @@
 import { r as tick } from "./index-server.js";
-import { U as snapshot, o as derived, xt as setContext, yt as getContext } from "./dev.js";
+import { V as snapshot, _t as getContext, o as derived, yt as setContext } from "./dev.js";
 import { r as on } from "./events.js";
 import { ConvexClient, ConvexHttpClient } from "convex/browser";
 import { anyApi, componentsGeneric, getFunctionName } from "convex/server";

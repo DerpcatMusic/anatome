@@ -364,6 +364,18 @@
   border-color: var(--sky-strong);
 }
 
+input[type="time"].hb-input {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-align: center;
+  direction: ltr;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.2);
+  cursor: pointer;
+}
+
 .hb-select__trigger {
   position: relative;
   display: inline-grid;

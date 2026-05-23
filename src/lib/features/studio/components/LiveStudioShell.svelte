@@ -1,6 +1,6 @@
 <script lang="ts">
 
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
@@ -147,10 +147,10 @@
   {#if !loading && !error}
     <div class="studio-container">
       <div class="calendar-actions-header">
-        <Button tone="ink" type="button" onclick={openCreateModal}>
+        <Button.Root class="hb-button hb-button--ink" type="button" onclick={openCreateModal}>
           <span class="material-symbols-rounded">add_circle</span>
           שיעור לייב חדש
-        </Button>
+        </Button.Root>
       </div>
 
       <WeeklyAgenda
@@ -191,7 +191,7 @@
     </LiveClassModalShell>
   {:else if error}
     <div class="retry-state">
-      <Button tone="ghost" type="button" onclick={retryLoad}>נסה שוב</Button>
+      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryLoad}>נסה שוב</Button.Root>
     </div>
   {/if}
 </PageShell>
@@ -201,6 +201,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+    flex: 1;
+    min-height: 0;
     direction: rtl;
   }
 

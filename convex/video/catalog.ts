@@ -7,10 +7,11 @@ export const listLibrary = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const profile = await ctx.db
+    const profiles = await ctx.db
       .query("appProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(1);
+    const profile = profiles[0] ?? null;
     const entitlements = await ctx.db
       .query("videoEntitlements")
       .withIndex("by_userId_and_kind", (q) => q.eq("userId", userId).eq("kind", "macroflow"))

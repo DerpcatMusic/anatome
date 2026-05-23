@@ -114,7 +114,6 @@ export async function buildAvailableSlots(
   const instructorIds = await activeInstructorIds(ctx);
   const instructorIdSet = new Set(instructorIds);
   const slots: AvailableOneOnOneSlot[] = [];
-  const now = Date.now();
 
   for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart += dayMs) {
     const rules = await ctx.db
@@ -132,7 +131,7 @@ export async function buildAvailableSlots(
         startsAt += step
       ) {
         const endsAt = startsAt + duration;
-        if (startsAt < Math.max(from, now + 2 * 60 * minuteMs) || endsAt > to) continue;
+        if (startsAt < from || endsAt > to) continue;
         if (!(await isOneOnOneSlotFree(ctx, rule.instructorUserId, startsAt, endsAt))) continue;
         slots.push({ instructorUserId: rule.instructorUserId, startsAt, endsAt, availableCredits });
       }

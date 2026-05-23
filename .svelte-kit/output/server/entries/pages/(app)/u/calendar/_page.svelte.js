@@ -1,12 +1,13 @@
-import { a as bind_props, c as ensure_array_like, et as attr, i as attributes, m as stringify, n as attr_class, nt as escape_html, o as derived } from "../../../../../chunks/dev.js";
+import { a as bind_props, c as ensure_array_like, et as escape_html, i as attributes, n as attr_class, o as derived, p as stringify, u as props_id } from "../../../../../chunks/dev.js";
 import { t as liveRoomHref } from "../../../../../chunks/context.js";
 import { _ as useQuery, g as useConvexClient, r as initAuth, s as api } from "../../../../../chunks/session.svelte.js";
-import { G as watch, Z as mergeProps, at as boxWith, l as noop } from "../../../../../chunks/arrays.js";
+import { F as boolToStr, J as Context, K as watch, L as boolToTrueOrUndef, P as boolToEmptyStrOrUndef, R as createBitsAttrs, X as mergeProps, Y as attachRef, c as createId, l as noop, nt as boxWith, u as RovingFocusGroup, z as getAriaChecked } from "../../../../../chunks/arrays.js";
 import { n as resolveLocaleProp, t as useId } from "../../../../../chunks/use-id.js";
-import { t as Button_1 } from "../../../../../chunks/Button.js";
+import { t as Button } from "../../../../../chunks/button.js";
 import { a as Calendar_grid_row, c as Calendar_cell, d as Calendar_day, f as CalendarRootState, g as getDefaultDate, i as Calendar_header, l as Calendar_grid_body, n as Calendar_next_button, o as Calendar_head_cell, r as Calendar_heading, s as Calendar_grid_head, t as Calendar_prev_button, u as Calendar_grid } from "../../../../../chunks/calendar-prev-button.js";
-import { t as Notice } from "../../../../../chunks/Notice.js";
+import "../../../../../chunks/Notice.js";
 import { t as useI18n } from "../../../../../chunks/runes.svelte.js";
+import { t as PageShell } from "../../../../../chunks/PageShell.js";
 import { n as creditLabel, t as classTypeLabel } from "../../../../../chunks/labels.js";
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 //#region node_modules/bits-ui/dist/bits/calendar/components/calendar.svelte
@@ -87,6 +88,254 @@ function Calendar($$renderer, $$props) {
 			value,
 			placeholder
 		});
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/toggle-group/toggle-group.svelte.js
+var toggleGroupAttrs = createBitsAttrs({
+	component: "toggle-group",
+	parts: ["root", "item"]
+});
+var ToggleGroupRootContext = new Context("ToggleGroup.Root");
+var ToggleGroupBaseState = class {
+	opts;
+	rovingFocusGroup;
+	attachment;
+	constructor(opts) {
+		this.opts = opts;
+		this.attachment = attachRef(this.opts.ref);
+		this.rovingFocusGroup = new RovingFocusGroup({
+			candidateAttr: toggleGroupAttrs.item,
+			rootNode: opts.ref,
+			loop: opts.loop,
+			orientation: opts.orientation
+		});
+	}
+	#props = derived(() => ({
+		id: this.opts.id.current,
+		[toggleGroupAttrs.root]: "",
+		role: "group",
+		"data-orientation": this.opts.orientation.current,
+		"data-disabled": boolToEmptyStrOrUndef(this.opts.disabled.current),
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+var ToggleGroupSingleState = class extends ToggleGroupBaseState {
+	opts;
+	isMulti = false;
+	#anyPressed = derived(() => this.opts.value.current !== "");
+	get anyPressed() {
+		return this.#anyPressed();
+	}
+	set anyPressed($$value) {
+		return this.#anyPressed($$value);
+	}
+	constructor(opts) {
+		super(opts);
+		this.opts = opts;
+	}
+	includesItem(item) {
+		return this.opts.value.current === item;
+	}
+	toggleItem(item, id) {
+		if (this.includesItem(item)) this.opts.value.current = "";
+		else {
+			this.opts.value.current = item;
+			this.rovingFocusGroup.setCurrentTabStopId(id);
+		}
+	}
+};
+var ToggleGroupMultipleState = class extends ToggleGroupBaseState {
+	opts;
+	isMulti = true;
+	#anyPressed = derived(() => this.opts.value.current.length > 0);
+	get anyPressed() {
+		return this.#anyPressed();
+	}
+	set anyPressed($$value) {
+		return this.#anyPressed($$value);
+	}
+	constructor(opts) {
+		super(opts);
+		this.opts = opts;
+	}
+	includesItem(item) {
+		return this.opts.value.current.includes(item);
+	}
+	toggleItem(item, id) {
+		if (this.includesItem(item)) this.opts.value.current = this.opts.value.current.filter((v) => v !== item);
+		else {
+			this.opts.value.current = [...this.opts.value.current, item];
+			this.rovingFocusGroup.setCurrentTabStopId(id);
+		}
+	}
+};
+var ToggleGroupRootState = class {
+	static create(opts) {
+		const { type, ...rest } = opts;
+		const rootState = type === "single" ? new ToggleGroupSingleState(rest) : new ToggleGroupMultipleState(rest);
+		return ToggleGroupRootContext.set(rootState);
+	}
+};
+var ToggleGroupItemState = class ToggleGroupItemState {
+	static create(opts) {
+		return new ToggleGroupItemState(opts, ToggleGroupRootContext.get());
+	}
+	opts;
+	root;
+	attachment;
+	#isDisabled = derived(() => this.opts.disabled.current || this.root.opts.disabled.current);
+	#isPressed = derived(() => this.root.includesItem(this.opts.value.current));
+	get isPressed() {
+		return this.#isPressed();
+	}
+	set isPressed($$value) {
+		return this.#isPressed($$value);
+	}
+	#ariaChecked = derived(() => {
+		return this.root.isMulti ? void 0 : getAriaChecked(this.isPressed, false);
+	});
+	#ariaPressed = derived(() => {
+		return this.root.isMulti ? boolToStr(this.isPressed) : void 0;
+	});
+	constructor(opts, root) {
+		this.opts = opts;
+		this.root = root;
+		this.attachment = attachRef(this.opts.ref);
+		this.onclick = this.onclick.bind(this);
+		this.onkeydown = this.onkeydown.bind(this);
+	}
+	#toggleItem() {
+		if (this.#isDisabled()) return;
+		this.root.toggleItem(this.opts.value.current, this.opts.id.current);
+	}
+	onclick(_) {
+		if (this.#isDisabled()) return;
+		this.root.toggleItem(this.opts.value.current, this.opts.id.current);
+	}
+	onkeydown(e) {
+		if (this.#isDisabled()) return;
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			this.#toggleItem();
+			return;
+		}
+		if (!this.root.opts.rovingFocus.current) return;
+		this.root.rovingFocusGroup.handleKeydown(this.opts.ref.current, e);
+	}
+	#tabIndex = 0;
+	#snippetProps = derived(() => ({ pressed: this.isPressed }));
+	get snippetProps() {
+		return this.#snippetProps();
+	}
+	set snippetProps($$value) {
+		return this.#snippetProps($$value);
+	}
+	#props = derived(() => ({
+		id: this.opts.id.current,
+		role: this.root.isMulti ? void 0 : "radio",
+		tabindex: this.#tabIndex,
+		"data-orientation": this.root.opts.orientation.current,
+		"data-disabled": boolToEmptyStrOrUndef(this.#isDisabled()),
+		"data-state": getToggleItemDataState(this.isPressed),
+		"data-value": this.opts.value.current,
+		"aria-pressed": this.#ariaPressed(),
+		"aria-checked": this.#ariaChecked(),
+		disabled: boolToTrueOrUndef(this.#isDisabled()),
+		[toggleGroupAttrs.item]: "",
+		onclick: this.onclick,
+		onkeydown: this.onkeydown,
+		...this.attachment
+	}));
+	get props() {
+		return this.#props();
+	}
+	set props($$value) {
+		return this.#props($$value);
+	}
+};
+function getToggleItemDataState(condition) {
+	return condition ? "on" : "off";
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/toggle-group/components/toggle-group.svelte
+function Toggle_group($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { id = createId(uid), ref = null, value = void 0, onValueChange = noop, type, disabled = false, loop = true, orientation = "horizontal", rovingFocus = true, child, children, $$slots, $$events, ...restProps } = $$props;
+		function handleDefaultValue() {
+			if (value !== void 0) return;
+			value = type === "single" ? "" : [];
+		}
+		handleDefaultValue();
+		watch.pre(() => value, () => {
+			handleDefaultValue();
+		});
+		const rootState = ToggleGroupRootState.create({
+			id: boxWith(() => id),
+			value: boxWith(() => value, (v) => {
+				value = v;
+				onValueChange(v);
+			}),
+			disabled: boxWith(() => disabled),
+			loop: boxWith(() => loop),
+			orientation: boxWith(() => orientation),
+			rovingFocus: boxWith(() => rovingFocus),
+			type,
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, rootState.props));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, { props: mergedProps() });
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<div${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer);
+			$$renderer.push(`<!----></div>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, {
+			ref,
+			value
+		});
+	});
+}
+//#endregion
+//#region node_modules/bits-ui/dist/bits/toggle-group/components/toggle-group-item.svelte
+function Toggle_group_item($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		const uid = props_id($$renderer);
+		let { children, child, ref = null, value, disabled = false, id = createId(uid), type = "button", $$slots, $$events, ...restProps } = $$props;
+		const itemState = ToggleGroupItemState.create({
+			id: boxWith(() => id),
+			value: boxWith(() => value),
+			disabled: boxWith(() => disabled ?? false),
+			ref: boxWith(() => ref, (v) => ref = v)
+		});
+		const mergedProps = derived(() => mergeProps(restProps, itemState.props, { type }));
+		if (child) {
+			$$renderer.push("<!--[0-->");
+			child($$renderer, {
+				props: mergedProps(),
+				...itemState.snippetProps
+			});
+			$$renderer.push(`<!---->`);
+		} else {
+			$$renderer.push("<!--[-1-->");
+			$$renderer.push(`<button${attributes({ ...mergedProps() })}>`);
+			children?.($$renderer, itemState.snippetProps);
+			$$renderer.push(`<!----></button>`);
+		}
+		$$renderer.push(`<!--]-->`);
+		bind_props($$props, { ref });
 	});
 }
 //#endregion
@@ -347,13 +596,47 @@ function DayStrip($$renderer, $$props) {
 		function dayNum(ts) {
 			return dayNumFormatter.format(new Date(ts));
 		}
-		$$renderer.push(`<div class="day-strip svelte-1s3lnwf" role="tablist" aria-label="בחירת יום"><!--[-->`);
-		const each_array = ensure_array_like(days);
-		for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-			let { date } = each_array[$$index];
-			$$renderer.push(`<button type="button" role="tab"${attr_class("day-pill svelte-1s3lnwf", void 0, { "day-pill--active": date === selectedDay })}${attr("aria-selected", date === selectedDay)}><span class="day-pill__name svelte-1s3lnwf">${escape_html(dayName(date))}</span> <span class="day-pill__num svelte-1s3lnwf">${escape_html(dayNum(date))}</span></button>`);
+		if (Toggle_group) {
+			$$renderer.push("<!--[-->");
+			Toggle_group($$renderer, {
+				type: "single",
+				value: String(selectedDay),
+				onValueChange: (v) => {
+					if (v) onSelect(Number(v));
+				},
+				class: "day-strip",
+				"aria-label": "בחירת יום",
+				children: ($$renderer) => {
+					$$renderer.push(`<!--[-->`);
+					const each_array = ensure_array_like(days);
+					for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+						let { date } = each_array[$$index];
+						if (Toggle_group_item) {
+							$$renderer.push("<!--[-->");
+							Toggle_group_item($$renderer, {
+								value: String(date),
+								class: "day-pill",
+								"aria-label": dayName(date),
+								children: ($$renderer) => {
+									$$renderer.push(`<span class="day-pill__name">${escape_html(dayName(date))}</span> <span class="day-pill__num">${escape_html(dayNum(date))}</span>`);
+								},
+								$$slots: { default: true }
+							});
+							$$renderer.push("<!--]-->");
+						} else {
+							$$renderer.push("<!--[!-->");
+							$$renderer.push("<!--]-->");
+						}
+					}
+					$$renderer.push(`<!--]-->`);
+				},
+				$$slots: { default: true }
+			});
+			$$renderer.push("<!--]-->");
+		} else {
+			$$renderer.push("<!--[!-->");
+			$$renderer.push("<!--]-->");
 		}
-		$$renderer.push(`<!--]--></div>`);
 	});
 }
 //#endregion
@@ -421,54 +704,78 @@ function ClassCard($$renderer, $$props) {
 			$$renderer.push("<!--[0-->");
 			if (item.viewerIsWalkIn) {
 				$$renderer.push("<!--[0-->");
-				Button_1($$renderer, {
-					tone: "terra",
-					size: "sm",
-					href: liveRoomHref(item.liveClass._id),
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(t.calendar.class.joinWalkIn())}`);
-					},
-					$$slots: { default: true }
-				});
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--terra hb-button--sm",
+						href: liveRoomHref(item.liveClass._id),
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->${escape_html(t.calendar.class.joinWalkIn())}`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
 			} else {
 				$$renderer.push("<!--[-1-->");
-				Button_1($$renderer, {
-					tone: "terra",
-					size: "sm",
-					href: liveRoomHref(item.liveClass._id),
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(t.calendar.class.join())}`);
-					},
-					$$slots: { default: true }
-				});
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--terra hb-button--sm",
+						href: liveRoomHref(item.liveClass._id),
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->${escape_html(t.calendar.class.join())}`);
+						},
+						$$slots: { default: true }
+					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
+				}
 			}
 			$$renderer.push(`<!--]-->`);
 		} else if (item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined") {
 			$$renderer.push("<!--[1-->");
-			Button_1($$renderer, {
-				type: "button",
-				tone: "paper",
-				size: "sm",
-				onclick: () => onCancel(item.liveClass._id),
-				disabled: actionId === item.liveClass._id,
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(t.calendar.class.cancel())}`);
-				},
-				$$slots: { default: true }
-			});
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: "hb-button hb-button--paper hb-button--sm",
+					type: "button",
+					onclick: () => onCancel(item.liveClass._id),
+					disabled: actionId === item.liveClass._id,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.calendar.class.cancel())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		} else {
 			$$renderer.push("<!--[-1-->");
-			Button_1($$renderer, {
-				type: "button",
-				tone: info().tone === "sky" ? "ink" : "paper",
-				size: "sm",
-				onclick: () => onReserve(item.liveClass._id),
-				disabled: !item.viewerCanReserve || actionId === item.liveClass._id,
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(t.calendar.class.reserve())}`);
-				},
-				$$slots: { default: true }
-			});
+			if (Button) {
+				$$renderer.push("<!--[-->");
+				Button($$renderer, {
+					class: `hb-button hb-button--sm ${info().tone === "sky" ? "hb-button--ink" : "hb-button--paper"}`,
+					type: "button",
+					onclick: () => onReserve(item.liveClass._id),
+					disabled: !item.viewerCanReserve || actionId === item.liveClass._id,
+					children: ($$renderer) => {
+						$$renderer.push(`<!---->${escape_html(t.calendar.class.reserve())}`);
+					},
+					$$slots: { default: true }
+				});
+				$$renderer.push("<!--]-->");
+			} else {
+				$$renderer.push("<!--[!-->");
+				$$renderer.push("<!--]-->");
+			}
 		}
 		$$renderer.push(`<!--]--></div></div></article>`);
 	});
@@ -565,71 +872,76 @@ function CalendarShell($$renderer, $$props) {
 				actionId = null;
 			}
 		}
-		if (query.isLoading) {
-			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="state-card svelte-1xxgmnf"><div class="skeleton skeleton--wide svelte-1xxgmnf"></div> <div class="skeleton svelte-1xxgmnf"></div> <div class="skeleton svelte-1xxgmnf"></div></div>`);
-		} else {
-			$$renderer.push("<!--[-1-->");
-			$$renderer.push(`<div class="calendar-page svelte-1xxgmnf"><header class="page-header svelte-1xxgmnf"><div class="svelte-1xxgmnf"><p class="kicker svelte-1xxgmnf">${escape_html(t.calendar.kicker())}</p> <h1 class="svelte-1xxgmnf">${escape_html(t.calendar.title())}</h1></div> `);
-			Button_1($$renderer, {
-				type: "button",
-				tone: "paper",
-				size: "sm",
-				onclick: () => {
-					selectedDay = rangeStart;
-				},
-				children: ($$renderer) => {
-					$$renderer.push(`<!---->${escape_html(t.calendar.today())}`);
-				},
-				$$slots: { default: true }
-			});
-			$$renderer.push(`<!----></header> `);
-			if (query.error || actionError) {
-				$$renderer.push("<!--[0-->");
-				Notice($$renderer, {
-					tone: "danger",
-					children: ($$renderer) => {
-						$$renderer.push(`<!---->${escape_html(query.error?.message ?? actionError)}`);
-					},
-					$$slots: { default: true }
-				});
-			} else $$renderer.push("<!--[-1-->");
-			$$renderer.push(`<!--]--> <div class="calendar-layout svelte-1xxgmnf"><div class="calendar-month svelte-1xxgmnf">`);
-			MonthCalendar($$renderer, {
-				value: calendarValue(),
-				onchange: onCalendarSelect,
-				events: calendarEvents()
-			});
-			$$renderer.push(`<!----></div> `);
-			DayStrip($$renderer, {
-				days: days(),
-				selectedDay,
-				onSelect: (date) => {
-					selectedDay = date;
-				}
-			});
-			$$renderer.push(`<!----> <div class="agenda svelte-1xxgmnf" aria-live="polite">`);
-			if (visibleClasses().length === 0) {
-				$$renderer.push("<!--[0-->");
-				$$renderer.push(`<div class="empty-agenda svelte-1xxgmnf"><p class="empty-agenda__kicker svelte-1xxgmnf">${escape_html(t.calendar.empty.kicker())}</p> <p class="svelte-1xxgmnf">${escape_html(t.calendar.empty.text())}</p></div>`);
-			} else {
-				$$renderer.push("<!--[-1-->");
-				$$renderer.push(`<!--[-->`);
-				const each_array = ensure_array_like(visibleClasses());
-				for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-					let item = each_array[$$index];
-					ClassCard($$renderer, {
-						item,
-						actionId,
-						onReserve: reserve,
-						onCancel: cancel
+		const errorMessage = derived(() => (query.error?.message ?? actionError) || null);
+		{
+			function headerExtra($$renderer) {
+				if (Button) {
+					$$renderer.push("<!--[-->");
+					Button($$renderer, {
+						class: "hb-button hb-button--paper hb-button--sm",
+						type: "button",
+						onclick: () => {
+							selectedDay = rangeStart;
+						},
+						children: ($$renderer) => {
+							$$renderer.push(`<!---->${escape_html(t.calendar.today())}`);
+						},
+						$$slots: { default: true }
 					});
+					$$renderer.push("<!--]-->");
+				} else {
+					$$renderer.push("<!--[!-->");
+					$$renderer.push("<!--]-->");
 				}
-				$$renderer.push(`<!--]-->`);
 			}
-			$$renderer.push(`<!--]--></div></div></div>`);
+			PageShell($$renderer, {
+				kicker: t.calendar.kicker(),
+				title: t.calendar.title(),
+				loading: query.isLoading,
+				error: errorMessage(),
+				headerExtra,
+				children: ($$renderer) => {
+					$$renderer.push(`<div class="calendar-layout svelte-1xxgmnf"><div class="calendar-month svelte-1xxgmnf">`);
+					MonthCalendar($$renderer, {
+						value: calendarValue(),
+						onchange: onCalendarSelect,
+						events: calendarEvents()
+					});
+					$$renderer.push(`<!----></div> `);
+					DayStrip($$renderer, {
+						days: days(),
+						selectedDay,
+						onSelect: (date) => {
+							selectedDay = date;
+						}
+					});
+					$$renderer.push(`<!----> <div class="agenda svelte-1xxgmnf" aria-live="polite">`);
+					if (visibleClasses().length === 0) {
+						$$renderer.push("<!--[0-->");
+						$$renderer.push(`<div class="empty-state svelte-1xxgmnf"><p class="empty-state__kicker svelte-1xxgmnf">${escape_html(t.calendar.empty.kicker())}</p> <p class="svelte-1xxgmnf">${escape_html(t.calendar.empty.text())}</p></div>`);
+					} else {
+						$$renderer.push("<!--[-1-->");
+						$$renderer.push(`<!--[-->`);
+						const each_array = ensure_array_like(visibleClasses());
+						for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+							let item = each_array[$$index];
+							ClassCard($$renderer, {
+								item,
+								actionId,
+								onReserve: reserve,
+								onCancel: cancel
+							});
+						}
+						$$renderer.push(`<!--]-->`);
+					}
+					$$renderer.push(`<!--]--></div></div>`);
+				},
+				$$slots: {
+					headerExtra: true,
+					default: true
+				}
+			});
 		}
-		$$renderer.push(`<!--]-->`);
 	});
 }
 //#endregion

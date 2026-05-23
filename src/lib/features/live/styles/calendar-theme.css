@@ -162,14 +162,47 @@
 .ec-event.ec-preview {
   z-index: 1000;
   user-select: none;
-  opacity: 0.7;
+  opacity: 0.9;
   border-inline-start-color: var(--sky-strong);
   background: color-mix(in oklch, var(--sky) 25%, transparent);
   border-radius: 6px;
+  overflow: visible;
 }
 
 .ec-selecting {
   cursor: crosshair;
+}
+
+/* Preview event content — start/end times */
+.calendar-preview-event {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+  gap: 1px;
+  padding: 2px;
+  text-align: center;
+  direction: rtl;
+}
+
+.calendar-preview-event .preview-start,
+.calendar-preview-event .preview-end {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.calendar-preview-event .preview-divider {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.1;
 }
 
 /* Today highlight */
@@ -180,4 +213,47 @@
 /* Slot lines */
 .ec-lines {
   border-color: var(--line-light);
+}
+
+/* ── Dark mode overrides for our custom styles ── */
+@media (prefers-color-scheme: dark) {
+  .ec-auto-dark .calendar-wrapper {
+    background: var(--white);
+    border-color: var(--line);
+  }
+
+  .ec-auto-dark .ec-event {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+
+  .ec-auto-dark .ec-event:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  .ec-auto-dark .ec-event-status--scheduled {
+    background: color-mix(in oklch, var(--sky-soft) 25%, var(--surface));
+  }
+
+  .ec-auto-dark .ec-event-status--live {
+    background: color-mix(in oklch, var(--terra-soft) 30%, var(--surface));
+  }
+
+  .ec-auto-dark .ec-event-status--ended {
+    background: var(--surface);
+    opacity: 0.5;
+  }
+
+  .ec-auto-dark .calendar-class-event-body .event-title {
+    color: var(--ink);
+  }
+
+  .ec-auto-dark .calendar-class-event-body .meta-badge {
+    color: var(--muted);
+  }
+
+  .ec-auto-dark .ec-today {
+    background: color-mix(in oklch, var(--sky-soft) 18%, transparent);
+  }
 }

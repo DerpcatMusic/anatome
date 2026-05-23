@@ -1,13 +1,16 @@
-import { et as attr, nt as escape_html, o as derived } from "../../../../chunks/dev.js";
+import "../../../../chunks/index-server.js";
+import { et as escape_html, o as derived } from "../../../../chunks/dev.js";
 import { g as useConvexClient, r as initAuth, s as api, t as authQuery, u as resource } from "../../../../chunks/session.svelte.js";
 import { t as Notice } from "../../../../chunks/Notice.js";
 import { i as equipmentLabel, r as durationLabel } from "../../../../chunks/labels.js";
-import "@mux/mux-player";
 //#region src/lib/components/video/MuxPlayer.svelte
 function MuxPlayer($$renderer, $$props) {
 	$$renderer.component(($$renderer) => {
 		let { playbackId, playbackToken, thumbnailToken, storyboardToken, thumbnailUrl, title, startTime, videoId, viewerUserId, maxResolution, onProgress } = $$props;
-		$$renderer.push(`<div class="mux-player-wrapper svelte-1sjks4b"><mux-player${attr("playback-id", playbackId)}${attr("playback-token", playbackToken ?? void 0)}${attr("thumbnail-token", thumbnailToken ?? void 0)}${attr("storyboard-token", storyboardToken ?? void 0)}${attr("poster", thumbnailUrl ?? void 0)}${attr("start-time", startTime && startTime > 0 ? startTime : void 0)}${attr("video-title", title)}${attr("metadata-video-id", videoId)}${attr("metadata-video-title", title)}${attr("metadata-viewer-user-id", viewerUserId ?? void 0)}${attr("env-key", "207m4eoo0h6dnrqh4b2u41adu")} stream-type="on-demand" playbackrates="0.75 1 1.25 1.5 2"${attr("max-resolution", maxResolution ?? void 0)} max-auto-resolution="1080p" cap-rendition-to-player-size="" accent-color="var(--sky-strong)" style="--controls-backdrop-color: rgba(0,0,0,0.6);" class="svelte-1sjks4b"></mux-player></div>`);
+		$$renderer.push(`<div class="mux-player-wrapper svelte-1sjks4b">`);
+		$$renderer.push("<!--[-1-->");
+		$$renderer.push(`<div class="mux-player-state svelte-1sjks4b">טוענים נגן...</div>`);
+		$$renderer.push(`<!--]--></div>`);
 	});
 }
 //#endregion

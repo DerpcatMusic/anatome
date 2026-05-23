@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
   import type { Id } from "$convex/_generated/dataModel";
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { TextareaAutosize } from "runed";
 
   interface Video {
@@ -80,12 +80,12 @@
           </label>
 
           <div class="modal-actions">
-            <Button tone="ink" type="submit" disabled={isPending || !title.trim()}>
+            <Button.Root class="hb-button hb-button--ink" type="submit" disabled={isPending || !title.trim()}>
               {isPending ? "שומר..." : "שמירת שינויים"}
-            </Button>
-            <Button tone="paper" type="button" onclick={onClose} disabled={isPending}>
+            </Button.Root>
+            <Button.Root class="hb-button hb-button--paper" type="button" onclick={onClose} disabled={isPending}>
               ביטול
-            </Button>
+            </Button.Root>
           </div>
         </form>
       {/if}

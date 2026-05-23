@@ -11,6 +11,8 @@ export const complete = mutation({
     experience: experienceValidator,
     goals: goalsValidator,
     notes: v.string(),
+    healthInfoConsent: v.boolean(),
+    healthDeclarationAccepted: v.boolean(),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -19,12 +21,19 @@ export const complete = mutation({
     await getOrCreateAppProfile(ctx, userId);
 
     const now = Date.now();
-    const existing = await ctx.db
+    const existingRows = await ctx.db
       .query("memberProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(1);
+    const existing = existingRows[0] ?? null;
 
     const cleanNotes = args.notes.trim().slice(0, RULES.MAX_ONBOARDING_NOTES_LENGTH);
+    if (!args.healthDeclarationAccepted) {
+      throw new Error("Health declaration is required before starting.");
+    }
+    if (cleanNotes.length > 0 && !args.healthInfoConsent) {
+      throw new Error("Health information consent is required before saving notes.");
+    }
 
     if (existing !== null) {
       await ctx.db.patch(existing._id, {
@@ -32,19 +41,29 @@ export const complete = mutation({
         experience: args.experience,
         goals: args.goals,
         notes: cleanNotes,
+        healthInfoConsentAcceptedAt: cleanNotes.length > 0 ? now : existing.healthInfoConsentAcceptedAt,
+        healthDeclarationAcceptedAt: now,
         updatedAt: now,
       });
       return existing._id;
     }
 
-    return await ctx.db.insert("memberProfiles", {
+    const payload = {
       userId,
       equipment: args.equipment,
       experience: args.experience,
       goals: args.goals,
       notes: cleanNotes,
+      healthDeclarationAcceptedAt: now,
       onboardingCompletedAt: now,
       updatedAt: now,
-    });
+    };
+
+    return await ctx.db.insert(
+      "memberProfiles",
+      cleanNotes.length > 0
+        ? { ...payload, healthInfoConsentAcceptedAt: now }
+        : payload,
+    );
   },
 });

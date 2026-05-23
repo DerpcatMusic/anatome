@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
-import { getCurrentCreditBucket, availableOneOnOneCredits } from "../credits/lib";
+import { getCurrentCreditBucket, getCreditBucketForSubscription, availableOneOnOneCredits } from "../credits/lib";
 import { requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
 import {
   type AvailableOneOnOneSlot,
@@ -14,6 +14,8 @@ import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
+import { scheduleOneOnOneRequestExpiration } from "./schedule";
+import { getEntitledSubscription } from "../subscriptions/lib";
 
 export const listAvailableSlots = query({
   args: {
@@ -26,7 +28,8 @@ export const listAvailableSlots = query({
     requireCustomer(profile);
     if (args.from >= args.to) throw new Error("טווח תאריכים לא תקין");
 
-    const bucket = await getCurrentCreditBucket(ctx, userId);
+    const subscription = await getEntitledSubscription(ctx, userId);
+    const bucket = await getCreditBucketForSubscription(ctx, subscription);
     const availableCredits = bucket === null ? 0 : availableOneOnOneCredits(bucket);
     return await buildAvailableSlots(ctx, args.from, args.to, availableCredits);
   },
@@ -87,7 +90,7 @@ export const requestSlot = mutation({
     const now = Date.now();
     await reserveOneOnOneCredits(ctx, bucket, 1);
 
-    return await ctx.db.insert("oneOnOneRequests", {
+    const requestId = await ctx.db.insert("oneOnOneRequests", {
       customerUserId: userId,
       instructorUserId: args.instructorUserId,
       requestedStartsAt: args.startsAt,
@@ -98,6 +101,13 @@ export const requestSlot = mutation({
       createdAt: now,
       updatedAt: now,
     });
+    const expirationScheduledFunctionId = await scheduleOneOnOneRequestExpiration(
+      ctx,
+      requestId,
+      args.startsAt,
+    );
+    await ctx.db.patch(requestId, { expirationScheduledFunctionId });
+    return requestId;
   },
 });
 

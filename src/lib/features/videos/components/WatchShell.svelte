@@ -168,32 +168,6 @@
     margin: 0;
   }
 
-  .button-link {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: center;
-    border: var(--border);
-    background: var(--ink);
-    color: var(--white);
-    padding-inline: var(--space-5);
-    font: inherit;
-    font-weight: 900;
-    cursor: pointer;
-    text-decoration: none;
-    width: fit-content;
-    border-radius: 0;
-    will-change: border-radius;
-    transition:
-      background var(--duration-fast),
-      border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1);
-  }
-
-  .button-link:hover {
-    background: var(--ink-secondary);
-    border-radius: 22px;
-  }
-
   .skeleton {
     height: 64px;
     background: var(--line-light);

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import ScrollArea from "$components/ui/ScrollArea.svelte";
+  import { ScrollArea } from "bits-ui";
   import type { LiveRoom } from "$lib/features/live/room.svelte";
 
   import { tick } from "svelte";
@@ -28,8 +28,9 @@
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
-    <ScrollArea class="lr-panel__scroll">
-      <dl class="lr-quality__headline">
+    <ScrollArea.Root class="hb-scroll-area lr-panel__scroll">
+  <ScrollArea.Viewport class="hb-scroll-area__viewport">
+    <dl class="lr-quality__headline">
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.participants()}</dt>
           <dd class="lr-quality__value">{room.participants.length}</dd>
@@ -80,6 +81,10 @@
           </div>
         </details>
       {/if}
-    </ScrollArea>
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar class="hb-scroll-area__bar" orientation="vertical">
+    <ScrollArea.Thumb class="hb-scroll-area__thumb" />
+  </ScrollArea.Scrollbar>
+</ScrollArea.Root>
   </aside>
 {/if}

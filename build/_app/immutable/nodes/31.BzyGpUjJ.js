@@ -1,0 +1,1 @@
+import{t as e}from"../chunks/DK3Fl9T5.js";import{t}from"../chunks/gaw8GWTo.js";var n=e({load:()=>r}),r=()=>{throw t(307,`/i/videos`)};export{n as universal};

@@ -28,10 +28,11 @@ export function profileFromUser(user: Doc<"users"> | null, userId: Id<"users">, 
 }
 
 export async function getOrCreateAppProfile(ctx: MutationCtx, userId: Id<"users">) {
-  const existing = await ctx.db
+  const existingRows = await ctx.db
     .query("appProfiles")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .unique();
+    .take(1);
+  const existing = existingRows[0] ?? null;
 
   if (existing !== null) {
     return existing;
@@ -64,10 +65,11 @@ export async function getOrCreateAppProfile(ctx: MutationCtx, userId: Id<"users"
 }
 
 export async function requireAppProfile(ctx: Ctx, userId: Id<"users">) {
-  const profile = await ctx.db
+  const profiles = await ctx.db
     .query("appProfiles")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .unique();
+    .take(1);
+  const profile = profiles[0] ?? null;
 
   if (profile === null) {
     throw new Error("App profile required");

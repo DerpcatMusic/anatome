@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import { api } from "$convex/_generated/api";
   import Dashboard from "$features/dashboard/components/Dashboard.svelte";
   import { signOut } from "$lib/auth/session.svelte";
@@ -22,7 +22,7 @@
       <h1>צריך להתחבר</h1>
       <p>כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p>
       <div class="locked__actions">
-        <Button tone="ink" size="md" onclick={() => window.location.assign('/')}>כניסה</Button>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign('/')}>כניסה</Button.Root>
       </div>
     </div>
   </div>
@@ -37,13 +37,22 @@
       <h1>צריך לסיים התאמה אישית</h1>
       <p>קצר, פשוט, ויעזור לנו להתאים לך שיעורים.</p>
       <div class="locked__actions">
-        <Button tone="ink" size="md" onclick={() => window.location.assign("/onboarding")}>להמשיך בהתאמה</Button>
-        <Button tone="paper" size="sm" onclick={signOut}>יציאה</Button>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign("/onboarding")}>להמשיך בהתאמה</Button.Root>
+        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={signOut}>יציאה</Button.Root>
       </div>
     </div>
   </div>
 {:else if query.data}
-  <Dashboard profile={query.data.profile} liveAlert={query.data.liveAlert} role={query.data.role} appProfile={query.data.appProfile} />
+  <Dashboard
+    profile={query.data.profile}
+    liveAlert={query.data.liveAlert}
+    role={query.data.role}
+    appProfile={query.data.appProfile}
+    subscription={query.data.subscription}
+    subscriptionPlan={query.data.subscriptionPlan}
+    pendingSubscriptionPlan={query.data.pendingSubscriptionPlan}
+    creditBucket={query.data.creditBucket}
+  />
 {/if}
 
 <style>

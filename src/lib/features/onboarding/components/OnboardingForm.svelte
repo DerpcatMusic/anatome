@@ -9,7 +9,7 @@
     type Equipment,
     type Goal,
   } from "$lib/labels";
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import ExperienceStep from "./steps/ExperienceStep.svelte";
   import EquipmentStep from "./steps/EquipmentStep.svelte";
@@ -34,12 +34,12 @@
   } = $props();
 
   const { t } = useI18n();
+  const client = useConvexClient();
 
   const steps = [
-    { id: "experience" as const },
-    { id: "equipment" as const },
-    { id: "goals" as const },
-    { id: "notes" as const },
+    { id: "experience" as const, title: t.onboarding.experience.title(), subtitle: t.onboarding.experience.subtitle() },
+    { id: "equipment-goals" as const, title: t.onboarding.equipment.title(), subtitle: t.onboarding.equipment.subtitle() },
+    { id: "notes-summary" as const, title: t.onboarding.notes.title(), subtitle: t.onboarding.notes.subtitle() },
   ] as const;
 
   type StepId = (typeof steps)[number]["id"];
@@ -49,6 +49,8 @@
   let goals = $state<Goal[]>(["strength"]);
   let experience = $state<"new" | "some" | "steady">("some");
   let notes = $state("");
+  let healthInfoConsent = $state(false);
+  let healthDeclarationAccepted = $state(false);
   let pending = $state(false);
   let error = $state("");
   let submitted = $state(false);
@@ -58,6 +60,8 @@
     goals = initialProfile?.goals?.filter((g): g is Goal => goalOptions.some(([id]) => id === g)) ?? ["strength"];
     experience = initialProfile?.experience ?? "some";
     notes = initialProfile?.notes ?? "";
+    healthInfoConsent = (initialProfile?.notes?.trim().length ?? 0) > 0;
+    healthDeclarationAccepted = mode === "edit";
     stepIndex = 0;
     error = "";
     submitted = false;
@@ -67,33 +71,14 @@
   const isFirst = $derived(stepIndex === 0);
   const isLast = $derived(stepIndex === steps.length - 1);
 
-  function getStepLabel(id: StepId): string {
-    return (
-      id === "experience" ? t.onboarding.stepLabels.experience() :
-      id === "equipment" ? t.onboarding.stepLabels.equipment() :
-      id === "goals" ? t.onboarding.stepLabels.goals() :
-      t.onboarding.stepLabels.notes()
-    );
-  }
-
-  const stepTitle = $derived(
-    currentStep.id === "experience" ? t.onboarding.experience.title() :
-    currentStep.id === "equipment" ? t.onboarding.equipment.title() :
-    currentStep.id === "goals" ? t.onboarding.goals.title() :
-    t.onboarding.notes.title()
-  );
-
-  const stepSubtitle = $derived(
-    currentStep.id === "experience" ? t.onboarding.experience.subtitle() :
-    currentStep.id === "equipment" ? t.onboarding.equipment.subtitle() :
-    currentStep.id === "goals" ? t.onboarding.goals.subtitle() :
-    t.onboarding.notes.subtitle()
-  );
+  const progressPercent = $derived(((stepIndex + 1) / steps.length) * 100);
 
   const canProceed = $derived(
-    currentStep.id === "equipment" ? equipment.length > 0 :
-    currentStep.id === "goals" ? goals.length > 0 :
-    true
+    currentStep.id === "equipment-goals"
+      ? equipment.length > 0 && goals.length > 0
+      : currentStep.id === "notes-summary"
+        ? healthDeclarationAccepted && (notes.trim().length === 0 || healthInfoConsent)
+      : true
   );
 
   function next() {
@@ -111,9 +96,8 @@
     pending = true;
     error = "";
     try {
-      const client = useConvexClient();
       await client.mutation(api.users.onboarding.complete, {
-        equipment, experience, goals, notes,
+        equipment, experience, goals, notes, healthInfoConsent, healthDeclarationAccepted,
       });
       submitted = true;
       const target = redirectTo ?? "/u/dashboard";
@@ -136,26 +120,9 @@
     <!-- Right panel: question (beige mesh) — FIRST in DOM → column 1 = RIGHT in RTL -->
     <div class="panel panel--question">
       <div class="panel__inner">
-        {#if mode === "onboarding"}
-          <div class="progress-dots">
-            {#each steps as step, i}
-              <button
-                class="dot"
-                class:active={i === stepIndex}
-                class:done={i < stepIndex}
-                onclick={() => { if (i < stepIndex) stepIndex = i; }}
-                disabled={i > stepIndex}
-                type="button"
-                aria-label={getStepLabel(step.id)}
-              ></button>
-            {/each}
-          </div>
-        {/if}
-
         <div class="question">
-          <span class="question__num">{String(stepIndex + 1).padStart(2, "0")}</span>
-          <h1>{stepTitle}</h1>
-          <p>{stepSubtitle}</p>
+          <h1>{currentStep.title}</h1>
+          <p>{currentStep.subtitle}</p>
         </div>
       </div>
     </div>
@@ -163,15 +130,48 @@
     <!-- Left panel: form (white) — SECOND in DOM → column 2 = LEFT in RTL -->
     <div class="panel panel--form">
       <div class="panel__inner">
+        {#if mode === "onboarding"}
+          <div class="progress-bar" role="progressbar" aria-valuenow={stepIndex + 1} aria-valuemin={1} aria-valuemax={steps.length} aria-label={t.onboarding.step()}>
+            <div class="progress-bar__fill" style="width: {progressPercent}%"></div>
+          </div>
+          <div class="progress-label">{t.onboarding.step()} {stepIndex + 1} {t.onboarding.stepCount()}</div>
+        {/if}
+
         <div class="form-body">
           {#if currentStep.id === "experience"}
             <ExperienceStep bind:experience />
-          {:else if currentStep.id === "equipment"}
-            <EquipmentStep bind:equipment />
-          {:else if currentStep.id === "goals"}
-            <GoalsStep bind:goals />
-          {:else if currentStep.id === "notes"}
+          {:else if currentStep.id === "equipment-goals"}
+            <div class="combo-section">
+              <p class="combo-section__label">{t.onboarding.equipment.title()}</p>
+              <EquipmentStep bind:equipment />
+            </div>
+            <div class="combo-section">
+              <p class="combo-section__label">{t.onboarding.goals.title()}</p>
+              <GoalsStep bind:goals />
+            </div>
+          {:else if currentStep.id === "notes-summary"}
             <NotesStep bind:notes />
+            <div class="privacy-consent" data-active={notes.trim().length > 0}>
+              <p>
+                השדה הזה אופציונלי ועשוי לכלול מידע רגיש כמו כאב, פציעה, הריון, ניתוח או מגבלה רפואית.
+                המידע נשמר רק כדי להתאים לך תרגול ולייבים, ואינו מחליף ייעוץ רפואי.
+              </p>
+              <label class="privacy-consent__check">
+                <input type="checkbox" bind:checked={healthInfoConsent} disabled={notes.trim().length === 0} />
+                <span>אני מסכימ/ה לשמירת המידע שמסרתי לצורך התאמת פעילות.</span>
+              </label>
+            </div>
+            <div class="health-declaration">
+              <p>
+                הצהרת בריאות: הפעילות אינה טיפול רפואי או פיזיותרפיה. אם יש כאב חד, פציעה פעילה,
+                הריון, אחרי לידה, ניתוח, בעיית לב, לחץ דם, סחרחורת או מגבלה רפואית — יש להתייעץ
+                עם גורם רפואי מוסמך לפני התחלה ולעצור מיד אם יש החמרה או תחושה חריגה.
+              </p>
+              <label class="privacy-consent__check">
+                <input type="checkbox" bind:checked={healthDeclarationAccepted} />
+                <span>קראתי ואני מאשר/ת שהפעילות מתאימה לי או שהתייעצתי עם גורם רפואי כנדרש.</span>
+              </label>
+            </div>
             <SummaryStep {experience} {equipment} {goals} />
           {/if}
 
@@ -182,23 +182,22 @@
 
         <div class="form-footer">
           {#if !isFirst}
-            <Button tone="paper" size="sm" onclick={back} disabled={pending}>{t.onboarding.nav.back()}</Button>
+            <Button.Root class="hb-button hb-button--paper" type="button" onclick={back} disabled={pending}>{t.onboarding.nav.back()}</Button.Root>
           {:else}
             <span></span>
           {/if}
 
           {#if isLast}
-            <Button type="button" tone="ink" disabled={pending || !canProceed} onclick={submit}>
+            <Button.Root class="hb-button hb-button--ink" type="button" disabled={pending || !canProceed} onclick={submit}>
               {pending ? t.onboarding.nav.submitPending() : mode === "edit" ? t.onboarding.nav.submitEdit() : t.onboarding.nav.submit()}
-            </Button>
+            </Button.Root>
           {:else}
-            <Button type="button" tone="ink" disabled={!canProceed} onclick={next}>
+            <Button.Root class="hb-button hb-button--ink" type="button" disabled={!canProceed} onclick={next}>
               {t.onboarding.nav.next()}
-            </Button>
+            </Button.Root>
           {/if}
         </div>
       </div>
     </div>
   </div>
 {/if}
-

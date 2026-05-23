@@ -8,7 +8,7 @@ function _layout($$renderer, $$props) {
 		const ctx = getAppContext();
 		if (ctx.isLoading) {
 			$$renderer.push("<!--[0-->");
-			$$renderer.push(`<div class="route-guard-skeleton svelte-1e9wqnk" aria-hidden="true"></div>`);
+			$$renderer.push(`<div class="route-guard-skeleton" aria-hidden="true"></div>`);
 		} else if (ctx.role !== "instructor" && ctx.role !== "admin") {
 			$$renderer.push("<!--[1-->");
 			children($$renderer);

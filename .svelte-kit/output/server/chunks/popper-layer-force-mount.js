@@ -1,12 +1,9 @@
 import "./index-server.js";
 import { f as spread_props, o as derived } from "./dev.js";
-import { G as watch, J as attachRef, Q as styleToString, W as ElementSize, Z as mergeProps, at as boxWith, et as cssToStyleObj, g as isNotNull, it as boxFrom, lt as simpleBox, q as Context } from "./arrays.js";
+import { $ as cssToStyleObj, G as ElementSize, J as Context, K as watch, X as mergeProps, Y as attachRef, Z as styleToString, _ as isNotNull, nt as boxWith, rt as simpleBox, tt as boxFrom } from "./arrays.js";
 import { a as Dismissible_layer, i as Escape_layer, n as Text_selection_layer, r as Focus_scope, t as Scroll_lock } from "./scroll-lock.js";
 import { s as getWindow, t as useId } from "./use-id.js";
 import { arrow, autoUpdate, computePosition, flip, hide, limitShift, offset, shift, size } from "@floating-ui/dom";
-//#region node_modules/svelte-toolbelt/dist/utils/on-mount-effect.svelte.js
-function onMountEffect(fn) {}
-//#endregion
 //#region node_modules/bits-ui/dist/internal/floating-svelte/floating-utils.svelte.js
 function get(valueOrGetValue) {
 	return typeof valueOrGetValue === "function" ? valueOrGetValue() : valueOrGetValue;
@@ -725,4 +722,4 @@ function Popper_layer_force_mount($$renderer, $$props) {
 	]));
 }
 //#endregion
-export { getFloatingContentCSSVars as a, Floating_layer as i, Popper_layer as n, onMountEffect as o, Floating_layer_anchor as r, Popper_layer_force_mount as t };
+export { getFloatingContentCSSVars as a, Floating_layer as i, Popper_layer as n, Floating_layer_anchor as r, Popper_layer_force_mount as t };

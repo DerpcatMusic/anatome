@@ -4,9 +4,10 @@ import { internalQuery } from "../_generated/server";
 export const getAppProfile = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const profiles = await ctx.db
       .query("appProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .take(1);
+    return profiles[0] ?? null;
   },
 });

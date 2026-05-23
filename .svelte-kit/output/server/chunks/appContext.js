@@ -1,5 +1,5 @@
 import "./index-server.js";
-import { xt as setContext, yt as getContext } from "./dev.js";
+import { _t as getContext, yt as setContext } from "./dev.js";
 //#region src/lib/features/app/context/appContext.ts
 var APP_CONTEXT_KEY = Symbol("app");
 function setAppContext(ctx) {

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
-    "@mux/mux-node": "^14.0.1",
+    "@mux/mux-node": "^14.1.0",
     "@mux/mux-player": "^3.13.0",
     "bits-ui": "^2.18.1",
     "convex": "^1.39.1",
@@ -22,17 +22,17 @@
     "livekit-client": "^2.19.0",
     "livekit-server-sdk": "^2.15.3",
     "runed": "^0.37.1",
-    "svelte": "^5.55.7",
+    "svelte": "^5.55.9",
     "typesafe-i18n": "^5.27.1",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@event-calendar/core": "^5.7.0",
+    "@event-calendar/core": "^5.7.1",
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.60.1",
+    "@sveltejs/kit": "^2.61.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@types/node": "^25.8.0",
+    "@types/node": "^25.9.1",
     "svelte-check": "^4.4.8",
-    "vite": "^8.0.13"
+    "vite": "^8.0.14"
   }
 }

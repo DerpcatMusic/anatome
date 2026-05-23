@@ -31,10 +31,11 @@ export const updateProgress = mutation({
     const percentWatched = durationSeconds > 0 ? Math.min(100, (currentTimeSeconds / durationSeconds) * 100) : 0;
     const completed = percentWatched >= 90;
     const now = Date.now();
-    const existing = await ctx.db
+    const existingRows = await ctx.db
       .query("videoProgress")
       .withIndex("by_userId_and_videoId", (q) => q.eq("userId", userId).eq("videoId", args.videoId))
-      .unique();
+      .take(1);
+    const existing = existingRows[0] ?? null;
 
     if (existing !== null) {
       await ctx.db.patch(existing._id, {

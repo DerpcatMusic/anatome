@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import type { Id } from "$convex/_generated/dataModel";
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
@@ -94,28 +94,26 @@
     <div class="class-card__action">
       {#if item.viewerCanJoin}
         {#if item.viewerIsWalkIn}
-          <Button tone="terra" size="sm" href={liveRoomHref(item.liveClass._id)}>
+          <Button.Root class="hb-button hb-button--terra hb-button--sm" href={liveRoomHref(item.liveClass._id)}>
             {t.calendar.class.joinWalkIn()}
-          </Button>
+          </Button.Root>
         {:else}
-          <Button tone="terra" size="sm" href={liveRoomHref(item.liveClass._id)}>
+          <Button.Root class="hb-button hb-button--terra hb-button--sm" href={liveRoomHref(item.liveClass._id)}>
             {t.calendar.class.join()}
-          </Button>
+          </Button.Root>
         {/if}
       {:else if item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined"}
-        <Button type="button" tone="paper" size="sm" onclick={() => onCancel(item.liveClass._id)} disabled={actionId === item.liveClass._id}>
+        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={() => onCancel(item.liveClass._id)} disabled={actionId === item.liveClass._id}>
           {t.calendar.class.cancel()}
-        </Button>
+        </Button.Root>
       {:else}
-        <Button
+        <Button.Root class="hb-button hb-button--sm {info.tone === 'sky' ? 'hb-button--ink' : 'hb-button--paper'}"
           type="button"
-          tone={info.tone === "sky" ? "ink" : "paper"}
-          size="sm"
           onclick={() => onReserve(item.liveClass._id)}
           disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
         >
           {t.calendar.class.reserve()}
-        </Button>
+        </Button.Root>
       {/if}
     </div>
   </div>

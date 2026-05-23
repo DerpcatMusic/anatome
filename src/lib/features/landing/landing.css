@@ -624,6 +624,28 @@
   flex: 1;
 }
 
+.landing .pricing-breakdown {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-block: var(--border);
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.landing .pricing-card--featured .pricing-breakdown {
+  border-color: color-mix(in srgb, var(--white) 35%, transparent);
+  color: var(--terra-soft);
+}
+
+.landing .pricing-status {
+  text-align: center;
+  margin: var(--space-5) auto 0;
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .landing .pricing-guarantee {
   text-align: center;
   margin-top: var(--space-7);
@@ -641,7 +663,7 @@
   border-bottom: var(--border);
 }
 
-.landing .faq-item summary {
+.landing .faq-trigger {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -651,13 +673,15 @@
   cursor: pointer;
   list-style: none;
   gap: var(--space-4);
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  text-align: start;
 }
 
-.landing .faq-item summary::-webkit-details-marker {
-  display: none;
-}
-
-.landing .faq-item summary::after {
+.landing .faq-trigger::after {
   content: '+';
   font-family: var(--font-mono);
   font-size: var(--step-2);
@@ -667,7 +691,7 @@
   transition: transform 0.2s;
 }
 
-.landing .faq-item[open] summary::after {
+.landing .faq-item[data-state="open"] .faq-trigger::after {
   content: '×';
   transform: rotate(0deg);
 }
@@ -678,7 +702,7 @@
   transition: grid-template-rows 0.3s var(--ease-out);
 }
 
-.landing .faq-item[open] .faq-answer {
+.landing .faq-item[data-state="open"] .faq-answer {
   grid-template-rows: 1fr;
 }
 
@@ -735,47 +759,6 @@
   color: var(--terra-muted);
 }
 
-/* ─── AUTH OVERLAY ─── */
-.auth-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: color-mix(in srgb, var(--beige) 34%, rgba(10, 10, 10, 0.45));
-  backdrop-filter: blur(8px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-base);
-}
-
-.auth-overlay[data-state="open"] {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.auth-card {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
-  z-index: 101;
-  width: 100%;
-  max-width: 420px;
-  max-height: calc(100vh - var(--space-6));
-  overflow-y: auto;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
-  padding: var(--space-6);
-  border: var(--border);
-  opacity: 0;
-  transition:
-    transform 0.35s var(--ease-elastic),
-    opacity 0.25s var(--ease-out);
-}
-
-.auth-card[data-state="open"] {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
 /* ─── MOBILE ─── */
 @media (max-width: 860px) {
   .landing .hero h1 {
@@ -826,10 +809,6 @@
 
   .landing .btn {
     width: 100%;
-  }
-
-  .auth-card {
-    padding: var(--space-5);
   }
 
   .landing .content-section {

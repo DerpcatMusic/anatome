@@ -2,7 +2,7 @@ import { t as index_server_exports } from "./index-server.js";
 import { v as noop } from "./shared.js";
 import "./environment.js";
 import "./exports.js";
-import { R as writable, pt as noop$1 } from "./dev.js";
+import { I as writable, dt as noop$1 } from "./dev.js";
 import "./internal.js";
 import "@sveltejs/kit/internal";
 import "@sveltejs/kit/internal/server";
@@ -91,8 +91,9 @@ if (is_legacy) {
 }
 //#endregion
 //#region node_modules/@sveltejs/kit/src/runtime/client/client.js
-/** @import { RemoteQueryCacheEntry } from './remote-functions/query.svelte.js' */
-/** @import { RemoteLiveQueryCacheEntry } from './remote-functions/query-live.svelte.js' */
+/** @import { CacheEntry } from './remote-functions/cache.svelte.js' */
+/** @import { Query } from './remote-functions/query/instance.svelte.js' */
+/** @import { LiveQuery } from './remote-functions/query-live/instance.svelte.js' */
 var { onMount, tick } = index_server_exports;
 var stores = {
 	url: /* @__PURE__ */ notifiable_store({}),

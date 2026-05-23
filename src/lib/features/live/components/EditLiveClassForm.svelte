@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
+  import { Button } from "bits-ui";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
-  import Slider from "$components/ui/Slider.svelte";
+  import { Slider } from "bits-ui";
   import DatePicker from "$components/ui/DatePicker.svelte";
-  import NativeTimePicker from "$components/ui/NativeTimePicker.svelte";
+
   import { parseDate } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
   import { durationLabel } from "$lib/labels";
@@ -156,9 +156,9 @@
     </div>
 
     <div class="modal-actions">
-      <Button tone="ink" type="button" onclick={onCancel} disabled={submitting}>
+      <Button.Root class="hb-button hb-button--ink" type="button" onclick={onCancel} disabled={submitting}>
         סגור פרטים
-      </Button>
+      </Button.Root>
     </div>
   </div>
 {:else}
@@ -176,13 +176,40 @@
 
       <div class="form-row-split span-2">
         <DatePicker label="תאריך" bind:value={editDateValue} disabled={submitting} />
-        <NativeTimePicker label="שעת התחלה" bind:value={editTime} disabled={submitting} />
+        <div class="hb-input-field">
+          <span class="hb-input-field__label">שעת התחלה</span>
+          <input
+            type="time"
+            class="hb-input time-input"
+            disabled={submitting}
+            bind:value={editTime}
+            step="60"
+          />
+        </div>
       </div>
 
       <div class="form-row-split span-2">
         <div class="hb-input-field">
           <span class="hb-input-field__label">משך (דקות)</span>
-          <Slider label="משך" bind:value={editDuration} min={15} max={180} step={5} />
+          <div class="hb-slider">
+  <span class="hb-slider__label">משך</span>
+  <span class="hb-slider__value">{editDuration}</span>
+  <Slider.Root
+    class="hb-slider__root"
+    type="single"
+    min={15}
+    max={180}
+    step={5}
+    value={editDuration}
+    onValueChange={(v) => editDuration = v}
+    aria-label="משך"
+  >
+    <span class="hb-slider__track">
+      <Slider.Range class="hb-slider__range" />
+    </span>
+    <Slider.Thumb class="hb-slider__thumb" index={0} />
+  </Slider.Root>
+</div>
           <span class="duration-badge">{durationLabel(editDuration)}</span>
         </div>
 
@@ -195,7 +222,25 @@
       <div class="form-row-split span-2">
         <div class="hb-input-field">
           <span class="hb-input-field__label">פתיחת כניסה (דקות לפני)</span>
-          <Slider label="פתיחה" bind:value={editJoinOpens} min={0} max={60} step={5} />
+          <div class="hb-slider">
+  <span class="hb-slider__label">פתיחה</span>
+  <span class="hb-slider__value">{editJoinOpens}</span>
+  <Slider.Root
+    class="hb-slider__root"
+    type="single"
+    min={0}
+    max={60}
+    step={5}
+    value={editJoinOpens}
+    onValueChange={(v) => editJoinOpens = v}
+    aria-label="פתיחה"
+  >
+    <span class="hb-slider__track">
+      <Slider.Range class="hb-slider__range" />
+    </span>
+    <Slider.Thumb class="hb-slider__thumb" index={0} />
+  </Slider.Root>
+</div>
           <span class="duration-badge">{editJoinOpens} דק׳</span>
         </div>
 
@@ -204,7 +249,25 @@
           {#if liveClass.type === "one_on_one"}
             <div class="one-on-one-badge">1 משתתפת (אישי)</div>
           {:else}
-            <Slider label="קיבולת" bind:value={editCapacity} min={1} max={50} step={1} />
+            <div class="hb-slider">
+  <span class="hb-slider__label">קיבולת</span>
+  <span class="hb-slider__value">{editCapacity}</span>
+  <Slider.Root
+    class="hb-slider__root"
+    type="single"
+    min={1}
+    max={50}
+    step={1}
+    value={editCapacity}
+    onValueChange={(v) => editCapacity = v}
+    aria-label="קיבולת"
+  >
+    <span class="hb-slider__track">
+      <Slider.Range class="hb-slider__range" />
+    </span>
+    <Slider.Thumb class="hb-slider__thumb" index={0} />
+  </Slider.Root>
+</div>
             <span class="duration-badge">{editCapacity} מקומות</span>
           {/if}
         </div>
@@ -219,22 +282,22 @@
     <div class="modal-actions">
       {#if liveClass.status === "live"}
         <div class="live-action-buttons">
-          <Button tone="ink" type="button" onclick={onEndLive} disabled={submitting}>
+          <Button.Root class="hb-button hb-button--ink" type="button" onclick={onEndLive} disabled={submitting}>
             לסיים שידור
-          </Button>
+          </Button.Root>
           <span class="live-badge-glow">🔴 שידור חי פעיל</span>
         </div>
       {:else}
-        <Button tone="ink" type="submit" disabled={submitting}>
+        <Button.Root class="hb-button hb-button--ink" type="submit" disabled={submitting}>
           {submitting ? "מעדכן..." : "שמירת שינויים"}
-        </Button>
-        <Button tone="danger" type="button" onclick={onDelete} disabled={submitting}>
+        </Button.Root>
+        <Button.Root class="hb-button hb-button--danger" type="button" onclick={onDelete} disabled={submitting}>
           ביטול שיעור
-        </Button>
+        </Button.Root>
       {/if}
-      <Button tone="paper" type="button" onclick={onCancel} disabled={submitting}>
+      <Button.Root class="hb-button hb-button--paper" type="button" onclick={onCancel} disabled={submitting}>
         ביטול
-      </Button>
+      </Button.Root>
     </div>
   </form>
 {/if}

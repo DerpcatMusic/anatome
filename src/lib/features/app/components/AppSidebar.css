@@ -150,6 +150,34 @@
   color: var(--ink);
 }
 
+.sidebar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.theme-toggle {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--sky-strong);
+}
+
+.theme-toggle .material-symbols-rounded {
+  font-size: 18px;
+}
+
 /* ─── Mobile: horizontal nav strip ─── */
 @media (max-width: 860px) {
   .sidebar {

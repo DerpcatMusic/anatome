@@ -1,8 +1,8 @@
 import { _ as text_encoder, a as split_remote_key, g as get_relative_path, h as base64_encode, i as parse_remote_arg, m as normalize_error, n as TRAILING_SLASH_PARAM, o as stringify, p as get_status, r as create_remote_key, t as INVALIDATED_PARAM, v as noop, y as once } from "./chunks/shared.js";
-import { c as set_public_env, d as base, f as override, l as app_dir, o as public_env, p as reset, s as set_private_env, u as assets } from "./chunks/environment.js";
-import { E as PAGE_METHODS, a as get_node_type, c as has_prerendered_path, d as serialize_uses, f as static_error_page, g as negotiate, h as is_form_content_type, i as get_global_name, l as method_not_allowed, m as s, o as handle_error_and_jsonify, p as escape_html, r as format_server_error, s as handle_fatal_error, t as clarify_devalue_error, u as redirect_response, w as ENDPOINT_METHODS, y as deserialize_binary_form } from "./chunks/utils.js";
+import { a as public_env, c as app_dir, d as override, f as reset, l as assets, o as set_private_env, s as set_public_env, u as base } from "./chunks/environment.js";
+import { D as PAGE_METHODS, T as ENDPOINT_METHODS, _ as negotiate, a as get_global_name, b as deserialize_binary_form, c as handle_fatal_error, d as redirect_response, f as serialize_uses, g as is_form_content_type, h as s, i as format_server_error, l as has_prerendered_path, m as escape_html, o as get_node_type, p as static_error_page, r as create_replacer, s as handle_error_and_jsonify, t as clarify_devalue_error, u as method_not_allowed } from "./chunks/utils.js";
 import { _ as has_data_suffix, b as strip_resolution_suffix, d as make_trackable, f as normalize_path, g as add_resolution_suffix, h as add_data_suffix, i as validate_page_server_exports, l as decode_pathname, m as noop_span, n as validate_layout_server_exports, o as find_route, p as resolve, r as validate_page_exports, s as hash, t as validate_layout_exports, u as disable_search, v as has_resolution_suffix, x as compact, y as strip_data_suffix } from "./chunks/exports.js";
-import { L as readable, R as writable } from "./chunks/dev.js";
+import { F as readable, I as writable } from "./chunks/dev.js";
 import { a as set_read_implementation, i as set_manifest, n as options, r as read_implementation, t as get_hooks } from "./chunks/internal.js";
 import { error, isRedirect, json, text } from "@sveltejs/kit";
 import { ActionFailure, HttpError, Redirect, SvelteKitError } from "@sveltejs/kit/internal";
@@ -280,12 +280,7 @@ async function call_action(event, event_state, actions) {
 * @param {ServerHooks['transport']} transport
 */
 function uneval_action_response(data, route_id, transport) {
-	const replacer = (thing) => {
-		for (const key in transport) {
-			const encoded = transport[key].encode(thing);
-			if (encoded) return `app.decode('${key}', ${devalue.uneval(encoded, replacer)})`;
-		}
-	};
+	const replacer = create_replacer(transport);
 	return try_serialize(data, (value) => devalue.uneval(value, replacer), route_id);
 }
 /**
@@ -1604,12 +1599,7 @@ async function render_response({ branch, fetched, options, manifest, state, page
 					}
 				}
 			}
-			const replacer = (thing) => {
-				for (const key in options.hooks.transport) {
-					const encoded = options.hooks.transport[key].encode(thing);
-					if (encoded) return `app.decode('${key}', ${devalue.uneval(encoded, replacer)})`;
-				}
-			};
+			const replacer = create_replacer(options.hooks.transport);
 			if (Object.keys(query).length > 0) serialized_query_data = `${global}.query = ${devalue.uneval(query, replacer)};\n\n\t\t\t\t\t\t`;
 			if (Object.keys(prerender).length > 0) serialized_prerender_data = `${global}.prerender = ${devalue.uneval(prerender, replacer)};\n\n\t\t\t\t\t\t`;
 		}
@@ -2925,6 +2915,23 @@ function get_public_env(request) {
 	});
 	return new Response(body, { headers });
 }
+new Set([
+	"max-age",
+	"public",
+	"private",
+	"no-cache",
+	"no-store",
+	"must-revalidate",
+	"proxy-revalidate",
+	"s-maxage",
+	"immutable",
+	"stale-while-revalidate",
+	"stale-if-error",
+	"no-transform",
+	"only-if-cached",
+	"max-stale",
+	"min-fresh"
+]);
 //#endregion
 //#region node_modules/@sveltejs/kit/src/runtime/server/respond.js
 /** @import { RequestState, SSRNode } from 'types' */
@@ -3004,7 +3011,8 @@ async function internal_respond(request, options, manifest, state) {
 			refreshes: null,
 			requested: null,
 			reconnects: null,
-			batches: null
+			batches: null,
+			live_iterators: null
 		},
 		is_in_remote_function: false,
 		is_in_render: false,
@@ -3052,6 +3060,7 @@ async function internal_respond(request, options, manifest, state) {
 		config: {},
 		prerender: !!state.prerendering?.fallback
 	});
+	/** @type {string | null} */
 	let resolved_path = url.pathname;
 	if (!remote_id) {
 		const prerendering_reroute_state = state.prerendering?.inside_reroute;
@@ -3067,10 +3076,21 @@ async function internal_respond(request, options, manifest, state) {
 			if (state.prerendering) state.prerendering.inside_reroute = prerendering_reroute_state;
 		}
 	}
+	/** @type {import('types').RequiredResolveOptions} */
+	let resolve_opts = {
+		transformPageChunk: default_transform,
+		filterSerializedResponseHeaders: default_filter,
+		preload: default_preload
+	};
+	/** @type {import('types').TrailingSlash} */
+	let trailing_slash = "never";
+	/** @type {PageNodes | undefined} */
+	let page_nodes;
 	try {
 		resolved_path = decode_pathname(resolved_path);
 	} catch {
-		return text("Malformed URI", { status: 400 });
+		resolved_path = null;
+		return await handle();
 	}
 	if (resolved_path !== decode_pathname(url.pathname) && !state.prerendering?.fallback && has_prerendered_path(manifest, resolved_path)) {
 		const url = new URL(request.url);
@@ -3116,17 +3136,8 @@ async function internal_respond(request, options, manifest, state) {
 			event.params = result.params;
 		}
 	}
-	/** @type {import('types').RequiredResolveOptions} */
-	let resolve_opts = {
-		transformPageChunk: default_transform,
-		filterSerializedResponseHeaders: default_filter,
-		preload: default_preload
-	};
-	/** @type {import('types').TrailingSlash} */
-	let trailing_slash = "never";
 	try {
-		/** @type {PageNodes | undefined} */
-		const page_nodes = route?.page ? new PageNodes(await load_page_nodes(route.page, manifest)) : void 0;
+		page_nodes = route?.page ? new PageNodes(await load_page_nodes(route.page, manifest)) : void 0;
 		if (route && !remote_id) {
 			if (url.pathname === base || url.pathname === base + "/") trailing_slash = "always";
 			else if (page_nodes) trailing_slash = page_nodes.trailing_slash();
@@ -3153,13 +3164,25 @@ async function internal_respond(request, options, manifest, state) {
 					config = page_nodes.get_config() ?? config;
 					prerender = page_nodes.prerender();
 				}
-				if (state.before_handle) state.before_handle(event, config, prerender);
 				if (state.emulator?.platform) event.platform = await state.emulator.platform({
 					config,
 					prerender
 				});
+				if (state.before_handle) return await state.before_handle(event, config, prerender, handle);
 			}
 		}
+		return await handle();
+	} catch (e) {
+		if (e instanceof Redirect) try {
+			const response = is_data_request || remote_id ? redirect_json_response(e) : route?.page && is_action_json_request(event) ? action_json_redirect(e) : redirect_response(e.status, e.location);
+			add_cookies_to_headers(response.headers, new_cookies.values());
+			return response;
+		} catch (err) {
+			return await handle_fatal_error(event, event_state, options, err);
+		}
+		return await handle_fatal_error(event, event_state, options, e);
+	}
+	async function handle() {
 		set_trailing_slash(trailing_slash);
 		if (state.prerendering && !state.prerendering.fallback && !state.prerendering.inside_reroute) disable_search(url);
 		const response = await record_span({
@@ -3237,15 +3260,6 @@ async function internal_respond(request, options, manifest, state) {
 			if (location) return redirect_json_response(new Redirect(response.status, location));
 		}
 		return response;
-	} catch (e) {
-		if (e instanceof Redirect) try {
-			const response = is_data_request || remote_id ? redirect_json_response(e) : route?.page && is_action_json_request(event) ? action_json_redirect(e) : redirect_response(e.status, e.location);
-			add_cookies_to_headers(response.headers, new_cookies.values());
-			return response;
-		} catch (err) {
-			return await handle_fatal_error(event, event_state, options, err);
-		}
-		return await handle_fatal_error(event, event_state, options, e);
 	}
 	/**
 	* @param {import('@sveltejs/kit').RequestEvent} event
@@ -3259,6 +3273,16 @@ async function internal_respond(request, options, manifest, state) {
 				filterSerializedResponseHeaders: opts.filterSerializedResponseHeaders || default_filter,
 				preload: opts.preload || default_preload
 			};
+			if (resolved_path === null) return await respond_with_error({
+				event,
+				event_state,
+				options,
+				manifest,
+				state,
+				status: 400,
+				error: new SvelteKitError(400, "Malformed URI", `Failed to decode URI: ${event.url.pathname}`),
+				resolve_opts
+			});
 			if (options.hash_routing || state.prerendering?.fallback) return await render_response({
 				event,
 				event_state,

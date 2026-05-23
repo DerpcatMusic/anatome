@@ -15,31 +15,26 @@ import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
+import { createReminderEventsForReservation } from "../liveReminders/create";
 
-async function insertReminderEvents(
+async function findReservationForUser(
   ctx: MutationCtx,
   liveClassId: Id<"liveClasses">,
-  reservationId: Id<"liveReservations">,
   userId: Id<"users">,
-  startsAt: number,
 ) {
-  const now = Date.now();
-  const reminders = [
-    { kind: "day_before" as const, sendAt: startsAt - 24 * 60 * 60 * 1000 },
-    { kind: "thirty_minutes" as const, sendAt: startsAt - 30 * 60 * 1000 },
-  ].filter((reminder) => reminder.sendAt > now);
+  const rows = await ctx.db
+    .query("liveReservations")
+    .withIndex("by_liveClassId_and_userId", (q) =>
+      q.eq("liveClassId", liveClassId).eq("userId", userId),
+    )
+    .take(10);
 
-  for (const reminder of reminders) {
-    await ctx.db.insert("liveReminderEvents", {
-      liveClassId,
-      reservationId,
-      userId,
-      kind: reminder.kind,
-      sendAt: reminder.sendAt,
-      status: "pending",
-      createdAt: now,
-    });
-  }
+  return (
+    rows.find((row) => row.status === "joined") ??
+    rows.find((row) => row.status === "reserved") ??
+    rows[0] ??
+    null
+  );
 }
 
 export const listMine = query({
@@ -72,10 +67,11 @@ export const reserve = mutation({
     if (Date.now() > liveClass.joinClosesAt) {
       throw new Error("חלון ההרשמה לשיעור נסגר");
     }
-    const memberProfile = await ctx.db
+    const memberProfiles = await ctx.db
       .query("memberProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(1);
+    const memberProfile = memberProfiles[0] ?? null;
     if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
     if (
       missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment)
@@ -84,12 +80,7 @@ export const reserve = mutation({
       throw new Error("חסר ציוד נדרש");
     }
 
-    const existing = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_userId", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("userId", userId),
-      )
-      .unique();
+    const existing = await findReservationForUser(ctx, args.liveClassId, userId);
 
     if (
       existing !== null &&
@@ -98,16 +89,8 @@ export const reserve = mutation({
       return existing._id;
     }
 
-    const allReservations = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId),
-      )
-      .take(liveClass.capacity + 1);
-    const activeCount = allReservations.filter(
-      (r) => r.status === "reserved" || r.status === "joined",
-    ).length;
-    if (activeCount >= liveClass.capacity) {
+    const seatsTaken = liveClass.seatsTaken ?? 0;
+    if (seatsTaken >= liveClass.capacity) {
       throw new Error("השיעור מלא");
     }
 
@@ -128,38 +111,30 @@ export const reserve = mutation({
       await reserveOneOnOneCredits(ctx, bucket, liveClass.creditCost);
     }
 
-    const reservationId = await ctx.db.insert("liveReservations", {
-      liveClassId: args.liveClassId,
-      userId,
-      creditBucketId: bucket._id,
-      status: "reserved",
-      creditKind: liveClass.creditKind,
-      creditsReserved: liveClass.creditCost,
-      reservedAt: now,
-    });
-    await ctx.db.patch(args.liveClassId, { seatsTaken: activeCount + 1 });
-
-    // Idempotency / race-condition defence: re-verify capacity after insert
-    const postCheck = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId),
-      )
-      .collect();
-    const postActive = postCheck.filter((r) => r.status === "reserved" || r.status === "joined").length;
-    if (postActive > liveClass.capacity) {
-      // Rollback: we lost the race
-      if (liveClass.creditKind === "live") {
-        await releaseLiveCredits(ctx, bucket, liveClass.creditCost);
-      } else {
-        await releaseOneOnOneCredits(ctx, bucket, liveClass.creditCost);
-      }
-      await ctx.db.delete(reservationId);
-      await ctx.db.patch(args.liveClassId, { seatsTaken: Math.max(0, postActive - 1) });
-      throw new Error("Class is full");
+    let reservationId: Id<"liveReservations">;
+    if (existing !== null) {
+      await ctx.db.patch(existing._id, {
+        creditBucketId: bucket._id,
+        status: "reserved",
+        creditKind: liveClass.creditKind,
+        creditsReserved: liveClass.creditCost,
+        reservedAt: now,
+      });
+      reservationId = existing._id;
+    } else {
+      reservationId = await ctx.db.insert("liveReservations", {
+        liveClassId: args.liveClassId,
+        userId,
+        creditBucketId: bucket._id,
+        status: "reserved",
+        creditKind: liveClass.creditKind,
+        creditsReserved: liveClass.creditCost,
+        reservedAt: now,
+      });
     }
+    await ctx.db.patch(args.liveClassId, { seatsTaken: seatsTaken + 1 });
 
-    await insertReminderEvents(
+    await createReminderEventsForReservation(
       ctx,
       args.liveClassId,
       reservationId,
@@ -176,12 +151,7 @@ export const cancel = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    const reservation = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_userId", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("userId", userId),
-      )
-      .unique();
+    const reservation = await findReservationForUser(ctx, args.liveClassId, userId);
 
     if (reservation === null || reservation.status !== "reserved") {
       throw new Error("Active reservation not found");
@@ -214,7 +184,7 @@ export const cancel = mutation({
       .withIndex("by_reservationId", (q) =>
         q.eq("reservationId", reservation._id),
       )
-      .collect();
+      .take(10);
     for (const reminder of reminders) {
       if (reminder.status === "pending") {
         await ctx.db.patch(reminder._id, {

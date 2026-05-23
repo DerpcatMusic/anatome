@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Button from "$components/ui/Button.svelte";
-  import ScrollArea from "$components/ui/ScrollArea.svelte";
+  import { Button } from "bits-ui";
+  import { ScrollArea } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import type { ParticipantItem } from "$lib/features/live/types";
 
@@ -30,8 +30,9 @@
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>
-    <ScrollArea class="lr-panel__scroll">
-      <div class="lr-participant-list">
+    <ScrollArea.Root class="hb-scroll-area lr-panel__scroll">
+  <ScrollArea.Viewport class="hb-scroll-area__viewport">
+    <div class="lr-participant-list">
         {#each participants as p (p.identity)}
           <div
             class="lr-participant"
@@ -64,6 +65,10 @@
           </div>
         {/each}
       </div>
-    </ScrollArea>
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar class="hb-scroll-area__bar" orientation="vertical">
+    <ScrollArea.Thumb class="hb-scroll-area__thumb" />
+  </ScrollArea.Scrollbar>
+</ScrollArea.Root>
   </aside>
 {/if}

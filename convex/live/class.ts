@@ -11,6 +11,9 @@ import { MS, RULES, LIMITS } from "../lib/constants";
 import { roomNameForClass } from "../lib/live";
 import { releaseLiveCredits } from "../credits/releaseLive";
 import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { scheduleLiveClassLifecycle } from "./schedule";
+import { settleReservationsForClass } from "./settle";
+import { scheduleReminderEvent } from "../liveReminders/schedule";
 
 const classType = v.union(v.literal("group_live"), v.literal("one_on_one"));
 const creditKind = v.union(v.literal("live"), v.literal("oneOnOne"));
@@ -42,20 +45,25 @@ export const get = query({
 
     if (userId === null) return null;
 
-    const profile = await ctx.db
+    const profiles = await ctx.db
       .query("appProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(1);
+    const profile = profiles[0] ?? null;
     const isStaff =
       profile !== null && (profile.role === "instructor" || profile.role === "admin");
     if (isStaff) return liveClass;
 
-    const reservation = await ctx.db
+    const reservations = await ctx.db
       .query("liveReservations")
       .withIndex("by_liveClassId_and_userId", (q) =>
         q.eq("liveClassId", args.liveClassId).eq("userId", userId),
       )
-      .unique();
+      .take(10);
+    const reservation =
+      reservations.find((row) => row.status === "joined") ??
+      reservations.find((row) => row.status === "reserved") ??
+      null;
 
     const hasValidReservation =
       reservation !== null &&
@@ -103,7 +111,7 @@ export const create = mutation({
 
     if (args.startsAt <= now - MS.FIVE_MINUTES) throw new Error("ניתן לתזמן שיעור רק לעתיד");
 
-    return await ctx.db.insert("liveClasses", {
+    const liveClassId = await ctx.db.insert("liveClasses", {
       title: args.title.trim(),
       description: args.description.trim(),
       type: args.type,
@@ -121,6 +129,9 @@ export const create = mutation({
       createdAt: now,
       updatedAt: now,
     });
+    const scheduled = await scheduleLiveClassLifecycle(ctx, liveClassId, args.startsAt, joinClosesAt);
+    await ctx.db.patch(liveClassId, scheduled);
+    return liveClassId;
   },
 });
 
@@ -155,10 +166,11 @@ export const start = mutation({
       updatedAt: now,
     });
 
-    const existingRoom = await ctx.db
+    const existingRooms = await ctx.db
       .query("liveRooms")
       .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .unique();
+      .take(1);
+    const existingRoom = existingRooms[0] ?? null;
 
     if (existingRoom === null) {
       await ctx.db.insert("liveRooms", {
@@ -204,10 +216,11 @@ export const end = mutation({
       updatedAt: now,
     });
 
-    const room = await ctx.db
+    const rooms = await ctx.db
       .query("liveRooms")
       .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .unique();
+      .take(1);
+    const room = rooms[0] ?? null;
 
     if (room !== null) {
       await ctx.db.patch(room._id, {
@@ -217,9 +230,13 @@ export const end = mutation({
       });
     }
 
-    await ctx.runMutation(internal.live.settle.settle, {
-      liveClassId: args.liveClassId,
-    });
+    if (room !== null) {
+      await ctx.scheduler.runAfter(0, internal.livekit.rooms.deleteRoomByName, {
+        roomName: room.roomName,
+      });
+    }
+
+    await settleReservationsForClass(ctx, args.liveClassId);
 
     return args.liveClassId;
   },
@@ -289,11 +306,13 @@ export const reschedule = mutation({
       patch.description = args.description.trim();
     }
     await ctx.db.patch(args.liveClassId, patch);
+    const scheduled = await scheduleLiveClassLifecycle(ctx, args.liveClassId, args.startsAt, joinClosesAt);
+    await ctx.db.patch(args.liveClassId, scheduled);
 
     const reminders = await ctx.db
       .query("liveReminderEvents")
       .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .collect();
+      .take(LIMITS.LIVE_PARTICIPANTS * 2);
 
     for (const reminder of reminders) {
       if (reminder.status !== "pending") continue;
@@ -311,8 +330,10 @@ export const reschedule = mutation({
           processedAt: now,
         });
       } else {
+        const scheduledFunctionId = await scheduleReminderEvent(ctx, reminder._id, newSendAt);
         await ctx.db.patch(reminder._id, {
           sendAt: newSendAt,
+          scheduledFunctionId,
         });
       }
     }
@@ -351,7 +372,7 @@ export const cancel = mutation({
       .withIndex("by_liveClassId_and_status", (q) =>
         q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
       )
-      .collect();
+      .take(LIMITS.LIVE_PARTICIPANTS);
 
     for (const res of reservations) {
       const bucket = await ctx.db.get(res.creditBucketId);
@@ -376,7 +397,7 @@ export const cancel = mutation({
     const reminders = await ctx.db
       .query("liveReminderEvents")
       .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .collect();
+      .take(LIMITS.LIVE_PARTICIPANTS * 2);
 
     for (const reminder of reminders) {
       if (reminder.status === "pending") {

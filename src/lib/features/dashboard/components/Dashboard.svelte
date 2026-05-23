@@ -7,14 +7,19 @@
   import LiveAlert from "./LiveAlert.svelte";
   import InstructorActions from "./InstructorActions.svelte";
   import ProfileSummary from "./ProfileSummary.svelte";
+  import SubscriptionManager from "./SubscriptionManager.svelte";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
 
-  let { profile, liveAlert, role, appProfile }: {
+  let { profile, liveAlert, role, appProfile, subscription, subscriptionPlan, pendingSubscriptionPlan, creditBucket }: {
     profile: DashboardData["profile"];
     liveAlert: DashboardData["liveAlert"];
     role?: "customer" | "instructor" | "admin" | null;
     appProfile: DashboardData["appProfile"];
+    subscription?: DashboardData["subscription"];
+    subscriptionPlan?: DashboardData["subscriptionPlan"];
+    pendingSubscriptionPlan?: DashboardData["pendingSubscriptionPlan"];
+    creditBucket?: DashboardData["creditBucket"];
   } = $props();
 
   const isStaff = $derived(role === "instructor" || role === "admin");
@@ -35,6 +40,12 @@
     <ProfileSummary {isStaff} {appProfile} />
     <InstructorActions />
   {:else if profile}
+    <SubscriptionManager
+      subscription={subscription ?? null}
+      subscriptionPlan={subscriptionPlan ?? null}
+      pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
+      creditBucket={creditBucket ?? null}
+    />
     <ProfileSummary {isStaff} {profile} />
   {/if}
 

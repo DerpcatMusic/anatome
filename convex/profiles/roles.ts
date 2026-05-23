@@ -31,7 +31,8 @@ export const setByEmail = mutation({
     requireRole(actorProfile, ["admin"]);
 
     const email = args.email.trim().toLowerCase();
-    const user = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", email)).unique();
+    const users = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", email)).take(1);
+    const user = users[0] ?? null;
     if (user === null) throw new Error("No user found for email");
 
     const profile = await getOrCreateAppProfile(ctx, user._id);
@@ -67,10 +68,11 @@ export const toggleInstructor = mutation({
     requireRole(actorProfile, ["admin"]);
 
     const email = args.email.trim().toLowerCase();
-    const targetProfile = await ctx.db
+    const targetProfiles = await ctx.db
       .query("appProfiles")
       .withIndex("by_email", (q) => q.eq("email", email))
-      .unique();
+      .take(1);
+    const targetProfile = targetProfiles[0] ?? null;
 
     if (targetProfile === null) throw new Error("No app profile found for email");
     if (targetProfile.role === "admin") throw new Error("Cannot toggle instructor status for admin");

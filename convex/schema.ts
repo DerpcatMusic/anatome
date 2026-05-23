@@ -10,14 +10,22 @@ export default defineSchema({
     slug: v.string(),
     nameHe: v.string(),
     monthlyPriceIls: v.number(),
+    platformFeeIls: v.optional(v.number()),
+    vodCreditValueIls: v.optional(v.number()),
+    liveCreditValueIls: v.optional(v.number()),
+    oneOnOneCreditValueIls: v.optional(v.number()),
     vodCreditsPerMonth: v.number(),
     liveCreditsPerMonth: v.number(),
     oneOnOneCreditsPerMonth: v.number(),
     isActive: v.boolean(),
-  }).index("by_slug", ["slug"]),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_isActive_and_slug", ["isActive", "slug"]),
 
   creditBuckets: defineTable({
     userId: v.id("users"),
+    subscriptionId: v.optional(v.id("userSubscriptions")),
+    planId: v.optional(v.id("plans")),
     periodStart: v.number(),
     periodEnd: v.number(),
     vodGranted: v.number(),
@@ -29,6 +37,33 @@ export default defineSchema({
     oneOnOneReserved: v.optional(v.number()),
     oneOnOneUsed: v.number(),
   }).index("by_user_period", ["userId", "periodStart"]),
+
+  userSubscriptions: defineTable({
+    userId: v.id("users"),
+    planId: v.id("plans"),
+    status: v.union(
+      v.literal("trialing"),
+      v.literal("active"),
+      v.literal("past_due"),
+      v.literal("cancelled"),
+      v.literal("expired"),
+    ),
+    currentPeriodStart: v.number(),
+    currentPeriodEnd: v.number(),
+    cancelAtPeriodEnd: v.boolean(),
+    pendingPlanId: v.optional(v.union(v.id("plans"), v.null())),
+    pendingPlanChangeAt: v.optional(v.union(v.number(), v.null())),
+    pendingPlanChangeKind: v.optional(v.union(v.literal("downgrade"), v.null())),
+    renewalScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
+    provider: v.union(v.literal("manual"), v.literal("external")),
+    externalSubscriptionId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_and_status", ["userId", "status"])
+    .index("by_status_and_currentPeriodEnd", ["status", "currentPeriodEnd"])
+    .index("by_provider_and_externalSubscriptionId", ["provider", "externalSubscriptionId"]),
 
   appProfiles: defineTable({
     userId: v.id("users"),
@@ -82,11 +117,14 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     seatsTaken: v.optional(v.number()),
+    startScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
+    endScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
   })
     .index("by_startsAt", ["startsAt"])
     .index("by_status_and_startsAt", ["status", "startsAt"])
     .index("by_status_and_joinClosesAt", ["status", "joinClosesAt"])
     .index("by_instructorUserId_and_startsAt", ["instructorUserId", "startsAt"])
+    .index("by_instructorUserId_and_status_and_startsAt", ["instructorUserId", "status", "startsAt"])
     .index("by_type_and_startsAt", ["type", "startsAt"]),
 
   liveRooms: defineTable({
@@ -156,6 +194,7 @@ export default defineSchema({
     status: v.union(v.literal("pending"), v.literal("sent"), v.literal("cancelled"), v.literal("skipped")),
     createdAt: v.number(),
     processedAt: v.optional(v.number()),
+    scheduledFunctionId: v.optional(v.id("_scheduled_functions")),
   })
     .index("by_status_and_sendAt", ["status", "sendAt"])
     .index("by_reservationId", ["reservationId"])
@@ -202,6 +241,7 @@ export default defineSchema({
     ),
     creditBucketId: v.id("creditBuckets"),
     liveClassId: v.optional(v.id("liveClasses")),
+    expirationScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     createdAt: v.number(),
     updatedAt: v.number(),
     decidedAt: v.optional(v.number()),
@@ -307,6 +347,7 @@ export default defineSchema({
     timestamp: v.number(),
   })
     .index("by_userId_and_action", ["userId", "action"])
+    .index("by_userId_and_action_and_timestamp", ["userId", "action", "timestamp"])
     .index("by_timestamp", ["timestamp"]),
 
   memberProfiles: defineTable({
@@ -315,6 +356,8 @@ export default defineSchema({
     experience: experienceValidator,
     goals: goalsValidator,
     notes: v.string(),
+    healthInfoConsentAcceptedAt: v.optional(v.number()),
+    healthDeclarationAcceptedAt: v.optional(v.number()),
     onboardingCompletedAt: v.number(),
     updatedAt: v.number(),
   }).index("by_userId", ["userId"]),
