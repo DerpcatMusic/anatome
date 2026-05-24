@@ -6,9 +6,15 @@ import { internalAction } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { requireLiveKitEnv, httpUrlForLiveKit } from "../lib/livekitEnv";
 
+const expireDueResultValidator = v.object({
+  expiredClasses: v.number(),
+  deletedRooms: v.number(),
+});
+
 export const expireDue = internalAction({
   args: {},
-  handler: async (ctx): Promise<{ expiredClasses: number; deletedRooms: number }> => {
+  returns: expireDueResultValidator,
+  handler: async (ctx) => {
     const result: { expiredRoomNames: string[] } = await ctx.runMutation(
       internal.live.cron.expire,
       { now: Date.now() },
@@ -45,7 +51,8 @@ export const deleteRoomByName = internalAction({
   args: {
     roomName: v.string(),
   },
-  handler: async (_ctx, args): Promise<{ deleted: boolean }> => {
+  returns: v.object({ deleted: v.boolean() }),
+  handler: async (_ctx, args) => {
     let env: ReturnType<typeof requireLiveKitEnv>;
     try {
       env = requireLiveKitEnv();

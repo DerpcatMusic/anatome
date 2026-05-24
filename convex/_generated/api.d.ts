@@ -12,9 +12,12 @@ import type * as auth from "../auth.js";
 import type * as credits_lib from "../credits/lib.js";
 import type * as credits_migrate from "../credits/migrate.js";
 import type * as crons from "../crons.js";
+import type * as email_authVerification from "../email/authVerification.js";
+import type * as email_resend from "../email/resend.js";
 import type * as http from "../http.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_constants from "../lib/constants.js";
+import type * as lib_email from "../lib/email.js";
 import type * as lib_equipment from "../lib/equipment.js";
 import type * as lib_live from "../lib/live.js";
 import type * as lib_liveJoin from "../lib/liveJoin.js";
@@ -27,6 +30,7 @@ import type * as live_calendar from "../live/calendar.js";
 import type * as live_capacity from "../live/capacity.js";
 import type * as live_class from "../live/class.js";
 import type * as live_cron from "../live/cron.js";
+import type * as live_joinContract from "../live/joinContract.js";
 import type * as live_joinPolicy from "../live/joinPolicy.js";
 import type * as live_next from "../live/next.js";
 import type * as live_reservation from "../live/reservation.js";
@@ -61,6 +65,7 @@ import type * as subscriptions_schedule from "../subscriptions/schedule.js";
 import type * as subscriptions_seed from "../subscriptions/seed.js";
 import type * as users_dashboard from "../users/dashboard.js";
 import type * as users_onboarding from "../users/onboarding.js";
+import type * as users_session from "../users/session.js";
 import type * as users_viewer from "../users/viewer.js";
 import type * as video_admin from "../video/admin.js";
 import type * as video_catalog from "../video/catalog.js";
@@ -88,9 +93,12 @@ declare const fullApi: ApiFromModules<{
   "credits/lib": typeof credits_lib;
   "credits/migrate": typeof credits_migrate;
   crons: typeof crons;
+  "email/authVerification": typeof email_authVerification;
+  "email/resend": typeof email_resend;
   http: typeof http;
   "lib/authz": typeof lib_authz;
   "lib/constants": typeof lib_constants;
+  "lib/email": typeof lib_email;
   "lib/equipment": typeof lib_equipment;
   "lib/live": typeof lib_live;
   "lib/liveJoin": typeof lib_liveJoin;
@@ -103,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   "live/capacity": typeof live_capacity;
   "live/class": typeof live_class;
   "live/cron": typeof live_cron;
+  "live/joinContract": typeof live_joinContract;
   "live/joinPolicy": typeof live_joinPolicy;
   "live/next": typeof live_next;
   "live/reservation": typeof live_reservation;
@@ -137,6 +146,7 @@ declare const fullApi: ApiFromModules<{
   "subscriptions/seed": typeof subscriptions_seed;
   "users/dashboard": typeof users_dashboard;
   "users/onboarding": typeof users_onboarding;
+  "users/session": typeof users_session;
   "users/viewer": typeof users_viewer;
   "video/admin": typeof video_admin;
   "video/catalog": typeof video_catalog;
@@ -182,4 +192,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   mux: import("@mux/convex/_generated/component.js").ComponentApi<"mux">;
+  resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;
 };

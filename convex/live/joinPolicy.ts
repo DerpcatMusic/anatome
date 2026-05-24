@@ -3,7 +3,9 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { assertInLiveJoinWindow } from "../lib/liveJoin";
 
-export type LiveParticipantRole = "instructor" | "customer" | "admin";
+import type { LiveParticipantRole } from "./joinContract";
+
+export type { LiveParticipantRole };
 
 export type JoinPolicyContext = {
   ctx: MutationCtx;
@@ -128,6 +130,25 @@ export async function validateCustomerJoinEligibility(joinCtx: JoinPolicyContext
 }
 
 export const LIVEKIT_PRIVILEGED_EXTRA_SEATS = 2;
+
+/** Instructor or admin — publish screen share, room admin, etc. */
+export function isPrivilegedLiveParticipant(role: LiveParticipantRole): boolean {
+  return role === "instructor" || role === "admin";
+}
+
+/** LiveKit participant identity: `{role}_{userId}`. */
+export function liveKitParticipantIdentity(
+  role: LiveParticipantRole,
+  userId: Id<"users">,
+): string {
+  return `${role}_${userId}`;
+}
+
+export function liveKitRoomLayout(
+  liveClassType: "group_live" | "one_on_one",
+): "one_on_one" | "instructor_spotlight" {
+  return liveClassType === "one_on_one" ? "one_on_one" : "instructor_spotlight";
+}
 
 export function maxLiveKitParticipants(capacity: number) {
   return Math.max(2, capacity + LIVEKIT_PRIVILEGED_EXTRA_SEATS);

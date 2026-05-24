@@ -202,8 +202,8 @@
   .prep-notice {
     margin: 0;
     padding: var(--space-3) var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--terra) 35%, transparent);
-    background: color-mix(in srgb, var(--terra) 10%, transparent);
+    border: 1px solid var(--primary);
+    background: var(--primary);
     font-size: var(--step--1);
     line-height: 1.5;
   }
@@ -267,7 +267,7 @@
     margin: 0;
     font-size: var(--step--1);
     line-height: 1.45;
-    color: color-mix(in srgb, var(--ink) 68%, transparent);
+    color: var(--ink);
   }
 
   .customer-connect__actions {

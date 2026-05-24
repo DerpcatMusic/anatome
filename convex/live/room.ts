@@ -3,6 +3,8 @@ import { internalMutation } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireUserId } from "../lib/authz";
+import { prepareJoinResultValidator } from "./joinContract";
+import type { LiveParticipantRole } from "./joinContract";
 import {
   requireWalletForMember,
   availableLiveCredits,
@@ -89,7 +91,7 @@ async function ensureRoomExists(
 /** Logs the join event for audit/debugging. */
 async function logJoinEvent(
   { ctx, userId, liveClass, now }: JoinContext,
-  participantRole: "instructor" | "customer" | "admin",
+  participantRole: LiveParticipantRole,
   reason: string,
 ) {
   await ctx.db.insert("liveJoinEvents", {
@@ -106,6 +108,7 @@ export const prepareJoin = internalMutation({
   args: {
     liveClassId: v.id("liveClasses"),
   },
+  returns: prepareJoinResultValidator,
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);

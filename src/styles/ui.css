@@ -21,7 +21,7 @@
 
 .hb-button:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 26px;
 }
 
@@ -42,65 +42,67 @@
 }
 
 .hb-button--ink:active {
-  background: var(--ink-gradient-end);
-  border-color: var(--ink-gradient-end);
-}
-
-.hb-button--sky {
-  background: var(--sky);
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--sky-strong) 55%, var(--line));
-}
-
-.hb-button--sky:hover {
-  background: var(--sky-strong);
-  color: var(--white);
-  border-color: var(--sky-strong);
-}
-
-.hb-button--sky:active {
-  background: var(--sky);
-  border-color: var(--sky-strong);
-}
-
-.hb-button--primary {
-  background: linear-gradient(135deg, var(--ink), var(--ink-gradient-end));
-  color: var(--white);
-  border-color: var(--ink);
-  box-shadow: var(--shadow-primary-button);
-}
-
-.hb-button--primary:hover {
-  background: linear-gradient(135deg, var(--ink-secondary), var(--ink-gradient-end-hover));
-}
-
-.hb-button--primary:active {
-  background: linear-gradient(135deg, var(--ink-gradient-end), var(--ink-gradient-end-hover));
+  background: var(--ink-secondary);
+  border-color: var(--ink-secondary);
 }
 
 .hb-button--secondary {
-  background: color-mix(in srgb, var(--white) 82%, transparent);
-  color: var(--ink);
+  background: var(--surface);
+  color: var(--secondary);
+  border-color: var(--secondary);
 }
 
 .hb-button--secondary:hover {
-  background: var(--sky-soft);
+  background: var(--secondary);
+  color: var(--white);
+  border-color: var(--secondary);
+}
+
+.hb-button--secondary:active {
+  background: var(--secondary);
+}
+
+.hb-button--primary {
+  background: var(--surface);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.hb-button--primary:hover {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.hb-button--primary:active {
+  background: var(--primary);
+}
+
+.hb-button--paper {
+  background: var(--white);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.hb-button--paper:hover {
+  background: var(--surface);
+  border-color: var(--secondary);
+}
+
+.hb-button--paper:active {
+  background: var(--line-light);
 }
 
 .hb-button--ghost {
-  min-height: 36px;
-  border-color: transparent;
   background: transparent;
   color: var(--muted);
-  padding-inline: var(--space-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  border-color: var(--line-light);
 }
 
 .hb-button--ghost:hover {
-  color: var(--ink);
   background: var(--surface);
-  border-color: var(--line);
+  border-color: var(--secondary);
+  color: var(--ink);
 }
 
 .hb-button--ghost:active {
@@ -108,49 +110,25 @@
 }
 
 .hb-button--danger {
-  background: var(--danger-soft);
-  color: var(--danger-text);
+  background: var(--danger);
+  color: var(--white);
   border-color: var(--danger);
 }
 
 .hb-button--danger:hover {
-  background: var(--danger-soft-hover);
+  background: var(--danger);
+  border-color: var(--danger);
+  filter: brightness(1.05);
 }
 
 .hb-button--danger:active {
-  background: color-mix(in srgb, var(--danger) 12%, var(--white));
+  filter: brightness(0.95);
 }
 
-.hb-button--terra {
-  background: var(--terra-soft);
-  color: var(--terra-strong);
-  border-color: var(--terra);
-}
-
-.hb-button--terra:hover {
-  background: var(--terra);
-  color: var(--white);
-  border-color: var(--terra-strong);
-}
-
-.hb-button--terra:active {
-  background: var(--terra-strong);
-}
-
-.hb-button--violet {
-  background: var(--violet-soft);
-  color: var(--violet-strong);
-  border-color: var(--violet);
-}
-
-.hb-button--violet:hover {
-  background: var(--violet);
-  color: var(--paper);
-  border-color: var(--violet-strong);
-}
-
-.hb-button--violet:active {
-  background: var(--violet-strong);
+.hb-button--md {
+  min-height: 44px;
+  padding-inline: var(--space-4);
+  font-size: var(--step-0);
 }
 
 .hb-button--sm {
@@ -195,7 +173,7 @@
 
 .hb-button--icon:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 18px;
 }
 
@@ -204,13 +182,25 @@
   background: var(--line-light);
 }
 
+.hb-button--icon-active {
+  background: var(--secondary);
+  color: var(--ink);
+  border-color: var(--secondary);
+}
+
+.hb-button--icon-active:hover {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  filter: brightness(1.04);
+}
+
 .hb-button--icon-danger {
   width: 36px;
   height: 36px;
   padding: 0;
   display: inline-grid;
   place-items: center;
-  background: var(--danger-soft);
+  background: var(--surface);
   border-color: var(--danger);
   color: var(--danger);
   border-radius: 4px;
@@ -221,13 +211,13 @@
 }
 
 .hb-button--icon-danger:hover {
-  background: var(--danger-soft-hover);
-  border-color: var(--danger-text);
+  background: var(--surface);
+  border-color: var(--danger);
 }
 
 .hb-button--icon-danger:active {
   transform: translateY(1px);
-  background: color-mix(in srgb, var(--danger) 12%, var(--white));
+  background: var(--surface);
 }
 
 /* Control bar button */
@@ -261,7 +251,7 @@
 
 .hb-button--control:hover:not(:disabled) {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 22px;
 }
 
@@ -271,21 +261,164 @@
 }
 
 .hb-button--control-on {
-  background: color-mix(in srgb, var(--success-bg) 82%, var(--white));
-  color: var(--success-text);
-  border-color: var(--success-border);
+  background: var(--lr-control-on-bg, var(--secondary));
+  color: var(--ink);
+  border-color: var(--secondary);
+}
+
+.hb-button--control-on:hover:not(:disabled) {
+  background: var(--lr-control-on-bg, var(--secondary));
+  border-color: var(--secondary);
+  filter: brightness(1.03);
 }
 
 .hb-button--control-off {
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: var(--lr-control-off-bg, var(--white));
   color: var(--muted);
   border-color: var(--line-light);
 }
 
-.hb-button--control-participants-on {
-  background: var(--sky-soft);
+.hb-button--control-active {
+  background: var(--lr-control-active-bg, var(--secondary));
   color: var(--ink);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
+}
+
+.hb-button--control-participants-on {
+  background: var(--lr-control-active-bg, var(--secondary));
+  color: var(--ink);
+  border-color: var(--secondary);
+}
+
+/* Split mic/camera control (~70% toggle + ~30% device menu) */
+.hb-media-split {
+  display: inline-flex;
+  align-items: stretch;
+  min-height: 44px;
+  border: var(--border);
+  border-radius: 4px;
+  background: var(--lr-control-off-bg, var(--white));
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    border-radius 0.35s ease;
+}
+
+.hb-media-split:hover {
+  border-color: var(--secondary);
+  border-radius: 22px;
+}
+
+.hb-media-split--on {
+  background: var(--lr-control-on-bg, var(--secondary));
+  border-color: var(--secondary);
+}
+
+.hb-media-split--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.hb-media-split__main {
+  flex: 1 1 70%;
+  min-width: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--step--2);
+  font-weight: 850;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hb-media-split__main:hover:not(:disabled) {
+  background: oklch(0% 0 0 / 0.06);
+}
+
+.hb-media-split__main:disabled {
+  cursor: wait;
+}
+
+.hb-media-split__label {
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.hb-media-split__divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+.hb-media-split--on .hb-media-split__divider {
+  background: color-mix(in oklch, var(--ink) 18%, var(--secondary));
+}
+
+.hb-media-split__menu {
+  flex: 0 0 auto;
+  min-width: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hb-media-split__menu:hover:not(:disabled) {
+  background: oklch(0% 0 0 / 0.08);
+}
+
+.hb-media-split__menu .material-symbols-rounded {
+  font-size: 1.25rem;
+}
+
+.hb-media-split__main .material-symbols-rounded {
+  font-size: 1.25rem;
+}
+
+.hb-toolbar-control {
+  position: relative;
+}
+
+.hb-toolbar-control__badge {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--paper);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.1rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Toolbar layout hooks for live control bar */
+.hb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.hb-toolbar__group {
+  display: inline-flex;
+  align-items: stretch;
 }
 
 /* Close button — minimum 44×44 touch target */
@@ -309,7 +442,7 @@
 
 .hb-button--close:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 14px;
 }
 
@@ -341,7 +474,7 @@
 
 .hb-button--participants:hover {
   background: var(--line-light);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 10px;
 }
 
@@ -350,23 +483,20 @@
   background: var(--line);
 }
 
-@media (min-width: 48.01rem) {
-  .hb-button--participants {
+@media (max-width: 48rem) {
+  .hb-button--control {
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--space-2);
+  }
+
+  .hb-button--control .hb-button__label,
+  .hb-toolbar-control__label {
     display: none;
   }
-}
 
-@media (max-width: 48rem) {
-  .hb-button--participants {
-    display: inline-flex;
-  }
-
-  .hb-button--control {
-    min-width: 54px;
-    min-height: 56px;
-    flex-direction: column;
-    padding: var(--space-2);
-    font-size: 10px;
+  .hb-media-split__label {
+    display: none;
   }
 }
 
@@ -433,8 +563,8 @@
 .hb-input:focus,
 .hb-textarea:focus {
   outline: none;
-  border-color: var(--sky-strong);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sky-soft) 50%, transparent);
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px transparent;
 }
 
 input[type="time"].hb-input {
@@ -476,7 +606,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-select__trigger:hover,
 .hb-select__trigger[data-state="open"] {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .hb-select__trigger:active {
@@ -486,7 +616,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-select__trigger:focus-visible,
 .hb-switch__root:focus-visible,
 .hb-button:focus-visible {
-  outline: 2px solid var(--sky-strong);
+  outline: 2px solid var(--secondary);
   outline-offset: 3px;
 }
 
@@ -552,7 +682,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-select__item[data-highlighted] {
   border-color: var(--line);
-  background: color-mix(in srgb, var(--sky-soft) 72%, var(--white));
+  background: var(--surface);
   color: var(--ink);
 }
 
@@ -597,7 +727,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-switch__root[data-state="checked"] {
-  background: var(--sky);
+  background: var(--secondary);
 }
 
 .hb-switch__thumb {
@@ -664,7 +794,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-choice:hover:not([data-disabled]),
 .hb-choice[data-highlighted]:not([data-disabled]) {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .hb-choice:active:not([data-disabled]) {
@@ -675,7 +805,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-choice[data-state="checked"],
 .hb-choice[data-selected="true"],
 .hb-choice.is-selected {
-  background: var(--sky);
+  background: var(--secondary);
   border-color: var(--ink);
   color: var(--ink);
 }
@@ -687,7 +817,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-choice:focus-visible {
-  outline: 2px solid var(--sky-strong);
+  outline: 2px solid var(--secondary);
   outline-offset: 3px;
 }
 
@@ -741,14 +871,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-meter__track {
   height: 12px;
   border: var(--border);
-  background: color-mix(in srgb, var(--beige) 35%, var(--white));
+  background: var(--surface);
   overflow: hidden;
 }
 
 .hb-meter__fill {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--sky-strong), var(--accent-purple), var(--speaking));
+  background: linear-gradient(90deg, var(--secondary), var(--primary), var(--warning));
   transform-origin: right center;
   transition: transform 0.1s linear;
 }
@@ -765,7 +895,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-progress-fill {
   width: 100%;
   height: 100%;
-  background: var(--sky-strong);
+  background: var(--secondary);
   transition: transform 0.2s;
 }
 
@@ -822,7 +952,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-toggle-item:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .hb-toggle-item:active {
@@ -831,13 +961,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-toggle-item[data-state="on"] {
-  background: var(--sky);
+  background: var(--secondary);
   border-color: var(--ink);
   color: var(--ink);
 }
 
 .hb-toggle-item[data-state="on"]:hover {
-  background: var(--sky-strong);
+  background: var(--secondary);
   color: var(--paper);
   border-color: var(--ink);
 }
@@ -959,7 +1089,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .hb-slider__range {
   position: absolute;
   height: 100%;
-  background: linear-gradient(90deg, var(--sky-strong), var(--sky));
+  background: linear-gradient(90deg, var(--secondary), var(--secondary));
   border-radius: 999px;
 }
 
@@ -989,7 +1119,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-slider__thumb:focus-visible {
-  outline: 2px solid var(--sky-strong);
+  outline: 2px solid var(--secondary);
   outline-offset: 3px;
 }
 
@@ -1064,7 +1194,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-dropdown-item--danger:hover,
 .hb-dropdown-item--danger[data-highlighted] {
-  background: var(--danger-soft);
+  background: var(--surface);
   border-color: var(--danger);
 }
 
@@ -1097,12 +1227,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-scroll-area__bar:hover {
-  background: color-mix(in srgb, var(--line-light) 60%, transparent);
+  background: var(--line-light);
 }
 
 .hb-scroll-area__thumb {
   width: 100%;
-  background: color-mix(in srgb, var(--line-light) 80%, transparent);
+  background: var(--line-light);
   border-radius: 999px;
   transition: background var(--duration-fast);
 }
@@ -1185,7 +1315,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-date-picker__trigger:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .hb-date-picker__trigger:active {
@@ -1249,7 +1379,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-calendar__nav:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .hb-calendar__nav:active {
@@ -1316,16 +1446,16 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-calendar__day--selected {
-  background: var(--sky-strong);
+  background: var(--secondary);
   color: var(--paper);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 4px;
   z-index: 1;
 }
 
 .hb-calendar__day--selected:hover {
-  background: color-mix(in srgb, var(--sky-strong) 88%, var(--ink));
-  border-color: color-mix(in srgb, var(--sky-strong) 88%, var(--ink));
+  background: var(--secondary);
+  border-color: var(--secondary);
 }
 
 .hb-calendar__day--disabled {
@@ -1389,8 +1519,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-time-field__input:focus-within {
-  border-color: var(--sky-strong);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sky-soft) 50%, transparent);
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px transparent;
   background: var(--white);
 }
 
@@ -1408,7 +1538,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-time-field__segment:focus {
-  background: var(--sky-strong);
+  background: var(--secondary);
   color: var(--white);
   outline: none;
 }

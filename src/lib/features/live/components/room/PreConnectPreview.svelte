@@ -51,7 +51,7 @@
     aspect-ratio: 16 / 10;
     border: var(--border);
     background:
-      linear-gradient(135deg, color-mix(in srgb, var(--ink) 96%, transparent), var(--video-gradient-end)),
+      linear-gradient(135deg, var(--ink), var(--video-gradient-end)),
       var(--ink);
     overflow: hidden;
   }

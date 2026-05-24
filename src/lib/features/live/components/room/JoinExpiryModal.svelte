@@ -52,7 +52,7 @@
   :global(.join-expiry-modal__text) {
     margin: 0;
     line-height: 1.5;
-    color: color-mix(in srgb, var(--ink) 72%, transparent);
+    color: var(--ink);
   }
 
   :global(.join-expiry-modal__actions) {

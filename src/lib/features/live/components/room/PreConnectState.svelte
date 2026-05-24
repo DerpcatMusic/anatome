@@ -60,8 +60,8 @@
     padding: clamp(28px, 6vw, 72px);
     border: var(--border);
     background:
-      linear-gradient(135deg, color-mix(in srgb, var(--sky-soft) 42%, transparent), transparent 58%),
-      color-mix(in srgb, var(--white) 78%, transparent);
+      linear-gradient(135deg, var(--surface), transparent 58%),
+      var(--white);
     text-align: center;
     backdrop-filter: blur(18px);
   }
@@ -80,7 +80,7 @@
   .entry-state__spinner {
     width: 42px;
     height: 42px;
-    border: 3px solid color-mix(in srgb, var(--sky) 55%, var(--line-light));
+    border: 3px solid var(--secondary);
     border-top-color: var(--ink);
     border-radius: 50%;
     animation: spin 0.75s linear infinite;

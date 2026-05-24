@@ -4,11 +4,19 @@ import { v } from "convex/values";
 import { internalAction } from "../_generated/server";
 import { requireLiveKitEnv, httpUrlForLiveKit } from "../lib/livekitEnv";
 
+const webhookValidatedEventValidator = v.object({
+  event: v.string(),
+  roomName: v.string(),
+  identity: v.string(),
+  participantName: v.string(),
+});
+
 export const validate = internalAction({
   args: {
     body: v.string(),
     authorization: v.string(),
   },
+  returns: webhookValidatedEventValidator,
   handler: async (_ctx, args) => {
     const { apiKey, apiSecret } = requireLiveKitEnv();
     const { WebhookReceiver } = await import("livekit-server-sdk");
@@ -28,6 +36,7 @@ export const removeParticipant = internalAction({
     roomName: v.string(),
     identity: v.string(),
   },
+  returns: v.null(),
   handler: async (_ctx, args) => {
     const { apiKey, apiSecret, wsUrl } = requireLiveKitEnv();
     const { RoomServiceClient } = await import("livekit-server-sdk");
@@ -38,5 +47,6 @@ export const removeParticipant = internalAction({
       const message = reason instanceof Error ? reason.message : String(reason);
       console.warn(`[LiveKit] Failed to remove participant ${args.identity} from ${args.roomName}:`, message);
     }
+    return null;
   },
 });

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { ScrollArea } from "bits-ui";
+  import { Button, ScrollArea } from "bits-ui";
   import type { LiveRoom } from "$lib/features/live/room.svelte";
 
   import { tick } from "svelte";
@@ -19,14 +19,14 @@
   <aside class="lr-quality lr-glass" aria-label={t.live.stats.title()}>
     <div class="lr-panel__header">
       <h3>{t.live.stats.title()}</h3>
-      <button
-        type="button"
+      <Button.Root
         class="hb-button hb-button--close"
+        type="button"
         onclick={() => room.showQualityPanel = false}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>
-      </button>
+      </Button.Root>
     </div>
     <ScrollArea.Root class="hb-scroll-area lr-panel__scroll">
   <ScrollArea.Viewport class="hb-scroll-area__viewport">

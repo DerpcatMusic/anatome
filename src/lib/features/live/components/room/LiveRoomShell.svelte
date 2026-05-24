@@ -6,6 +6,7 @@
   import { useConvexClient, useQuery } from "convex-svelte";
   import { useEventListener } from "runed";
   import { LiveRoom } from "$lib/features/live/room.svelte";
+  import { createLiveKitStageTracks } from "$lib/features/live/livekit-tracks.svelte";
   import { mountMedia } from "$lib/features/live/types";
   import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
@@ -22,6 +23,10 @@
 
   const client = useConvexClient();
   const room = new LiveRoom(client);
+  const stageTracks = createLiveKitStageTracks({
+    getRoom: () => room.liveKitRoom,
+    isInstructorIdentity: (identity) => room.isInstructorIdentity(identity),
+  });
   const { t } = useI18n();
 
   const liveClassId = $derived(page.url.searchParams.get("classId") as Id<"liveClasses"> | null);
@@ -131,13 +136,13 @@
       <div class="lr-room__body">
         <VideoStage
           isInstructorRoom={room.isInstructorRoom}
-          videoTiles={room.videoTiles}
-          screenShareTiles={room.screenShareTiles}
-          hasScreenShare={room.hasScreenShare}
+          videoTiles={stageTracks.videoTiles}
+          screenShareTiles={stageTracks.screenShareTiles}
+          hasScreenShare={stageTracks.hasScreenShare}
           activeSpeakerIdentity={room.activeSpeakerIdentity}
-          tileSort={room.tileSort}
-          primaryInstructorVideo={room.primaryInstructorVideo}
-          selfVideo={room.selfVideo}
+          tileSort={stageTracks.tileSort}
+          primaryInstructorVideo={stageTracks.primaryInstructorVideo}
+          selfVideo={stageTracks.selfVideo}
           classTitle={room.joinInfo?.classTitle ?? ""}
           instructorName={room.joinInfo?.instructorName ?? ""}
         />
@@ -255,7 +260,7 @@
     z-index: 60;
     display: grid;
     place-items: center;
-    background: color-mix(in srgb, var(--ink) 92%, transparent);
+    background: var(--ink);
     color: var(--white);
   }
 
@@ -265,13 +270,13 @@
     max-width: 420px;
     text-align: center;
     padding: var(--space-6);
-    border: 1px solid color-mix(in srgb, var(--white) 16%, transparent);
-    background: color-mix(in srgb, var(--ink) 88%, transparent);
+    border: 1px solid var(--white);
+    background: var(--ink);
   }
 
   .disconnect-card .material-symbols-rounded {
     font-size: var(--step-4);
-    color: var(--terra);
+    color: var(--primary);
     justify-self: center;
   }
 
@@ -281,7 +286,7 @@
   }
 
   .disconnect-card p {
-    color: color-mix(in srgb, var(--white) 72%, transparent);
+    color: var(--white);
     margin: 0;
   }
 
@@ -307,8 +312,8 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--terra) 45%, transparent);
-    background: color-mix(in srgb, var(--terra-soft) 55%, var(--paper));
+    border: 1px solid var(--primary);
+    background: var(--surface);
     color: var(--ink);
   }
 
@@ -329,8 +334,8 @@
   .lr-network-hint {
     margin: 0 var(--space-3);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--terra) 40%, transparent);
-    background: color-mix(in srgb, var(--terra-soft) 40%, var(--paper));
+    border: 1px solid var(--primary);
+    background: var(--surface);
     color: var(--ink);
     font-size: var(--step--1);
     text-align: center;
@@ -343,8 +348,8 @@
     gap: var(--space-3);
     margin: 0 var(--space-3);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--terra) 45%, transparent);
-    background: color-mix(in srgb, var(--terra-soft) 45%, var(--paper));
+    border: 1px solid var(--primary);
+    background: var(--surface);
     color: var(--ink);
     font-size: var(--step--1);
   }

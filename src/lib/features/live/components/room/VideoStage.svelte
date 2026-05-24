@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { mountMedia } from "$lib/features/live/types";
+  import { mountStageTrack, type StageTrackTile } from "$lib/features/live/livekit-tracks.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import type { MediaTile } from "$lib/features/live/types";
 
   let {
     isInstructorRoom,
@@ -16,13 +15,13 @@
     instructorName = "",
   }: {
     isInstructorRoom: boolean;
-    videoTiles: MediaTile[];
-    screenShareTiles: MediaTile[];
+    videoTiles: StageTrackTile[];
+    screenShareTiles: StageTrackTile[];
     hasScreenShare: boolean;
     activeSpeakerIdentity: string | null;
-    tileSort: (a: MediaTile, b: MediaTile) => number;
-    primaryInstructorVideo: MediaTile | null;
-    selfVideo: MediaTile | null;
+    tileSort: (a: StageTrackTile, b: StageTrackTile) => number;
+    primaryInstructorVideo: StageTrackTile | null;
+    selfVideo: StageTrackTile | null;
     classTitle?: string;
     instructorName?: string;
   } = $props();
@@ -37,7 +36,7 @@
         <div class="spotlight-main">
           {#each screenShareTiles as tile (tile.id)}
             <figure class="lr-tile">
-              <div class="lr-tile__video" use:mountMedia={tile.element}></div>
+              <div class="lr-tile__video" use:mountStageTrack={tile}></div>
               <span class="lr-badge lr-badge--screen">{t.live.room.screenShare()}</span>
               <figcaption class="lr-tile__name">{tile.name}</figcaption>
             </figure>
@@ -50,7 +49,7 @@
               class:lr-tile--self={tile.isLocal}
               class:lr-tile--speaking={tile.identity === activeSpeakerIdentity}
             >
-              <div class="lr-tile__video" use:mountMedia={tile.element}></div>
+              <div class="lr-tile__video" use:mountStageTrack={tile}></div>
               <figcaption class="lr-tile__name">{tile.name}</figcaption>
             </figure>
           {/each}
@@ -73,7 +72,7 @@
             class:lr-tile--self={tile.isLocal}
             class:lr-tile--speaking={tile.identity === activeSpeakerIdentity}
           >
-            <div class="lr-tile__video" use:mountMedia={tile.element}></div>
+            <div class="lr-tile__video" use:mountStageTrack={tile}></div>
             {#if tile.source === "screen_share"}
               <span class="lr-badge lr-badge--screen">{t.live.room.screenShare()}</span>
             {/if}
@@ -86,7 +85,7 @@
     <div class="student-stage">
       {#if primaryInstructorVideo}
         <figure class="student-main">
-          <div class="lr-tile__video" use:mountMedia={primaryInstructorVideo.element}></div>
+          <div class="lr-tile__video" use:mountStageTrack={primaryInstructorVideo}></div>
           {#if primaryInstructorVideo.source === "screen_share"}
             <span class="lr-badge lr-badge--screen">{t.live.room.screenShare()}</span>
           {/if}
@@ -106,7 +105,7 @@
       {/if}
       {#if selfVideo}
         <figure class="student-pip">
-          <div class="lr-tile__video" use:mountMedia={selfVideo.element}></div>
+          <div class="lr-tile__video" use:mountStageTrack={selfVideo}></div>
           <figcaption class="lr-tile__name">{selfVideo.name}</figcaption>
         </figure>
       {/if}

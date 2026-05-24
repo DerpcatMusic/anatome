@@ -31,7 +31,7 @@
     z-index: 65;
     display: grid;
     place-items: center;
-    background: color-mix(in srgb, var(--ink) 92%, transparent);
+    background: var(--ink);
     color: var(--white);
   }
 
@@ -41,12 +41,12 @@
     max-width: 400px;
     text-align: center;
     padding: var(--space-6);
-    border: 1px solid color-mix(in srgb, var(--white) 16%, transparent);
+    border: 1px solid var(--white);
   }
 
   .session-ended-card .material-symbols-rounded {
     font-size: var(--step-4);
-    color: var(--terra);
+    color: var(--primary);
     justify-self: center;
   }
 
@@ -57,7 +57,7 @@
 
   .session-ended-card p {
     margin: 0;
-    color: color-mix(in srgb, var(--white) 72%, transparent);
+    color: var(--white);
     line-height: 1.5;
   }
 </style>

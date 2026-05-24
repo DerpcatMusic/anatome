@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog, Button } from "bits-ui";
+  import { AlertDialog, Button, Dialog } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   let {
@@ -15,6 +15,18 @@
   } = $props();
 
   const { t } = useI18n();
+
+  let showEndLiveAlert = $state(false);
+
+  function requestEndLive() {
+    open = false;
+    showEndLiveAlert = true;
+  }
+
+  function confirmEndLive() {
+    showEndLiveAlert = false;
+    onEndLive?.();
+  }
 </script>
 
 <Dialog.Root bind:open>
@@ -32,7 +44,7 @@
       </p>
       <div class="leave-modal__actions">
         {#if isInstructorRoom && onEndLive}
-          <Button.Root class="hb-button hb-button--danger hb-button--md" type="button" onclick={onEndLive}>
+          <Button.Root class="hb-button hb-button--danger hb-button--md" type="button" onclick={requestEndLive}>
             {t.live.room.leaveEndLive()}
           </Button.Root>
           <Button.Root class="hb-button hb-button--paper hb-button--md" type="button" onclick={onLeave}>
@@ -54,3 +66,29 @@
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
+
+{#if isInstructorRoom && onEndLive}
+  <AlertDialog.Root bind:open={showEndLiveAlert}>
+    <AlertDialog.Portal>
+      <AlertDialog.Overlay class="hb-dialog-overlay" />
+      <AlertDialog.Content class="hb-dialog-content leave-modal" aria-label={t.live.room.endLiveAlertTitle()}>
+        <AlertDialog.Title class="leave-modal__title">{t.live.room.endLiveAlertTitle()}</AlertDialog.Title>
+        <AlertDialog.Description class="leave-modal__text">
+          {t.live.room.endLiveAlertBody()}
+        </AlertDialog.Description>
+        <div class="leave-modal__actions">
+          <AlertDialog.Cancel>
+            <Button.Root class="hb-button hb-button--paper hb-button--md" type="button">
+              {t.live.room.endLiveAlertCancel()}
+            </Button.Root>
+          </AlertDialog.Cancel>
+          <AlertDialog.Action>
+            <Button.Root class="hb-button hb-button--danger hb-button--md" type="button" onclick={confirmEndLive}>
+              {t.live.room.endLiveAlertConfirm()}
+            </Button.Root>
+          </AlertDialog.Action>
+        </div>
+      </AlertDialog.Content>
+    </AlertDialog.Portal>
+  </AlertDialog.Root>
+{/if}

@@ -37,22 +37,11 @@
     overflow: auto;
     padding: clamp(16px, 3vw, 40px);
     box-sizing: border-box;
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--paper) 92%, transparent), color-mix(in srgb, var(--sky-soft) 22%, var(--paper))),
-      var(--paper);
+    background: var(--paper);
   }
 
   .live-entry__mesh {
-    position: fixed;
-    inset: -12%;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 42% 38% at 18% 18%, color-mix(in srgb, var(--sky) 58%, transparent), transparent 62%),
-      radial-gradient(ellipse 44% 46% at 86% 18%, color-mix(in srgb, var(--speaking) 24%, transparent), transparent 64%),
-      radial-gradient(ellipse 50% 40% at 68% 92%, color-mix(in srgb, var(--accent-purple) 18%, transparent), transparent 62%),
-      radial-gradient(ellipse 48% 44% at 18% 82%, color-mix(in srgb, var(--beige) 70%, transparent), transparent 60%);
-    filter: blur(26px);
-    opacity: 0.9;
+    display: none;
   }
 
   .live-entry__shell {

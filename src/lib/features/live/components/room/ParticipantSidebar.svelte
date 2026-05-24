@@ -21,14 +21,14 @@
   <aside class="lr-panel lr-glass lr-panel--participants" aria-label={t.live.room.participantsTitle()}>
     <div class="lr-panel__header">
       <h3>{t.live.room.participantsTitle()}</h3>
-      <button
-        type="button"
+      <Button.Root
         class="hb-button hb-button--close"
+        type="button"
         onclick={onClose}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>
-      </button>
+      </Button.Root>
     </div>
     <ScrollArea.Root class="hb-scroll-area lr-panel__scroll">
   <ScrollArea.Viewport class="hb-scroll-area__viewport">

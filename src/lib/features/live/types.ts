@@ -66,10 +66,23 @@ export type ChatMessage = {
   isLocal: boolean;
 };
 
+type MountMediaTarget = HTMLElement | { element: HTMLElement };
+
+function resolveMediaElement(target: MountMediaTarget): HTMLElement {
+  return target instanceof HTMLElement ? target : target.element;
+}
+
 /** Svelte action that mounts a media element into a node and cleans up on destroy */
-export function mountMedia(node: HTMLElement, element: HTMLElement) {
+export function mountMedia(node: HTMLElement, target: MountMediaTarget) {
+  const element = resolveMediaElement(target);
   node.replaceChildren(element);
   return {
+    update(next: MountMediaTarget) {
+      const nextElement = resolveMediaElement(next);
+      if (nextElement !== element) {
+        node.replaceChildren(nextElement);
+      }
+    },
     destroy() {
       element.remove();
     },

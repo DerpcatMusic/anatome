@@ -482,7 +482,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-3);
-    border-bottom: 1px solid color-mix(in srgb, var(--line) 24%, transparent);
+    border-bottom: 1px solid var(--line);
     padding-bottom: var(--space-3);
   }
 
@@ -506,7 +506,7 @@
   .preset-hint {
     margin: 0;
     font-size: var(--step--1);
-    color: color-mix(in srgb, var(--ink) 65%, transparent);
+    color: var(--ink);
     line-height: 1.45;
   }
 
@@ -539,8 +539,8 @@
   }
 
   .preset-btn--active {
-    background: var(--sky-soft);
-    border-color: var(--sky-strong);
+    background: var(--surface);
+    border-color: var(--secondary);
   }
 
   .preset-btn__title {
@@ -560,7 +560,7 @@
     padding: var(--space-2) 0;
     border: 0;
     background: transparent;
-    color: var(--sky-strong);
+    color: var(--secondary);
     font: inherit;
     font-size: var(--step--1);
     font-weight: 700;
@@ -572,7 +572,7 @@
     display: grid;
     gap: var(--space-3);
     padding-top: var(--space-2);
-    border-top: 1px solid color-mix(in srgb, var(--line) 24%, transparent);
+    border-top: 1px solid var(--line);
   }
 
   .settings-panel__toggles {
