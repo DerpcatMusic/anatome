@@ -1,6 +1,8 @@
 export type ParticipantRole = "instructor" | "customer" | "admin";
 export type RoomStatus = "checking" | "locked" | "missing" | "prep" | "ready" | "error";
 export type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected";
+export type ConnectionQualityLevel = "excellent" | "good" | "poor" | "lost" | "unknown";
+export type LiveClassType = "group_live" | "one_on_one";
 export type MediaSource = "camera" | "microphone" | "screen_share" | "screen_share_audio" | "unknown";
 export type PreConnectStep = "idle" | "requesting" | "preview" | "denied" | "no-devices";
 export type DeviceAccessState = "unknown" | "ready" | "denied" | "missing" | "failed";

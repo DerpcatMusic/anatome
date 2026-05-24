@@ -22,8 +22,8 @@ export function weekday(ts: number) {
   return new Date(ts).getDay();
 }
 
-export function oneOnOneAvailableCredits(bucket: Doc<"creditBuckets">) {
-  return bucket.oneOnOneGranted - bucket.oneOnOneUsed - (bucket.oneOnOneReserved ?? 0);
+export function oneOnOneAvailableCredits(wallet: Doc<"userWallets">) {
+  return Math.max(0, wallet.oneOnOneBalance);
 }
 
 export function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {

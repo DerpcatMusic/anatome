@@ -12,6 +12,8 @@
     tileSort,
     primaryInstructorVideo,
     selfVideo,
+    classTitle = "",
+    instructorName = "",
   }: {
     isInstructorRoom: boolean;
     videoTiles: MediaTile[];
@@ -21,6 +23,8 @@
     tileSort: (a: MediaTile, b: MediaTile) => number;
     primaryInstructorVideo: MediaTile | null;
     selfVideo: MediaTile | null;
+    classTitle?: string;
+    instructorName?: string;
   } = $props();
 
   const { t } = useI18n();
@@ -89,7 +93,16 @@
           <figcaption class="lr-tile__name">{primaryInstructorVideo.name}</figcaption>
         </figure>
       {:else}
-        <div class="lr-stage__empty">{t.live.room.waitingForInstructor()}</div>
+        <div class="lr-stage__empty lr-stage__empty--waiting">
+          {#if classTitle}
+            <span class="lr-stage__class-kicker">{t.live.room.waitingClassKicker({ title: classTitle })}</span>
+          {/if}
+          <strong>
+            {instructorName
+              ? t.live.room.waitingForInstructorNamed({ instructor: instructorName })
+              : t.live.room.waitingForInstructor()}
+          </strong>
+        </div>
       {/if}
       {#if selfVideo}
         <figure class="student-pip">

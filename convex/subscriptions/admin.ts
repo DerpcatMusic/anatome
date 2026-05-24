@@ -1,8 +1,8 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
-import { getActiveSubscription, syncCreditBucketForPeriod, MONTH_MS } from "./lib";
-import { getCurrentCreditBucket } from "../credits/lib";
+import { getActiveSubscription, grantSubscriptionPeriodCredits, MONTH_MS } from "./lib";
+import { ensureUserWallet } from "../credits/lib";
 import { scheduleSubscriptionRenewal } from "./schedule";
 
 export const upsertPlan = mutation({
@@ -80,8 +80,8 @@ export const grantManualByEmail = mutation({
 
     const active = await getActiveSubscription(ctx, user._id);
     if (active !== null) {
-      const bucket = await getCurrentCreditBucket(ctx, user._id);
-      return { subscriptionId: active._id, bucketId: bucket?._id ?? null };
+      const wallet = await ensureUserWallet(ctx, user._id);
+      return { subscriptionId: active._id, walletId: wallet._id };
     }
 
     const now = Date.now();
@@ -105,8 +105,8 @@ export const grantManualByEmail = mutation({
 
     const subscription = await ctx.db.get(subscriptionId);
     if (subscription === null) throw new Error("Subscription creation failed");
-    const bucketId = await syncCreditBucketForPeriod(ctx, subscription, plan);
+    const walletId = await grantSubscriptionPeriodCredits(ctx, subscription, plan);
 
-    return { subscriptionId, bucketId };
+    return { subscriptionId, walletId };
   },
 });

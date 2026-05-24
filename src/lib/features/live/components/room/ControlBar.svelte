@@ -1,6 +1,7 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
   import type { LiveRoom } from "$lib/features/live/room.svelte";
+  import LiveAudioMeter from "./ui/LiveAudioMeter.svelte";
   import { Tooltip } from "bits-ui";
   import { Popover } from "bits-ui";
   import { Switch } from "bits-ui";
@@ -35,8 +36,10 @@
         <button
           type="button"
           class="lr-control__main"
+          class:lr-control__main--busy={room.pendingControl === "mic"}
           onclick={() => room.toggleMic()}
           disabled={room.pendingControl !== null}
+          aria-busy={room.pendingControl === "mic"}
           aria-label={room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic()}
         >
           <span class="material-symbols-rounded" aria-hidden="true">{room.micEnabled ? "mic" : "mic_off"}</span>
@@ -83,8 +86,10 @@
         <button
           type="button"
           class="lr-control__main"
+          class:lr-control__main--busy={room.pendingControl === "camera"}
           onclick={() => room.toggleCamera()}
           disabled={room.pendingControl !== null}
+          aria-busy={room.pendingControl === "camera"}
           aria-label={room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera()}
         >
           <span class="material-symbols-rounded" aria-hidden="true">{room.cameraEnabled ? "videocam" : "videocam_off"}</span>
@@ -131,8 +136,10 @@
           <button
             type="button"
             class="lr-control__main"
+            class:lr-control__main--busy={room.pendingControl === "screen"}
             onclick={() => room.toggleScreenShare()}
             disabled={room.pendingControl !== null}
+            aria-busy={room.pendingControl === "screen"}
             aria-label={room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen()}
           >
             <span class="material-symbols-rounded" aria-hidden="true">{room.screenShareEnabled ? "stop_screen_share" : "screen_share"}</span>
@@ -177,11 +184,14 @@
         <button
           type="button"
           class="lr-control__main"
-          onclick={() => room.showChat = !room.showChat}
+          onclick={() => room.toggleChat()}
           aria-label={t.live.room.showChat()}
         >
           <span class="material-symbols-rounded" aria-hidden="true">{room.showChat ? "chat" : "chat_bubble_outline"}</span>
           <span class="lr-control__label">{t.live.room.chatTitle()}</span>
+          {#if room.unreadChatCount > 0 && !room.showChat}
+            <span class="lr-control__badge" aria-label={t.live.room.newMessages()}>{room.unreadChatCount}</span>
+          {/if}
         </button>
       </Tooltip.Trigger>
       <Tooltip.Portal>
@@ -210,7 +220,7 @@
             <Switch.Root
               class="hb-switch__root"
               aria-label={t.live.room.echoCancel()}
-              bind:checked={room.audioProcessingEnabled} onCheckedChange={() => room.switchPreviewDevice()}
+              bind:checked={room.audioProcessingEnabled} onCheckedChange={() => room.applyAudioProcessing()}
             >
               <Switch.Thumb class="hb-switch__thumb" />
             </Switch.Root>
@@ -225,4 +235,24 @@
       </Popover.Content>
     </Popover.Portal>
   </Popover.Root>
+
+  {#if room.isInstructorRoom && room.connectionState === "connected"}
+    <div class="lr-control-bar__meter">
+      <LiveAudioMeter label={t.live.preConnect.audioLevel()} level={room.audioLevel} />
+    </div>
+  {/if}
 </footer>
+
+<style>
+  .lr-control__main--busy {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .lr-control-bar__meter {
+    flex: 1 1 120px;
+    min-width: 100px;
+    max-width: 200px;
+    padding-inline: var(--space-2);
+  }
+</style>

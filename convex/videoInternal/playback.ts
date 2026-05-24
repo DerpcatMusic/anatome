@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalQuery } from "../_generated/server";
 import { isStaff } from "../lib/authz";
-import { getEntitledSubscription } from "../subscriptions/lib";
+import { getActiveSubscription } from "../subscriptions/lib";
 
 export const getAuthorizedVideo = internalQuery({
   args: { userId: v.id("users"), videoId: v.id("videos") },
@@ -26,7 +26,7 @@ export const getAuthorizedVideo = internalQuery({
       return null;
     }
 
-    const subscription = await getEntitledSubscription(ctx, args.userId);
+    const subscription = await getActiveSubscription(ctx, args.userId);
     if (subscription !== null) return { video, access: { allowed: true as const, reason: "microflow" } };
     return null;
   },

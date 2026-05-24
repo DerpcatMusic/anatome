@@ -9,6 +9,8 @@ import type {
   ParticipantRole,
   RoomStatus,
   ConnectionState,
+  ConnectionQualityLevel,
+  LiveClassType,
   MediaSource,
   PreConnectStep,
   DeviceAccessState,
@@ -28,6 +30,17 @@ import type {
 
 const i18n = useI18n();
 
+/** @see @livekit/protocol DisconnectReason — stable numeric codes */
+const LK_DISCONNECT = {
+  DUPLICATE_IDENTITY: 2,
+  PARTICIPANT_REMOVED: 4,
+  ROOM_DELETED: 5,
+  JOIN_FAILURE: 7,
+  ROOM_CLOSED: 10,
+  CONNECTION_TIMEOUT: 14,
+  MEDIA_FAILURE: 15,
+} as const;
+
 export class LiveRoom {
   // Dependencies
   private client: ConvexClient;
@@ -44,7 +57,26 @@ export class LiveRoom {
     roomName: string;
     participantRole: ParticipantRole;
     joinClosesAt: number;
+    classTitle: string;
+    instructorName: string;
+    liveClassType: LiveClassType;
   } | null>(null);
+  /** True after first successful room connect until destroy. */
+  inRoom = $state(false);
+  needsManualReconnect = $state(false);
+  sessionEndedByHost = $state(false);
+  browserOffline = $state(false);
+  showJoinExpiryModal = $state(false);
+  connectionQuality = $state<ConnectionQualityLevel>("unknown");
+  networkWarning = $state("");
+  unreadChatCount = $state(0);
+  private joinExpiryWarned = false;
+  private instructorMicBeforeDrop = false;
+  private wakeLockSentinel: WakeLockSentinel | null = null;
+  private browserHandlersBound = false;
+  private onOnlineHandler: (() => void) | null = null;
+  private onOfflineHandler: (() => void) | null = null;
+  private onVisibilityHandler: (() => void) | null = null;
   private _room: Room | null = null;
   mediaTiles = $state<MediaTile[]>([]);
   participants = $state<ParticipantItem[]>([]);
@@ -70,6 +102,7 @@ export class LiveRoom {
   private debouncedRefreshParticipants = useDebounce(() => this._refreshParticipants(), 80);
   private expiryTimer: number | null = null;
   private clockTimer: number | null = null;
+  private tokenRefreshTimer: number | null = null;
   private nowMs = $state(Date.now());
   private previousStats = new Map<string, { timestamp: number; bytes: number }>();
 
@@ -84,10 +117,10 @@ export class LiveRoom {
   selectedVideoDevice = $state("");
   selectedAudioDevice = $state("");
   selectedCodec = $state<VideoCodecChoice>("h264");
-  selectedResolution = $state<VideoResolutionChoice>("1080p");
+  selectedResolution = $state<VideoResolutionChoice>("720p");
   selectedFramerate = $state<VideoFramerateChoice>(30);
-  selectedBitrateMbps = $state<BitrateChoice>(4.5);
-  selectedAudioPreset = $state<AudioPresetChoice>("musicHighQuality");
+  selectedBitrateMbps = $state<BitrateChoice>(2.5);
+  selectedAudioPreset = $state<AudioPresetChoice>("speech");
   simulcastEnabled = $state(true);
   forceStereo = $state(false);
   degradationPreference = $state<DegradationPreferenceChoice>("maintain-framerate");
@@ -178,6 +211,35 @@ export class LiveRoom {
   readonly expiresAt = $derived(this.joinInfo?.joinClosesAt ?? null);
   readonly secondsUntilExpiry = $derived(
     this.expiresAt === null ? null : Math.max(0, Math.floor((this.expiresAt - this.nowMs) / 1000))
+  );
+  readonly joinExpiryLabel = $derived.by(() => {
+    const seconds = this.secondsUntilExpiry;
+    if (seconds === null) return null;
+    if (seconds <= 120) return i18n.t.live.room.joinClosesSoon();
+    const minutes = Math.ceil(seconds / 60);
+    return i18n.t.live.room.joinClosesIn({ minutes });
+  });
+  readonly connectionQualityLabel = $derived.by(() => {
+    switch (this.connectionQuality) {
+      case "excellent":
+        return i18n.t.live.room.connectionExcellent();
+      case "good":
+        return i18n.t.live.room.connectionGood();
+      case "poor":
+        return i18n.t.live.room.connectionPoor();
+      case "lost":
+        return i18n.t.live.room.connectionLost();
+      default:
+        return null;
+    }
+  });
+  readonly showConnectionWarning = $derived(
+    this.connectionQuality === "poor" || this.connectionQuality === "lost"
+  );
+  readonly statusBanner = $derived(
+    this.browserOffline
+      ? i18n.t.live.room.offlineBanner()
+      : this.networkWarning,
   );
 
   constructor(client: ConvexClient) {
@@ -521,8 +583,72 @@ export class LiveRoom {
   private startStatsTimer() {
     if (this.statsTimer !== null) return;
     this.statsTimer = window.setInterval(() => {
-      if (this.showQualityPanel) void this.refreshStreamStats();
+      if (this.showQualityPanel) {
+        void this.refreshStreamStats();
+      } else {
+        void this.refreshConnectionHealth();
+      }
     }, 5000);
+  }
+
+  private mapConnectionQuality(value: string): ConnectionQualityLevel {
+    if (value === "excellent" || value === "good" || value === "poor" || value === "lost") {
+      return value;
+    }
+    return "unknown";
+  }
+
+  private updateConnectionQualityFromRoom() {
+    if (this._room === null) return;
+    const localQuality = this._room.localParticipant.connectionQuality;
+    this.connectionQuality = this.mapConnectionQuality(String(localQuality));
+  }
+
+  private async refreshConnectionHealth() {
+    if (this._room === null) return;
+    this.updateConnectionQualityFromRoom();
+    if (this.isInstructorRoom) {
+      this.audioLevel = this._room.localParticipant.audioLevel ?? 0;
+    }
+    if (this.isInstructorRoom) return;
+    const instructor = [...this._room.remoteParticipants.values()].find((participant) =>
+      this.isInstructorIdentity(participant.identity),
+    );
+    if (instructor === undefined) return;
+    const instructorQuality = this.mapConnectionQuality(String(instructor.connectionQuality));
+    if (instructorQuality === "poor" || instructorQuality === "lost") {
+      this.networkWarning = i18n.t.live.room.connectionPoor();
+    } else if (this.streamStats.packetLoss !== null && this.streamStats.packetLoss > 4) {
+      this.networkWarning = i18n.t.live.room.connectionPoor();
+    } else if (this.connectionQuality !== "poor" && this.connectionQuality !== "lost") {
+      this.networkWarning = "";
+    }
+  }
+
+  private stopTokenRefreshTimer() {
+    if (this.tokenRefreshTimer !== null) window.clearTimeout(this.tokenRefreshTimer);
+    this.tokenRefreshTimer = null;
+  }
+
+  private startTokenRefreshTimer() {
+    this.stopTokenRefreshTimer();
+    this.tokenRefreshTimer = window.setTimeout(
+      () => void this.refreshJoinToken(),
+      7 * 60 * 1000,
+    );
+  }
+
+  private async refreshJoinToken() {
+    const liveClassId = this.getClassId();
+    if (liveClassId === null || !this.inRoom) return;
+    try {
+      const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
+      this.joinInfo = joinInfo;
+      this.startExpiryTimer(joinInfo.joinClosesAt);
+      this.startTokenRefreshTimer();
+    } catch (reason) {
+      console.warn("[LiveKit] Token refresh failed:", reason);
+    }
   }
 
   private stopStatsTimer() {
@@ -531,11 +657,201 @@ export class LiveRoom {
     this.previousStats.clear();
   }
 
+  private checkJoinExpiryWarning() {
+    if (this.joinExpiryWarned || !this.inRoom || this.isInstructorRoom) return;
+    const seconds = this.secondsUntilExpiry;
+    if (seconds === null || seconds > 120 || seconds <= 0) return;
+    this.joinExpiryWarned = true;
+    this.showJoinExpiryModal = true;
+  }
+
+  dismissMediaError() {
+    this.mediaError = "";
+  }
+
+  dismissJoinExpiryModal() {
+    this.showJoinExpiryModal = false;
+  }
+
+  handleClassEnded() {
+    if (this.sessionEndedByHost) return;
+    this.sessionEndedByHost = true;
+    this.needsManualReconnect = false;
+    this.showJoinExpiryModal = false;
+    this.mediaError = i18n.t.live.room.disconnectRoomEnded();
+    this.inRoom = false;
+    this.stopStatsTimer();
+    this.stopTokenRefreshTimer();
+    this.releaseWakeLock();
+    this.clearMediaTiles();
+    this._room?.disconnect();
+    this._room = null;
+  }
+
+  private disconnectMessage(reason: number | undefined): string | null {
+    if (reason === undefined) return null;
+    if (reason === LK_DISCONNECT.DUPLICATE_IDENTITY) return i18n.t.live.room.disconnectDuplicate();
+    if (reason === LK_DISCONNECT.PARTICIPANT_REMOVED) return i18n.t.live.room.disconnectRemoved();
+    if (reason === LK_DISCONNECT.ROOM_DELETED || reason === LK_DISCONNECT.ROOM_CLOSED) {
+      return i18n.t.live.room.disconnectRoomEnded();
+    }
+    if (reason === LK_DISCONNECT.JOIN_FAILURE) return i18n.t.live.room.disconnectJoinFailed();
+    if (reason === LK_DISCONNECT.CONNECTION_TIMEOUT) return i18n.t.live.room.disconnectTimeout();
+    if (reason === LK_DISCONNECT.MEDIA_FAILURE) return i18n.t.live.room.disconnectMediaFailed();
+    return null;
+  }
+
+  private handleDisconnected(reason: number | undefined) {
+    this.stopTokenRefreshTimer();
+    this.releaseWakeLock();
+    if (this.isInstructorRoom) {
+      this.instructorMicBeforeDrop = true;
+    } else if (this.micEnabled) {
+      this.instructorMicBeforeDrop = true;
+    }
+
+    const reasonMessage = this.disconnectMessage(reason);
+    const endedByHost =
+      reasonMessage !== null &&
+      (reasonMessage === i18n.t.live.room.disconnectRoomEnded() ||
+        reasonMessage === i18n.t.live.room.disconnectRemoved());
+
+    if (endedByHost) {
+      this.sessionEndedByHost = true;
+      this.needsManualReconnect = false;
+      this.inRoom = false;
+      this.mediaError = reasonMessage;
+      return;
+    }
+
+    if (reasonMessage) {
+      this.mediaError = reasonMessage;
+      if (reasonMessage === i18n.t.live.room.disconnectDuplicate()) {
+        this.needsManualReconnect = false;
+        this.inRoom = false;
+        return;
+      }
+    }
+
+    if (this.joinInfo && Date.now() < this.joinInfo.joinClosesAt && this.inRoom) {
+      this.connectionState = "disconnected";
+      this.needsManualReconnect = true;
+      if (this.browserOffline) {
+        this.mediaError = i18n.t.live.room.disconnectOffline();
+      }
+    } else {
+      this.connectionState = "disconnected";
+      this.needsManualReconnect = false;
+      if (!this.inRoom) this.status = "ready";
+    }
+  }
+
+  private async prepareJoinConnection() {
+    if (!this.joinInfo || this.inRoom) return;
+    try {
+      const { Room } = await import("livekit-client");
+      const warm = new Room({ adaptiveStream: true, dynacast: true });
+      await warm.prepareConnection(this.joinInfo.wsUrl, this.joinInfo.token);
+    } catch (reason) {
+      console.warn("[LiveKit] prepareConnection failed:", reason);
+    }
+  }
+
+  private async restoreInstructorMicIfNeeded() {
+    if (!this._room || !this.isInstructorRoom) return;
+    if (!this.instructorMicBeforeDrop && this.micEnabled) return;
+    try {
+      await this._room.localParticipant.setMicrophoneEnabled(
+        true,
+        this.microphoneCaptureOptions(),
+      );
+      this.micEnabled = true;
+      this.instructorMicBeforeDrop = false;
+    } catch (reason) {
+      console.warn("[LiveKit] Instructor mic restore failed:", reason);
+    }
+  }
+
+  async applyAudioProcessing() {
+    if (this._room !== null && this.connectionState === "connected") {
+      if (this.micEnabled) {
+        try {
+          await this._room.localParticipant.setMicrophoneEnabled(
+            true,
+            this.microphoneCaptureOptions(),
+          );
+        } catch (reason) {
+          this.mediaError = this.getMediaErrorMessage("microphone", reason);
+        }
+      }
+      return;
+    }
+    await this.switchPreviewDevice();
+  }
+
+  async acquireWakeLock() {
+    if (typeof navigator === "undefined" || !("wakeLock" in navigator)) return;
+    try {
+      this.wakeLockSentinel = await navigator.wakeLock.request("screen");
+    } catch (reason) {
+      console.warn("[LiveKit] Wake lock failed:", reason);
+    }
+  }
+
+  releaseWakeLock() {
+    void this.wakeLockSentinel?.release();
+    this.wakeLockSentinel = null;
+  }
+
+  initBrowserStabilityHandlers() {
+    if (typeof window === "undefined" || this.browserHandlersBound) return;
+    this.browserHandlersBound = true;
+    this.browserOffline = !navigator.onLine;
+
+    this.onOnlineHandler = () => {
+      this.browserOffline = false;
+      if (this.inRoom && this.needsManualReconnect) {
+        void this.reconnect();
+      }
+    };
+    this.onOfflineHandler = () => {
+      this.browserOffline = true;
+      this.networkWarning = i18n.t.live.room.offlineBanner();
+    };
+    this.onVisibilityHandler = () => {
+      if (document.visibilityState === "visible" && this.inRoom) {
+        void this.acquireWakeLock();
+        if (this.needsManualReconnect && navigator.onLine) {
+          void this.reconnect();
+        }
+      }
+    };
+
+    window.addEventListener("online", this.onOnlineHandler);
+    window.addEventListener("offline", this.onOfflineHandler);
+    document.addEventListener("visibilitychange", this.onVisibilityHandler);
+  }
+
+  disposeBrowserStabilityHandlers() {
+    if (!this.browserHandlersBound || typeof window === "undefined") return;
+    if (this.onOnlineHandler) window.removeEventListener("online", this.onOnlineHandler);
+    if (this.onOfflineHandler) window.removeEventListener("offline", this.onOfflineHandler);
+    if (this.onVisibilityHandler) {
+      document.removeEventListener("visibilitychange", this.onVisibilityHandler);
+    }
+    this.onOnlineHandler = null;
+    this.onOfflineHandler = null;
+    this.onVisibilityHandler = null;
+    this.browserHandlersBound = false;
+  }
+
   private startExpiryTimer(expiresAt: number) {
     this.stopExpiryTimer();
+    this.joinExpiryWarned = false;
     this.nowMs = Date.now();
     this.clockTimer = window.setInterval(() => {
       this.nowMs = Date.now();
+      this.checkJoinExpiryWarning();
     }, 1000);
     this.expiryTimer = window.setTimeout(
       () => this.expireLocalRoom(),
@@ -551,9 +867,12 @@ export class LiveRoom {
   }
 
   private expireLocalRoom() {
-    this.mediaError = "השיעור הסתיים והחיבור נסגר.";
+    this.mediaError = i18n.t.live.room.sessionEnded();
     this.connectionState = "disconnected";
+    this.needsManualReconnect = false;
+    this.inRoom = false;
     this.stopStatsTimer();
+    this.stopTokenRefreshTimer();
     this.clearMediaTiles();
     this._room?.disconnect();
     this._room = null;
@@ -788,6 +1107,10 @@ export class LiveRoom {
       musicHighQuality: AudioPresets.musicHighQuality,
       musicHighQualityStereo: AudioPresets.musicHighQualityStereo,
     };
+    const audioPresetKey: AudioPresetChoice =
+      isInstructor && this.selectedAudioPreset === "speech"
+        ? "music"
+        : this.selectedAudioPreset;
 
     const scalabilityMode = isSvc
       ? (this.selectedResolution === "1080p" ? "L3T3_KEY" : "L2T3_KEY") as import("livekit-client").ScalabilityMode
@@ -811,9 +1134,9 @@ export class LiveRoom {
         new VideoPreset(1280, 720, 2_000_000, 15),
         new VideoPreset(640, 360, 800_000, 15),
       ],
-      audioPreset: audioPresets[this.selectedAudioPreset],
+      audioPreset: audioPresets[audioPresetKey],
       red: true,
-      dtx: this.selectedAudioPreset === "speech",
+      dtx: !isInstructor && this.selectedAudioPreset === "speech",
       forceStereo: this.forceStereo,
       degradationPreference: this.degradationPreference,
       scalabilityMode,
@@ -826,7 +1149,8 @@ export class LiveRoom {
 
   async enterRoom(publishAvailableDevices = true) {
     this.publishCameraOnNextJoin = publishAvailableDevices && this.wantsCameraOnJoin;
-    this.publishMicOnNextJoin = publishAvailableDevices && this.wantsMicOnJoin;
+    this.publishMicOnNextJoin =
+      this.isInstructorRoom || (publishAvailableDevices && this.wantsMicOnJoin);
     this.stopPreview();
     this.mediaError = ""; // Clear pre-connect errors when entering room
     // Firefox needs time to release the camera device before LiveKit grabs it
@@ -841,11 +1165,28 @@ export class LiveRoom {
     if (!this.joinInfo || Date.now() >= this.joinInfo.joinClosesAt) return;
     this.error = "";
     this.mediaError = "";
-    this.connectionState = "idle";
-    await this.loadToken();
-    if (this.status === "ready" && this.joinInfo) {
-      await this.enterRoom(true);
+    this.needsManualReconnect = false;
+    this.networkWarning = "";
+    this.connectionState = "connecting";
+    try {
+      await this.loadToken();
+      if (this.joinInfo) {
+        await this.prepareJoinConnection();
+        await this.connectRoom(this.joinInfo);
+      }
+    } catch (reason) {
+      console.error("[LiveKit] Reconnect failed:", reason);
+      this.connectionState = "disconnected";
+      this.needsManualReconnect = true;
+      this.mediaError =
+        reason instanceof Error ? reason.message : i18n.t.live.room.reconnectBody();
     }
+  }
+
+  exitAfterDisconnect() {
+    const isInstructor = this.isInstructorRoom;
+    this.destroy();
+    window.location.assign(isInstructor ? "/i/live" : "/u/calendar");
   }
 
   async startLiveAndConnect(publishAvailableDevices = true) {
@@ -898,6 +1239,7 @@ export class LiveRoom {
       this.joinInfo = joinInfo;
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.status = "ready";
+      void this.prepareJoinConnection();
     } catch (reason) {
       console.error("[LiveKit] Token fetch failed:", reason);
       if (!this.auth.isAuthenticated) {
@@ -963,23 +1305,27 @@ export class LiveRoom {
             isLocal: participantInfo.identity === lkRoom.localParticipant.identity,
           }];
           this.chatMessages = next.length > 200 ? next.slice(-200) : next;
+          if (!this.showChat) this.unreadChatCount += 1;
         })();
       });
       lkRoom
+        .on(RoomEvent.ConnectionQualityChanged, () => {
+          this.updateConnectionQualityFromRoom();
+        })
         .on(RoomEvent.Reconnecting, () => {
           this.connectionState = "reconnecting";
+          this.needsManualReconnect = false;
         })
         .on(RoomEvent.Reconnected, () => {
           this.connectionState = "connected";
+          this.needsManualReconnect = false;
+          this.networkWarning = "";
           this.refreshParticipants();
+          void this.refreshConnectionHealth();
+          void this.restoreInstructorMicIfNeeded();
         })
-        .on(RoomEvent.Disconnected, () => {
-          if (this.joinInfo && Date.now() < this.joinInfo.joinClosesAt) {
-            this.connectionState = "idle";
-            this.status = "ready";
-          } else {
-            this.connectionState = "disconnected";
-          }
+        .on(RoomEvent.Disconnected, (reason?: number) => {
+          this.handleDisconnected(reason);
         })
         .on(RoomEvent.ParticipantConnected, (participant: unknown) => {
           this.attachParticipantListeners(participant, ParticipantEvent);
@@ -1035,7 +1381,18 @@ export class LiveRoom {
             this.removeTileByPublication(participant, publication, track);
           }
         );
+      await lkRoom.prepareConnection(info.wsUrl, info.token);
       await lkRoom.connect(info.wsUrl, info.token);
+      this.inRoom = true;
+      void this.acquireWakeLock();
+      this.needsManualReconnect = false;
+      this.status = "ready";
+      if (info.liveClassType === "group_live" && !this.isInstructorRoom) {
+        this.showChat = true;
+      }
+      if (isInstructor) {
+        this.publishMicOnNextJoin = true;
+      }
       if (this.publishCameraOnNextJoin) {
         try {
           await lkRoom.localParticipant.setCameraEnabled(
@@ -1064,15 +1421,43 @@ export class LiveRoom {
             .join(" ");
         }
       }
+      if (isInstructor && !this.micEnabled) {
+        try {
+          await lkRoom.localParticipant.setMicrophoneEnabled(
+            true,
+            this.microphoneCaptureOptions(),
+          );
+          this.micEnabled = true;
+        } catch (micReason) {
+          console.warn("[LiveKit] Instructor mic failed:", micReason);
+          this.mediaError = this.getMediaErrorMessage("microphone", micReason);
+        }
+      }
       this.connectionState = "connected";
+      this.updateConnectionQualityFromRoom();
       this.refreshParticipants();
       this.startStatsTimer();
+      this.startTokenRefreshTimer();
       lkRoom.remoteParticipants.forEach((participant) =>
         this.attachParticipantListeners(participant, ParticipantEvent)
       );
     } catch (reason) {
       this.connectionState = "disconnected";
+      this.inRoom = false;
       throw reason;
+    }
+  }
+
+  openChat() {
+    this.showChat = true;
+    this.unreadChatCount = 0;
+  }
+
+  toggleChat() {
+    if (this.showChat) {
+      this.showChat = false;
+    } else {
+      this.openChat();
     }
   }
 
@@ -1134,13 +1519,32 @@ export class LiveRoom {
     if (this._room === null) return;
     const text = this.chatDraft.trim();
     if (!text) return;
+    const previous = text;
     this.chatDraft = "";
-    await this._room.localParticipant.sendText(text, { topic: "homebody.chat" });
+    try {
+      await this._room.localParticipant.sendText(previous, { topic: "homebody.chat" });
+    } catch (reason) {
+      console.warn("[LiveKit] Chat send failed:", reason);
+      this.chatDraft = previous;
+      this.mediaError = i18n.t.live.room.chatSendError();
+    }
   }
 
   destroy() {
     this.stopPreview();
     this.stopExpiryTimer();
+    this.stopTokenRefreshTimer();
+    this.releaseWakeLock();
+    this.disposeBrowserStabilityHandlers();
+    this.inRoom = false;
+    this.needsManualReconnect = false;
+    this.sessionEndedByHost = false;
+    this.showJoinExpiryModal = false;
+    this.joinExpiryWarned = false;
+    this.unreadChatCount = 0;
+    this.networkWarning = "";
+    this.browserOffline = false;
+    this.connectionQuality = "unknown";
     this.clearMediaTiles();
     this.stopStatsTimer();
     this._room?.unregisterTextStreamHandler("homebody.chat");

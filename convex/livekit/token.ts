@@ -59,6 +59,9 @@ export const issueJoin = action({
     roomName: string;
     participantRole: "instructor" | "customer" | "admin";
     joinClosesAt: number;
+    classTitle: string;
+    instructorName: string;
+    liveClassType: "group_live" | "one_on_one";
   }> => {
     const { apiKey, apiSecret, wsUrl } = requireLiveKitEnv();
     const join: {
@@ -68,6 +71,8 @@ export const issueJoin = action({
       participantRole: "instructor" | "customer" | "admin";
       liveClassId: Id<"liveClasses">;
       liveClassType: "group_live" | "one_on_one";
+      classTitle: string;
+      instructorName: string;
       startsAt: number;
       endsAt: number;
       joinClosesAt: number;
@@ -136,6 +141,9 @@ export const issueJoin = action({
       roomName: join.roomName,
       participantRole: join.participantRole,
       joinClosesAt: join.joinClosesAt,
+      classTitle: join.classTitle,
+      instructorName: join.instructorName,
+      liveClassType: join.liveClassType,
     };
   },
 });

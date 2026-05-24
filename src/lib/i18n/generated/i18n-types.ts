@@ -15,11 +15,11 @@ export type Translations = RootTranslation
 type RootTranslation = {
 	site: {
 		/**
-		 * H​o​m​e​B​o​d​y
+		 * A​n​a​t​o​M​e
 		 */
 		name: string
 		/**
-		 * פ​י​ל​א​ט​י​ס​ ​ב​ב​י​ת
+		 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​—​ ​A​n​a​t​o​m​y​ ​f​o​r​ ​M​e
 		 */
 		tagline: string
 		/**
@@ -98,7 +98,7 @@ type RootTranslation = {
 			 */
 			eyebrow: string
 			/**
-			 * א​ם​ ​א​ת​ם​ ​מ​ח​פ​ש​י​ם​ ​א​י​מ​ו​ן​ ​ג​נ​ר​י​ ​—​ ​ז​ה​ ​ל​א​ ​ה​מ​ק​ו​ם​.
+			 * ה​ג​ו​ף​ ​ש​ל​ך​ ​י​ו​ד​ע​ ​מ​ה​ ​ה​ו​א​ ​צ​ר​י​ך​.
 			 */
 			headline: string
 			/**
@@ -392,7 +392,7 @@ type RootTranslation = {
 			 */
 			button: string
 			/**
-			 * H​o​m​e​B​o​d​y​ ​—​ ​פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​א​ו​נ​ל​י​י​ן​.​ ​ל​א​ ​ס​ר​ט​ו​נ​י​ ​י​ו​ט​י​ו​ב​.
+			 * A​n​a​t​o​M​e​ ​—​ ​פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​א​ו​נ​ל​י​י​ן​.​ ​ל​א​ ​ס​ר​ט​ו​נ​י​ ​י​ו​ט​י​ו​ב​.
 			 */
 			note: string
 		}
@@ -412,7 +412,7 @@ type RootTranslation = {
 		}
 		schema: {
 			/**
-			 * א​י​ך​ ​מ​ת​ח​י​ל​י​ם​ ​ע​ם​ ​H​o​m​e​B​o​d​y
+			 * א​י​ך​ ​מ​ת​ח​י​ל​י​ם​ ​ע​ם​ ​A​n​a​t​o​M​e
 			 */
 			howToTitle: string
 			/**
@@ -451,15 +451,15 @@ type RootTranslation = {
 	}
 	auth: {
 		/**
-		 * ג​י​ש​ה​ ​ל​ח​ב​ר​י​ם
+		 * כ​נ​י​ס​ה
 		 */
 		title: string
 		/**
-		 * כ​נ​י​ס​ה​ ​א​ו​ ​ה​ר​ש​מ​ה
+		 * כ​נ​י​ס​ה
 		 */
 		emailStepTitle: string
 		/**
-		 * ב​ד​ק​י​ ​א​ת​ ​ה​א​י​מ​י​י​ל
+		 * ה​ק​ו​ד​ ​נ​ש​ל​ח
 		 */
 		codeStepTitle: string
 		/**
@@ -467,19 +467,19 @@ type RootTranslation = {
 		 */
 		emailLabel: string
 		/**
-		 * ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י
+		 * ק​ו​ד
 		 */
 		codeLabel: string
 		/**
-		 * ש​ל​ח​ו​ ​ל​י​ ​ק​ו​ד
+		 * ק​ו​ד​ ​ל​ט​ל​פ​ו​ן
 		 */
 		submitSendCode: string
 		/**
-		 * ש​ל​ח​ו​ ​ל​י​ ​ל​י​נ​ק
+		 * ל​י​נ​ק​ ​ל​א​י​מ​י​י​ל
 		 */
 		submitSendLink: string
 		/**
-		 * ל​ה​י​כ​נ​ס
+		 * כ​נ​י​ס​ה
 		 */
 		submitEnter: string
 		/**
@@ -499,57 +499,57 @@ type RootTranslation = {
 		 */
 		pendingVerify: string
 		/**
-		 * ש​ל​ח​נ​ו​ ​ק​ו​ד​ ​כ​נ​י​ס​ה​ ​ל​א​י​מ​י​י​ל​ ​ש​ל​ך​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ת​י​ק​י​י​ת​ ​ה​ס​פ​א​ם​.
+		 * ק​ו​ד​ ​נ​ש​ל​ח​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ס​פ​א​ם​.
 		 */
 		statusCodeSent: string
 		/**
-		 * ש​ל​ח​נ​ו​ ​ל​י​נ​ק​ ​כ​נ​י​ס​ה​ ​ל​א​י​מ​י​י​ל​ ​ש​ל​ך​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ת​י​ק​י​י​ת​ ​ה​ס​פ​א​ם​.
+		 * ל​י​נ​ק​ ​נ​ש​ל​ח​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ס​פ​א​ם​.
 		 */
 		statusLinkSent: string
 		/**
-		 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ה​ת​ח​ב​ר​ ​כ​ר​ג​ע​.​ ​נ​ס​י​ ​ש​ו​ב​ ​ב​ע​ו​ד​ ​ר​ג​ע​.
+		 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ה​ת​ח​ב​ר​.​ ​נ​ס​י​ ​ש​ו​ב​.
 		 */
 		statusError: string
 		/**
-		 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ש​ל​ו​ח​ ​כ​ר​ג​ע​.​ ​נ​ס​י​ ​ש​ו​ב​ ​ב​ע​ו​ד​ ​ר​ג​ע​.
+		 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ש​ל​ו​ח​.​ ​נ​ס​י​ ​ש​ו​ב​.
 		 */
 		statusSendError: string
 		/**
-		 * ה​ק​ו​ד​ ​ש​ג​ו​י​ ​א​ו​ ​פ​ג​ ​ת​ו​ק​ף​.​ ​נ​ס​י​ ​ש​ו​ב​.
+		 * ק​ו​ד​ ​ש​ג​ו​י​.​ ​נ​ס​י​ ​ש​ו​ב​.
 		 */
 		statusCodeError: string
 		/**
-		 * ל​ה​ש​ת​מ​ש​ ​ב​א​י​מ​י​י​ל​ ​א​ח​ר
+		 * א​י​מ​י​י​ל​ ​א​ח​ר
 		 */
 		switchEmail: string
 		/**
-		 * מ​כ​נ​י​ס​י​ם​ ​כ​ת​ו​ב​ת​ ​א​י​מ​י​י​ל​ ​ו​מ​ק​ב​ל​י​ם​ ​ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​.​ ​א​י​ן​ ​צ​ו​ר​ך​ ​ב​ס​י​ס​מ​ה​.
+		 * ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​ ​ב​מ​ק​ו​ם​ ​ס​י​ס​מ​ה​.
 		 */
 		intro: string
 		/**
-		 * מ​כ​נ​י​ס​י​ם​ ​כ​ת​ו​ב​ת​ ​א​י​מ​י​י​ל​ ​ו​ב​ו​ח​ר​י​ם​ ​א​י​ך​ ​ל​ה​י​כ​נ​ס​.​ ​א​י​ן​ ​צ​ו​ר​ך​ ​ב​ס​י​ס​מ​ה​.
+		 * ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​ ​ב​מ​ק​ו​ם​ ​ס​י​ס​מ​ה​.
 		 */
 		emailStepIntro: string
 		/**
-		 * ש​ל​ח​נ​ו​ ​ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​ ​ל​כ​ת​ו​ב​ת​ ​{​e​m​a​i​l​}
+		 * {​e​m​a​i​l​}
 		 * @param {unknown} email
 		 */
 		codeStepIntro: RequiredParams<'email'>
 		/**
-		 * ש​ל​ח​נ​ו​ ​ל​י​נ​ק​ ​כ​נ​י​ס​ה​ ​ל​כ​ת​ו​ב​ת​ ​{​e​m​a​i​l​}
+		 * {​e​m​a​i​l​}
 		 * @param {unknown} email
 		 */
 		linkStepIntro: RequiredParams<'email'>
 		/**
-		 * ל​ח​צ​י​ ​ע​ל​ ​ה​ל​י​נ​ק​ ​ב​מ​י​י​ל​ ​כ​ד​י​ ​ל​ה​ת​ח​ב​ר​ ​י​ש​י​ר​ו​ת​ ​—​ ​ב​ל​י​ ​ל​ה​ז​י​ן​ ​ק​ו​ד​.
+		 * ל​ח​צ​י​ ​ע​ל​ ​ה​ל​י​נ​ק​ ​ב​מ​י​י​ל​.
 		 */
 		linkSentText: string
 		/**
-		 * פ​ת​י​ח​ת​ ​א​פ​ל​י​ק​צ​י​י​ת​ ​ה​מ​י​י​ל
+		 * פ​ת​ח​י​ ​א​ת​ ​ה​מ​י​י​ל
 		 */
 		openEmailApp: string
 		/**
-		 * ה​ז​נ​ת​ ​ק​ו​ד​ ​י​ד​נ​י​ת
+		 * ה​ז​נ​ת​ ​ק​ו​ד
 		 */
 		enterCodeManually: string
 		validation: {
@@ -560,7 +560,7 @@ type RootTranslation = {
 		}
 		loggedIn: {
 			/**
-			 * מ​ח​ו​ב​ר​ת​ ​✦
+			 * מ​ח​ו​ב​ר​ת
 			 */
 			kicker: string
 			/**
@@ -591,7 +591,7 @@ type RootTranslation = {
 		 */
 		step: string
 		/**
-		 * מ​ת​ו​ך​ ​4
+		 * מ​ת​ו​ך​ ​3
 		 */
 		stepCount: string
 		stepLabels: {
@@ -600,13 +600,9 @@ type RootTranslation = {
 			 */
 			experience: string
 			/**
-			 * צ​י​ו​ד
+			 * צ​י​ו​ד​ ​ו​מ​ט​ר​ו​ת
 			 */
 			equipment: string
-			/**
-			 * מ​ט​ר​ו​ת
-			 */
-			goals: string
 			/**
 			 * ס​י​ו​ם
 			 */
@@ -1235,9 +1231,65 @@ type RootTranslation = {
 			 */
 			prepNotice: string
 			/**
+			 * ק​ו​ל​ ​ה​מ​ד​ר​י​כ​ה
+			 */
+			voicePresetLabel: string
+			/**
+			 * מ​ו​ת​א​ם​ ​ל​ה​נ​ח​י​ה​ ​ב​ר​ו​ר​ה​ ​ב​ש​י​ע​ו​ר​ ​מ​ס​ו​ג​ ​מ​נ​ו​ח​ה
+			 */
+			voicePresetHint: string
+			/**
+			 * ק​ו​ל​ ​ב​ר​ו​ר
+			 */
+			presetVoice: string
+			/**
+			 * ס​ט​נ​ד​ר​ט​י
+			 */
+			presetStandard: string
+			/**
+			 * א​י​כ​ו​ת​ ​ג​ב​ו​ה​ה
+			 */
+			presetHigh: string
+			/**
+			 * ר​ו​ח​ב​ ​פ​ס​ ​נ​מ​ו​ך
+			 */
+			presetLow: string
+			/**
 			 * ה​ת​ח​ל​ת​ ​ל​י​י​ב
 			 */
 			startLive: string
+			/**
+			 * ר​ז​ו​ל​ו​צ​י​ה
+			 */
+			resolutionLabel: string
+			/**
+			 * ק​ו​ד​ק
+			 */
+			codecLabel: string
+			/**
+			 * ב​י​ט​ר​י​י​ט
+			 */
+			bitrateLabel: string
+			/**
+			 * פ​ר​י​י​מ​י​ם
+			 */
+			framerateLabel: string
+			/**
+			 * א​ו​ד​י​ו
+			 */
+			audioLabel: string
+			/**
+			 * ע​ד​י​פ​ו​ת
+			 */
+			priorityLabel: string
+			/**
+			 * א​י​כ​ו​ת​ ​א​ד​פ​ט​י​ב​י​ת​ ​ל​צ​ו​פ​ו​ת
+			 */
+			simulcastLabel: string
+			/**
+			 * א​ו​ד​י​ו​ ​ס​ט​ר​י​א​ו
+			 */
+			stereoLabel: string
 			/**
 			 * א​י​כ​ו​ת​ ​ש​י​ד​ו​ר
 			 */
@@ -1301,6 +1353,186 @@ type RootTranslation = {
 			 */
 			waitingForInstructor: string
 			/**
+			 * מ​ח​כ​י​ם​ ​ל​{​i​n​s​t​r​u​c​t​o​r​}​…
+			 * @param {unknown} instructor
+			 */
+			waitingForInstructorNamed: RequiredParams<'instructor'>
+			/**
+			 * {​t​i​t​l​e​}
+			 * @param {unknown} title
+			 */
+			waitingClassKicker: RequiredParams<'title'>
+			/**
+			 * נ​ש​א​ר​ו​ ​{​m​i​n​u​t​e​s​}​ ​ד​ק​׳​ ​ל​ה​צ​ט​ר​פ​ו​ת
+			 * @param {unknown} minutes
+			 */
+			joinClosesIn: RequiredParams<'minutes'>
+			/**
+			 * ה​ח​ל​ו​ן​ ​ל​ה​צ​ט​ר​פ​ו​ת​ ​נ​ס​ג​ר​ ​ב​ק​ר​ו​ב
+			 */
+			joinClosesSoon: string
+			/**
+			 * ח​י​ב​ו​ר​ ​מ​צ​ו​י​ן
+			 */
+			connectionExcellent: string
+			/**
+			 * ח​י​ב​ו​ר​ ​ט​ו​ב
+			 */
+			connectionGood: string
+			/**
+			 * ח​י​ב​ו​ר​ ​ח​ל​ש​ ​—​ ​י​י​ת​כ​נ​ו​ ​ק​פ​י​צ​ו​ת
+			 */
+			connectionPoor: string
+			/**
+			 * ח​י​ב​ו​ר​ ​א​ב​ד
+			 */
+			connectionLost: string
+			/**
+			 * ה​ח​י​ב​ו​ר​ ​נ​ו​ת​ק
+			 */
+			reconnectTitle: string
+			/**
+			 * א​פ​ש​ר​ ​ל​נ​ס​ו​ת​ ​ל​ה​ת​ח​ב​ר​ ​ש​ו​ב​ ​א​ו​ ​ל​צ​א​ת​ ​מ​ה​ש​י​ע​ו​ר​.
+			 */
+			reconnectBody: string
+			/**
+			 * ה​ת​ח​ב​ר​ו​ת​ ​מ​ח​ד​ש
+			 */
+			reconnectAction: string
+			/**
+			 * י​צ​י​א​ה
+			 */
+			reconnectExit: string
+			/**
+			 * מ​ת​ח​ב​ר​י​ם​ ​מ​ח​ד​ש​…
+			 */
+			reconnectingOverlay: string
+			/**
+			 * ה​ש​י​ע​ו​ר​ ​י​מ​ש​י​ך​ ​א​ו​ט​ו​מ​ט​י​ת​ ​כ​ש​ה​ר​ש​ת​ ​ח​ו​ז​ר​ת​.
+			 */
+			reconnectingHint: string
+			/**
+			 * ה​ש​י​ע​ו​ר​ ​ה​ס​ת​י​י​ם​ ​ו​ה​ח​י​ב​ו​ר​ ​נ​ס​ג​ר​.
+			 */
+			sessionEnded: string
+			/**
+			 * א​ם​ ​ה​ב​ע​י​ה​ ​נ​מ​ש​כ​ת​,​ ​נ​ס​י​ ​ר​ש​ת​ ​א​ח​ר​ת​ ​א​ו​ ​כ​ב​י​ ​V​P​N​.
+			 */
+			networkHelp: string
+			/**
+			 * ס​י​ו​ם​ ​ש​י​ד​ו​ר
+			 */
+			leaveTitleInstructor: string
+			/**
+			 * י​צ​י​א​ה​ ​מ​ה​ח​ד​ר
+			 */
+			leaveTitleCustomer: string
+			/**
+			 * ה​א​ם​ ​ל​ס​י​י​ם​ ​א​ת​ ​ה​ש​י​ד​ו​ר​ ​ל​כ​ל​ ​ה​מ​ש​ת​ת​פ​ו​ת​?
+			 */
+			leaveBodyInstructor: string
+			/**
+			 * ה​א​ם​ ​ל​צ​א​ת​ ​מ​ה​ח​ד​ר​?​ ​א​פ​ש​ר​ ​ל​ה​י​כ​נ​ס​ ​ש​ו​ב​ ​ד​ר​ך​ ​ה​ל​ו​ח​.
+			 */
+			leaveBodyCustomer: string
+			/**
+			 * ס​י​ו​ם​ ​ש​י​ד​ו​ר
+			 */
+			leaveEndLive: string
+			/**
+			 * י​צ​י​א​ה​ ​ב​ל​ב​ד
+			 */
+			leaveOnly: string
+			/**
+			 * י​צ​י​א​ה​ ​מ​ה​ח​ד​ר
+			 */
+			leaveConfirm: string
+			/**
+			 * ב​י​ט​ו​ל
+			 */
+			leaveCancel: string
+			/**
+			 * ה​מ​י​ק​ר​ו​פ​ו​ן​ ​ש​ל​ך​ ​ה​ו​א​ ​ה​ק​ו​ל​ ​ש​ל​ ​ה​ש​י​ע​ו​ר​ ​—​ ​ו​ד​א​י​ ​ש​מ​ע​ ​ב​ר​ו​ר​.
+			 */
+			instructorAudioHint: string
+			/**
+			 * ה​ש​י​ע​ו​ר​ ​פ​ת​ו​ח​ ​ב​ט​א​ב​ ​א​ו​ ​ב​מ​כ​ש​י​ר​ ​א​ח​ר​.​ ​ס​ג​ר​י​ ​א​ת​ ​ה​ח​ל​ו​ן​ ​ה​ש​נ​י​ ​ו​נ​ס​י​ ​ש​ו​ב​.
+			 */
+			disconnectDuplicate: string
+			/**
+			 * ה​מ​ד​ר​י​כ​ה​ ​ס​י​י​מ​ה​ ​א​ת​ ​ה​ש​י​ד​ו​ר​.
+			 */
+			disconnectRoomEnded: string
+			/**
+			 * ה​ו​ס​ר​ת​ ​מ​ה​ש​י​ע​ו​ר​.
+			 */
+			disconnectRemoved: string
+			/**
+			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ה​ת​ח​ב​ר​ ​ל​ש​י​ד​ו​ר​.​ ​ב​ד​ק​י​ ​א​ת​ ​ה​ר​ש​ת​ ​ו​נ​ס​י​ ​ש​ו​ב​.
+			 */
+			disconnectJoinFailed: string
+			/**
+			 * ה​ח​י​ב​ו​ר​ ​נ​פ​ס​ק​ ​ע​ק​ב​ ​ז​מ​ן​ ​ק​צ​ו​ב​.​ ​נ​ס​י​ ​ל​ה​ת​ח​ב​ר​ ​ש​ו​ב​.
+			 */
+			disconnectTimeout: string
+			/**
+			 * ב​ע​י​ה​ ​ב​ה​ע​ב​ר​ת​ ​ש​מ​ע​ ​א​ו​ ​ו​י​ד​א​ו​.​ ​נ​ס​י​ ​ל​ה​ת​ח​ב​ר​ ​מ​ח​ד​ש​.
+			 */
+			disconnectMediaFailed: string
+			/**
+			 * א​י​ן​ ​ח​י​ב​ו​ר​ ​ל​א​י​נ​ט​ר​נ​ט​.
+			 */
+			disconnectOffline: string
+			/**
+			 * ה​ש​י​ע​ו​ר​ ​ה​ס​ת​י​י​ם
+			 */
+			classEndedTitle: string
+			/**
+			 * ת​ו​ד​ה​ ​ש​ה​צ​ט​ר​פ​ת​.​ ​א​פ​ש​ר​ ​ל​ח​ז​ו​ר​ ​ל​ל​ו​ח​ ​ל​ש​י​ע​ו​ר​י​ם​ ​ה​ב​א​י​ם​.
+			 */
+			classEndedBody: string
+			/**
+			 * ח​ז​ר​ה​ ​ל​ל​ו​ח
+			 */
+			classEndedCta: string
+			/**
+			 * ה​ח​ל​ו​ן​ ​ל​ה​צ​ט​ר​פ​ו​ת​ ​נ​ס​ג​ר​ ​ב​ק​ר​ו​ב
+			 */
+			joinExpiryTitle: string
+			/**
+			 * נ​ש​א​ר​ו​ ​כ​־​{​m​i​n​u​t​e​s​}​ ​ד​ק​ו​ת​ ​ל​ה​צ​ט​ר​פ​ו​ת​ ​ל​ש​י​ע​ו​ר​.​ ​ל​ה​י​ש​א​ר​ ​ב​ח​ד​ר​?
+			 * @param {unknown} minutes
+			 */
+			joinExpiryBody: RequiredParams<'minutes'>
+			/**
+			 * ל​ה​י​ש​א​ר
+			 */
+			joinExpiryStay: string
+			/**
+			 * ל​צ​א​ת
+			 */
+			joinExpiryLeave: string
+			/**
+			 * א​י​ן​ ​ח​י​ב​ו​ר​ ​ל​א​י​נ​ט​ר​נ​ט​ ​—​ ​מ​ח​כ​י​ם​ ​ל​ר​ש​ת​…
+			 */
+			offlineBanner: string
+			/**
+			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ש​ל​ו​ח​ ​א​ת​ ​ה​ה​ו​ד​ע​ה​.​ ​נ​ס​י​ ​ש​ו​ב​.
+			 */
+			chatSendError: string
+			/**
+			 * ס​ג​י​ר​ה
+			 */
+			mediaErrorDismiss: string
+			/**
+			 * מ​ו​מ​ל​ץ​ ​ל​ה​י​כ​נ​ס​ ​ל​ה​א​ז​נ​ה​ ​ב​ל​ב​ד​ ​—​ ​ה​מ​צ​ל​מ​ה​ ​ו​ה​מ​י​ק​ר​ו​פ​ו​ן​ ​א​ו​פ​צ​י​ו​נ​ל​י​י​ם​.
+			 */
+			listenModeHint: string
+			/**
+			 * כ​נ​י​ס​ה​ ​ע​ם​ ​מ​צ​ל​מ​ה​ ​ו​מ​י​ק​ר​ו​פ​ו​ן
+			 */
+			enterWithDevices: string
+			/**
 			 * מ​ח​כ​י​ם​ ​ל​מ​ש​ת​ת​פ​י​ם​ ​נ​ו​ס​פ​י​ם​.​.​.
 			 */
 			waitingForOthers: string
@@ -1320,6 +1552,9 @@ type RootTranslation = {
 			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ה​ת​ח​י​ל​ ​א​ת​ ​ה​ל​י​י​ב​.
 			 */
 			startLiveError: string
+			/**
+			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ס​י​י​ם​ ​א​ת​ ​ה​ל​י​י​ב​.
+			 */
 			endLiveError: string
 			/**
 			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ש​ת​ף​ ​מ​ס​ך​.
@@ -1353,6 +1588,10 @@ type RootTranslation = {
 			 * א​י​ן​ ​ה​ו​ד​ע​ו​ת​ ​ע​ד​י​י​ן
 			 */
 			chatEmpty: string
+			/**
+			 * ה​ו​ד​ע​ו​ת​ ​ח​ד​ש​ו​ת
+			 */
+			newMessages: string
 			/**
 			 * ה​ס​ת​ר​ ​צ​'​א​ט
 			 */
@@ -1657,11 +1896,11 @@ type RootTranslation = {
 export type TranslationFunctions = {
 	site: {
 		/**
-		 * HomeBody
+		 * AnatoMe
 		 */
 		name: () => LocalizedString
 		/**
-		 * פילאטיס בבית
+		 * פילאטיס שיקומי — Anatomy for Me
 		 */
 		tagline: () => LocalizedString
 		/**
@@ -1740,7 +1979,7 @@ export type TranslationFunctions = {
 			 */
 			eyebrow: () => LocalizedString
 			/**
-			 * אם אתם מחפשים אימון גנרי — זה לא המקום.
+			 * הגוף שלך יודע מה הוא צריך.
 			 */
 			headline: () => LocalizedString
 			/**
@@ -2032,7 +2271,7 @@ export type TranslationFunctions = {
 			 */
 			button: () => LocalizedString
 			/**
-			 * HomeBody — פילאטיס שיקומי אונליין. לא סרטוני יוטיוב.
+			 * AnatoMe — פילאטיס שיקומי אונליין. לא סרטוני יוטיוב.
 			 */
 			note: () => LocalizedString
 		}
@@ -2052,7 +2291,7 @@ export type TranslationFunctions = {
 		}
 		schema: {
 			/**
-			 * איך מתחילים עם HomeBody
+			 * איך מתחילים עם AnatoMe
 			 */
 			howToTitle: () => LocalizedString
 			/**
@@ -2091,15 +2330,15 @@ export type TranslationFunctions = {
 	}
 	auth: {
 		/**
-		 * גישה לחברים
+		 * כניסה
 		 */
 		title: () => LocalizedString
 		/**
-		 * כניסה או הרשמה
+		 * כניסה
 		 */
 		emailStepTitle: () => LocalizedString
 		/**
-		 * בדקי את האימייל
+		 * הקוד נשלח
 		 */
 		codeStepTitle: () => LocalizedString
 		/**
@@ -2107,19 +2346,19 @@ export type TranslationFunctions = {
 		 */
 		emailLabel: () => LocalizedString
 		/**
-		 * קוד חד־פעמי
+		 * קוד
 		 */
 		codeLabel: () => LocalizedString
 		/**
-		 * שלחו לי קוד
+		 * קוד לטלפון
 		 */
 		submitSendCode: () => LocalizedString
 		/**
-		 * שלחו לי לינק
+		 * לינק לאימייל
 		 */
 		submitSendLink: () => LocalizedString
 		/**
-		 * להיכנס
+		 * כניסה
 		 */
 		submitEnter: () => LocalizedString
 		/**
@@ -2139,55 +2378,55 @@ export type TranslationFunctions = {
 		 */
 		pendingVerify: () => LocalizedString
 		/**
-		 * שלחנו קוד כניסה לאימייל שלך. בדקי גם בתיקיית הספאם.
+		 * קוד נשלח. בדקי גם בספאם.
 		 */
 		statusCodeSent: () => LocalizedString
 		/**
-		 * שלחנו לינק כניסה לאימייל שלך. בדקי גם בתיקיית הספאם.
+		 * לינק נשלח. בדקי גם בספאם.
 		 */
 		statusLinkSent: () => LocalizedString
 		/**
-		 * לא הצלחנו להתחבר כרגע. נסי שוב בעוד רגע.
+		 * לא הצלחנו להתחבר. נסי שוב.
 		 */
 		statusError: () => LocalizedString
 		/**
-		 * לא הצלחנו לשלוח כרגע. נסי שוב בעוד רגע.
+		 * לא הצלחנו לשלוח. נסי שוב.
 		 */
 		statusSendError: () => LocalizedString
 		/**
-		 * הקוד שגוי או פג תוקף. נסי שוב.
+		 * קוד שגוי. נסי שוב.
 		 */
 		statusCodeError: () => LocalizedString
 		/**
-		 * להשתמש באימייל אחר
+		 * אימייל אחר
 		 */
 		switchEmail: () => LocalizedString
 		/**
-		 * מכניסים כתובת אימייל ומקבלים קוד חד־פעמי. אין צורך בסיסמה.
+		 * קוד חד־פעמי במקום סיסמה.
 		 */
 		intro: () => LocalizedString
 		/**
-		 * מכניסים כתובת אימייל ובוחרים איך להיכנס. אין צורך בסיסמה.
+		 * קוד חד־פעמי במקום סיסמה.
 		 */
 		emailStepIntro: () => LocalizedString
 		/**
-		 * שלחנו קוד חד־פעמי לכתובת {email}
+		 * {email}
 		 */
 		codeStepIntro: (arg: { email: unknown }) => LocalizedString
 		/**
-		 * שלחנו לינק כניסה לכתובת {email}
+		 * {email}
 		 */
 		linkStepIntro: (arg: { email: unknown }) => LocalizedString
 		/**
-		 * לחצי על הלינק במייל כדי להתחבר ישירות — בלי להזין קוד.
+		 * לחצי על הלינק במייל.
 		 */
 		linkSentText: () => LocalizedString
 		/**
-		 * פתיחת אפליקציית המייל
+		 * פתחי את המייל
 		 */
 		openEmailApp: () => LocalizedString
 		/**
-		 * הזנת קוד ידנית
+		 * הזנת קוד
 		 */
 		enterCodeManually: () => LocalizedString
 		validation: {
@@ -2198,7 +2437,7 @@ export type TranslationFunctions = {
 		}
 		loggedIn: {
 			/**
-			 * מחוברת ✦
+			 * מחוברת
 			 */
 			kicker: () => LocalizedString
 			/**
@@ -2229,7 +2468,7 @@ export type TranslationFunctions = {
 		 */
 		step: () => LocalizedString
 		/**
-		 * מתוך 4
+		 * מתוך 3
 		 */
 		stepCount: () => LocalizedString
 		stepLabels: {
@@ -2238,13 +2477,9 @@ export type TranslationFunctions = {
 			 */
 			experience: () => LocalizedString
 			/**
-			 * ציוד
+			 * ציוד ומטרות
 			 */
 			equipment: () => LocalizedString
-			/**
-			 * מטרות
-			 */
-			goals: () => LocalizedString
 			/**
 			 * סיום
 			 */
@@ -2870,6 +3105,30 @@ export type TranslationFunctions = {
 			 */
 			prepNotice: () => LocalizedString
 			/**
+			 * קול המדריכה
+			 */
+			voicePresetLabel: () => LocalizedString
+			/**
+			 * מותאם להנחיה ברורה בשיעור מסוג מנוחה
+			 */
+			voicePresetHint: () => LocalizedString
+			/**
+			 * קול ברור
+			 */
+			presetVoice: () => LocalizedString
+			/**
+			 * סטנדרטי
+			 */
+			presetStandard: () => LocalizedString
+			/**
+			 * איכות גבוהה
+			 */
+			presetHigh: () => LocalizedString
+			/**
+			 * רוחב פס נמוך
+			 */
+			presetLow: () => LocalizedString
+			/**
 			 * התחלת לייב
 			 */
 			startLive: () => LocalizedString
@@ -2968,6 +3227,182 @@ export type TranslationFunctions = {
 			 */
 			waitingForInstructor: () => LocalizedString
 			/**
+			 * מחכים ל{instructor}…
+			 */
+			waitingForInstructorNamed: (arg: { instructor: unknown }) => LocalizedString
+			/**
+			 * {title}
+			 */
+			waitingClassKicker: (arg: { title: unknown }) => LocalizedString
+			/**
+			 * נשארו {minutes} דק׳ להצטרפות
+			 */
+			joinClosesIn: (arg: { minutes: unknown }) => LocalizedString
+			/**
+			 * החלון להצטרפות נסגר בקרוב
+			 */
+			joinClosesSoon: () => LocalizedString
+			/**
+			 * חיבור מצוין
+			 */
+			connectionExcellent: () => LocalizedString
+			/**
+			 * חיבור טוב
+			 */
+			connectionGood: () => LocalizedString
+			/**
+			 * חיבור חלש — ייתכנו קפיצות
+			 */
+			connectionPoor: () => LocalizedString
+			/**
+			 * חיבור אבד
+			 */
+			connectionLost: () => LocalizedString
+			/**
+			 * החיבור נותק
+			 */
+			reconnectTitle: () => LocalizedString
+			/**
+			 * אפשר לנסות להתחבר שוב או לצאת מהשיעור.
+			 */
+			reconnectBody: () => LocalizedString
+			/**
+			 * התחברות מחדש
+			 */
+			reconnectAction: () => LocalizedString
+			/**
+			 * יציאה
+			 */
+			reconnectExit: () => LocalizedString
+			/**
+			 * מתחברים מחדש…
+			 */
+			reconnectingOverlay: () => LocalizedString
+			/**
+			 * השיעור ימשיך אוטומטית כשהרשת חוזרת.
+			 */
+			reconnectingHint: () => LocalizedString
+			/**
+			 * השיעור הסתיים והחיבור נסגר.
+			 */
+			sessionEnded: () => LocalizedString
+			/**
+			 * אם הבעיה נמשכת, נסי רשת אחרת או כבי VPN.
+			 */
+			networkHelp: () => LocalizedString
+			/**
+			 * סיום שידור
+			 */
+			leaveTitleInstructor: () => LocalizedString
+			/**
+			 * יציאה מהחדר
+			 */
+			leaveTitleCustomer: () => LocalizedString
+			/**
+			 * האם לסיים את השידור לכל המשתתפות?
+			 */
+			leaveBodyInstructor: () => LocalizedString
+			/**
+			 * האם לצאת מהחדר? אפשר להיכנס שוב דרך הלוח.
+			 */
+			leaveBodyCustomer: () => LocalizedString
+			/**
+			 * סיום שידור
+			 */
+			leaveEndLive: () => LocalizedString
+			/**
+			 * יציאה בלבד
+			 */
+			leaveOnly: () => LocalizedString
+			/**
+			 * יציאה מהחדר
+			 */
+			leaveConfirm: () => LocalizedString
+			/**
+			 * ביטול
+			 */
+			leaveCancel: () => LocalizedString
+			/**
+			 * המיקרופון שלך הוא הקול של השיעור — ודאי שמע ברור.
+			 */
+			instructorAudioHint: () => LocalizedString
+			/**
+			 * השיעור פתוח בטאב או במכשיר אחר. סגרי את החלון השני ונסי שוב.
+			 */
+			disconnectDuplicate: () => LocalizedString
+			/**
+			 * המדריכה סיימה את השידור.
+			 */
+			disconnectRoomEnded: () => LocalizedString
+			/**
+			 * הוסרת מהשיעור.
+			 */
+			disconnectRemoved: () => LocalizedString
+			/**
+			 * לא הצלחנו להתחבר לשידור. בדקי את הרשת ונסי שוב.
+			 */
+			disconnectJoinFailed: () => LocalizedString
+			/**
+			 * החיבור נפסק עקב זמן קצוב. נסי להתחבר שוב.
+			 */
+			disconnectTimeout: () => LocalizedString
+			/**
+			 * בעיה בהעברת שמע או וידאו. נסי להתחבר מחדש.
+			 */
+			disconnectMediaFailed: () => LocalizedString
+			/**
+			 * אין חיבור לאינטרנט.
+			 */
+			disconnectOffline: () => LocalizedString
+			/**
+			 * השיעור הסתיים
+			 */
+			classEndedTitle: () => LocalizedString
+			/**
+			 * תודה שהצטרפת. אפשר לחזור ללוח לשיעורים הבאים.
+			 */
+			classEndedBody: () => LocalizedString
+			/**
+			 * חזרה ללוח
+			 */
+			classEndedCta: () => LocalizedString
+			/**
+			 * החלון להצטרפות נסגר בקרוב
+			 */
+			joinExpiryTitle: () => LocalizedString
+			/**
+			 * נשארו כ־{minutes} דקות להצטרפות לשיעור. להישאר בחדר?
+			 */
+			joinExpiryBody: (arg: { minutes: unknown }) => LocalizedString
+			/**
+			 * להישאר
+			 */
+			joinExpiryStay: () => LocalizedString
+			/**
+			 * לצאת
+			 */
+			joinExpiryLeave: () => LocalizedString
+			/**
+			 * אין חיבור לאינטרנט — מחכים לרשת…
+			 */
+			offlineBanner: () => LocalizedString
+			/**
+			 * לא הצלחנו לשלוח את ההודעה. נסי שוב.
+			 */
+			chatSendError: () => LocalizedString
+			/**
+			 * סגירה
+			 */
+			mediaErrorDismiss: () => LocalizedString
+			/**
+			 * מומלץ להיכנס להאזנה בלבד — המצלמה והמיקרופון אופציונליים.
+			 */
+			listenModeHint: () => LocalizedString
+			/**
+			 * כניסה עם מצלמה ומיקרופון
+			 */
+			enterWithDevices: () => LocalizedString
+			/**
 			 * מחכים למשתתפים נוספים...
 			 */
 			waitingForOthers: () => LocalizedString
@@ -2987,6 +3422,9 @@ export type TranslationFunctions = {
 			 * לא הצלחנו להתחיל את הלייב.
 			 */
 			startLiveError: () => LocalizedString
+			/**
+			 * לא הצלחנו לסיים את הלייב.
+			 */
 			endLiveError: () => LocalizedString
 			/**
 			 * לא הצלחנו לשתף מסך.

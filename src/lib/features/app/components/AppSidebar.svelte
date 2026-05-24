@@ -51,7 +51,9 @@
   const currentPath = $derived(page.url.pathname);
 
   function isCurrent(href: string) {
-    if (href.startsWith("/live-room")) return currentPath === "/live-room";
+    if (href.includes("classId=")) {
+      return currentPath === "/חדר-לייב" || currentPath === "/live-room";
+    }
     return currentPath === href;
   }
 </script>

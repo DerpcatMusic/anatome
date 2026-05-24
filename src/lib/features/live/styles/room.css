@@ -272,6 +272,26 @@
   white-space: nowrap;
 }
 
+.lr-control__main {
+  position: relative;
+}
+
+.lr-control__badge {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--terra);
+  color: var(--ink);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.1rem;
+  text-align: center;
+}
+
 /* ── Video Stage ── */
 .lr-stage {
   position: relative;
@@ -290,6 +310,18 @@
   color: color-mix(in srgb, var(--white) 70%, transparent);
   font-weight: 800;
   font-size: var(--step-1);
+}
+
+.lr-stage__empty--waiting {
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.lr-stage__class-kicker {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--white) 55%, transparent);
 }
 
 .lr-grid {
@@ -683,23 +715,6 @@
 
 .lr-settings__link:hover {
   color: var(--sky-strong);
-}
-
-/* ── Media Error ── */
-.lr-media-error {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(560px, calc(100% - 32px));
-  inset-block-end: 92px;
-  z-index: 25;
-  border: 1px solid var(--warning);
-  background: var(--warning-bg);
-  color: var(--warning-text);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--step--1);
-  font-weight: 800;
-  text-align: center;
 }
 
 /* ── Audio Sink ── */

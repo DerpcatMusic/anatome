@@ -9,14 +9,8 @@
  */
 
 import type * as auth from "../auth.js";
-import type * as credits_consumeLive from "../credits/consumeLive.js";
-import type * as credits_consumeOneOnOne from "../credits/consumeOneOnOne.js";
 import type * as credits_lib from "../credits/lib.js";
-import type * as credits_purchaseVod from "../credits/purchaseVod.js";
-import type * as credits_releaseLive from "../credits/releaseLive.js";
-import type * as credits_releaseOneOnOne from "../credits/releaseOneOnOne.js";
-import type * as credits_reserveLive from "../credits/reserveLive.js";
-import type * as credits_reserveOneOnOne from "../credits/reserveOneOnOne.js";
+import type * as credits_migrate from "../credits/migrate.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as lib_authz from "../lib/authz.js";
@@ -29,6 +23,7 @@ import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as lifecycle_repair from "../lifecycle/repair.js";
 import type * as live_calendar from "../live/calendar.js";
+import type * as live_capacity from "../live/capacity.js";
 import type * as live_class from "../live/class.js";
 import type * as live_cron from "../live/cron.js";
 import type * as live_joinPolicy from "../live/joinPolicy.js";
@@ -89,14 +84,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
-  "credits/consumeLive": typeof credits_consumeLive;
-  "credits/consumeOneOnOne": typeof credits_consumeOneOnOne;
   "credits/lib": typeof credits_lib;
-  "credits/purchaseVod": typeof credits_purchaseVod;
-  "credits/releaseLive": typeof credits_releaseLive;
-  "credits/releaseOneOnOne": typeof credits_releaseOneOnOne;
-  "credits/reserveLive": typeof credits_reserveLive;
-  "credits/reserveOneOnOne": typeof credits_reserveOneOnOne;
+  "credits/migrate": typeof credits_migrate;
   crons: typeof crons;
   http: typeof http;
   "lib/authz": typeof lib_authz;
@@ -109,6 +98,7 @@ declare const fullApi: ApiFromModules<{
   "lib/validators": typeof lib_validators;
   "lifecycle/repair": typeof lifecycle_repair;
   "live/calendar": typeof live_calendar;
+  "live/capacity": typeof live_capacity;
   "live/class": typeof live_class;
   "live/cron": typeof live_cron;
   "live/joinPolicy": typeof live_joinPolicy;

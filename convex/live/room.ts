@@ -4,14 +4,16 @@ import type { MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireUserId } from "../lib/authz";
 import {
-  getCurrentCreditBucket,
+  requireWalletForMember,
   availableLiveCredits,
   availableOneOnOneCredits,
+  reserveCredits,
+  type LiveCreditPool,
 } from "../credits/lib";
-import { reserveLiveCredits } from "../credits/reserveLive";
-import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
+import { reserveClassSeat } from "./capacity";
 import { roomNameForClass } from "../lib/live";
 import {
+  getAppProfile,
   maxLiveKitParticipants,
   validateBaseJoinEligibility,
   validateCustomerJoinEligibility,
@@ -27,38 +29,30 @@ type JoinContext = {
 
 /** Handles walk-in join: capacity check, credit reservation, reservation creation. */
 async function handleWalkIn({ ctx, userId, liveClass, now }: JoinContext) {
-  const seatsTaken = liveClass.seatsTaken ?? 0;
-  if (seatsTaken >= liveClass.capacity) {
-    throw new Error("השיעור מלא");
-  }
-
-  const bucket = await getCurrentCreditBucket(ctx, userId);
-  if (bucket === null) throw new Error("אין תיק נקודות פעיל");
+  const { wallet } = await requireWalletForMember(ctx, userId);
+  const creditKind: LiveCreditPool =
+    liveClass.creditKind === "live" ? "live" : "oneOnOne";
   const available =
-    liveClass.creditKind === "live"
-      ? availableLiveCredits(bucket)
-      : availableOneOnOneCredits(bucket);
+    creditKind === "live"
+      ? availableLiveCredits(wallet)
+      : availableOneOnOneCredits(wallet);
   if (available < liveClass.creditCost) {
     throw new Error("אין מספיק נקודות");
   }
 
-  if (liveClass.creditKind === "live") {
-    await reserveLiveCredits(ctx, bucket, liveClass.creditCost);
-  } else {
-    await reserveOneOnOneCredits(ctx, bucket, liveClass.creditCost);
-  }
+  await reserveCredits(ctx, wallet._id, creditKind, liveClass.creditCost);
 
   await ctx.db.insert("liveReservations", {
     liveClassId: liveClass._id,
     userId,
-    creditBucketId: bucket._id,
+    walletId: wallet._id,
     status: "reserved",
     creditKind: liveClass.creditKind,
     creditsReserved: liveClass.creditCost,
     reservedAt: now,
   });
 
-  await ctx.db.patch(liveClass._id, { seatsTaken: seatsTaken + 1 });
+  await reserveClassSeat(ctx, liveClass._id);
 }
 
 /** Creates a live room record if one does not already exist. */
@@ -146,6 +140,8 @@ export const prepareJoin = internalMutation({
     const room = await ensureRoomExists(joinCtx, isInstructor);
     await logJoinEvent(joinCtx, participantRole, joinReason);
 
+    const instructorProfile = await getAppProfile(ctx, liveClass.instructorUserId);
+
     return {
       userId,
       displayName: profile.displayName,
@@ -153,6 +149,8 @@ export const prepareJoin = internalMutation({
       participantRole,
       liveClassId: liveClass._id,
       liveClassType: liveClass.type,
+      classTitle: liveClass.title,
+      instructorName: instructorProfile?.displayName ?? "המדריכה",
       startsAt: liveClass.startsAt,
       endsAt: liveClass.endsAt,
       joinClosesAt: liveClass.joinClosesAt,

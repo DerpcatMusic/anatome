@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
-import { consumeLiveCredits } from "../credits/consumeLive";
-import { consumeOneOnOneCredits } from "../credits/consumeOneOnOne";
+import { consumeCredits, type LiveCreditPool } from "../credits/lib";
 import {
   findActiveReservation,
   getAppProfile,
@@ -61,8 +60,16 @@ export const handleWebhook = internalMutation({
 
       if (isAuthorized) {
         if (!computedRole.isInstructor && reservation !== null && reservation.status === "reserved") {
-          const bucket = await ctx.db.get(reservation.creditBucketId);
-          if (bucket === null) {
+          const wallet = await ctx.db.get(reservation.walletId);
+          const creditKind: LiveCreditPool =
+            reservation.creditKind === "live" ? "live" : "oneOnOne";
+          const reserved =
+            wallet === null
+              ? 0
+              : creditKind === "live"
+                ? wallet.liveReserved
+                : wallet.oneOnOneReserved;
+          if (reserved < reservation.creditsReserved) {
             await ctx.db.insert("liveJoinEvents", {
               liveClassId: room.liveClassId,
               userId,
@@ -74,20 +81,30 @@ export const handleWebhook = internalMutation({
             return { authorized: false };
           }
 
-          if (reservation.creditKind === "live") {
-            await consumeLiveCredits(ctx, bucket, reservation.creditsReserved);
-          } else {
-            await consumeOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
-          }
+          await consumeCredits(
+            ctx,
+            reservation.walletId,
+            creditKind,
+            reservation.creditsReserved,
+          );
           await ctx.db.patch(reservation._id, { status: "joined", joinedAt: Date.now() });
         }
 
-        await ctx.db.insert("liveAttendance", {
-          liveClassId: room.liveClassId,
-          userId,
-          identity: args.identity,
-          joinedAt: Date.now(),
-        });
+        const priorSessions = await ctx.db
+          .query("liveAttendance")
+          .withIndex("by_liveClassId_and_userId", (q) =>
+            q.eq("liveClassId", room.liveClassId).eq("userId", userId),
+          )
+          .collect();
+        const hasOpenSession = priorSessions.some((row) => row.leftAt === undefined);
+        if (!hasOpenSession) {
+          await ctx.db.insert("liveAttendance", {
+            liveClassId: room.liveClassId,
+            userId,
+            identity: args.identity,
+            joinedAt: Date.now(),
+          });
+        }
 
         await ctx.db.insert("liveJoinEvents", {
           liveClassId: room.liveClassId,

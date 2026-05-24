@@ -1,5 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query } from "../_generated/server";
+import { getCreditAccess } from "../credits/lib";
 import { LIMITS } from "../lib/constants";
 
 export const get = query({
@@ -19,27 +20,10 @@ export const get = query({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .take(1);
     const profile = profiles[0] ?? null;
-    const subscriptions = await ctx.db
-      .query("userSubscriptions")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .order("desc")
-      .take(5);
-    const subscription = subscriptions.find((row) =>
-      row.status === "trialing" || row.status === "active"
-    ) ?? null;
+    const { subscription, wallet } = await getCreditAccess(ctx, userId);
     const subscriptionPlan = subscription ? await ctx.db.get(subscription.planId) : null;
     const pendingSubscriptionPlan = subscription?.pendingPlanId
       ? await ctx.db.get(subscription.pendingPlanId)
-      : null;
-    const creditBucket = subscription
-      ? (
-          await ctx.db
-            .query("creditBuckets")
-            .withIndex("by_user_period", (q) =>
-              q.eq("userId", userId).eq("periodStart", subscription.currentPeriodStart),
-            )
-            .take(1)
-        )[0] ?? null
       : null;
     const reservations = await ctx.db
       .query("liveReservations")
@@ -83,7 +67,7 @@ export const get = query({
       subscription,
       subscriptionPlan,
       pendingSubscriptionPlan,
-      creditBucket,
+      wallet,
     };
   },
 });

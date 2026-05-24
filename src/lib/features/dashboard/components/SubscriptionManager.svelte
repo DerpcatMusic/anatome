@@ -8,18 +8,18 @@
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<DashboardData["subscriptionPlan"]>;
   type Subscription = NonNullable<DashboardData["subscription"]>;
-  type CreditBucket = NonNullable<DashboardData["creditBucket"]>;
+  type Wallet = NonNullable<DashboardData["wallet"]>;
 
   let {
     subscription,
     subscriptionPlan,
     pendingSubscriptionPlan,
-    creditBucket,
+    wallet,
   }: {
     subscription?: Subscription | null;
     subscriptionPlan?: Plan | null;
     pendingSubscriptionPlan?: Plan | null;
-    creditBucket?: CreditBucket | null;
+    wallet?: Wallet | null;
   } = $props();
 
   const client = useConvexClient();
@@ -30,9 +30,9 @@
   const activePlanSlug = $derived(subscriptionPlan?.slug ?? null);
   const pendingPlanSlug = $derived(pendingSubscriptionPlan?.slug ?? null);
   const renewalDate = $derived(subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null);
-  const vodAvailable = $derived(creditBucket ? Math.max(0, creditBucket.vodGranted - creditBucket.vodUsed) : 0);
-  const liveAvailable = $derived(creditBucket ? Math.max(0, creditBucket.liveGranted - creditBucket.liveUsed - (creditBucket.liveReserved ?? 0)) : 0);
-  const oneOnOneAvailable = $derived(creditBucket ? Math.max(0, creditBucket.oneOnOneGranted - creditBucket.oneOnOneUsed - (creditBucket.oneOnOneReserved ?? 0)) : 0);
+  const vodAvailable = $derived(wallet ? Math.max(0, wallet.vodBalance) : 0);
+  const liveAvailable = $derived(wallet ? Math.max(0, wallet.liveBalance) : 0);
+  const oneOnOneAvailable = $derived(wallet ? Math.max(0, wallet.oneOnOneBalance) : 0);
 
   function statusLabel(row?: Subscription | null) {
     if (!row) return "לא פעיל";

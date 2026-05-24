@@ -49,13 +49,22 @@
     { value: "balanced", label: "מאוזן" },
   ];
 
-  function applyPreset(name: "standard" | "high" | "low") {
-    if (name === "standard") {
+  function applyPreset(name: "voice" | "standard" | "high" | "low") {
+    if (name === "voice") {
+      room.selectedResolution = "720p";
+      room.selectedCodec = "h264";
+      room.selectedBitrateMbps = 2.5;
+      room.selectedFramerate = 30;
+      room.selectedAudioPreset = "speech";
+      room.degradationPreference = "maintain-framerate";
+      room.simulcastEnabled = true;
+      room.audioProcessingEnabled = true;
+    } else if (name === "standard") {
       room.selectedResolution = "720p";
       room.selectedCodec = "h264";
       room.selectedBitrateMbps = 4.5;
       room.selectedFramerate = 30;
-      room.selectedAudioPreset = "musicHighQuality";
+      room.selectedAudioPreset = "music";
       room.degradationPreference = "maintain-framerate";
       room.simulcastEnabled = true;
     } else if (name === "high") {
@@ -68,12 +77,12 @@
       room.simulcastEnabled = true;
     } else if (name === "low") {
       room.selectedResolution = "720p";
-      room.selectedCodec = "vp9";
+      room.selectedCodec = "h264";
       room.selectedBitrateMbps = 2.5;
       room.selectedFramerate = 24;
-      room.selectedAudioPreset = "music";
+      room.selectedAudioPreset = "speech";
       room.degradationPreference = "balanced";
-      room.simulcastEnabled = false;
+      room.simulcastEnabled = true;
     }
   }
 </script>
@@ -87,18 +96,43 @@
   <div class="settings-panel__grid">
     {#if room.isInstructorRoom}
       <!-- Presets -->
+      <p class="preset-hint">{t.live.preConnect.voicePresetHint()}</p>
       <div class="preset-row">
-        <button type="button" class="preset-btn" class:preset-btn--active={room.selectedResolution === "720p" && room.selectedBitrateMbps === 4.5} onclick={() => applyPreset("standard")}>
-          <span class="preset-btn__title">סטנדרטי</span>
+        <button
+          type="button"
+          class="preset-btn"
+          class:preset-btn--active={room.selectedAudioPreset === "speech" && room.selectedBitrateMbps === 2.5}
+          onclick={() => applyPreset("voice")}
+        >
+          <span class="preset-btn__title">{t.live.preConnect.presetVoice()}</span>
+          <span class="preset-btn__desc">720p · דיבור ברור</span>
+        </button>
+        <button
+          type="button"
+          class="preset-btn"
+          class:preset-btn--active={room.selectedResolution === "720p" && room.selectedBitrateMbps === 4.5 && room.selectedAudioPreset === "music"}
+          onclick={() => applyPreset("standard")}
+        >
+          <span class="preset-btn__title">{t.live.preConnect.presetStandard()}</span>
           <span class="preset-btn__desc">720p · 4.5 Mbps</span>
         </button>
-        <button type="button" class="preset-btn" class:preset-btn--active={room.selectedResolution === "1080p" && room.selectedBitrateMbps === 6} onclick={() => applyPreset("high")}>
-          <span class="preset-btn__title">איכות גבוהה</span>
+        <button
+          type="button"
+          class="preset-btn"
+          class:preset-btn--active={room.selectedResolution === "1080p" && room.selectedBitrateMbps === 6}
+          onclick={() => applyPreset("high")}
+        >
+          <span class="preset-btn__title">{t.live.preConnect.presetHigh()}</span>
           <span class="preset-btn__desc">1080p · 6 Mbps</span>
         </button>
-        <button type="button" class="preset-btn" class:preset-btn--active={room.selectedCodec === "vp9" && room.selectedBitrateMbps === 2.5} onclick={() => applyPreset("low")}>
-          <span class="preset-btn__title">רוחב פס נמוך</span>
-          <span class="preset-btn__desc">720p · 2.5 Mbps</span>
+        <button
+          type="button"
+          class="preset-btn"
+          class:preset-btn--active={room.selectedBitrateMbps === 2.5 && room.selectedFramerate === 24}
+          onclick={() => applyPreset("low")}
+        >
+          <span class="preset-btn__title">{t.live.preConnect.presetLow()}</span>
+          <span class="preset-btn__desc">720p · חיסכון ברוחב פס</span>
         </button>
       </div>
 
@@ -467,6 +501,13 @@
   .settings-panel__grid {
     display: grid;
     gap: var(--space-3);
+  }
+
+  .preset-hint {
+    margin: 0;
+    font-size: var(--step--1);
+    color: color-mix(in srgb, var(--ink) 65%, transparent);
+    line-height: 1.45;
   }
 
   .preset-row {

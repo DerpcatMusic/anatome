@@ -59,6 +59,9 @@
     />
   {:else if showSetup}
     <div class="entry-stack">
+      {#if isPrep}
+        <p class="prep-notice" role="status">{t.live.preConnect.prepNotice()}</p>
+      {/if}
       {#if room.preConnectStep === "requesting"}
         <PreConnectState loading message={t.live.preConnect.requesting()} />
       {:else if room.preConnectStep === "preview" && room.previewStream}
@@ -87,6 +90,7 @@
               <PreConnectPreview previewStream={room.previewStream} hasPreviewCamera={room.hasPreviewCamera} />
             </div>
             <div class="customer-connect__tools">
+              <p class="customer-connect__hint">{t.live.room.listenModeHint()}</p>
               {#if room.videoDevices.length > 1}
                 {@const cameraOptions = room.videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))}
                 <div class="hb-field">
@@ -157,8 +161,8 @@
                 <LiveAudioMeter label={t.live.preConnect.audioLevel()} level={room.audioLevel} />
               {/if}
               <div class="customer-connect__actions">
-                <Button.Root class="hb-button hb-button--primary hb-button--lg" type="button" onclick={() => room.enterRoom(true)}>{t.live.preConnect.enterRoom()}</Button.Root>
-                <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => room.enterRoom(false)}>{t.live.preConnect.enterWithoutDevices()}</Button.Root>
+                <Button.Root class="hb-button hb-button--primary hb-button--lg" type="button" onclick={() => room.enterRoom(false)}>{t.live.preConnect.enterRoom()}</Button.Root>
+                <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => room.enterRoom(true)}>{t.live.room.enterWithDevices()}</Button.Root>
               </div>
             </div>
           </div>
@@ -184,6 +188,15 @@
     display: grid;
     gap: var(--space-4);
     min-height: 0;
+  }
+
+  .prep-notice {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--terra) 35%, transparent);
+    background: color-mix(in srgb, var(--terra) 10%, transparent);
+    font-size: var(--step--1);
+    line-height: 1.5;
   }
 
   .entry-console {
@@ -239,6 +252,13 @@
     display: grid;
     gap: var(--space-3);
     direction: rtl;
+  }
+
+  .customer-connect__hint {
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--ink) 68%, transparent);
   }
 
   .customer-connect__actions {

@@ -11,7 +11,7 @@
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
 
-  let { profile, liveAlert, role, appProfile, subscription, subscriptionPlan, pendingSubscriptionPlan, creditBucket }: {
+  let { profile, liveAlert, role, appProfile, subscription, subscriptionPlan, pendingSubscriptionPlan, wallet }: {
     profile: DashboardData["profile"];
     liveAlert: DashboardData["liveAlert"];
     role?: "customer" | "instructor" | "admin" | null;
@@ -19,7 +19,7 @@
     subscription?: DashboardData["subscription"];
     subscriptionPlan?: DashboardData["subscriptionPlan"];
     pendingSubscriptionPlan?: DashboardData["pendingSubscriptionPlan"];
-    creditBucket?: DashboardData["creditBucket"];
+    wallet?: DashboardData["wallet"];
   } = $props();
 
   const isStaff = $derived(role === "instructor" || role === "admin");
@@ -44,7 +44,7 @@
       subscription={subscription ?? null}
       subscriptionPlan={subscriptionPlan ?? null}
       pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
-      creditBucket={creditBucket ?? null}
+      wallet={wallet ?? null}
     />
     <ProfileSummary {isStaff} {profile} />
   {/if}

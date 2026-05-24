@@ -4,14 +4,14 @@ import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import {
-  getCurrentCreditBucket,
+  requireWalletForMember,
   availableLiveCredits,
   availableOneOnOneCredits,
+  reserveCredits,
+  releaseCredits,
+  type LiveCreditPool,
 } from "../credits/lib";
-import { reserveLiveCredits } from "../credits/reserveLive";
-import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
-import { releaseLiveCredits } from "../credits/releaseLive";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { reserveClassSeat, releaseClassSeats } from "./capacity";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
@@ -89,32 +89,24 @@ export const reserve = mutation({
       return existing._id;
     }
 
-    const seatsTaken = liveClass.seatsTaken ?? 0;
-    if (seatsTaken >= liveClass.capacity) {
-      throw new Error("השיעור מלא");
-    }
-
-    const bucket = await getCurrentCreditBucket(ctx, userId);
-    if (bucket === null) throw new Error("אין תיק נקודות פעיל");
+    const { wallet } = await requireWalletForMember(ctx, userId);
+    const creditKind: LiveCreditPool =
+      liveClass.creditKind === "live" ? "live" : "oneOnOne";
     const available =
-      liveClass.creditKind === "live"
-        ? availableLiveCredits(bucket)
-        : availableOneOnOneCredits(bucket);
+      creditKind === "live"
+        ? availableLiveCredits(wallet)
+        : availableOneOnOneCredits(wallet);
     if (available < liveClass.creditCost) {
       throw new Error("אין מספיק נקודות");
     }
 
     const now = Date.now();
-    if (liveClass.creditKind === "live") {
-      await reserveLiveCredits(ctx, bucket, liveClass.creditCost);
-    } else {
-      await reserveOneOnOneCredits(ctx, bucket, liveClass.creditCost);
-    }
+    await reserveCredits(ctx, wallet._id, creditKind, liveClass.creditCost);
 
     let reservationId: Id<"liveReservations">;
     if (existing !== null) {
       await ctx.db.patch(existing._id, {
-        creditBucketId: bucket._id,
+        walletId: wallet._id,
         status: "reserved",
         creditKind: liveClass.creditKind,
         creditsReserved: liveClass.creditCost,
@@ -125,14 +117,14 @@ export const reserve = mutation({
       reservationId = await ctx.db.insert("liveReservations", {
         liveClassId: args.liveClassId,
         userId,
-        creditBucketId: bucket._id,
+        walletId: wallet._id,
         status: "reserved",
         creditKind: liveClass.creditKind,
         creditsReserved: liveClass.creditCost,
         reservedAt: now,
       });
     }
-    await ctx.db.patch(args.liveClassId, { seatsTaken: seatsTaken + 1 });
+    await reserveClassSeat(ctx, args.liveClassId);
 
     await createReminderEventsForReservation(
       ctx,
@@ -159,14 +151,14 @@ export const cancel = mutation({
 
     const liveClass = await ctx.db.get(args.liveClassId);
 
-    const bucket = await ctx.db.get(reservation.creditBucketId);
-    if (bucket !== null) {
-      if (reservation.creditKind === "live") {
-        await releaseLiveCredits(ctx, bucket, reservation.creditsReserved);
-      } else {
-        await releaseOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
-      }
-    }
+    const creditKind: LiveCreditPool =
+      reservation.creditKind === "live" ? "live" : "oneOnOne";
+    await releaseCredits(
+      ctx,
+      reservation.walletId,
+      creditKind,
+      reservation.creditsReserved,
+    );
 
     await ctx.db.patch(reservation._id, {
       status: "cancelled",
@@ -174,9 +166,7 @@ export const cancel = mutation({
     });
 
     if (liveClass !== null) {
-      await ctx.db.patch(args.liveClassId, {
-        seatsTaken: Math.max(0, (liveClass.seatsTaken ?? 0) - 1),
-      });
+      await releaseClassSeats(ctx, args.liveClassId);
     }
 
     const reminders = await ctx.db

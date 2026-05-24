@@ -3,8 +3,13 @@ import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
 import { requireUserId } from "../lib/authz";
-import { getActiveSubscription, getEntitledSubscription, syncCreditBucketForPeriod, MONTH_MS } from "./lib";
-import { getCurrentCreditBucket, getCreditBucketForSubscription } from "../credits/lib";
+import {
+  getActiveSubscription,
+  grantSubscriptionPeriodCredits,
+  grantPlanUpgradeDelta,
+  MONTH_MS,
+} from "./lib";
+import { getCreditAccess, ensureUserWallet } from "../credits/lib";
 import { DEFAULT_PLANS, planPayload } from "./plans";
 import { scheduleSubscriptionRenewal } from "./schedule";
 
@@ -29,14 +34,13 @@ export const getMine = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const subscription = await getEntitledSubscription(ctx, userId);
-    const bucket = await getCreditBucketForSubscription(ctx, subscription);
+    const { subscription, wallet } = await getCreditAccess(ctx, userId);
     const plan = subscription ? await ctx.db.get(subscription.planId) : null;
     const pendingPlan = subscription?.pendingPlanId
       ? await ctx.db.get(subscription.pendingPlanId)
       : null;
 
-    return { subscription, plan, pendingPlan, bucket };
+    return { subscription, plan, pendingPlan, wallet };
   },
 });
 
@@ -72,8 +76,8 @@ export const activatePlan = mutation({
 
     const active = await getActiveSubscription(ctx, userId);
     if (active !== null) {
-      const bucket = await getCurrentCreditBucket(ctx, userId);
-      return { subscriptionId: active._id, bucketId: bucket?._id ?? null };
+      const wallet = await ensureUserWallet(ctx, userId);
+      return { subscriptionId: active._id, walletId: wallet._id };
     }
 
     const now = Date.now();
@@ -97,9 +101,9 @@ export const activatePlan = mutation({
 
     const subscription = await ctx.db.get(subscriptionId);
     if (subscription === null) throw new Error("Subscription creation failed");
-    const bucketId = await syncCreditBucketForPeriod(ctx, subscription, plan);
+    const walletId = await grantSubscriptionPeriodCredits(ctx, subscription, plan);
 
-    return { subscriptionId, bucketId };
+    return { subscriptionId, walletId };
   },
 });
 
@@ -126,8 +130,12 @@ export const changePlan = mutation({
         cancelAtPeriodEnd: false,
         updatedAt: Date.now(),
       });
-      const bucket = await getCurrentCreditBucket(ctx, userId);
-      return { subscriptionId: subscription._id, bucketId: bucket?._id ?? null, mode: "unchanged" as const };
+      const wallet = await ensureUserWallet(ctx, userId);
+      return {
+        subscriptionId: subscription._id,
+        walletId: wallet._id,
+        mode: "unchanged" as const,
+      };
     }
 
     if (plan.monthlyPriceIls < currentPlan.monthlyPriceIls) {
@@ -138,8 +146,12 @@ export const changePlan = mutation({
         cancelAtPeriodEnd: false,
         updatedAt: Date.now(),
       });
-      const bucket = await getCurrentCreditBucket(ctx, userId);
-      return { subscriptionId: subscription._id, bucketId: bucket?._id ?? null, mode: "scheduled" as const };
+      const wallet = await ensureUserWallet(ctx, userId);
+      return {
+        subscriptionId: subscription._id,
+        walletId: wallet._id,
+        mode: "scheduled" as const,
+      };
     }
 
     await ctx.db.patch(subscription._id, {
@@ -153,9 +165,9 @@ export const changePlan = mutation({
 
     const updated = await ctx.db.get(subscription._id);
     if (updated === null) throw new Error("Subscription update failed");
-    const bucketId = await syncCreditBucketForPeriod(ctx, updated, plan, currentPlan);
+    const walletId = await grantPlanUpgradeDelta(ctx, userId, plan, currentPlan);
 
-    return { subscriptionId: subscription._id, bucketId, mode: "immediate" as const };
+    return { subscriptionId: subscription._id, walletId, mode: "immediate" as const };
   },
 });
 

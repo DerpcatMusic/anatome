@@ -27,6 +27,8 @@ export const RULES = {
   VIDEO_COMPLETION_PERCENT: 90,
   /** Max note length characters */
   MAX_NOTE_LENGTH: 500,
+  /** Max simultaneous pending 1:1 requests per customer (abuse guard) */
+  MAX_PENDING_ONE_ON_ONE_REQUESTS: 5,
   /** Max onboarding notes length */
   MAX_ONBOARDING_NOTES_LENGTH: 600,
 } as const;

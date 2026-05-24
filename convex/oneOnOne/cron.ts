@@ -1,7 +1,7 @@
 import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { LIMITS } from "../lib/constants";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { releaseOneOnOneCredits } from "../credits/lib";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 
@@ -12,10 +12,7 @@ async function expireRequest(
 ) {
   if (request.status !== "pending") return "inactive" as const;
 
-  const bucket = await ctx.db.get(request.creditBucketId);
-  if (bucket !== null) {
-    await releaseOneOnOneCredits(ctx, bucket, 1);
-  }
+  await releaseOneOnOneCredits(ctx, request.walletId, 1);
   await ctx.db.patch(request._id, {
     status: "expired",
     updatedAt: now,

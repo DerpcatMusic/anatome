@@ -2,7 +2,13 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
-import { getCurrentCreditBucket, getCreditBucketForSubscription, availableOneOnOneCredits } from "../credits/lib";
+import {
+  getCreditAccess,
+  requireWalletForMember,
+  availableOneOnOneCredits,
+  reserveOneOnOneCredits,
+  releaseOneOnOneCredits,
+} from "../credits/lib";
 import { requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
 import {
   type AvailableOneOnOneSlot,
@@ -10,12 +16,9 @@ import {
   isOneOnOneSlotFree,
   slotMatchesAvailability,
 } from "../lib/oneOnOne";
-import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { scheduleOneOnOneRequestExpiration } from "./schedule";
-import { getEntitledSubscription } from "../subscriptions/lib";
 
 export const listAvailableSlots = query({
   args: {
@@ -28,9 +31,8 @@ export const listAvailableSlots = query({
     requireCustomer(profile);
     if (args.from >= args.to) throw new Error("טווח תאריכים לא תקין");
 
-    const subscription = await getEntitledSubscription(ctx, userId);
-    const bucket = await getCreditBucketForSubscription(ctx, subscription);
-    const availableCredits = bucket === null ? 0 : availableOneOnOneCredits(bucket);
+    const { wallet } = await getCreditAccess(ctx, userId);
+    const availableCredits = wallet === null ? 0 : availableOneOnOneCredits(wallet);
     return await buildAvailableSlots(ctx, args.from, args.to, availableCredits);
   },
 });
@@ -83,13 +85,23 @@ export const requestSlot = mutation({
       throw new Error("החלון כבר אינו זמין");
     }
 
-    const bucket = await getCurrentCreditBucket(ctx, userId);
-    if (bucket === null) throw new Error("אין תיק נקודות פעיל");
-    if (availableOneOnOneCredits(bucket) < 1) throw new Error("אין נקודות 1:1 זמינות");
+    const pendingRequests = await ctx.db
+      .query("oneOnOneRequests")
+      .withIndex("by_customerUserId_and_status", (q) =>
+        q.eq("customerUserId", userId).eq("status", "pending"),
+      )
+      .take(RULES.MAX_PENDING_ONE_ON_ONE_REQUESTS + 1);
+    if (pendingRequests.length >= RULES.MAX_PENDING_ONE_ON_ONE_REQUESTS) {
+      throw new Error("יותר מדי בקשות 1:1 בהמתנה");
+    }
+
+    const { wallet } = await requireWalletForMember(ctx, userId);
+    if (availableOneOnOneCredits(wallet) < 1) {
+      throw new Error("אין נקודות 1:1 זמינות");
+    }
+    await reserveOneOnOneCredits(ctx, wallet._id, 1);
 
     const now = Date.now();
-    await reserveOneOnOneCredits(ctx, bucket, 1);
-
     const requestId = await ctx.db.insert("oneOnOneRequests", {
       customerUserId: userId,
       instructorUserId: args.instructorUserId,
@@ -97,7 +109,7 @@ export const requestSlot = mutation({
       requestedEndsAt: args.endsAt,
       note: args.note.trim().slice(0, RULES.MAX_NOTE_LENGTH),
       status: "pending",
-      creditBucketId: bucket._id,
+      walletId: wallet._id,
       createdAt: now,
       updatedAt: now,
     });
@@ -123,10 +135,7 @@ export const cancelRequest = mutation({
     if (request === null || request.customerUserId !== userId) throw new Error("הבקשה לא נמצאה");
     if (request.status !== "pending") throw new Error("ניתן לבטל רק בקשות בהמתנה");
 
-    const bucket = await ctx.db.get(request.creditBucketId);
-    if (bucket !== null) {
-      await releaseOneOnOneCredits(ctx, bucket, 1);
-    }
+    await releaseOneOnOneCredits(ctx, request.walletId, 1);
     await ctx.db.patch(request._id, { status: "cancelled", updatedAt: Date.now(), decidedAt: Date.now() });
     return request._id;
   },

@@ -51,7 +51,7 @@
     subscription={query.data.subscription}
     subscriptionPlan={query.data.subscriptionPlan}
     pendingSubscriptionPlan={query.data.pendingSubscriptionPlan}
-    creditBucket={query.data.creditBucket}
+    wallet={query.data.wallet}
   />
 {/if}
 

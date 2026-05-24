@@ -22,6 +22,18 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_isActive_and_slug", ["isActive", "slug"]),
 
+  /** Persistent spendable balances (V-Bucks style). */
+  userWallets: defineTable({
+    userId: v.id("users"),
+    vodBalance: v.number(),
+    liveBalance: v.number(),
+    liveReserved: v.number(),
+    oneOnOneBalance: v.number(),
+    oneOnOneReserved: v.number(),
+    updatedAt: v.number(),
+  }).index("by_userId", ["userId"]),
+
+  /** @deprecated Migrated into userWallets — kept for one-time backfill reads. */
   creditBuckets: defineTable({
     userId: v.id("users"),
     subscriptionId: v.optional(v.id("userSubscriptions")),
@@ -55,6 +67,8 @@ export default defineSchema({
     pendingPlanChangeAt: v.optional(v.union(v.number(), v.null())),
     pendingPlanChangeKind: v.optional(v.union(v.literal("downgrade"), v.null())),
     renewalScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
+    /** Prevents double-adding monthly plan credits for the same billing period. */
+    lastCreditsGrantedPeriodStart: v.optional(v.number()),
     provider: v.union(v.literal("manual"), v.literal("external")),
     externalSubscriptionId: v.optional(v.string()),
     createdAt: v.number(),
@@ -144,7 +158,7 @@ export default defineSchema({
   liveReservations: defineTable({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),
-    creditBucketId: v.id("creditBuckets"),
+    walletId: v.id("userWallets"),
     status: v.union(
       v.literal("reserved"),
       v.literal("joined"),
@@ -162,7 +176,7 @@ export default defineSchema({
     .index("by_liveClassId_and_status", ["liveClassId", "status"])
     .index("by_userId_and_status", ["userId", "status"])
     .index("by_userId_and_reservedAt", ["userId", "reservedAt"])
-    .index("by_creditBucketId", ["creditBucketId"]),
+    .index("by_walletId", ["walletId"]),
 
   liveJoinEvents: defineTable({
     liveClassId: v.id("liveClasses"),
@@ -239,7 +253,7 @@ export default defineSchema({
       v.literal("cancelled"),
       v.literal("expired"),
     ),
-    creditBucketId: v.id("creditBuckets"),
+    walletId: v.id("userWallets"),
     liveClassId: v.optional(v.id("liveClasses")),
     expirationScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     createdAt: v.number(),
@@ -281,12 +295,12 @@ export default defineSchema({
     userId: v.id("users"),
     kind: v.literal("macroflow"),
     source: v.literal("purchase"),
-    creditBucketId: v.optional(v.id("creditBuckets")),
+    walletId: v.optional(v.id("userWallets")),
     purchasedAt: v.number(),
   })
     .index("by_userId_and_videoId", ["userId", "videoId"])
     .index("by_userId_and_kind", ["userId", "kind"])
-    .index("by_creditBucketId", ["creditBucketId"]),
+    .index("by_walletId", ["walletId"]),
 
   videoCategories: defineTable({
     slug: v.string(),

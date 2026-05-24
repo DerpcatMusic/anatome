@@ -30,7 +30,7 @@ const routes: Record<RouteKey, string> = {
   iOneOnOne: "/i/one-on-one",
   iProfile: "/i/profile",
   watch: "/watch",
-  liveRoom: "/live-room",
+  liveRoom: "/חדר-לייב",
   onboarding: "/onboarding",
 };
 

@@ -9,8 +9,7 @@ import { equipmentListValidator } from "../lib/validators";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { roomNameForClass } from "../lib/live";
-import { releaseLiveCredits } from "../credits/releaseLive";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { releaseCredits, type LiveCreditPool } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "./schedule";
 import { settleReservationsForClass } from "./settle";
 import { scheduleReminderEvent } from "../liveReminders/schedule";
@@ -375,14 +374,14 @@ export const cancel = mutation({
       .take(LIMITS.LIVE_PARTICIPANTS);
 
     for (const res of reservations) {
-      const bucket = await ctx.db.get(res.creditBucketId);
-      if (bucket !== null) {
-        if (res.creditKind === "live") {
-          await releaseLiveCredits(ctx, bucket, res.creditsReserved);
-        } else {
-          await releaseOneOnOneCredits(ctx, bucket, res.creditsReserved);
-        }
-      }
+      const creditKind: LiveCreditPool =
+        res.creditKind === "live" ? "live" : "oneOnOne";
+      await releaseCredits(
+        ctx,
+        res.walletId,
+        creditKind,
+        res.creditsReserved,
+      );
       await ctx.db.patch(res._id, {
         status: "cancelled",
         cancelledAt: now,

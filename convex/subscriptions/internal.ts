@@ -1,7 +1,7 @@
 import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { LIMITS } from "../lib/constants";
-import { syncCreditBucketForPeriod, MONTH_MS } from "./lib";
+import { grantSubscriptionPeriodCredits, MONTH_MS } from "./lib";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { scheduleSubscriptionRenewal } from "./schedule";
@@ -53,7 +53,7 @@ async function renewSubscription(
 
   const renewed = await ctx.db.get(subscription._id);
   if (renewed !== null) {
-    await syncCreditBucketForPeriod(ctx, renewed, plan);
+    await grantSubscriptionPeriodCredits(ctx, renewed, plan);
   }
   return "renewed" as const;
 }

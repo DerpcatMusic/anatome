@@ -2,13 +2,12 @@ import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
-  getCreditBucketForSubscription,
   availableLiveCredits,
   availableOneOnOneCredits,
+  getCreditAccess,
 } from "../credits/lib";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { LIMITS } from "../lib/constants";
-import { getEntitledSubscription } from "../subscriptions/lib";
 
 export const listUpcoming = query({
   args: {},
@@ -49,9 +48,10 @@ export const listRange = query({
       .order("asc")
       .take(LIMITS.CALENDAR_RANGE_CLASSES);
 
-    const subscription =
-      userId === null ? null : await getEntitledSubscription(ctx, userId);
-    const bucket = await getCreditBucketForSubscription(ctx, subscription);
+    const { wallet } =
+      userId === null
+        ? { wallet: null }
+        : await getCreditAccess(ctx, userId);
 
     const viewerReservations =
       userId === null
@@ -85,11 +85,11 @@ export const listRange = query({
       const seatsTaken = liveClass.seatsTaken ?? 0;
       const viewerReservation = viewerReservationMap.get(liveClass._id) ?? null;
       const available =
-        bucket === null
+        wallet === null
           ? 0
           : liveClass.creditKind === "live"
-            ? availableLiveCredits(bucket)
-            : availableOneOnOneCredits(bucket);
+            ? availableLiveCredits(wallet)
+            : availableOneOnOneCredits(wallet);
       const viewerReservationStatus = viewerReservation?.status ?? null;
       const viewerMissingEquipment = missingRequiredEquipment(
         memberProfile?.equipment ?? [],

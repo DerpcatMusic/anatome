@@ -5,7 +5,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireInstructorOrAdmin, requireUserId } from "../lib/authz";
 import { hasLiveClassConflict, minuteMs, oneOnOneTimezone } from "../lib/oneOnOne";
 import { LIMITS } from "../lib/constants";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { releaseOneOnOneCredits } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "../live/schedule";
 import { createReminderEventsForReservation } from "../liveReminders/create";
 
@@ -128,7 +128,7 @@ export const approveRequest = mutation({
     await ctx.db.patch(liveClassId, scheduled);
 
     const reservationId = await ctx.db.insert("liveReservations", {
-      liveClassId, userId: request.customerUserId, creditBucketId: request.creditBucketId,
+      liveClassId, userId: request.customerUserId, walletId: request.walletId,
       status: "reserved", creditKind: "oneOnOne", creditsReserved: 1, reservedAt: now,
     });
     await createReminderEventsForReservation(
@@ -154,8 +154,7 @@ export const rejectRequest = mutation({
     if (request === null || request.instructorUserId !== userId) throw new Error("Request not found");
     if (request.status !== "pending") throw new Error("Request is not pending");
 
-    const bucket = await ctx.db.get(request.creditBucketId);
-    if (bucket !== null) await releaseOneOnOneCredits(ctx, bucket, 1);
+    await releaseOneOnOneCredits(ctx, request.walletId, 1);
     await ctx.db.patch(request._id, { status: "rejected", updatedAt: Date.now(), decidedAt: Date.now() });
     return request._id;
   },

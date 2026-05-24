@@ -2,9 +2,9 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
+import { internal } from "../_generated/api";
 import { LIMITS } from "../lib/constants";
-import { releaseLiveCredits } from "../credits/releaseLive";
-import { releaseOneOnOneCredits } from "../credits/releaseOneOnOne";
+import { releaseCredits, type LiveCreditPool } from "../credits/lib";
 
 export async function settleReservationsForClass(
   ctx: MutationCtx,
@@ -17,28 +17,33 @@ export async function settleReservationsForClass(
     )
     .take(LIMITS.CRON_SETTLE);
 
-  const buckets = await Promise.all(
-    reservations.map((r) => ctx.db.get(r.creditBucketId)),
-  );
-
-  for (let i = 0; i < reservations.length; i++) {
-    const reservation = reservations[i];
-    const bucket = buckets[i];
-    if (bucket === null) continue;
-
-    if (reservation.creditKind === "live") {
-      await releaseLiveCredits(ctx, bucket, reservation.creditsReserved);
-    } else {
-      await releaseOneOnOneCredits(ctx, bucket, reservation.creditsReserved);
-    }
-
+  for (const reservation of reservations) {
+    const kind: LiveCreditPool =
+      reservation.creditKind === "live" ? "live" : "oneOnOne";
+    await releaseCredits(
+      ctx,
+      reservation.walletId,
+      kind,
+      reservation.creditsReserved,
+    );
     await ctx.db.patch(reservation._id, { status: "no_show" });
   }
 
-  const liveClass = await ctx.db.get(liveClassId);
-  if (liveClass !== null && reservations.length > 0) {
-    await ctx.db.patch(liveClassId, {
-      seatsTaken: Math.max(0, (liveClass.seatsTaken ?? 0) - reservations.length),
+  if (reservations.length > 0) {
+    const liveClass = await ctx.db.get(liveClassId);
+    if (liveClass !== null) {
+      await ctx.db.patch(liveClassId, {
+        seatsTaken: Math.max(
+          0,
+          (liveClass.seatsTaken ?? 0) - reservations.length,
+        ),
+      });
+    }
+  }
+
+  if (reservations.length === LIMITS.CRON_SETTLE) {
+    await ctx.scheduler.runAfter(0, internal.live.settle.settle, {
+      liveClassId,
     });
   }
 }
