@@ -5,7 +5,7 @@
 #   Build:  bun run build
 #   Deploy: bun run deploy   (or npx wrangler deploy)
 #
-# SPA app routes use static/_redirects → /200.html (not Workers' default /index.html SPA mode).
+# SPA app routes use static/_redirects → /app.html (not Workers' default /index.html SPA mode).
 
 name = "anatome"
 compatibility_date = "2026-05-24"

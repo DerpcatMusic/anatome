@@ -15,7 +15,7 @@ const DISALLOWED = [
   routePath("onboarding"),
   "/callback",
   "/_app",
-  "/200.html",
+  "/app.html",
 ];
 
 export async function GET() {

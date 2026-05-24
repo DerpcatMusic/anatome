@@ -6,7 +6,8 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter({
-			fallback: '200.html',
+			// Not "200.html" — Workers _redirects misparses "/*.html 200" as a 307 to /200.
+			fallback: 'app.html',
 			precompress: true
 		}),
 		prerender: {

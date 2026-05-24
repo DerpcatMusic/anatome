@@ -59,7 +59,7 @@ You do **not** need `@sveltejs/adapter-cloudflare` or SSR on Cloudflare. Convex 
 | **Build command** | `bun run build` |
 | **Deploy command** | `bun run deploy` (`wrangler deploy` — uses `[assets]` in `wrangler.toml`) |
 
-`wrangler.toml` points at `build/`. App SPA routes rely on `static/_redirects` (`/* /200.html 200`), not Workers’ built-in SPA mode (which would serve prerendered `/index.html` for unknown paths).
+`wrangler.toml` points at `build/`. App SPA routes rely on `static/_redirects` (`/* /app.html 200`). Do not use `200.html` as the fallback filename — Workers mis-parses that rule and redirects to `/200` in a loop.
 
 Local full pipeline:
 
