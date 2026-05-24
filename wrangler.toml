@@ -1,16 +1,14 @@
-# Static SvelteKit site (@sveltejs/adapter-static → `build/`).
+# Cloudflare Workers — static assets only (same `build/` as adapter-static).
+# Convex/LiveKit/Mux stay off Cloudflare; this only hosts HTML/JS/CSS.
 #
-# Cloudflare Pages (Git):
-#   Build command:        bun run build
-#   Build output dir:     build
-#   Deploy command:       bun run deploy
-#     (or leave deploy empty if the dashboard allows it)
+# CI (Workers project with Git):
+#   Build:  bun run build
+#   Deploy: bun run deploy   (or npx wrangler deploy)
 #
-# Do NOT use `wrangler deploy` — that is Workers. Wrangler will warn:
-# "run wrangler pages deploy on a Pages project" and fail without main/assets.
-#
-# Manual: bun run build && bun run deploy
+# SPA app routes use static/_redirects → /200.html (not Workers' default /index.html SPA mode).
 
 name = "anatome"
-pages_build_output_dir = "build"
 compatibility_date = "2026-05-24"
+
+[assets]
+directory = "build"

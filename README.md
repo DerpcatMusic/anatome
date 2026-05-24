@@ -48,33 +48,26 @@ bunx convex env set --from-file "$AUTH_ENV_FILE" --force
 
 For production, set `SITE_URL` to the public HomeBody domain.
 
-## Cloudflare Pages
+## Cloudflare (Workers static assets)
 
-This app is a **static** SvelteKit site (`adapter-static`). Use **Pages**, not Workers.
+This app is a **static** SvelteKit site (`adapter-static` → `build/`). Cloudflare is moving new work to **Workers with static assets** ([migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)); Pages still works, but Workers is the long-term default.
+
+You do **not** need `@sveltejs/adapter-cloudflare` or SSR on Cloudflare. Convex is still your API/auth backend; the Worker only serves files.
 
 | Setting | Value |
 |---------|--------|
 | **Build command** | `bun run build` |
-| **Build output directory** | `build` |
-| **Deploy command** | `bun run deploy` (see below) |
+| **Deploy command** | `bun run deploy` (`wrangler deploy` — uses `[assets]` in `wrangler.toml`) |
 
-This is **Cloudflare Pages** (static assets), not a Workers script. If the dashboard requires a deploy command, use one of these — **not** `npx wrangler deploy`:
-
-| Deploy command | When |
-|----------------|------|
-| *(empty)* | Best, if the UI allows it — Pages uploads `build/` after build |
-| `bun run deploy` | If a deploy step is required (runs `wrangler pages deploy`) |
-| `npx wrangler pages deploy build --project-name=anatome` | Same, without Bun script |
-
-`wrangler deploy` targets Workers and fails with *Missing entry-point to Worker script* even though Wrangler detects a Pages project.
-
-Project name in `wrangler.toml` / `package.json` deploy script is `anatome` — change both if your Pages project name differs.
+`wrangler.toml` points at `build/`. App SPA routes rely on `static/_redirects` (`/* /200.html 200`), not Workers’ built-in SPA mode (which would serve prerendered `/index.html` for unknown paths).
 
 Local full pipeline:
 
 ```sh
 bun run pages:deploy
 ```
+
+If you stay on a **Pages** Git project instead of Workers: build command `bun run build`, output `build`, deploy `bunx wrangler pages deploy build --project-name=anatome` — do not use bare `wrangler deploy` without `[assets]` in `wrangler.toml`.
 
 Set this **environment variable** for Production (and Preview if you use preview deploys):
 

@@ -9,7 +9,7 @@
     "dev": "vite dev",
     "dev:convex": "convex dev",
     "build": "vite build",
-    "deploy": "bunx wrangler pages deploy build --project-name=anatome",
+    "deploy": "bunx wrangler deploy",
     "pages:deploy": "vite build && bun run deploy",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
