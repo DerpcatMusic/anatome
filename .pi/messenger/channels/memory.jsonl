@@ -1,4 +1,0 @@
-{"_meta":true,"v":1,"id":"memory","type":"named","createdAt":"2026-05-18T11:33:16.912Z","description":"Cross-session knowledge and insights","sessionId":"019e3add-791d-7671-a164-5682c37f7872"}
-{"ts":"2026-05-18T11:33:58.876Z","type":"message","agent":"SageArrow","target":"to:#memory","preview":"HomeBody project bootstrapped. Channels: #frontend #backend #design. Main agent: SageArrow.","channel":"memory"}
-{"ts":"2026-05-18T11:34:11.347Z","type":"message","agent":"SageArrow","preview":"spawned SwiftTiger (Convex Auth Specialist)","channel":"memory"}
-{"ts":"2026-05-18T11:34:11.351Z","type":"message","agent":"SageArrow","preview":"spawned SageDragon (Svelte Frontend Scout)","channel":"memory"}

@@ -1,1 +1,0 @@
-import{nt as e}from"./DBgQEYmP.js";var t=class{#e;#t;constructor(t,n){this.#e=t,this.#t=n,this.handler=this.handler.bind(this),e(this.handler)}handler(){let e=0,t=this.#e();if(!t)return;let n=new ResizeObserver(()=>{cancelAnimationFrame(e),e=window.requestAnimationFrame(this.#t)});return n.observe(t),()=>{window.cancelAnimationFrame(e),n.unobserve(t)}}};export{t};

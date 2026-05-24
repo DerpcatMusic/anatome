@@ -1,1 +1,0 @@
-export const env={"PUBLIC_CONVEX_CLIENT_URL":"https://honorable-woodpecker-450.eu-west-1.convex.cloud","PUBLIC_MUX_ENV_KEY":"207m4eoo0h6dnrqh4b2u41adu"}
