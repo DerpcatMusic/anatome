@@ -1,6 +1,6 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+import { redirect } from "@sveltejs/kit";
+import type { PageLoad } from "./$types";
 
 export const load: PageLoad = () => {
-	throw redirect(307, '/u/one-on-one');
+  throw redirect(307, "/u/calendar?type=one_on_one");
 };

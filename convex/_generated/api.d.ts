@@ -17,6 +17,7 @@ import type * as lib_authz from "../lib/authz.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_equipment from "../lib/equipment.js";
 import type * as lib_live from "../lib/live.js";
+import type * as lib_liveJoin from "../lib/liveJoin.js";
 import type * as lib_livekitEnv from "../lib/livekitEnv.js";
 import type * as lib_oneOnOne from "../lib/oneOnOne.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
@@ -92,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   "lib/constants": typeof lib_constants;
   "lib/equipment": typeof lib_equipment;
   "lib/live": typeof lib_live;
+  "lib/liveJoin": typeof lib_liveJoin;
   "lib/livekitEnv": typeof lib_livekitEnv;
   "lib/oneOnOne": typeof lib_oneOnOne;
   "lib/rateLimit": typeof lib_rateLimit;

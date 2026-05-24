@@ -23,11 +23,11 @@
         type="button"
         class="navbar__theme"
         onclick={() => theme.toggle()}
-        title={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
-        aria-label={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+        title={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+        aria-label={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
       >
         <span class="material-symbols-rounded">
-          {theme.value === "dark" ? "light_mode" : "dark_mode"}
+          {theme.isDark ? "light_mode" : "dark_mode"}
         </span>
       </button>
 

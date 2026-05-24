@@ -1,6 +1,7 @@
 import type { MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { missingRequiredEquipment } from "../lib/equipment";
+import { assertInLiveJoinWindow } from "../lib/liveJoin";
 
 export type LiveParticipantRole = "instructor" | "customer" | "admin";
 
@@ -95,12 +96,21 @@ export async function checkMemberRequirements({
 
 export async function validateBaseJoinEligibility(joinCtx: JoinPolicyContext) {
   const { liveClass, now, profile } = joinCtx;
-  if (liveClass.status !== "live") throw new Error("השיעור אינו חי");
   if (profile === null) throw new Error("נדרש פרופיל משתמש");
 
+  if (
+    liveClass.status === "ended" ||
+    liveClass.status === "cancelled" ||
+    liveClass.status === "draft"
+  ) {
+    throw new Error("השיעור אינו זמין");
+  }
+
+  assertInLiveJoinWindow(liveClass, now);
+
   const role = getParticipantRole(joinCtx);
-  if (!role.isInstructor && (now < liveClass.joinOpensAt || now > liveClass.joinClosesAt)) {
-    throw new Error("השיעור מחוץ לחלון ההצטרפות");
+  if (!role.isInstructor && liveClass.status !== "live") {
+    throw new Error("השיעור אינו חי");
   }
 
   return role;

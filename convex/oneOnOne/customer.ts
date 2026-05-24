@@ -19,6 +19,11 @@ import {
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { scheduleOneOnOneRequestExpiration } from "./schedule";
+import { scheduleLiveClassLifecycle } from "../live/schedule";
+import { createReminderEventsForReservation } from "../liveReminders/create";
+import { reserveClassSeat } from "../live/capacity";
+import { reserveCredits } from "../credits/lib";
+import { minuteMs } from "../lib/oneOnOne";
 
 export const listAvailableSlots = query({
   args: {
@@ -120,6 +125,83 @@ export const requestSlot = mutation({
     );
     await ctx.db.patch(requestId, { expirationScheduledFunctionId });
     return requestId;
+  },
+});
+
+export const bookOpenSlot = mutation({
+  args: {
+    instructorUserId: v.id("users"),
+    startsAt: v.number(),
+    endsAt: v.number(),
+  },
+  handler: async (ctx, args): Promise<Id<"liveClasses">> => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireCustomer(profile);
+    if (args.startsAt <= Date.now() + MS.TWO_HOURS) {
+      throw new Error("התאריך קרוב מדי");
+    }
+    if (args.endsAt <= args.startsAt) throw new Error("חלון זמן לא תקין");
+    if (!(await slotMatchesAvailability(ctx, args.instructorUserId, args.startsAt, args.endsAt))) {
+      throw new Error("החלון אינו זמין");
+    }
+    if (!(await isOneOnOneSlotFree(ctx, args.instructorUserId, args.startsAt, args.endsAt))) {
+      throw new Error("החלון כבר אינו זמין");
+    }
+
+    const { wallet } = await requireWalletForMember(ctx, userId);
+    if (availableOneOnOneCredits(wallet) < 1) {
+      throw new Error("אין נקודות 1:1 זמינות");
+    }
+
+    const now = Date.now();
+    const liveClassId = await ctx.db.insert("liveClasses", {
+      title: "שיעור 1:1 אישי",
+      description: "",
+      type: "one_on_one",
+      instructorUserId: args.instructorUserId,
+      startsAt: args.startsAt,
+      endsAt: args.endsAt,
+      joinOpensAt: args.startsAt - 15 * minuteMs,
+      joinClosesAt: args.endsAt,
+      capacity: 1,
+      requiredEquipment: ["mat"],
+      creditKind: "oneOnOne",
+      creditCost: 1,
+      status: "scheduled",
+      seatsTaken: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+    const scheduled = await scheduleLiveClassLifecycle(
+      ctx,
+      liveClassId,
+      args.startsAt,
+      args.startsAt - 15 * minuteMs,
+      args.endsAt,
+    );
+    await ctx.db.patch(liveClassId, scheduled);
+
+    await reserveCredits(ctx, wallet._id, "oneOnOne", 1);
+    const reservationId = await ctx.db.insert("liveReservations", {
+      liveClassId,
+      userId,
+      walletId: wallet._id,
+      status: "reserved",
+      creditKind: "oneOnOne",
+      creditsReserved: 1,
+      reservedAt: now,
+    });
+    await reserveClassSeat(ctx, liveClassId);
+    await createReminderEventsForReservation(
+      ctx,
+      liveClassId,
+      reservationId,
+      userId,
+      args.startsAt,
+    );
+
+    return liveClassId;
   },
 });
 

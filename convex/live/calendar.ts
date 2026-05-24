@@ -8,6 +8,7 @@ import {
 } from "../credits/lib";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { LIMITS } from "../lib/constants";
+import { isInLiveJoinWindow } from "../lib/liveJoin";
 
 export const listUpcoming = query({
   args: {},
@@ -80,8 +81,12 @@ export const listRange = query({
             .withIndex("by_userId", (q) => q.eq("userId", userId))
             .take(1);
     const appProfile = appProfiles[0] ?? null;
+    const now = Date.now();
     const results = [];
     for (const liveClass of classes) {
+      if (liveClass.status === "cancelled" || liveClass.status === "draft") {
+        continue;
+      }
       const seatsTaken = liveClass.seatsTaken ?? 0;
       const viewerReservation = viewerReservationMap.get(liveClass._id) ?? null;
       const available =
@@ -102,9 +107,11 @@ export const listRange = query({
         viewerReservationStatus !== "cancelled" &&
         viewerReservationStatus !== "refunded" &&
         viewerReservationStatus !== "no_show";
+      const inJoinWindow = isInLiveJoinWindow(liveClass, now);
       const canWalkIn =
         userId !== null &&
         liveClass.status === "live" &&
+        inJoinWindow &&
         seatsRemaining > 0 &&
         available >= liveClass.creditCost &&
         viewerMissingEquipment.length === 0;
@@ -125,6 +132,7 @@ export const listRange = query({
           userId !== null &&
           (liveClass.type === "group_live" || liveClass.type === "one_on_one") &&
           liveClass.status === "live" &&
+          inJoinWindow &&
           (hasValidReservation || canWalkIn),
         viewerIsWalkIn: !hasValidReservation && canWalkIn,
         viewerAvailableCredits: available,

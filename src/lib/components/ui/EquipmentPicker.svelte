@@ -75,8 +75,18 @@
   }
 
   .equipment-grid--compact {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--space-1);
+    max-height: calc(3 * 30px + 2 * var(--space-1));
+    overflow: hidden;
+  }
+
+  .equipment-grid--compact :global(.hb-choice) {
+    flex: 0 0 auto;
+    min-height: 28px;
+    padding: var(--space-1) var(--space-2);
+    border-radius: 4px;
   }
 
   .equipment-choice-content {
@@ -89,7 +99,7 @@
 
   .equipment-choice-content--compact {
     gap: var(--space-1);
-    padding: var(--space-1) 0;
+    padding: 0;
   }
 
   .icon-wrapper {
@@ -103,8 +113,8 @@
   }
 
   .icon-wrapper--compact {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 
   .choice-label {

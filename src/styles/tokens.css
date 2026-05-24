@@ -53,9 +53,14 @@
 
   /* Additional Accents */
   --accent-purple: #8c5cf6;
+  --violet: #7c5ce8;
+  --violet-soft: #ebe6fc;
+  --violet-strong: #5b3fd4;
+  --violet-muted: #9b87ef;
 
   /* Typography */
   --font-body: "Assistant", "Noto Sans Hebrew", "Arial", sans-serif;
+  --font-extralight: "Assistant", "Noto Sans Hebrew", "Arial", sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
   --font-display: "Secular One", "Assistant", sans-serif;
   --font-hand: "Gveret Levin", cursive;
@@ -92,6 +97,9 @@
   --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 34%, transparent);
   --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
 
+  /* Modal / dialog backdrop */
+  --overlay-scrim: rgba(0, 0, 0, 0.35);
+
   /* ── Glassmorphism (unified) ── */
   --glass-bg: color-mix(in srgb, var(--white) 82%, transparent);
   --glass-strong-bg: color-mix(in srgb, var(--white) 92%, transparent);
@@ -119,6 +127,14 @@
   --quality-row-border: color-mix(in srgb, var(--line) 14%, transparent);
   --quality-row-bg: color-mix(in srgb, var(--surface) 68%, transparent);
   --panel-width: 280px;
+  --lr-chrome-bg: var(--surface);
+  --lr-chrome-border: 1px solid var(--line);
+  --lr-control-bg: var(--paper);
+  --lr-control-border: 1px solid var(--line);
+  --lr-control-on-bg: var(--sky-soft);
+  --lr-control-on-border: 1px solid var(--sky-strong);
+  --lr-control-off-bg: var(--paper);
+  --lr-control-active-bg: color-mix(in srgb, var(--sky-soft) 65%, var(--paper));
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -185,6 +201,10 @@ html[data-theme="dark"] {
   --caution-soft: #3a3020;
 
   --accent-purple: #a57cf8;
+  --violet: #9b87ef;
+  --violet-soft: #2a2440;
+  --violet-strong: #b29af8;
+  --violet-muted: #7c6bc8;
 
   --surface-warm: #2a2220;
   --surface-terra: #2a201c;
@@ -196,6 +216,8 @@ html[data-theme="dark"] {
   --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
   --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 20%, transparent);
   --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
+
+  --overlay-scrim: rgba(0, 0, 0, 0.62);
 
   --glass-bg: color-mix(in srgb, var(--white) 78%, transparent);
   --glass-strong-bg: color-mix(in srgb, var(--white) 88%, transparent);
@@ -254,6 +276,10 @@ html[data-theme="dark"] {
     --caution-soft: #3a3020;
 
     --accent-purple: #a57cf8;
+    --violet: #9b87ef;
+    --violet-soft: #2a2440;
+    --violet-strong: #b29af8;
+    --violet-muted: #7c6bc8;
 
     --surface-warm: #2a2220;
     --surface-terra: #2a201c;
@@ -265,6 +291,8 @@ html[data-theme="dark"] {
     --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
     --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 20%, transparent);
     --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 14%, transparent);
+
+    --overlay-scrim: rgba(0, 0, 0, 0.62);
 
     --glass-bg: color-mix(in srgb, var(--white) 78%, transparent);
     --glass-strong-bg: color-mix(in srgb, var(--white) 88%, transparent);
@@ -323,6 +351,10 @@ html[data-theme="light"] {
   --caution-soft: #fdf6e3;
 
   --accent-purple: #8c5cf6;
+  --violet: #7c5ce8;
+  --violet-soft: #ebe6fc;
+  --violet-strong: #5b3fd4;
+  --violet-muted: #9b87ef;
 
   --surface-warm: #fdf6f0;
   --surface-terra: #faf0ec;
@@ -334,6 +366,8 @@ html[data-theme="light"] {
   --shadow-dropdown: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
   --shadow-select: 10px 10px 0 color-mix(in srgb, var(--sky) 34%, transparent);
   --shadow-popover: 10px 10px 0 color-mix(in srgb, var(--sky) 24%, transparent);
+
+  --overlay-scrim: rgba(0, 0, 0, 0.35);
 
   --glass-bg: color-mix(in srgb, var(--white) 82%, transparent);
   --glass-strong-bg: color-mix(in srgb, var(--white) 92%, transparent);

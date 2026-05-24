@@ -8,11 +8,21 @@ import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import { equipmentListValidator } from "../lib/validators";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
+
+const STUDIO_CALENDAR_PAST_MS = 14 * MS.DAY;
+const STUDIO_CALENDAR_FUTURE_MS = 10 * 7 * MS.DAY;
 import { roomNameForClass } from "../lib/live";
+import { hasLiveClassConflict } from "../lib/oneOnOne";
 import { releaseCredits, type LiveCreditPool } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "./schedule";
 import { settleReservationsForClass } from "./settle";
 import { scheduleReminderEvent } from "../liveReminders/schedule";
+import {
+  assertInLiveJoinWindow,
+  isInLiveJoinWindow,
+  minutesUntilJoinCloses,
+  minutesUntilJoinOpens,
+} from "../lib/liveJoin";
 
 const classType = v.union(v.literal("group_live"), v.literal("one_on_one"));
 const creditKind = v.union(v.literal("live"), v.literal("oneOnOne"));
@@ -74,6 +84,85 @@ export const get = query({
   },
 });
 
+export const getJoinAccess = query({
+  args: {
+    liveClassId: v.id("liveClasses"),
+  },
+  returns: v.union(
+    v.null(),
+    v.object({
+      joinOpensAt: v.number(),
+      joinClosesAt: v.number(),
+      startsAt: v.number(),
+      status: v.union(
+        v.literal("draft"),
+        v.literal("scheduled"),
+        v.literal("live"),
+        v.literal("ended"),
+        v.literal("cancelled"),
+      ),
+      canEnter: v.boolean(),
+      minutesUntilOpen: v.union(v.number(), v.null()),
+      minutesUntilClose: v.union(v.number(), v.null()),
+      isInstructor: v.boolean(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return null;
+
+    const liveClass = await ctx.db.get(args.liveClassId);
+    if (liveClass === null) return null;
+    if (liveClass.type !== "group_live" && liveClass.type !== "one_on_one") {
+      return null;
+    }
+
+    const profiles = await ctx.db
+      .query("appProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(1);
+    const profile = profiles[0] ?? null;
+    const isInstructor =
+      profile !== null &&
+      (profile.role === "admin" ||
+        (profile.role === "instructor" && liveClass.instructorUserId === userId));
+
+    if (!isInstructor && liveClass.type === "one_on_one") {
+      const reservations = await ctx.db
+        .query("liveReservations")
+        .withIndex("by_liveClassId_and_userId", (q) =>
+          q.eq("liveClassId", args.liveClassId).eq("userId", userId),
+        )
+        .take(10);
+      const reservation =
+        reservations.find((row) => row.status === "joined") ??
+        reservations.find((row) => row.status === "reserved") ??
+        null;
+      if (reservation === null) return null;
+    }
+
+    const now = Date.now();
+    const inWindow = isInLiveJoinWindow(liveClass, now);
+    const canEnter =
+      inWindow &&
+      liveClass.status !== "ended" &&
+      liveClass.status !== "cancelled" &&
+      liveClass.status !== "draft" &&
+      (isInstructor || liveClass.status === "live");
+
+    return {
+      joinOpensAt: liveClass.joinOpensAt,
+      joinClosesAt: liveClass.joinClosesAt,
+      startsAt: liveClass.startsAt,
+      status: liveClass.status,
+      canEnter,
+      minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
+      minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
+      isInstructor,
+    };
+  },
+});
+
 export const create = mutation({
   args: {
     title: v.string(),
@@ -128,7 +217,13 @@ export const create = mutation({
       createdAt: now,
       updatedAt: now,
     });
-    const scheduled = await scheduleLiveClassLifecycle(ctx, liveClassId, args.startsAt, joinClosesAt);
+    const scheduled = await scheduleLiveClassLifecycle(
+      ctx,
+      liveClassId,
+      args.startsAt,
+      joinOpensAt,
+      joinClosesAt,
+    );
     await ctx.db.patch(liveClassId, scheduled);
     return liveClassId;
   },
@@ -159,6 +254,7 @@ export const start = mutation({
     if (now > liveClass.joinClosesAt) {
       throw new Error("השיעור כבר הסתיים");
     }
+    assertInLiveJoinWindow(liveClass, now);
 
     await ctx.db.patch(args.liveClassId, {
       status: "live",
@@ -289,6 +385,18 @@ export const reschedule = mutation({
       throw new Error("ניתן לתזמן שיעור רק לעתיד");
     }
 
+    if (
+      await hasLiveClassConflict(
+        ctx,
+        liveClass.instructorUserId,
+        args.startsAt,
+        endsAt,
+        args.liveClassId,
+      )
+    ) {
+      throw new Error("החלון חופף לשיעור אחר בלוח");
+    }
+
     const patch: Record<string, unknown> = {
       startsAt: args.startsAt,
       endsAt,
@@ -305,7 +413,13 @@ export const reschedule = mutation({
       patch.description = args.description.trim();
     }
     await ctx.db.patch(args.liveClassId, patch);
-    const scheduled = await scheduleLiveClassLifecycle(ctx, args.liveClassId, args.startsAt, joinClosesAt);
+    const scheduled = await scheduleLiveClassLifecycle(
+      ctx,
+      args.liveClassId,
+      args.startsAt,
+      joinOpensAt,
+      joinClosesAt,
+    );
     await ctx.db.patch(args.liveClassId, scheduled);
 
     const reminders = await ctx.db
@@ -418,10 +532,16 @@ export const listMine = query({
     const profile = await requireAppProfile(ctx, userId);
     requireRole(profile, ["instructor", "admin"]);
 
+    const now = Date.now();
+    const windowStart = now - STUDIO_CALENDAR_PAST_MS;
+    const windowEnd = now + STUDIO_CALENDAR_FUTURE_MS;
+
     return await ctx.db
       .query("liveClasses")
-      .withIndex("by_instructorUserId_and_startsAt", (q) => q.eq("instructorUserId", userId))
-      .order("desc")
+      .withIndex("by_instructorUserId_and_startsAt", (q) =>
+        q.eq("instructorUserId", userId).gte("startsAt", windowStart).lt("startsAt", windowEnd),
+      )
+      .order("asc")
       .take(LIMITS.INSTRUCTOR_CLASSES);
   },
 });

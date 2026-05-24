@@ -31,6 +31,10 @@ export const RULES = {
   MAX_PENDING_ONE_ON_ONE_REQUESTS: 5,
   /** Max onboarding notes length */
   MAX_ONBOARDING_NOTES_LENGTH: 600,
+  /** Minutes before startsAt when live room join opens (customers + instructors) */
+  LIVE_JOIN_OPENS_MINUTES_BEFORE: 15,
+  /** Max configurable join-opens offset when scheduling a class */
+  LIVE_JOIN_OPENS_MINUTES_MAX: 60,
 } as const;
 
 // ═══════════════════════════════════════════════════════════

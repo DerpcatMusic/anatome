@@ -65,7 +65,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--overlay-scrim);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -157,6 +157,8 @@
     overflow-y: auto;
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (max-width: 860px) {

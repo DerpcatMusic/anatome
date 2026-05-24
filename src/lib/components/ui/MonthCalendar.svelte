@@ -4,7 +4,7 @@
 
   type EventDot = {
     date: DateValue;
-    tone: "sky" | "terra" | "success" | "muted";
+    tone: "sky" | "terra" | "violet" | "success" | "muted";
   };
 
   let {
@@ -110,6 +110,10 @@
 
   .event-dot--terra {
     background: var(--terra-strong);
+  }
+
+  .event-dot--violet {
+    background: var(--violet-strong);
   }
 
   .event-dot--success {

@@ -86,7 +86,7 @@ export const autoStart = internalMutation({
 
     for (const liveClass of dueClasses) {
       if (liveClass.status !== "scheduled") continue;
-      if (now > liveClass.joinClosesAt) continue;
+      if (now < liveClass.joinOpensAt || now > liveClass.joinClosesAt) continue;
       await startLiveClass(ctx, liveClass, now);
     }
   },
@@ -105,6 +105,7 @@ export const startOne = internalMutation({
 
     const now = Date.now();
     if (now > liveClass.joinClosesAt) return { status: "closed" as const };
+    if (now < liveClass.joinOpensAt) return { status: "early" as const };
     await startLiveClass(ctx, liveClass, now);
     return { status: "started" as const };
   },

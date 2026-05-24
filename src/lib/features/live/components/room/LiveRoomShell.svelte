@@ -211,7 +211,7 @@
   {/if}
 {:else if room.auth.isLoading || room.status === "checking"}
   <PreConnectOverlay {room} />
-{:else if room.status === "locked" || room.status === "missing" || room.status === "prep" || room.status === "error"}
+{:else if room.status === "locked" || room.status === "missing" || room.status === "waiting" || room.status === "prep" || room.status === "error"}
   <PreConnectOverlay {room} />
 {:else if room.status === "ready" && room.joinInfo && room.connectionState === "idle"}
   <PreConnectOverlay {room} />
@@ -307,9 +307,9 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--terra) 40%, transparent);
-    background: color-mix(in srgb, var(--ink) 85%, var(--terra) 15%);
-    color: var(--white);
+    border: 1px solid color-mix(in srgb, var(--terra) 45%, transparent);
+    background: color-mix(in srgb, var(--terra-soft) 55%, var(--paper));
+    color: var(--ink);
   }
 
   .lr-reconnect-banner__icon {
@@ -329,9 +329,9 @@
   .lr-network-hint {
     margin: 0 var(--space-3);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--terra) 50%, transparent);
-    background: color-mix(in srgb, var(--terra) 12%, transparent);
-    color: var(--white);
+    border: 1px solid color-mix(in srgb, var(--terra) 40%, transparent);
+    background: color-mix(in srgb, var(--terra-soft) 40%, var(--paper));
+    color: var(--ink);
     font-size: var(--step--1);
     text-align: center;
   }
@@ -343,17 +343,17 @@
     gap: var(--space-3);
     margin: 0 var(--space-3);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--terra) 55%, transparent);
-    background: color-mix(in srgb, var(--terra) 18%, transparent);
-    color: var(--white);
+    border: 1px solid color-mix(in srgb, var(--terra) 45%, transparent);
+    background: color-mix(in srgb, var(--terra-soft) 45%, var(--paper));
+    color: var(--ink);
     font-size: var(--step--1);
   }
 
   .lr-media-error__dismiss {
     flex-shrink: 0;
     padding: 4px 10px;
-    border: 1px solid color-mix(in srgb, var(--white) 25%, transparent);
-    background: transparent;
+    border: var(--lr-chrome-border);
+    background: var(--paper);
     color: inherit;
     font: inherit;
     cursor: pointer;
@@ -363,7 +363,7 @@
     margin: 0;
     padding: 0 var(--space-3) var(--space-2);
     font-size: var(--step--1);
-    color: color-mix(in srgb, var(--white) 65%, transparent);
+    color: var(--muted);
     text-align: center;
   }
 

@@ -49,6 +49,7 @@ export async function hasLiveClassConflict(
   instructorUserId: Id<"users">,
   startsAt: number,
   endsAt: number,
+  excludeLiveClassId?: Id<"liveClasses">,
 ) {
   const classes = await ctx.db
     .query("liveClasses")
@@ -57,7 +58,9 @@ export async function hasLiveClassConflict(
     )
     .take(LIMITS.INSTRUCTOR_CLASSES);
   return classes.some((liveClass) =>
-    liveClass.status !== "cancelled" && overlaps(startsAt, endsAt, liveClass.startsAt, liveClass.endsAt),
+    liveClass._id !== excludeLiveClassId &&
+    liveClass.status !== "cancelled" &&
+    overlaps(startsAt, endsAt, liveClass.startsAt, liveClass.endsAt),
   );
 }
 

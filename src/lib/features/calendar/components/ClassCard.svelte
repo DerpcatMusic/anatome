@@ -14,11 +14,13 @@
     actionId,
     onReserve,
     onCancel,
+    onBuyCredits,
   }: {
     item: CalendarClass;
     actionId: string | null;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
     onCancel: (liveClassId: Id<"liveClasses">) => void;
+    onBuyCredits?: () => void;
   } = $props();
 
   const { t } = useI18n();
@@ -34,7 +36,10 @@
       return { label: t.calendar.status.reserved(), tone: "success" as const };
     }
     if (item.liveClass.status === "live") {
-      return { label: t.calendar.status.nowLive(), tone: "terra" as const };
+      return {
+        label: t.calendar.status.nowLive(),
+        tone: item.liveClass.type === "one_on_one" ? ("violet" as const) : ("terra" as const),
+      };
     }
     if (item.seatsRemaining <= 0) {
       return { label: t.calendar.status.full(), tone: "muted" as const };
@@ -78,7 +83,11 @@
       </div>
 
       <div class="class-card__meta">
-        <span class="meta-tag meta-tag--type">{classTypeLabel(item.liveClass.type)}</span>
+        <span
+          class="meta-tag meta-tag--type"
+          class:meta-tag--one-on-one={item.liveClass.type === "one_on_one"}
+          class:meta-tag--group-live={item.liveClass.type === "group_live"}
+        >{classTypeLabel(item.liveClass.type)}</span>
         <span class="meta-tag">{creditLabel(item.liveClass.creditKind)}</span>
         {#if item.liveClass.capacity > 1}
           <span class="meta-tag">{item.seatsRemaining} / {item.liveClass.capacity}</span>
@@ -94,17 +103,27 @@
     <div class="class-card__action">
       {#if item.viewerCanJoin}
         {#if item.viewerIsWalkIn}
-          <Button.Root class="hb-button hb-button--terra hb-button--sm" href={liveRoomHref(item.liveClass._id)}>
+          <Button.Root
+            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'violet' : 'terra'} hb-button--sm"
+            href={liveRoomHref(item.liveClass._id)}
+          >
             {t.calendar.class.joinWalkIn()}
           </Button.Root>
         {:else}
-          <Button.Root class="hb-button hb-button--terra hb-button--sm" href={liveRoomHref(item.liveClass._id)}>
+          <Button.Root
+            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'violet' : 'terra'} hb-button--sm"
+            href={liveRoomHref(item.liveClass._id)}
+          >
             {t.calendar.class.join()}
           </Button.Root>
         {/if}
       {:else if item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined"}
         <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={() => onCancel(item.liveClass._id)} disabled={actionId === item.liveClass._id}>
           {t.calendar.class.cancel()}
+        </Button.Root>
+      {:else if item.viewerAvailableCredits < item.liveClass.creditCost && onBuyCredits}
+        <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={onBuyCredits}>
+          רכישת קרדיטים
         </Button.Root>
       {:else}
         <Button.Root class="hb-button hb-button--sm {info.tone === 'sky' ? 'hb-button--ink' : 'hb-button--paper'}"
@@ -209,6 +228,11 @@
     color: var(--terra-strong);
   }
 
+  .status-badge--violet {
+    background: var(--violet-soft);
+    color: var(--violet-strong);
+  }
+
   .status-badge--success {
     background: var(--success-bg);
     color: var(--success-text);
@@ -237,6 +261,24 @@
   .meta-tag--type {
     color: var(--ink);
     font-weight: 700;
+  }
+
+  .meta-tag--one-on-one {
+    color: var(--violet-strong);
+    font-weight: 800;
+  }
+
+  .meta-tag--group-live {
+    color: var(--sky-strong);
+    font-weight: 800;
+  }
+
+  .class-card:has(.meta-tag--one-on-one) {
+    border-inline-start: 3px solid var(--violet-strong);
+  }
+
+  .class-card:has(.meta-tag--group-live) {
+    border-inline-start: 3px solid var(--sky-strong);
   }
 
   .meta-tag--rsvp {

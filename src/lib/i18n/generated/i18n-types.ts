@@ -1368,6 +1368,18 @@ type RootTranslation = {
 			 */
 			joinClosesIn: RequiredParams<'minutes'>
 			/**
+			 * ה​ה​צ​ט​ר​פ​ו​ת​ ​ת​י​פ​ת​ח​ ​ב​ע​ו​ד​ ​{​m​i​n​u​t​e​s​}​ ​ד​ק​׳
+			 */
+			joinOpensIn: RequiredParams<'minutes'>
+			/**
+			 * ע​ד​י​י​ן​ ​מ​ו​ק​ד​ם​ ​ל​ה​צ​ט​ר​ף
+			 */
+			joinTooEarlyTitle: string
+			/**
+			 * א​פ​ש​ר​ ​ל​ה​י​כ​נ​ס​ ​ל​ח​ד​ר​ ​ר​ק​ ​1​5​ ​ד​ק​ו​ת​ ​ל​פ​נ​י​ ​ת​ח​י​ל​ת​ ​ה​ש​י​ע​ו​ר​.
+			 */
+			joinTooEarlyBody: string
+			/**
 			 * ה​ח​ל​ו​ן​ ​ל​ה​צ​ט​ר​פ​ו​ת​ ​נ​ס​ג​ר​ ​ב​ק​ר​ו​ב
 			 */
 			joinClosesSoon: string
@@ -3238,6 +3250,18 @@ export type TranslationFunctions = {
 			 * נשארו {minutes} דק׳ להצטרפות
 			 */
 			joinClosesIn: (arg: { minutes: unknown }) => LocalizedString
+			/**
+			 * ההצטרפות תיפתח בעוד {minutes} דק׳
+			 */
+			joinOpensIn: (arg: { minutes: unknown }) => LocalizedString
+			/**
+			 * עדיין מוקדם להצטרף
+			 */
+			joinTooEarlyTitle: () => LocalizedString
+			/**
+			 * אפשר להיכנס לחדר רק 15 דקות לפני תחילת השיעור.
+			 */
+			joinTooEarlyBody: () => LocalizedString
 			/**
 			 * החלון להצטרפות נסגר בקרוב
 			 */

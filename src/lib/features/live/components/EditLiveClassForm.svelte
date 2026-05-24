@@ -8,6 +8,7 @@
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
   import { TextareaAutosize } from "runed";
+  import { parseDateTimeLocal } from "$lib/datetime/local";
 
   type LiveClass = {
     _id: Id<"liveClasses">;
@@ -24,6 +25,7 @@
 
   interface Props {
     liveClass: LiveClass;
+    variant?: "modal" | "popover";
     onSubmit: (data: {
       title: string;
       description: string;
@@ -41,12 +43,16 @@
 
   let {
     liveClass,
+    variant = "modal",
     onSubmit,
     onCancel,
     onDelete,
     onEndLive,
     submitting = false,
   }: Props = $props();
+
+  const isPopover = $derived(variant === "popover");
+  let showDescription = $state(false);
 
   function formatLocalDate(ts: number) {
     const d = new Date(ts);
@@ -87,9 +93,10 @@
     editDescription = liveClass.description || "";
     editStartTime = formatLocalTime(liveClass.startsAt);
     editEndTime = formatLocalTime(liveClass.endsAt);
-    editJoinOpens = liveClass.joinOpensMinutesBefore ?? 10;
+    editJoinOpens = liveClass.joinOpensMinutesBefore ?? 15;
     editCapacity = liveClass.capacity;
     editEquipment = [...liveClass.requiredEquipment];
+    showDescription = isPopover ? Boolean(liveClass.description?.trim()) : true;
     try {
       editDateValue = parseDate(formatLocalDate(liveClass.startsAt));
     } catch {
@@ -114,7 +121,7 @@
   function handleSubmit(e: Event) {
     e.preventDefault();
     if (!editDateValue) return;
-    const startsAt = new Date(`${editDateValue.toString()}T${editStartTime}`).getTime();
+    const startsAt = parseDateTimeLocal(`${editDateValue.toString()}T${editStartTime}`);
     onSubmit({
       title: editTitle.trim(),
       description: editDescription.trim(),
@@ -128,7 +135,7 @@
 </script>
 
 {#if liveClass.status === "ended"}
-  <div class="ended-class-details">
+  <div class="ended-class-details" class:ended-class-details--popover={isPopover}>
     <div class="read-only-banner">
       <span class="material-symbols-rounded completed-tick">check_circle</span>
       <div class="banner-text">
@@ -158,30 +165,37 @@
       </div>
     </div>
 
-    <div class="modal-actions">
+    <div class="modal-actions" class:modal-actions--popover={isPopover}>
       <Button.Root class="hb-button hb-button--ink" type="button" onclick={onCancel} disabled={submitting}>
-        סגור פרטים
+        {isPopover ? "סגירה" : "סגור פרטים"}
       </Button.Root>
     </div>
   </div>
 {:else}
-  <form onsubmit={handleSubmit} class="edit-form">
-    <!-- Title -->
+  <form onsubmit={handleSubmit} class="edit-form" class:edit-form--popover={isPopover}>
     <div class="form-field">
-      <label class="field-label" for="edit-title">כותרת השיעור</label>
-      <input id="edit-title" class="hb-input" bind:value={editTitle} required disabled={submitting} maxlength="120" />
+      {#if isPopover}
+        <input
+          id="edit-title"
+          class="hb-input edit-title-input--popover"
+          bind:value={editTitle}
+          required
+          disabled={submitting}
+          maxlength="120"
+          placeholder="כותרת השיעור"
+          aria-label="כותרת השיעור"
+        />
+      {:else}
+        <label class="field-label" for="edit-title">כותרת השיעור</label>
+        <input id="edit-title" class="hb-input" bind:value={editTitle} required disabled={submitting} maxlength="120" />
+      {/if}
     </div>
 
-    <!-- Equipment -->
     <div class="form-field">
-      <span class="field-label">ציוד נדרש</span>
-      <EquipmentPicker compact bind:selected={editEquipment} />
-    </div>
-
-    <!-- Date + Time row -->
-    <div class="form-field">
-      <span class="field-label">מועד השיעור</span>
-      <div class="datetime-row">
+      {#if !isPopover}
+        <span class="field-label">מועד השיעור</span>
+      {/if}
+      <div class="datetime-row" class:datetime-row--popover={isPopover}>
         <div class="date-field">
           <DatePicker label="" bind:value={editDateValue} disabled={submitting} />
           <span class="date-display">{formattedDate}</span>
@@ -194,52 +208,95 @@
           <span class="time-label">סיום</span>
           <input type="time" class="hb-input" bind:value={editEndTime} step="60" disabled={submitting} />
         </label>
-        <div class="duration-badge">{durationLabelText}</div>
+        <div class="duration-badge" class:duration-badge--popover={isPopover}>{durationLabelText}</div>
       </div>
     </div>
 
-    <!-- Settings row -->
-    <div class="settings-row">
-      <label class="settings-field">
-        <span class="settings-label">פתיחה (דק׳ לפני)</span>
-        <input type="number" class="hb-input" bind:value={editJoinOpens} min="0" max="60" step="5" disabled={submitting} />
+    <div class="form-field form-field--type-row">
+      <span class="type-badge" class:type-badge--group={liveClass.type === "group_live"} class:type-badge--one-on-one={liveClass.type === "one_on_one"}>
+        {liveClass.type === "one_on_one" ? "1:1" : "קבוצתי"}
+      </span>
+    </div>
+
+    <div class="form-field">
+      {#if !isPopover}
+        <span class="field-label">ציוד נדרש</span>
+      {/if}
+      <EquipmentPicker compact bind:selected={editEquipment} disabled={submitting} />
+    </div>
+
+    {#if liveClass.type === "group_live"}
+      <label class="capacity-row" class:capacity-row--popover={isPopover} for="edit-capacity">
+        <span class="capacity-row__label">קיבולת</span>
+        <input
+          id="edit-capacity"
+          type="number"
+          class="hb-input capacity-input--popover"
+          bind:value={editCapacity}
+          min="1"
+          max="50"
+          step="1"
+          disabled={submitting}
+        />
       </label>
-      {#if liveClass.type === "group_live"}
+    {/if}
+
+    {#if !isPopover}
+      <div class="settings-row">
         <label class="settings-field">
-          <span class="settings-label">קיבולת</span>
-          <input type="number" class="hb-input" bind:value={editCapacity} min="1" max="50" step="1" disabled={submitting} />
+          <span class="settings-label">פתיחה (דק׳ לפני)</span>
+          <input type="number" class="hb-input" bind:value={editJoinOpens} min="0" max="60" step="5" disabled={submitting} />
         </label>
-      {:else}
-        <div class="settings-field">
-          <span class="settings-label">קיבולת</span>
-          <div class="one-on-one-badge">1 משתתפת (אישי)</div>
-        </div>
+      </div>
+    {/if}
+
+    <div class="form-field">
+      {#if isPopover && !showDescription}
+        <Button.Root
+          class="hb-button hb-button--ghost edit-desc-toggle"
+          type="button"
+          disabled={submitting}
+          onclick={() => (showDescription = true)}
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+          תיאור (אופציונלי)
+        </Button.Root>
+      {:else if !isPopover || showDescription}
+        <label class="field-label" for="edit-desc">
+          תיאור <span class="field-optional">(אופציונלי)</span>
+        </label>
+        <textarea
+          id="edit-desc"
+          class="hb-textarea"
+          class:edit-desc--popover={isPopover}
+          bind:value={editDescription}
+          bind:this={descEl}
+          disabled={submitting}
+          maxlength="500"
+          rows="2"
+          placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."
+        ></textarea>
       {/if}
     </div>
 
-    <!-- Description -->
-    <div class="form-field">
-      <label class="field-label" for="edit-desc">תיאור <span class="field-optional">(אופציונלי)</span></label>
-      <textarea id="edit-desc" class="hb-textarea" bind:value={editDescription} bind:this={descEl} disabled={submitting} maxlength="500" rows="2" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
-    </div>
-
-    <!-- Actions -->
-    <div class="modal-actions">
+    <div class="modal-actions" class:modal-actions--popover={isPopover}>
       {#if liveClass.status === "live"}
         <Button.Root class="hb-button hb-button--ink" type="button" onclick={onEndLive} disabled={submitting}>
           לסיים שידור
         </Button.Root>
-        <span class="live-badge"><span class="live-dot"></span>שידור חי פעיל</span>
+        {#if !isPopover}
+          <span class="live-badge"><span class="live-dot"></span>שידור חי פעיל</span>
+        {/if}
       {:else}
         <Button.Root class="hb-button hb-button--ink" type="submit" disabled={submitting}>
-          {submitting ? "מעדכן..." : "שמירת שינויים"}
+          {submitting ? "מעדכן..." : isPopover ? "שמירה" : "שמירת שינויים"}
         </Button.Root>
         <Button.Root class="hb-button hb-button--danger" type="button" onclick={onDelete} disabled={submitting}>
           ביטול שיעור
         </Button.Root>
       {/if}
-      <Button.Root class="hb-button hb-button--paper" type="button" onclick={onCancel} disabled={submitting}>
-        ביטול
+      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={onCancel} disabled={submitting}>
+        {isPopover ? "סגירה" : "סגור"}
       </Button.Root>
     </div>
   </form>
@@ -251,6 +308,117 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .edit-form--popover,
+  .ended-class-details--popover {
+    gap: var(--space-2);
+    min-height: 0;
+  }
+
+  .edit-title-input--popover {
+    min-height: 36px;
+    font-weight: 800;
+    font-size: var(--step--1);
+  }
+
+  .datetime-row--popover {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    grid-template-columns: unset;
+  }
+
+  .datetime-row--popover .date-field {
+    flex: 0 0 auto;
+  }
+
+  .datetime-row--popover .time-field {
+    flex: 0 0 auto;
+  }
+
+  .duration-badge--popover {
+    min-height: 32px;
+    padding: 0 var(--space-2);
+    font-size: var(--step--2);
+  }
+
+  .form-field--type-row {
+    margin-block: calc(-1 * var(--space-1));
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 var(--space-2);
+    border-radius: 4px;
+    font-size: var(--step--2);
+    font-weight: 800;
+    border: 1px solid var(--line-light);
+    background: var(--surface);
+  }
+
+  .type-badge--group {
+    border-color: var(--sky-strong);
+    color: var(--sky-strong);
+  }
+
+  .type-badge--one-on-one {
+    border-color: var(--violet-strong);
+    color: var(--violet-strong);
+  }
+
+  .capacity-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .capacity-row__label {
+    font-size: var(--step--2);
+    font-weight: 800;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .capacity-input--popover {
+    width: 4rem;
+    min-height: 32px;
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--step--2);
+  }
+
+  :global(.edit-desc-toggle) {
+    justify-content: flex-start;
+    padding-inline: 0;
+    min-height: 32px;
+  }
+
+  .edit-desc--popover {
+    min-height: 3.5rem;
+    resize: vertical;
+  }
+
+  .modal-actions--popover {
+    padding-top: var(--space-2);
+    margin-top: var(--space-1);
+    border-top: 1px solid var(--line-light);
+    position: static;
+    background: inherit;
+    justify-content: flex-end;
+  }
+
+  .ended-class-details--popover .read-only-banner {
+    padding: var(--space-2);
+  }
+
+  .ended-class-details--popover .details-section {
+    padding: var(--space-2);
+    gap: var(--space-1);
   }
 
   .form-field {
@@ -351,29 +519,13 @@
     text-transform: uppercase;
   }
 
-  .one-on-one-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    background: color-mix(in oklch, var(--sky-soft) 40%, transparent);
-    color: var(--ink);
-    border: 1px solid var(--sky);
-    padding: var(--space-2) var(--space-3);
-    font-weight: 800;
-    font-size: var(--step--1);
-    width: fit-content;
-    min-height: 44px;
-    border-radius: 4px;
-  }
-
-  /* Actions */
   .modal-actions {
     display: flex;
     gap: var(--space-2);
-    padding-top: var(--space-2);
-    border-top: var(--border);
+    padding-top: var(--space-3);
     align-items: center;
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .live-badge {

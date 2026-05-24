@@ -9,47 +9,47 @@ function getInitialTheme(): Theme {
   return "system";
 }
 
-function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const isDark = theme === "dark" || (theme === "system" && prefersDark);
+function resolveIsDark(theme: Theme, systemPrefersDark: boolean): boolean {
+  return theme === "dark" || (theme === "system" && systemPrefersDark);
+}
 
-  root.setAttribute("data-theme", isDark ? "dark" : "light");
+function applyResolvedTheme(isDark: boolean) {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
 }
 
 class ThemeStore {
   value = $state<Theme>("system");
+  systemPrefersDark = $state(
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+      : false,
+  );
+
+  readonly isDark = $derived(resolveIsDark(this.value, this.systemPrefersDark));
 
   constructor() {
     if (typeof window !== "undefined") {
       this.value = getInitialTheme();
-      applyTheme(this.value);
+      applyResolvedTheme(this.isDark);
+    }
+  }
 
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .addEventListener("change", (e) => {
-          if (this.value === "system") {
-            applyTheme("system");
-          }
-        });
+  setSystemPrefersDark(matches: boolean) {
+    this.systemPrefersDark = matches;
+    if (this.value === "system") {
+      applyResolvedTheme(this.isDark);
     }
   }
 
   set(theme: Theme) {
     this.value = theme;
     localStorage.setItem(STORAGE_KEY, theme);
-    applyTheme(theme);
+    applyResolvedTheme(resolveIsDark(theme, this.systemPrefersDark));
   }
 
   toggle() {
-    const prefersDark =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    const isCurrentlyDark =
-      this.value === "dark" || (this.value === "system" && prefersDark);
-
-    this.set(isCurrentlyDark ? "light" : "dark");
+    this.set(this.isDark ? "light" : "dark");
   }
 }
 

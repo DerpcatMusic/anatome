@@ -55,6 +55,7 @@ export const scheduleMissing = internalMutation({
         ctx,
         liveClass._id,
         liveClass.startsAt,
+        liveClass.joinOpensAt,
         liveClass.joinClosesAt,
       );
       await ctx.db.patch(liveClass._id, scheduled);

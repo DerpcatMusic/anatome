@@ -47,6 +47,15 @@
       actionLabel={t.live.preConnect.missingCta()}
       actionHref="/u/calendar"
     />
+  {:else if room.status === "waiting"}
+    <PreConnectState
+      title={t.live.room.joinTooEarlyTitle()}
+      message={room.joinWaitingMessage ?? t.live.room.joinTooEarlyBody()}
+      actionLabel={t.live.preConnect.retry()}
+      onAction={() => room.loadToken()}
+      secondaryLabel={t.live.preConnect.backCalendar()}
+      secondaryHref={backHref}
+    />
   {:else if room.status === "error"}
     <PreConnectState
       title={t.live.preConnect.errorTitle()}

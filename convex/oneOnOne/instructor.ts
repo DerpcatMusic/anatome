@@ -3,7 +3,15 @@ import { mutation, query } from "../_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireInstructorOrAdmin, requireUserId } from "../lib/authz";
-import { hasLiveClassConflict, minuteMs, oneOnOneTimezone } from "../lib/oneOnOne";
+import {
+  dayMs,
+  hasLiveClassConflict,
+  isOneOnOneSlotFree,
+  minuteMs,
+  oneOnOneTimezone,
+  startOfLocalDay,
+  weekday,
+} from "../lib/oneOnOne";
 import { LIMITS } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "../live/schedule";
@@ -98,6 +106,85 @@ export const setAvailabilityRule = mutation({
   },
 });
 
+export const publishAvailability = mutation({
+  args: {
+    weeksAhead: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<{ created: number; skipped: number }> => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireInstructorOrAdmin(profile);
+
+    const weeks = Math.min(8, Math.max(1, args.weeksAhead ?? 4));
+    const from = Date.now();
+    const to = from + weeks * 7 * dayMs;
+
+    const rules = await ctx.db
+      .query("oneOnOneAvailabilityRules")
+      .withIndex("by_instructorUserId_and_weekday", (q) => q.eq("instructorUserId", userId))
+      .take(50);
+    const activeRules = rules.filter((rule) => rule.isActive);
+    if (activeRules.length === 0) {
+      throw new Error("אין כללי זמינות פעילים לפרסום");
+    }
+
+    let created = 0;
+    let skipped = 0;
+
+    for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart += dayMs) {
+      const dayRules = activeRules.filter((rule) => rule.weekday === weekday(dayStart));
+      for (const rule of dayRules) {
+        const step = (rule.slotMinutes + rule.bufferMinutes) * minuteMs;
+        const duration = rule.slotMinutes * minuteMs;
+        for (
+          let startsAt = dayStart + rule.startMinute * minuteMs;
+          startsAt + duration <= dayStart + rule.endMinute * minuteMs;
+          startsAt += step
+        ) {
+          const endsAt = startsAt + duration;
+          if (startsAt < from || endsAt > to) continue;
+          if (startsAt <= Date.now() + 2 * 60 * 60 * 1000) continue;
+          if (!(await isOneOnOneSlotFree(ctx, userId, startsAt, endsAt))) {
+            skipped += 1;
+            continue;
+          }
+
+          const now = Date.now();
+          const liveClassId = await ctx.db.insert("liveClasses", {
+            title: "שיעור 1:1 אישי",
+            description: "חלון פתוח להזמנה",
+            type: "one_on_one",
+            instructorUserId: userId,
+            startsAt,
+            endsAt,
+            joinOpensAt: startsAt - 15 * minuteMs,
+            joinClosesAt: endsAt,
+            capacity: 1,
+            requiredEquipment: ["mat"],
+            creditKind: "oneOnOne",
+            creditCost: 1,
+            status: "scheduled",
+            seatsTaken: 0,
+            createdAt: now,
+            updatedAt: now,
+          });
+          const scheduled = await scheduleLiveClassLifecycle(
+            ctx,
+            liveClassId,
+            startsAt,
+            startsAt - 15 * minuteMs,
+            endsAt,
+          );
+          await ctx.db.patch(liveClassId, scheduled);
+          created += 1;
+        }
+      }
+    }
+
+    return { created, skipped };
+  },
+});
+
 export const approveRequest = mutation({
   args: { requestId: v.id("oneOnOneRequests") },
   handler: async (ctx, args): Promise<Id<"liveClasses">> => {
@@ -115,7 +202,7 @@ export const approveRequest = mutation({
     const liveClassId = await ctx.db.insert("liveClasses", {
       title: "שיעור 1:1 אישי", description: request.note, type: "one_on_one",
       instructorUserId: userId, startsAt: request.requestedStartsAt, endsAt: request.requestedEndsAt,
-      joinOpensAt: request.requestedStartsAt - 10 * minuteMs, joinClosesAt: request.requestedEndsAt,
+      joinOpensAt: request.requestedStartsAt - 15 * minuteMs, joinClosesAt: request.requestedEndsAt,
       capacity: 1, requiredEquipment: ["mat"], creditKind: "oneOnOne", creditCost: 1,
       status: "scheduled", seatsTaken: 1, createdAt: now, updatedAt: now,
     });
@@ -123,6 +210,7 @@ export const approveRequest = mutation({
       ctx,
       liveClassId,
       request.requestedStartsAt,
+      request.requestedStartsAt - 15 * minuteMs,
       request.requestedEndsAt,
     );
     await ctx.db.patch(liveClassId, scheduled);

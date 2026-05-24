@@ -25,7 +25,6 @@
     "/u": [
       { href: "/u/dashboard", label: "סקירה" },
       { href: "/u/calendar", label: "לוח לייבים" },
-      { href: "/u/one-on-one", label: "1:1 אישי" },
       { href: "/u/videos", label: "וידאו" },
       { href: "/u/profile", label: "פרופיל פילאטיס" },
     ],
@@ -33,7 +32,6 @@
       { href: "/i/dashboard", label: "סקירה" },
       { href: "/i/live", label: "סטודיו לייב" },
       { href: "/i/videos", label: "ניהול וידאו" },
-      { href: "/i/one-on-one", label: "ניהול 1:1" },
       { href: "/i/profile", label: "פרופיל מדריכה" },
     ],
   };
@@ -74,11 +72,11 @@
           type="button"
           class="theme-toggle"
           onclick={() => theme.toggle()}
-          title={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
-          aria-label={theme.value === "dark" ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+          title={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+          aria-label={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
         >
           <span class="material-symbols-rounded">
-            {theme.value === "dark" ? "light_mode" : "dark_mode"}
+            {theme.isDark ? "light_mode" : "dark_mode"}
           </span>
         </button>
         <button type="button" class="sidebar__signout" onclick={signOut}>יציאה</button>

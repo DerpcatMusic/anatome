@@ -61,6 +61,16 @@ export class LiveRoom {
     instructorName: string;
     liveClassType: LiveClassType;
   } | null>(null);
+  joinAccess = $state<{
+    joinOpensAt: number;
+    joinClosesAt: number;
+    startsAt: number;
+    status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
+    canEnter: boolean;
+    minutesUntilOpen: number | null;
+    minutesUntilClose: number | null;
+    isInstructor: boolean;
+  } | null>(null);
   /** True after first successful room connect until destroy. */
   inRoom = $state(false);
   needsManualReconnect = $state(false);
@@ -218,6 +228,11 @@ export class LiveRoom {
     if (seconds <= 120) return i18n.t.live.room.joinClosesSoon();
     const minutes = Math.ceil(seconds / 60);
     return i18n.t.live.room.joinClosesIn({ minutes });
+  });
+  readonly joinWaitingMessage = $derived.by(() => {
+    const minutes = this.joinAccess?.minutesUntilOpen;
+    if (minutes === null || minutes === undefined) return null;
+    return i18n.t.live.room.joinOpensIn({ minutes });
   });
   readonly connectionQualityLabel = $derived.by(() => {
     switch (this.connectionQuality) {
@@ -1235,10 +1250,37 @@ export class LiveRoom {
     this.error = "";
     this.mediaError = "";
     try {
+      const access = await this.client.query(api.live.class.getJoinAccess, { liveClassId });
+      if (access === null) {
+        this.status = "missing";
+        return;
+      }
+      this.joinAccess = access;
+
+      if (!access.canEnter) {
+        if (access.minutesUntilOpen !== null) {
+          this.stopWaitingPoll();
+          this.status = "waiting";
+          this.startWaitingPoll();
+          return;
+        }
+        this.error =
+          access.status === "ended" || access.status === "cancelled"
+            ? i18n.t.live.room.disconnectRoomEnded()
+            : i18n.t.live.room.joinTooEarlyBody();
+        this.status = "error";
+        return;
+      }
+
+      this.stopWaitingPoll();
       const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
       this.joinInfo = joinInfo;
       this.startExpiryTimer(joinInfo.joinClosesAt);
-      this.status = "ready";
+      if (access.isInstructor && access.status === "scheduled") {
+        this.status = "prep";
+      } else {
+        this.status = "ready";
+      }
       void this.prepareJoinConnection();
     } catch (reason) {
       console.error("[LiveKit] Token fetch failed:", reason);
@@ -1247,6 +1289,15 @@ export class LiveRoom {
         return;
       }
       const message = reason instanceof Error ? reason.message : String(reason);
+      if (
+        message.includes("ההצטרפות תיפתח") ||
+        message.includes("מחוץ לחלון") ||
+        message.includes("join window")
+      ) {
+        this.status = "waiting";
+        this.startWaitingPoll();
+        return;
+      }
       if (message.includes("Class is not live") || message.includes("השיעור אינו חי")) {
         const role = getCachedRole();
         if (role === "instructor" || role === "admin") {
@@ -1256,6 +1307,42 @@ export class LiveRoom {
       }
       this.error = this.auth.error || message || i18n.t.live.room.tokenError();
       this.status = "error";
+    }
+  }
+
+  private waitingPollTimer: number | null = null;
+
+  private startWaitingPoll() {
+    if (this.waitingPollTimer !== null) return;
+    this.waitingPollTimer = window.setInterval(() => {
+      void this.refreshJoinAccess();
+    }, 30_000);
+  }
+
+  private stopWaitingPoll() {
+    if (this.waitingPollTimer !== null) {
+      window.clearInterval(this.waitingPollTimer);
+      this.waitingPollTimer = null;
+    }
+  }
+
+  private async refreshJoinAccess() {
+    const liveClassId = this.getClassId();
+    if (liveClassId === null || this.status !== "waiting") return;
+    try {
+      const access = await this.client.query(api.live.class.getJoinAccess, { liveClassId });
+      if (access === null) {
+        this.status = "missing";
+        this.stopWaitingPoll();
+        return;
+      }
+      this.joinAccess = access;
+      if (access.canEnter) {
+        this.stopWaitingPoll();
+        await this.loadToken();
+      }
+    } catch (reason) {
+      console.warn("[LiveKit] Join access refresh failed:", reason);
     }
   }
 
@@ -1533,6 +1620,7 @@ export class LiveRoom {
   destroy() {
     this.stopPreview();
     this.stopExpiryTimer();
+    this.stopWaitingPoll();
     this.stopTokenRefreshTimer();
     this.releaseWakeLock();
     this.disposeBrowserStabilityHandlers();

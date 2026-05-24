@@ -60,7 +60,7 @@
   {onEndLive}
 />
 
-<header class="lr-header lr-glass">
+<header class="lr-header lr-glass-strong">
   <div class="lr-header__group">
     <button
       type="button"
@@ -186,7 +186,7 @@
     align-items: center;
     gap: 4px;
     font-size: var(--step--2);
-    color: color-mix(in srgb, var(--white) 70%, transparent);
+    color: var(--muted);
   }
 
   .lr-header__quality .material-symbols-rounded {
@@ -200,7 +200,7 @@
   .lr-header__expiry {
     font-size: var(--step--2);
     font-family: var(--font-mono, monospace);
-    color: color-mix(in srgb, var(--white) 72%, transparent);
+    color: var(--muted);
     white-space: nowrap;
   }
 </style>

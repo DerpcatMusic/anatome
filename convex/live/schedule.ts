@@ -6,10 +6,11 @@ export async function scheduleLiveClassLifecycle(
   ctx: MutationCtx,
   liveClassId: Id<"liveClasses">,
   startsAt: number,
+  joinOpensAt: number,
   joinClosesAt: number,
 ) {
   const startScheduledFunctionId = await ctx.scheduler.runAt(
-    startsAt,
+    joinOpensAt,
     internal.live.cron.startOne,
     { liveClassId, expectedStartsAt: startsAt },
   );
