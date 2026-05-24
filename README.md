@@ -89,10 +89,13 @@ Auth OTP / magic-link emails use the official [`@convex-dev/resend`](https://www
 ```sh
 bunx convex env set RESEND_API_KEY "re_..."
 bunx convex env set RESEND_FROM "AnatoMe <noreply@anatome.dolmengatemedia.com>"
+bunx convex env set FRONTEND_URL "https://www.anatome.co.il"
 bunx convex env set RESEND_TEST_MODE false
 ```
 
-`RESEND_TEST_MODE` defaults to **on** when `FRONTEND_URL` is localhost. While test mode is on, Resend only delivers to test inboxes (`delivered@resend.dev`, etc.).
+`RESEND_TEST_MODE` defaults to **on** when `FRONTEND_URL` is unset or points at localhost. While test mode is on, the Resend component rejects real recipient addresses (only `*@resend.dev` test inboxes). **Production:** set `FRONTEND_URL` to your public site and `RESEND_TEST_MODE=false`.
+
+**OTP not arriving but sign-in “succeeds”?** The Resend component sends asynchronously. Check Convex **Logs** for `permanent_failure` / `Resend API error`, and in the dashboard open the **resend** component → **emails** table for `failed` rows. Also confirm the domain `anatome.dolmengatemedia.com` is verified in Resend.
 
 3. Optional delivery webhooks (bounces, complaints, opens):
 

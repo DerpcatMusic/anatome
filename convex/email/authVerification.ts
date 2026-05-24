@@ -1,6 +1,7 @@
 import { resolveResendFromAddress } from "../lib/email";
 import type { ActionCtx } from "../_generated/server";
-import { resend } from "./resend";
+import type { EmailId } from "@convex-dev/resend";
+import { createResendClient } from "./resend";
 
 export type AuthVerificationEmail = {
   to: string;
@@ -62,8 +63,8 @@ function buildAuthVerificationText(args: AuthVerificationEmail): string {
 export async function sendAuthVerificationEmail(
   ctx: Pick<ActionCtx, "runMutation">,
   args: AuthVerificationEmail,
-): Promise<void> {
-  await resend.sendEmail(ctx, {
+): Promise<EmailId> {
+  return await createResendClient().sendEmail(ctx, {
     from: resolveResendFromAddress(),
     to: args.to,
     subject: "קוד הכניסה שלך ל-AnatoMe",

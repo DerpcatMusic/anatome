@@ -1,5 +1,6 @@
 import { Email } from "@convex-dev/auth/providers/Email";
 import { convexAuth } from "@convex-dev/auth/server";
+import { isResendTestMode } from "./lib/email";
 import { sendAuthVerificationEmail } from "./email/authVerification";
 
 declare const process: {
@@ -46,12 +47,34 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           return;
         }
 
-        await sendAuthVerificationEmail(ctx, {
-          to: identifier,
-          code: token,
-          magicLink,
-          expiresAt: expires,
-        });
+        try {
+          const emailId = await sendAuthVerificationEmail(ctx, {
+            to: identifier,
+            code: token,
+            magicLink,
+            expiresAt: expires,
+          });
+          console.log(
+            JSON.stringify({
+              source: "auth",
+              action: "verification_email_queued",
+              emailId,
+              testMode: isResendTestMode(),
+              toDomain: identifier.split("@")[1] ?? "",
+            }),
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(
+            JSON.stringify({
+              source: "auth",
+              action: "verification_email_failed",
+              testMode: isResendTestMode(),
+              error: message,
+            }),
+          );
+          throw error;
+        }
       },
     }),
   ],
