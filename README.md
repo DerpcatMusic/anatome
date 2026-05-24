@@ -50,8 +50,22 @@ For production, set `SITE_URL` to the public HomeBody domain.
 
 ## Cloudflare Pages
 
-Build command: `bun run build`  
-Build output directory: `build`
+This app is a **static** SvelteKit site (`adapter-static`). Use **Pages**, not Workers.
+
+| Setting | Value |
+|---------|--------|
+| **Build command** | `bun run build` |
+| **Build output directory** | `build` |
+| **Deploy command** | **Leave empty** (do not set `npx wrangler deploy`) |
+
+If a deploy command is set, Cloudflare runs `wrangler deploy`, tries to switch the project to Workers + `adapter-cloudflare`, and fails (`worker-configuration.d.ts` / wrong output path). Pages already publishes `build/` after a successful build when deploy command is blank.
+
+Optional CLI upload after a local build:
+
+```sh
+bun run build
+npx wrangler pages deploy build --project-name=anatome
+```
 
 Set this **environment variable** for Production (and Preview if you use preview deploys):
 

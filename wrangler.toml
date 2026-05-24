@@ -1,0 +1,16 @@
+# Static SvelteKit site (@sveltejs/adapter-static → `build/`).
+#
+# Cloudflare Pages (Git):
+#   Build command:        bun run build
+#   Build output dir:     build
+#   Deploy command:       (leave empty — Pages uploads `build/` automatically)
+#
+# Do NOT use `wrangler deploy` (Workers / adapter-cloudflare). That expects
+# `.svelte-kit/cloudflare/_worker.js` and will fail on this project.
+#
+# Optional manual upload:
+#   bun run build && npx wrangler pages deploy build --project-name=anatome
+
+name = "anatome"
+pages_build_output_dir = "build"
+compatibility_date = "2026-05-24"

@@ -9,6 +9,7 @@
     "dev": "vite dev",
     "dev:convex": "convex dev",
     "build": "vite build",
+    "pages:deploy": "vite build && bunx wrangler pages deploy build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
