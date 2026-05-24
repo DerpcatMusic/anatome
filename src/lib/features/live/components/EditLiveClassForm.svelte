@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Button } from "bits-ui";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
-  import { Slider } from "bits-ui";
   import DatePicker from "$components/ui/DatePicker.svelte";
-
   import { parseDate } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
   import { durationLabel } from "$lib/labels";
@@ -60,10 +58,12 @@
 
   function formatLocalTime(ts: number) {
     const d = new Date(ts);
-    const h = String(d.getHours()).padStart(2, "0");
-    const m = String(d.getMinutes()).padStart(2, "0");
-    return `${h}:${m}`;
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   }
+
+  const shortDateFormatter = new Intl.DateTimeFormat("he-IL", {
+    weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Jerusalem",
+  });
 
   // Form state
   let editTitle = $state("");
@@ -71,16 +71,13 @@
   let descEl = $state<HTMLTextAreaElement | null>(null);
   const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => editDescription });
 
-  let editTime = $state("");
-  let editDuration = $state(60);
+  let editStartTime = $state("07:00");
+  let editEndTime = $state("08:00");
   let editJoinOpens = $state(10);
   let editCapacity = $state(12);
   let editEquipment = $state<Equipment[]>([]);
-
   let editDateValue = $state<DateValue | undefined>(undefined);
-  const editDate = $derived(editDateValue ? editDateValue.toString() : "");
 
-  // Initialize form when liveClass changes (only when the class reference changes)
   let previousClassId: Id<"liveClasses"> | undefined = undefined;
   $effect(() => {
     const classId = liveClass._id;
@@ -88,8 +85,8 @@
     previousClassId = classId;
     editTitle = liveClass.title;
     editDescription = liveClass.description || "";
-    editTime = formatLocalTime(liveClass.startsAt);
-    editDuration = Math.round((liveClass.endsAt - liveClass.startsAt) / (1000 * 60));
+    editStartTime = formatLocalTime(liveClass.startsAt);
+    editEndTime = formatLocalTime(liveClass.endsAt);
     editJoinOpens = liveClass.joinOpensMinutesBefore ?? 10;
     editCapacity = liveClass.capacity;
     editEquipment = [...liveClass.requiredEquipment];
@@ -100,23 +97,29 @@
     }
   });
 
-  // Computed end time
-  const endTimeDisplay = $derived.by(() => {
-    const [h, m] = editTime.split(":").map(Number);
-    const start = new Date(2000, 0, 1, h, m);
-    const end = new Date(start.getTime() + editDuration * 60000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(end.getHours())}:${pad(end.getMinutes())}`;
-  });
+  function timeToMinutes(t: string) {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  }
+
+  function computeDuration(): number {
+    const diff = timeToMinutes(editEndTime) - timeToMinutes(editStartTime);
+    return diff > 0 ? diff : diff + 24 * 60;
+  }
+
+  const formattedDate = $derived(editDateValue ? shortDateFormatter.format(new Date(editDateValue.toString())) : "");
+  const computedDuration = $derived(computeDuration());
+  const durationLabelText = $derived(`${computedDuration} דק׳`);
 
   function handleSubmit(e: Event) {
     e.preventDefault();
-    const startsAt = new Date(`${editDate}T${editTime}`).getTime();
+    if (!editDateValue) return;
+    const startsAt = new Date(`${editDateValue.toString()}T${editStartTime}`).getTime();
     onSubmit({
       title: editTitle.trim(),
       description: editDescription.trim(),
       startsAt,
-      durationMinutes: editDuration,
+      durationMinutes: computeDuration(),
       joinOpensMinutesBefore: editJoinOpens,
       capacity: liveClass.type === "one_on_one" ? 1 : editCapacity,
       requiredEquipment: editEquipment,
@@ -163,130 +166,70 @@
   </div>
 {:else}
   <form onsubmit={handleSubmit} class="edit-form">
-    <div class="form-grid">
-      <div class="hb-input-field span-2">
-        <span class="hb-input-field__label">כותרת</span>
-        <input class="hb-input" bind:value={editTitle} required disabled={submitting} maxlength="120" />
-      </div>
+    <!-- Title -->
+    <div class="form-field">
+      <label class="field-label" for="edit-title">כותרת השיעור</label>
+      <input id="edit-title" class="hb-input" bind:value={editTitle} required disabled={submitting} maxlength="120" />
+    </div>
 
-      <div class="hb-input-field span-2">
-        <span class="hb-input-field__label">תיאור</span>
-        <textarea class="hb-textarea" bind:value={editDescription} bind:this={descEl} disabled={submitting} maxlength="500"></textarea>
-      </div>
+    <!-- Equipment -->
+    <div class="form-field">
+      <span class="field-label">ציוד נדרש</span>
+      <EquipmentPicker compact bind:selected={editEquipment} />
+    </div>
 
-      <div class="form-row-split span-2">
-        <DatePicker label="תאריך" bind:value={editDateValue} disabled={submitting} />
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">שעת התחלה</span>
-          <input
-            type="time"
-            class="hb-input time-input"
-            disabled={submitting}
-            bind:value={editTime}
-            step="60"
-          />
+    <!-- Date + Time row -->
+    <div class="form-field">
+      <span class="field-label">מועד השיעור</span>
+      <div class="datetime-row">
+        <div class="date-field">
+          <DatePicker label="" bind:value={editDateValue} disabled={submitting} />
+          <span class="date-display">{formattedDate}</span>
         </div>
-      </div>
-
-      <div class="form-row-split span-2">
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">משך (דקות)</span>
-          <div class="hb-slider">
-  <span class="hb-slider__label">משך</span>
-  <span class="hb-slider__value">{editDuration}</span>
-  <Slider.Root
-    class="hb-slider__root"
-    type="single"
-    min={15}
-    max={180}
-    step={5}
-    value={editDuration}
-    onValueChange={(v) => editDuration = v}
-    aria-label="משך"
-  >
-    <span class="hb-slider__track">
-      <Slider.Range class="hb-slider__range" />
-    </span>
-    <Slider.Thumb class="hb-slider__thumb" index={0} />
-  </Slider.Root>
-</div>
-          <span class="duration-badge">{durationLabel(editDuration)}</span>
-        </div>
-
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">עד</span>
-          <div class="end-time-box">{endTimeDisplay}</div>
-        </div>
-      </div>
-
-      <div class="form-row-split span-2">
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">פתיחת כניסה (דקות לפני)</span>
-          <div class="hb-slider">
-  <span class="hb-slider__label">פתיחה</span>
-  <span class="hb-slider__value">{editJoinOpens}</span>
-  <Slider.Root
-    class="hb-slider__root"
-    type="single"
-    min={0}
-    max={60}
-    step={5}
-    value={editJoinOpens}
-    onValueChange={(v) => editJoinOpens = v}
-    aria-label="פתיחה"
-  >
-    <span class="hb-slider__track">
-      <Slider.Range class="hb-slider__range" />
-    </span>
-    <Slider.Thumb class="hb-slider__thumb" index={0} />
-  </Slider.Root>
-</div>
-          <span class="duration-badge">{editJoinOpens} דק׳</span>
-        </div>
-
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">קיבולת</span>
-          {#if liveClass.type === "one_on_one"}
-            <div class="one-on-one-badge">1 משתתפת (אישי)</div>
-          {:else}
-            <div class="hb-slider">
-  <span class="hb-slider__label">קיבולת</span>
-  <span class="hb-slider__value">{editCapacity}</span>
-  <Slider.Root
-    class="hb-slider__root"
-    type="single"
-    min={1}
-    max={50}
-    step={1}
-    value={editCapacity}
-    onValueChange={(v) => editCapacity = v}
-    aria-label="קיבולת"
-  >
-    <span class="hb-slider__track">
-      <Slider.Range class="hb-slider__range" />
-    </span>
-    <Slider.Thumb class="hb-slider__thumb" index={0} />
-  </Slider.Root>
-</div>
-            <span class="duration-badge">{editCapacity} מקומות</span>
-          {/if}
-        </div>
-      </div>
-
-      <div class="form-field-group span-2">
-        <span class="field-group-label">ציוד נדרש</span>
-        <EquipmentPicker bind:selected={editEquipment} />
+        <label class="time-field">
+          <span class="time-label">התחלה</span>
+          <input type="time" class="hb-input" bind:value={editStartTime} step="60" disabled={submitting} />
+        </label>
+        <label class="time-field">
+          <span class="time-label">סיום</span>
+          <input type="time" class="hb-input" bind:value={editEndTime} step="60" disabled={submitting} />
+        </label>
+        <div class="duration-badge">{durationLabelText}</div>
       </div>
     </div>
 
+    <!-- Settings row -->
+    <div class="settings-row">
+      <label class="settings-field">
+        <span class="settings-label">פתיחה (דק׳ לפני)</span>
+        <input type="number" class="hb-input" bind:value={editJoinOpens} min="0" max="60" step="5" disabled={submitting} />
+      </label>
+      {#if liveClass.type === "group_live"}
+        <label class="settings-field">
+          <span class="settings-label">קיבולת</span>
+          <input type="number" class="hb-input" bind:value={editCapacity} min="1" max="50" step="1" disabled={submitting} />
+        </label>
+      {:else}
+        <div class="settings-field">
+          <span class="settings-label">קיבולת</span>
+          <div class="one-on-one-badge">1 משתתפת (אישי)</div>
+        </div>
+      {/if}
+    </div>
+
+    <!-- Description -->
+    <div class="form-field">
+      <label class="field-label" for="edit-desc">תיאור <span class="field-optional">(אופציונלי)</span></label>
+      <textarea id="edit-desc" class="hb-textarea" bind:value={editDescription} bind:this={descEl} disabled={submitting} maxlength="500" rows="2" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
+    </div>
+
+    <!-- Actions -->
     <div class="modal-actions">
       {#if liveClass.status === "live"}
-        <div class="live-action-buttons">
-          <Button.Root class="hb-button hb-button--ink" type="button" onclick={onEndLive} disabled={submitting}>
-            לסיים שידור
-          </Button.Root>
-          <span class="live-badge-glow">🔴 שידור חי פעיל</span>
-        </div>
+        <Button.Root class="hb-button hb-button--ink" type="button" onclick={onEndLive} disabled={submitting}>
+          לסיים שידור
+        </Button.Root>
+        <span class="live-badge"><span class="live-dot"></span>שידור חי פעיל</span>
       {:else}
         <Button.Root class="hb-button hb-button--ink" type="submit" disabled={submitting}>
           {submitting ? "מעדכן..." : "שמירת שינויים"}
@@ -310,43 +253,102 @@
     gap: var(--space-4);
   }
 
-  .form-grid {
+  .form-field {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-1);
   }
 
-  .span-2 {
-    grid-column: span 2;
+  .field-label {
+    font-weight: 800;
+    font-size: var(--step--1);
+    color: var(--ink);
   }
 
-  .form-row-split {
+  .field-optional {
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  /* Date + time row */
+  .datetime-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-3);
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: var(--space-2);
+    align-items: end;
+  }
+
+  .date-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    position: relative;
+  }
+
+  .date-field :global(.hb-date-picker) {
+    gap: 0;
+  }
+
+  .date-field :global(.hb-date-picker__label) {
+    display: none;
+  }
+
+  .date-display {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--muted);
+    padding-inline: var(--space-1);
+  }
+
+  .time-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .time-label {
+    font-size: var(--step--2);
+    font-weight: 800;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
   }
 
   .duration-badge {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    font-weight: 800;
-    margin-block-start: 2px;
-    display: block;
-    color: var(--sky-strong);
-  }
-
-  .end-time-box {
-    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: var(--border);
+    min-height: 44px;
+    padding: 0 var(--space-3);
     background: var(--surface);
-    color: var(--muted);
+    border: var(--border);
+    border-radius: 4px;
     font-family: var(--font-mono);
     font-weight: 800;
-    font-size: var(--step-0);
-    direction: ltr;
+    font-size: var(--step--1);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Settings row */
+  .settings-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .settings-label {
+    font-size: var(--step--2);
+    font-weight: 800;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
   }
 
   .one-on-one-badge {
@@ -361,50 +363,38 @@
     font-size: var(--step--1);
     width: fit-content;
     min-height: 44px;
+    border-radius: 4px;
   }
 
-  .form-field-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding-block-start: var(--space-2);
-  }
-
-  .field-group-label {
-    font-weight: 800;
-    font-size: var(--step--1);
-    color: var(--ink);
-  }
-
+  /* Actions */
   .modal-actions {
     display: flex;
     gap: var(--space-2);
-    margin-block-start: var(--space-3);
+    padding-top: var(--space-2);
+    border-top: var(--border);
     align-items: center;
     flex-wrap: wrap;
   }
 
-  .live-action-buttons {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .live-badge-glow {
+  .live-badge {
     font-family: var(--font-mono);
     font-size: var(--step--1);
     font-weight: 800;
     color: var(--terra);
-    animation: blink 1s infinite alternate;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .live-badge-glow {
-      animation: none;
-    }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--terra-strong);
+    border-radius: 50%;
+    display: inline-block;
   }
 
-  /* Ended Class details */
+  /* Ended class */
   .read-only-banner {
     display: flex;
     align-items: center;
@@ -412,6 +402,7 @@
     background: var(--surface);
     border: var(--border);
     padding: var(--space-3);
+    border-radius: 4px;
   }
 
   .completed-tick {
@@ -440,6 +431,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    border-radius: 4px;
   }
 
   .detail-row {
@@ -467,8 +459,21 @@
     text-align: end;
   }
 
-  @keyframes blink {
-    from { opacity: 0.5; }
-    to { opacity: 1; }
+  @media (max-width: 520px) {
+    .datetime-row {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .date-field {
+      grid-column: 1 / -1;
+    }
+
+    .duration-badge {
+      grid-column: 1 / -1;
+    }
+
+    .settings-row {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

@@ -55,8 +55,10 @@
   --accent-purple: #8c5cf6;
 
   /* Typography */
-  --font-body: "Noto Sans Hebrew", "Assistant", "Arial", sans-serif;
+  --font-body: "Assistant", "Noto Sans Hebrew", "Arial", sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
+  --font-display: "Secular One", "Assistant", sans-serif;
+  --font-hand: "Gveret Levin", cursive;
 
   /* Type scale — BIGGER */
   --step--2: 0.75rem;

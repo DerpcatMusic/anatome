@@ -3,11 +3,9 @@
   import "@event-calendar/core/index.css";
   import "$features/live/styles/calendar-theme.css";
 
-  import { Button } from "bits-ui";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
-  import { durationLabel } from "$lib/labels";
   import type { Equipment } from "$lib/labels";
   import LiveClassModalShell from "./LiveClassModalShell.svelte";
   import EditLiveClassForm from "./EditLiveClassForm.svelte";
@@ -32,6 +30,7 @@
     actionId: string | null;
     onSelectSlot: (timeLocalString: string, durationMinutes: number) => void;
     onRefreshClasses: () => Promise<void>;
+    onCreateButtonClick: () => void;
   }
 
   let {
@@ -41,6 +40,7 @@
     actionId,
     onSelectSlot,
     onRefreshClasses,
+    onCreateButtonClick,
   }: Props = $props();
 
   const client = useConvexClient();
@@ -121,59 +121,60 @@
     }
   }
 
-  async function handleDragDropReschedule(liveClassId: Id<"liveClasses">, newStartsAt: number, newEndsAt: number) {
-    const orig = classes.find(c => c._id === liveClassId);
-    if (!orig) return;
-
-    const durationMinutes = Math.round((newEndsAt - newStartsAt) / (1000 * 60));
-    try {
-      await client.mutation(api.live.class.reschedule, {
-        liveClassId,
-        startsAt: newStartsAt,
-        durationMinutes,
-        joinOpensMinutesBefore: orig.joinOpensMinutesBefore ?? 10,
-        capacity: orig.capacity,
-        requiredEquipment: orig.requiredEquipment,
-        title: orig.title,
-        description: orig.description,
-      });
-      await onRefreshClasses();
-    } catch (err) {
-      editError = err instanceof Error ? err.message : "לא הצלחנו לעדכן את השיעור.";
-      await onRefreshClasses(); // Rollback local view
-    }
-  }
-
-  // Calendar configuration with reactive states
+  // Calendar plugins
   const plugins = [TimeGrid, Interaction];
 
   const calendarOptions = $derived({
     view: "timeGridWeek",
     locale: "he",
     direction: "rtl" as const,
-    firstDay: 0, // Sunday first
-    slotMinTime: "06:00:00",
-    slotMaxTime: "23:00:00",
-    allDaySlot: false,
-    headerToolbar: {
-      start: "today prev,next",
-      center: "title",
-      end: ""
-    },
-    buttonText: {
-      today: "היום"
-    },
+    firstDay: 0,
     height: "100%",
-    slotDuration: "00:15:00",
+
+    // Density
+    slotDuration: "00:30:00",
     snapDuration: "00:15:00",
     slotLabelInterval: "01:00:00",
     slotEventOverlap: false,
+    slotHeight: 36,
+
+    // Time range: wide defaults, auto-expand when events are out of bounds
+    slotMinTime: "00:00:00",
+    slotMaxTime: "24:00:00",
+    flexibleSlotTimeLimits: true,
+
+    // Scroll to current time on load
+    scrollTime: `${String(new Date().getHours()).padStart(2, "0")}:00:00`,
+
+    // Interactions: click to edit, select range to create
     selectable: true,
     unselectAuto: true,
-    editable: true,
-    selectBackgroundColor: "rgba(59, 130, 246, 0.35)",
+    editable: false,
+    eventStartEditable: false,
+    eventDurationEditable: false,
+    pointer: true,
+    nowIndicator: true,
+    customScrollbars: true,
+    selectBackgroundColor: "rgba(59, 130, 246, 0.25)",
+    longPressDelay: 600,
 
-    // Reactive Convex classes array
+    // Toolbar: create button integrated
+    headerToolbar: {
+      start: "customCreate",
+      center: "title",
+      end: "today prev,next",
+    },
+    customButtons: {
+      customCreate: {
+        text: "שיעור לייב חדש",
+        click: onCreateButtonClick,
+      },
+    },
+    buttonText: {
+      today: "היום",
+    },
+
+    // Events
     events: classes
       .filter((c) => c.status !== "cancelled")
       .map((c) => ({
@@ -185,49 +186,38 @@
         startEditable: c.status === "scheduled" || c.status === "live",
         durationEditable: c.status === "scheduled" || c.status === "live",
         className: `ec-event-status--${c.status}`,
-        extendedProps: {
-          originalClass: c
-        }
+        extendedProps: { originalClass: c },
       })),
 
-    // Calendar Handlers
+    // Click empty slot → quick create
+    dateClick: function(info: { date: Date; dateStr: string }) {
+      if (info.date.getTime() < Date.now() - 5 * 60 * 1000) return;
+      const startsAtLocal = toDateTimeLocal(info.date);
+      onSelectSlot(startsAtLocal, 50);
+    },
+
+    // Select range → create
     select: function(info: { start: Date; end: Date }) {
-      // Block scheduling in the past
-      if (info.start.getTime() < Date.now() - 5 * 60 * 1000) {
-        return;
-      }
+      if (info.start.getTime() < Date.now() - 5 * 60 * 1000) return;
       const startsAtLocal = toDateTimeLocal(info.start);
       const durationMinutes = Math.round((info.end.getTime() - info.start.getTime()) / 60000);
       onSelectSlot(startsAtLocal, durationMinutes);
     },
+
+    // Click event → edit
     eventClick: function(info: { event: { extendedProps: { originalClass?: LiveClass } } }) {
       const liveClass = info.event.extendedProps?.originalClass;
       if (!liveClass) return;
       editError = "";
       activeEditClass = liveClass;
     },
-    eventDrop: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date }; revert: () => void }) {
-      const liveClass = info.event.extendedProps?.originalClass;
-      if (!liveClass || liveClass.status === "ended") {
-        info.revert();
-        return;
-      }
-      handleDragDropReschedule(liveClass._id, info.event.start.getTime(), info.event.end.getTime());
-    },
-    eventResize: function(info: { event: { extendedProps: { originalClass?: LiveClass }; start: Date; end: Date }; revert: () => void }) {
-      const liveClass = info.event.extendedProps?.originalClass;
-      if (!liveClass || liveClass.status === "ended") {
-        info.revert();
-        return;
-      }
-      handleDragDropReschedule(liveClass._id, info.event.start.getTime(), info.event.end.getTime());
-    },
 
-    // Event content — show start/end times on preview/ghost during drag
+
+
+    // Event content renderer
     eventContent: function(info: { event: { display: string; extendedProps: { originalClass?: LiveClass }; start: Date; end: Date } }) {
       const c = info.event.extendedProps?.originalClass;
 
-      // Selection preview (drag-to-create) or dragged copy (drag-to-move)
       if (info.event.display === "preview") {
         const start = formatLocalTime(info.event.start.getTime());
         const end = formatLocalTime(info.event.end.getTime());
@@ -239,7 +229,7 @@
               <span class="preview-divider">${duration} דק׳</span>
               <span class="preview-end">${end}</span>
             </div>
-          `
+          `,
         };
       }
 
@@ -247,32 +237,28 @@
         return { html: "" };
       }
 
-      const formattedTime = `${formatLocalTime(c.startsAt)} – ${formatLocalTime(c.endsAt)}`;
-
-      let statusDot = "";
-      if (c.status === "live") {
-        statusDot = `<span class="pulse-indicator" aria-label="שידור חי"></span>`;
-      }
+      const formattedTime = `${formatLocalTime(c.startsAt)} \u2013 ${formatLocalTime(c.endsAt)}`;
+      const statusDot = c.status === "live"
+        ? `<span class="pulse-indicator" aria-label="\u05e9\u05d9\u05d3\u05d5\u05e8 \u05d7\u05d9"></span>`
+        : "";
 
       return {
         html: `
-          <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} • ${formattedTime}">
+          <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} \u2022 ${formattedTime}">
             <div class="event-title">${escapeHtml(c.title)}</div>
             <div class="event-meta">
               ${statusDot}
-              <span class="meta-badge">${c.type === "one_on_one" ? "1:1" : "קבוצתי"}</span>
+              <span class="meta-badge">${c.type === "one_on_one" ? "1:1" : "\u05e7\u05d1\u05d5\u05e6\u05ea\u05d9"}</span>
             </div>
           </div>
-        `
+        `,
       };
-    }
+    },
   });
 </script>
 
 <div class="weekly-agenda-container ec-auto-dark">
-  <div class="calendar-wrapper">
-    <Calendar {plugins} options={calendarOptions} />
-  </div>
+  <Calendar {plugins} options={calendarOptions} />
 </div>
 
 <LiveClassModalShell
@@ -280,7 +266,7 @@
   title={activeEditClass?.status === "ended" ? "שיעור לייב שהסתיים" : "עריכת שיעור לייב"}
   icon={activeEditClass?.status === "ended" ? "task_alt" : "edit_calendar"}
   iconColor={activeEditClass?.status === "ended" ? "var(--muted)" : "var(--sky-strong)"}
-  wide
+
 >
   {#if activeEditClass}
     <EditLiveClassForm
@@ -311,17 +297,6 @@
     width: 100%;
     direction: rtl;
     contain: layout paint;
-  }
-
-  .calendar-wrapper {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--white);
-    border: 1px solid var(--line-light);
-    padding: var(--space-2);
-    border-radius: 8px;
   }
 
   .form-error {

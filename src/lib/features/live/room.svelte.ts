@@ -905,7 +905,7 @@ export class LiveRoom {
         return;
       }
       const message = reason instanceof Error ? reason.message : String(reason);
-      if (message.includes("Class is not live")) {
+      if (message.includes("Class is not live") || message.includes("השיעור אינו חי")) {
         const role = getCachedRole();
         if (role === "instructor" || role === "admin") {
           this.status = "prep";

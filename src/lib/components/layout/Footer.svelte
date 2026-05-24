@@ -5,7 +5,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <span class="footer-logo">HomeBody</span>
+      <span class="footer-logo">AnatoMe</span>
       <span class="footer-tagline">פילאטיס שיקומי אונליין</span>
     </div>
 
@@ -19,14 +19,14 @@
 
     <div class="footer-contact">
       <!-- FILL IN: אימייל אמיתי -->
-      <a href="mailto:hello@homebody.fitness">hello@homebody.fitness</a>
+      <a href="mailto:hello@anatome.fitness">hello@anatome.fitness</a>
       <!-- FILL IN: טלפון אמיתי -->
       <span dir="ltr">+972-50-000-0000</span>
     </div>
   </div>
 
   <div class="footer-legal">
-    <span>© {year} HomeBody</span>
+    <span>© {year} AnatoMe</span>
     <a href="/legal/health">הצהרת בריאות</a>
     <a href="/legal/privacy">פרטיות</a>
   </div>
@@ -54,10 +54,9 @@
   }
 
   .footer-logo {
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-size: var(--step-1);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 400;
   }
 
   .footer-tagline {
@@ -67,8 +66,10 @@
 
   .footer-links {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
   }
 
   .footer-links a,

@@ -2,11 +2,9 @@
   import { Button } from "bits-ui";
   import DatePicker from "$components/ui/DatePicker.svelte";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
-  import { RadioGroup } from "bits-ui";
-  import FormSection from "$features/app/components/FormSection.svelte";
   import type { Equipment } from "$lib/labels";
   import { TextareaAutosize } from "runed";
-  import { CalendarDate, toCalendarDateTime, parseDate, parseTime } from "@internationalized/date";
+  import { parseDate } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
 
   let {
@@ -33,313 +31,353 @@
     onSubmit: () => void;
   } = $props();
 
-  const liveTypeOptions = [
-    { value: "group_live", label: "לייב קבוצתי", description: "עד 12 משתתפות, קרדיט לייב אחד" },
-    { value: "one_on_one", label: "1:1 אישי", description: "משתתפת אחת, קרדיט 1:1 אחד" },
-  ];
-
+  // Internal time state
   let dateValue = $state<DateValue | undefined>(undefined);
+  let startTime = $state("07:00");
+  let endTime = $state("08:00");
   let descEl = $state<HTMLTextAreaElement | null>(null);
   const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => description });
 
-  const hebrewDateFormatter = new Intl.DateTimeFormat("he-IL", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jerusalem",
-  });
-  const timeFormatter = new Intl.DateTimeFormat("he-IL", {
-    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem",
+  const dateFormatter = new Intl.DateTimeFormat("he-IL", {
+    weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem",
   });
 
-  // ── Derived displays ──
-  const timeSummary = $derived.by(() => {
-    if (!startsAtLocal) return { date: "", start: "", end: "", duration: "" };
-    const [datePart, timePart] = startsAtLocal.split("T");
-    if (!datePart || !timePart) return { date: "", start: "", end: "", duration: "" };
-
-    const startDate = new Date(startsAtLocal);
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
-
-    return {
-      date: hebrewDateFormatter.format(startDate),
-      start: timeFormatter.format(startDate),
-      end: timeFormatter.format(endDate),
-      duration: `${durationMinutes} דק׳`,
-    };
+  const shortDateFormatter = new Intl.DateTimeFormat("he-IL", {
+    weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Jerusalem",
   });
 
-  // ── Sync dateValue ↔ startsAtLocal ──
-  function updateDateFromPicker(next: DateValue | undefined) {
-    if (!next || !startsAtLocal) return;
-    const timePart = startsAtLocal.split("T")[1] ?? "00:00";
-    startsAtLocal = `${next.toString()}T${timePart}`;
-  }
-
-  // Initialize dateValue from startsAtLocal
-  let previousStartsAtLocal = $state(startsAtLocal);
+  // Sync internal state from external props
   $effect(() => {
     const current = startsAtLocal;
-    if (current === previousStartsAtLocal) return;
-    previousStartsAtLocal = current;
     if (!current) return;
-    const [datePart] = current.split("T");
-    if (!datePart) return;
-    try {
-      dateValue = parseDate(datePart);
-    } catch {
-      dateValue = undefined;
+    const [datePart, timePart] = current.split("T");
+    if (datePart) {
+      try { dateValue = parseDate(datePart); } catch { /* keep current */ }
+    }
+    if (timePart) {
+      startTime = timePart;
+      const [h, m] = timePart.split(":").map(Number);
+      const startMin = h * 60 + m;
+      const endMin = startMin + durationMinutes;
+      const endH = Math.floor(endMin / 60) % 24;
+      const endM = endMin % 60;
+      endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
     }
   });
+
+  // Auto-update end time when start time changes (preserve duration)
+  let previousStartTime = "";
+  $effect(() => {
+    const currentStart = startTime;
+    if (currentStart === previousStartTime) return;
+    const oldStartMin = timeToMinutes(previousStartTime || currentStart);
+    const newStartMin = timeToMinutes(currentStart);
+    const oldEndMin = timeToMinutes(endTime);
+    const duration = oldEndMin - oldStartMin;
+    const newEndMin = newStartMin + (duration > 0 ? duration : 50);
+    endTime = minutesToTime(newEndMin);
+    previousStartTime = currentStart;
+  });
+
+  function timeToMinutes(t: string) {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  }
+
+  function minutesToTime(min: number) {
+    const h = Math.floor(min / 60) % 24;
+    const m = min % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  function computeDuration(): number {
+    const diff = timeToMinutes(endTime) - timeToMinutes(startTime);
+    return diff > 0 ? diff : diff + 24 * 60;
+  }
+
+  const formattedDate = $derived(dateValue ? shortDateFormatter.format(new Date(dateValue.toString())) : "בחרו תאריך");
+  const computedDuration = $derived(computeDuration());
+  const durationLabel = $derived(`${computedDuration} דק׳`);
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
+    if (!dateValue) return;
+    startsAtLocal = `${dateValue.toString()}T${startTime}`;
+    durationMinutes = computeDuration();
+    onSubmit();
+  }
+
+  function setType(type: "group_live" | "one_on_one") {
+    liveType = type;
+    if (type === "one_on_one") capacity = 1;
+  }
 </script>
 
-<form onsubmit={(event) => { event.preventDefault(); onSubmit(); }}>
-  <div class="studio-form-layout">
-    <!-- Scheduling Summary -->
-    <section class="time-summary-section">
-      <div class="time-badge">
-        <span class="time-badge__date">{timeSummary.date}</span>
-        <div class="time-badge__range">
-          <span class="time-badge__start">{timeSummary.start}</span>
-          <span class="time-badge__sep">–</span>
-          <span class="time-badge__end">{timeSummary.end}</span>
-          <span class="time-badge__duration">({timeSummary.duration})</span>
-        </div>
-      </div>
-      <div class="date-adjust">
-        <DatePicker label="שינוי תאריך" bind:value={dateValue} onchange={updateDateFromPicker} />
-      </div>
-    </section>
-
-    <!-- Class Settings -->
-    <section class="settings-section">
-      <FormSection title="פרטי השיעור">
-        <RadioGroup.Root class="hb-choice-grid live-type-switch" bind:value={liveType} orientation="horizontal">
-          {#each liveTypeOptions as option}
-            <RadioGroup.Item class="hb-choice" value={option.value}>
-              <span class="hb-choice__title">{option.label}</span>
-              {#if option.description}
-                <span class="hb-choice__description">{option.description}</span>
-              {/if}
-            </RadioGroup.Item>
-          {/each}
-        </RadioGroup.Root>
-
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">כותרת</span>
-          <input class="hb-input" bind:value={title} required maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי" />
-        </div>
-
-        <div class="hb-input-field">
-          <span class="hb-input-field__label">תיאור</span>
-          <textarea class="hb-textarea" bind:value={description} bind:this={descEl} maxlength="500" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
-        </div>
-
-        <div class="compact-settings-row">
-          {#if liveType === "group_live"}
-            <label class="compact-field">
-              <span class="compact-field__label">קיבולת</span>
-              <div class="compact-input-wrap">
-                <input
-                  type="number"
-                  class="compact-input"
-                  bind:value={capacity}
-                  min="1"
-                  max="12"
-                  step="1"
-                  required
-                />
-                <span class="compact-suffix">מקומות</span>
-              </div>
-            </label>
-          {:else}
-            <div class="compact-field compact-field--readonly">
-              <span class="compact-field__label">קיבולת</span>
-              <div class="one-on-one-badge">1 משתתפת (אישי)</div>
-            </div>
-          {/if}
-
-          <div class="compact-field compact-field--readonly">
-            <span class="compact-field__label">כניסה לשיעור</span>
-            <span class="compact-suffix">נפתחת 10 דק׳ לפני תחילתו</span>
-          </div>
-        </div>
-      </FormSection>
-    </section>
-
-    <!-- Equipment -->
-    <section class="equipment-section">
-      <EquipmentPicker bind:selected={requiredEquipment} label="ציוד חובה לשיעור" />
-    </section>
+<form onsubmit={handleSubmit} class="studio-form">
+  <!-- Title -->
+  <div class="form-field">
+    <label class="field-label" for="create-title">כותרת השיעור</label>
+    <input id="create-title" class="hb-input" bind:value={title} required maxlength="120" placeholder="למשל: פילאטיס מזרן דינמי" />
   </div>
 
+  <!-- Type toggle -->
+  <div class="form-field">
+    <span class="field-label">סוג שיעור</span>
+    <div class="type-toggle">
+      <button
+        type="button"
+        class="type-toggle__btn"
+        class:type-toggle__btn--active={liveType === "group_live"}
+        onclick={() => setType("group_live")}
+      >
+        <span class="material-symbols-rounded">groups</span>
+        <span>שיעור קבוצתי</span>
+      </button>
+      <button
+        type="button"
+        class="type-toggle__btn"
+        class:type-toggle__btn--active={liveType === "one_on_one"}
+        onclick={() => setType("one_on_one")}
+      >
+        <span class="material-symbols-rounded">person</span>
+        <span>אימון אישי 1:1</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Equipment -->
+  <div class="form-field">
+    <span class="field-label">ציוד נדרש</span>
+    <EquipmentPicker compact bind:selected={requiredEquipment} />
+  </div>
+
+  <!-- Date + Time row -->
+  <div class="form-field">
+    <span class="field-label">מועד השיעור</span>
+    <div class="datetime-row">
+      <div class="date-field">
+        <DatePicker label="" bind:value={dateValue} />
+        <span class="date-display">{formattedDate}</span>
+      </div>
+      <label class="time-field">
+        <span class="time-label">התחלה</span>
+        <input type="time" class="hb-input" bind:value={startTime} step="60" />
+      </label>
+      <label class="time-field">
+        <span class="time-label">סיום</span>
+        <input type="time" class="hb-input" bind:value={endTime} step="60" />
+      </label>
+      <div class="duration-badge">{durationLabel}</div>
+    </div>
+  </div>
+
+  <!-- Settings row -->
+  <div class="settings-row">
+    {#if liveType === "group_live"}
+      <label class="settings-field">
+        <span class="settings-label">קיבולת</span>
+        <input type="number" class="hb-input" bind:value={capacity} min="1" max="50" step="1" />
+      </label>
+    {/if}
+    <label class="settings-field">
+      <span class="settings-label">פתיחה (דק׳ לפני)</span>
+      <input type="number" class="hb-input" bind:value={joinOpensMinutesBefore} min="0" max="60" step="5" />
+    </label>
+  </div>
+
+  <!-- Description -->
+  <div class="form-field">
+    <label class="field-label" for="create-desc">תיאור <span class="field-optional">(אופציונלי)</span></label>
+    <textarea id="create-desc" class="hb-textarea" bind:value={description} bind:this={descEl} maxlength="500" rows="2" placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."></textarea>
+  </div>
+
+  <!-- Submit -->
   <div class="form-actions">
-    <Button.Root class="hb-button hb-button--ink" type="submit" disabled={pending || requiredEquipment.length === 0}>
+    <Button.Root class="hb-button hb-button--ink" type="submit" disabled={pending || requiredEquipment.length === 0 || !dateValue}>
       {pending ? "יוצרות..." : "לתזמן לייב"}
     </Button.Root>
   </div>
 </form>
 
 <style>
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
-  }
-
-  .studio-form-layout {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
-  }
-
-  /* ── Time Summary Badge ── */
-  .time-summary-section {
-    border: var(--border);
-    background: var(--surface);
-    padding: var(--space-4);
+  .studio-form {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
   }
 
-  .time-badge {
+  .form-field {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
     gap: var(--space-1);
   }
 
-  .time-badge__date {
-    font-size: var(--step--1);
-    font-weight: 700;
-    color: var(--muted);
-  }
-
-  .time-badge__range {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .time-badge__start,
-  .time-badge__end {
-    font-family: var(--font-mono);
-    font-size: var(--step-2);
-    font-weight: 900;
-    color: var(--ink);
-    line-height: 1;
-  }
-
-  .time-badge__sep {
-    font-family: var(--font-mono);
-    font-size: var(--step-1);
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .time-badge__duration {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
+  .field-label {
     font-weight: 800;
-    color: var(--sky-strong);
-    background: var(--sky-soft);
-    padding: 2px 8px;
-    border: 1px solid var(--sky);
+    font-size: var(--step--1);
+    color: var(--ink);
   }
 
-  .date-adjust {
-    max-width: 280px;
-    margin: 0 auto;
-    width: 100%;
+  .field-optional {
+    font-weight: 600;
+    color: var(--muted);
   }
 
-  /* ── Settings Section ── */
-  .settings-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  /* ── Compact Settings Row ── */
-  .compact-settings-row {
+  /* Type toggle */
+  .type-toggle {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-4);
-    border-top: 1px solid var(--line-light);
-    padding-block-start: var(--space-4);
-  }
-
-  .compact-field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .compact-field__label {
-    font-weight: 800;
-    font-size: var(--step--1);
-    color: var(--ink);
-  }
-
-  .compact-input-wrap {
-    display: flex;
-    align-items: center;
+    grid-template-columns: 1fr 1fr;
     gap: var(--space-2);
   }
 
-  .compact-input {
+  .type-toggle__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
     min-height: 44px;
-    width: 72px;
+    padding: var(--space-2) var(--space-3);
     border: var(--border);
     background: var(--white);
     color: var(--ink);
-    padding: var(--space-2) var(--space-2);
     font: inherit;
     font-weight: 800;
-    font-size: var(--step-0);
-    text-align: center;
-    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s ease, border-color 0.2s ease, border-radius 0.35s ease, transform 0.08s ease;
   }
 
-  .compact-input:focus {
-    outline: none;
+  .type-toggle__btn:hover {
+    background: var(--surface);
     border-color: var(--sky-strong);
+    border-radius: 22px;
   }
 
-  .compact-suffix {
+  .type-toggle__btn:active {
+    transform: translateY(1px);
+    background: var(--line-light);
+  }
+
+  .type-toggle__btn--active {
+    background: var(--sky);
+    border-color: var(--ink);
+  }
+
+  .type-toggle__btn--active:hover {
+    background: var(--sky-strong);
+    color: var(--white);
+    border-color: var(--ink);
+  }
+
+  .type-toggle__btn .material-symbols-rounded {
+    font-size: var(--step-1);
+  }
+
+  /* Date + time row */
+  .datetime-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: var(--space-2);
+    align-items: end;
+  }
+
+  .date-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    position: relative;
+  }
+
+  .date-field :global(.hb-date-picker) {
+    gap: 0;
+  }
+
+  .date-field :global(.hb-date-picker__label) {
+    display: none;
+  }
+
+  .date-display {
     font-size: var(--step--1);
     font-weight: 700;
     color: var(--muted);
+    padding-inline: var(--space-1);
   }
 
-  .compact-field--readonly {
-    justify-content: flex-start;
+  .time-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
   }
 
-  .one-on-one-badge {
-    display: inline-flex;
+  .time-label {
+    font-size: var(--step--2);
+    font-weight: 800;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  .duration-badge {
+    display: flex;
     align-items: center;
-    gap: var(--space-2);
-    background: color-mix(in oklch, var(--sky-soft) 40%, transparent);
-    color: var(--ink);
-    border: 1px solid var(--sky);
-    padding: var(--space-2) var(--space-3);
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: 4px;
+    font-family: var(--font-mono);
     font-weight: 800;
     font-size: var(--step--1);
-    width: fit-content;
-    min-height: 44px;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
-  /* ── Equipment ── */
-  .equipment-section {
-    padding-block: var(--space-2);
+  /* Settings row */
+  .settings-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
   }
 
-  /* ── Actions ── */
+  .settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .settings-label {
+    font-size: var(--step--2);
+    font-weight: 800;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  /* Actions */
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    margin-block-start: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: var(--border);
+  }
+
+  @media (max-width: 520px) {
+    .datetime-row {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .date-field {
+      grid-column: 1 / -1;
+    }
+
+    .duration-badge {
+      grid-column: 1 / -1;
+    }
+
+    .settings-row {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

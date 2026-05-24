@@ -1,13 +1,10 @@
 <script lang="ts">
-
-  import { Button } from "bits-ui";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
   import { authQuery, setCachedRole } from "$lib/auth/session.svelte";
   import { useConvexClient } from "convex-svelte";
   import { liveRoomHref } from "$lib/i18n/context";
-  import PageShell from "$features/app/components/PageShell.svelte";
   import WeeklyAgenda from "$features/live/components/WeeklyAgenda.svelte";
   import StudioLiveClassForm from "./StudioLiveClassForm.svelte";
   import LiveClassModalShell from "$features/live/components/LiveClassModalShell.svelte";
@@ -81,7 +78,6 @@
         capacity: liveType === "one_on_one" ? 1 : capacity,
         requiredEquipment,
       });
-      // Reset defaults
       startsAtLocal = defaultStartsAtLocal();
       durationMinutes = 50;
       showCreateModal = false;
@@ -137,82 +133,103 @@
   });
 </script>
 
-<PageShell
-  title="לוח שידורים שבועי"
-  description="תזמון וניהול של כל שיעורי הפילאטיס בלייב."
-  badge={profile?.role === "admin" ? "מנהלת" : "מדריכה"}
-  {loading}
-  error={error || null}
+{#if loading}
+  <div class="studio-skeleton">
+    <div class="skeleton skeleton--header"></div>
+    <div class="skeleton skeleton--grid"></div>
+  </div>
+{:else if error}
+  <div class="studio-error">
+    <p>{error}</p>
+    <button class="hb-button hb-button--ghost" type="button" onclick={retryLoad}>נסה שוב</button>
+  </div>
+{:else}
+  <div class="studio-page">
+    <WeeklyAgenda
+      {classes}
+      onStart={startLive}
+      onEnd={endLive}
+      {actionId}
+      onSelectSlot={handleSelectSlot}
+      onRefreshClasses={load}
+      onCreateButtonClick={openCreateModal}
+    />
+  </div>
+{/if}
+
+<LiveClassModalShell
+  bind:open={showCreateModal}
+  title="תזמון שיעור לייב חדש"
+  icon="calendar_add_on"
+  iconColor="var(--sky-strong)"
 >
-  {#if !loading && !error}
-    <div class="studio-container">
-      <div class="calendar-actions-header">
-        <Button.Root class="hb-button hb-button--ink" type="button" onclick={openCreateModal}>
-          <span class="material-symbols-rounded">add_circle</span>
-          שיעור לייב חדש
-        </Button.Root>
-      </div>
-
-      <WeeklyAgenda
-        {classes}
-        onStart={startLive}
-        onEnd={endLive}
-        {actionId}
-        onSelectSlot={handleSelectSlot}
-        onRefreshClasses={load}
-      />
-    </div>
-
-    <LiveClassModalShell
-      bind:open={showCreateModal}
-      title="תזמון שיעור לייב חדש"
-      icon="calendar_add_on"
-      iconColor="var(--sky-strong)"
-      wide
-    >
-      <StudioLiveClassForm
-        bind:title
-        bind:description
-        bind:liveType
-        bind:startsAtLocal
-        bind:durationMinutes
-        bind:joinOpensMinutesBefore
-        bind:capacity
-        bind:requiredEquipment
-        pending={actionId === "create"}
-        onSubmit={() => void createClass()}
-      />
-      {#if error}
-        <div class="form-error" role="alert">
-          <span class="material-symbols-rounded">error</span>
-          {error}
-        </div>
-      {/if}
-    </LiveClassModalShell>
-  {:else if error}
-    <div class="retry-state">
-      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryLoad}>נסה שוב</Button.Root>
+  <StudioLiveClassForm
+    bind:title
+    bind:description
+    bind:liveType
+    bind:startsAtLocal
+    bind:durationMinutes
+    bind:joinOpensMinutesBefore
+    bind:capacity
+    bind:requiredEquipment
+    pending={actionId === "create"}
+    onSubmit={() => void createClass()}
+  />
+  {#if error}
+    <div class="form-error" role="alert">
+      <span class="material-symbols-rounded">error</span>
+      {error}
     </div>
   {/if}
-</PageShell>
+</LiveClassModalShell>
 
 <style>
-  .studio-container {
+  .studio-page {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    flex: 1;
+    height: 100%;
     min-height: 0;
     direction: rtl;
   }
 
-  .calendar-actions-header {
+  .studio-skeleton {
     display: flex;
-    justify-content: flex-start;
-    margin-block-end: var(--space-2);
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    height: 100%;
   }
 
+  .skeleton {
+    background: var(--line-light);
+    animation: pulse 1.6s ease-in-out infinite;
+    border-radius: 4px;
+  }
 
+  .skeleton--header {
+    height: 48px;
+    width: 60%;
+  }
+
+  .skeleton--grid {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .studio-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    text-align: center;
+  }
+
+  .studio-error p {
+    color: var(--danger-text);
+    font-weight: 700;
+    margin: 0;
+  }
 
   .form-error {
     display: flex;
@@ -232,9 +249,8 @@
     flex-shrink: 0;
   }
 
-  .retry-state {
-    border: var(--border);
-    background: color-mix(in srgb, var(--white) 78%, transparent);
-    padding: var(--space-5);
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
   }
 </style>

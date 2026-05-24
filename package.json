@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
+    "@mux/convex": "^0.3.2",
     "@mux/mux-node": "^14.1.0",
     "@mux/mux-player": "^3.13.0",
+    "@mux/mux-uploader": "^1.5.0",
     "bits-ui": "^2.18.1",
     "convex": "^1.39.1",
     "convex-svelte": "^0.0.12",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@event-calendar/core": "^5.7.1",
+    "@mux/convex-mux-init": "^0.2.2",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.61.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",

@@ -31,6 +31,7 @@ import type * as lifecycle_repair from "../lifecycle/repair.js";
 import type * as live_calendar from "../live/calendar.js";
 import type * as live_class from "../live/class.js";
 import type * as live_cron from "../live/cron.js";
+import type * as live_joinPolicy from "../live/joinPolicy.js";
 import type * as live_next from "../live/next.js";
 import type * as live_reservation from "../live/reservation.js";
 import type * as live_room from "../live/room.js";
@@ -43,6 +44,9 @@ import type * as livekit_rooms from "../livekit/rooms.js";
 import type * as livekit_token from "../livekit/token.js";
 import type * as livekit_webhook from "../livekit/webhook.js";
 import type * as livekitAttendance_events from "../livekitAttendance/events.js";
+import type * as migrations from "../migrations.js";
+import type * as muxHttp from "../muxHttp.js";
+import type * as muxWebhook from "../muxWebhook.js";
 import type * as oneOnOne_cron from "../oneOnOne/cron.js";
 import type * as oneOnOne_customer from "../oneOnOne/customer.js";
 import type * as oneOnOne_instructor from "../oneOnOne/instructor.js";
@@ -66,15 +70,16 @@ import type * as video_admin from "../video/admin.js";
 import type * as video_catalog from "../video/catalog.js";
 import type * as video_categories from "../video/categories.js";
 import type * as video_entitlements from "../video/entitlements.js";
+import type * as video_migrations from "../video/migrations.js";
 import type * as video_playback from "../video/playback.js";
 import type * as video_playbackToken from "../video/playbackToken.js";
 import type * as video_provider_mux from "../video/provider/mux.js";
 import type * as video_uploads from "../video/uploads.js";
 import type * as videoInternal_draft from "../videoInternal/draft.js";
+import type * as videoInternal_muxAssetAction from "../videoInternal/muxAssetAction.js";
+import type * as videoInternal_muxAssetMutations from "../videoInternal/muxAssetMutations.js";
 import type * as videoInternal_playback from "../videoInternal/playback.js";
 import type * as videoInternal_profile from "../videoInternal/profile.js";
-import type * as videoInternal_upload from "../videoInternal/upload.js";
-import type * as videoInternal_webhook from "../videoInternal/webhook.js";
 
 import type {
   ApiFromModules,
@@ -106,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   "live/calendar": typeof live_calendar;
   "live/class": typeof live_class;
   "live/cron": typeof live_cron;
+  "live/joinPolicy": typeof live_joinPolicy;
   "live/next": typeof live_next;
   "live/reservation": typeof live_reservation;
   "live/room": typeof live_room;
@@ -118,6 +124,9 @@ declare const fullApi: ApiFromModules<{
   "livekit/token": typeof livekit_token;
   "livekit/webhook": typeof livekit_webhook;
   "livekitAttendance/events": typeof livekitAttendance_events;
+  migrations: typeof migrations;
+  muxHttp: typeof muxHttp;
+  muxWebhook: typeof muxWebhook;
   "oneOnOne/cron": typeof oneOnOne_cron;
   "oneOnOne/customer": typeof oneOnOne_customer;
   "oneOnOne/instructor": typeof oneOnOne_instructor;
@@ -141,15 +150,16 @@ declare const fullApi: ApiFromModules<{
   "video/catalog": typeof video_catalog;
   "video/categories": typeof video_categories;
   "video/entitlements": typeof video_entitlements;
+  "video/migrations": typeof video_migrations;
   "video/playback": typeof video_playback;
   "video/playbackToken": typeof video_playbackToken;
   "video/provider/mux": typeof video_provider_mux;
   "video/uploads": typeof video_uploads;
   "videoInternal/draft": typeof videoInternal_draft;
+  "videoInternal/muxAssetAction": typeof videoInternal_muxAssetAction;
+  "videoInternal/muxAssetMutations": typeof videoInternal_muxAssetMutations;
   "videoInternal/playback": typeof videoInternal_playback;
   "videoInternal/profile": typeof videoInternal_profile;
-  "videoInternal/upload": typeof videoInternal_upload;
-  "videoInternal/webhook": typeof videoInternal_webhook;
 }>;
 
 /**
@@ -178,4 +188,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  mux: import("@mux/convex/_generated/component.js").ComponentApi<"mux">;
+};

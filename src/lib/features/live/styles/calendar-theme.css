@@ -1,15 +1,61 @@
-/* Clean Modern EventCalendar Theme */
+/* ── EventCalendar Theme — HomeBody Design System ── */
+
 .ec {
   font-family: var(--font-sans);
   --ec-border-color: var(--line-light);
 }
 
-.ec-header {
-  background: var(--surface);
+/* ── Toolbar ── */
+.ec-toolbar {
+  padding: var(--space-2) var(--space-3);
+  background: var(--white);
   border-bottom: 1px solid var(--line-light);
 }
 
-.ec-day {
+.ec-button {
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border);
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s ease, border-color 0.2s ease, border-radius 0.35s ease, transform 0.08s ease;
+}
+
+.ec-button:hover {
+  background: var(--surface);
+  border-color: var(--sky-strong);
+  border-radius: 20px;
+}
+
+.ec-button:active {
+  transform: translateY(1px);
+  background: var(--line-light);
+}
+
+.ec-button.ec-active {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+.ec-title {
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-weight: 900;
+  color: var(--ink);
+}
+
+/* ── Header / day columns ── */
+.ec-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--line-light);
+}
+
+.ec-day-head {
   font-weight: 700;
   font-size: var(--step--1);
   padding: var(--space-2) var(--space-1);
@@ -17,70 +63,67 @@
   color: var(--ink);
 }
 
+.ec-day-head.ec-today {
+  background: color-mix(in srgb, var(--sky-soft) 20%, transparent);
+  border-radius: 4px;
+}
+
+/* ── Time column ── */
 .ec-time {
   font-family: var(--font-mono);
   font-weight: 600;
-  font-size: var(--step--2);
+  font-size: var(--step--1);
   color: var(--muted);
 }
 
-/* Events — clean pill cards with left-border status coding */
+.ec-time-grid .ec-time,
+.ec-time-grid .ec-line {
+  height: 36px;
+}
+
+/* ── Events ── */
 .ec-event {
-  border-radius: 4px;
-  border: none;
+  border-radius: 3px;
+  border: 1px solid transparent;
   border-inline-start: 3px solid transparent;
   padding: 0;
   margin-inline: 1px;
   color: var(--ink);
   background: var(--white);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
   overflow: hidden;
   min-width: 0;
+  cursor: pointer;
 }
 
 .ec-event:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--sky-strong);
   z-index: 10;
 }
 
+.ec-event:active {
+  transform: translateY(1px);
+}
+
 .ec-event-resizer {
-  width: 44px;
-  height: 8px;
-  background: var(--muted);
-  border-radius: 2px;
-  inset-block-end: 3px;
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  cursor: ns-resize;
-  opacity: 0.5;
-  transition: opacity 0.15s;
-}
-
-.ec-event:hover .ec-event-resizer {
-  opacity: 1;
-}
-
-.ec-event-status--ended .ec-event-resizer {
   display: none;
 }
 
-/* Status color coding — left border + subtle background */
+/* Status color coding — left border only, subtle bg */
 .ec-event-status--scheduled {
   border-inline-start-color: var(--sky-strong);
-  background: color-mix(in oklch, var(--sky-soft) 35%, var(--white));
+  background: color-mix(in srgb, var(--sky-soft) 30%, var(--white));
 }
 
 .ec-event-status--live {
   border-inline-start-color: var(--terra-strong);
-  background: color-mix(in oklch, var(--terra-soft) 45%, var(--white));
+  background: color-mix(in srgb, var(--terra-soft) 35%, var(--white));
 }
 
 .ec-event-status--ended {
   border-inline-start-color: var(--muted);
   background: var(--surface);
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 .ec-event-status--ended .event-title {
@@ -89,14 +132,14 @@
   text-decoration-thickness: 1px;
 }
 
-/* Inner Event Layout */
+/* Event inner layout */
 .calendar-class-event-body {
-  padding: 3px 5px;
+  padding: 6px 10px;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  gap: 1px;
+  gap: 4px;
   direction: rtl;
   text-align: right;
   justify-content: space-between;
@@ -104,8 +147,8 @@
 
 .calendar-class-event-body .event-title {
   font-weight: 700;
-  font-size: 11px;
-  line-height: 1.2;
+  font-size: var(--step-0);
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -118,12 +161,12 @@
 .calendar-class-event-body .event-meta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin-top: auto;
 }
 
 .calendar-class-event-body .meta-badge {
-  font-size: 10px;
+  font-size: var(--step--1);
   font-weight: 800;
   font-family: var(--font-mono);
   color: var(--muted);
@@ -131,41 +174,33 @@
   letter-spacing: 0.02em;
 }
 
-/* Pulsing live dot */
+/* Live dot — static, no animation (was causing CRT feel) */
 .pulse-indicator {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--terra-strong);
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
-  animation: pulseGlow 1.5s infinite ease-in-out;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pulse-indicator {
-    animation: none;
-    opacity: 1;
-  }
-
-  .ec-event {
-    transition: none;
-  }
+/* Now indicator */
+.ec-now-indicator {
+  border-color: var(--terra-strong);
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.15); }
+.ec-now-indicator::before {
+  background: var(--terra-strong);
 }
 
-/* Preview selection while dragging */
+/* Selection preview */
 .ec-event.ec-preview {
   z-index: 1000;
   user-select: none;
-  opacity: 0.9;
+  opacity: 0.85;
   border-inline-start-color: var(--sky-strong);
-  background: color-mix(in oklch, var(--sky) 25%, transparent);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--sky-soft) 50%, var(--white));
+  border-radius: 3px;
   overflow: visible;
 }
 
@@ -173,7 +208,7 @@
   cursor: crosshair;
 }
 
-/* Preview event content — start/end times */
+/* Preview event content */
 .calendar-preview-event {
   display: flex;
   flex-direction: column;
@@ -181,8 +216,8 @@
   justify-content: center;
   height: 100%;
   min-height: 0;
-  gap: 1px;
-  padding: 2px;
+  gap: 3px;
+  padding: 4px;
   text-align: center;
   direction: rtl;
 }
@@ -191,7 +226,7 @@
 .calendar-preview-event .preview-end {
   font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 10px;
+  font-size: var(--step-0);
   line-height: 1.2;
   color: var(--ink);
   white-space: nowrap;
@@ -200,14 +235,14 @@
 .calendar-preview-event .preview-divider {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 9px;
+  font-size: var(--step--1);
   color: var(--muted);
   line-height: 1.1;
 }
 
 /* Today highlight */
 .ec-today {
-  background: color-mix(in oklch, var(--sky-soft) 12%, transparent);
+  background: color-mix(in srgb, var(--sky-soft) 10%, transparent);
 }
 
 /* Slot lines */
@@ -215,45 +250,132 @@
   border-color: var(--line-light);
 }
 
-/* ── Dark mode overrides for our custom styles ── */
-@media (prefers-color-scheme: dark) {
-  .ec-auto-dark .calendar-wrapper {
-    background: var(--white);
-    border-color: var(--line);
-  }
+/* Scrollbars */
+.ec-with-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 
-  .ec-auto-dark .ec-event {
-    background: var(--surface);
-    color: var(--ink);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  }
+.ec-with-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .ec-auto-dark .ec-event:hover {
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
-  }
+.ec-with-scroll::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 3px;
+}
 
-  .ec-auto-dark .ec-event-status--scheduled {
-    background: color-mix(in oklch, var(--sky-soft) 25%, var(--surface));
-  }
+.ec-with-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
 
-  .ec-auto-dark .ec-event-status--live {
-    background: color-mix(in oklch, var(--terra-soft) 30%, var(--surface));
-  }
+/* Pointer cursor on interactive areas */
+.ec-pointer {
+  cursor: pointer;
+}
 
-  .ec-auto-dark .ec-event-status--ended {
-    background: var(--surface);
-    opacity: 0.5;
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ec-event {
+    transition: none;
   }
+}
 
-  .ec-auto-dark .calendar-class-event-body .event-title {
-    color: var(--ink);
-  }
+/* ── Dark mode via data-theme ── */
+[data-theme="dark"] .ec {
+  --ec-border-color: var(--line);
+}
 
-  .ec-auto-dark .calendar-class-event-body .meta-badge {
-    color: var(--muted);
-  }
+[data-theme="dark"] .ec-toolbar {
+  background: var(--surface);
+  border-bottom-color: var(--line);
+}
 
-  .ec-auto-dark .ec-today {
-    background: color-mix(in oklch, var(--sky-soft) 18%, transparent);
-  }
+[data-theme="dark"] .ec-button {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .ec-button:hover {
+  background: var(--line-light);
+  border-color: var(--sky-strong);
+}
+
+[data-theme="dark"] .ec-button.ec-active {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+[data-theme="dark"] .ec-title {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .ec-header {
+  background: var(--surface);
+  border-bottom-color: var(--line);
+}
+
+[data-theme="dark"] .ec-day-head {
+  color: var(--ink);
+  border-inline-end-color: var(--line);
+}
+
+[data-theme="dark"] .ec-day-head.ec-today {
+  background: color-mix(in srgb, var(--sky-soft) 15%, transparent);
+}
+
+[data-theme="dark"] .ec-event {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .ec-event:hover {
+  border-color: var(--sky-strong);
+}
+
+[data-theme="dark"] .ec-event-status--scheduled {
+  background: color-mix(in srgb, var(--sky-soft) 18%, var(--surface));
+}
+
+[data-theme="dark"] .ec-event-status--live {
+  background: color-mix(in srgb, var(--terra-soft) 22%, var(--surface));
+}
+
+[data-theme="dark"] .ec-event-status--ended {
+  background: var(--line-light);
+  opacity: 0.4;
+}
+
+[data-theme="dark"] .calendar-class-event-body .event-title {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .calendar-class-event-body .meta-badge {
+  color: var(--muted);
+}
+
+[data-theme="dark"] .ec-today {
+  background: color-mix(in srgb, var(--sky-soft) 12%, transparent);
+}
+
+[data-theme="dark"] .ec-lines {
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .ec-time {
+  color: var(--muted);
+}
+
+[data-theme="dark"] .ec-with-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-light);
+}
+
+[data-theme="dark"] .ec-with-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+[data-theme="dark"] .ec-event.ec-preview {
+  background: color-mix(in srgb, var(--sky-soft) 40%, var(--surface));
 }

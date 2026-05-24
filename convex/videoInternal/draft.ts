@@ -26,7 +26,6 @@ export const create = internalMutation({
       title: args.title,
       description: args.description,
       provider: "mux",
-      providerVideoId: "",
       durationSeconds: 0,
       requiredEquipment: args.requiredEquipment,
       accessKind: args.accessKind,
@@ -51,27 +50,4 @@ export const create = internalMutation({
   },
 });
 
-export const attachMuxUpload = internalMutation({
-  args: {
-    videoId: v.id("videos"),
-    muxUploadId: v.string(),
-    instructorUserId: v.id("users"),
-    muxVideoQuality: muxVideoQualityValidator,
-    muxMaxResolutionTier: muxMaxResolutionTierValidator,
-    staticRendition: staticRenditionValidator,
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-    await ctx.db.insert("videoUploads", {
-      videoId: args.videoId,
-      instructorUserId: args.instructorUserId,
-      muxUploadId: args.muxUploadId,
-      muxVideoQuality: args.muxVideoQuality,
-      muxMaxResolutionTier: args.muxMaxResolutionTier,
-      staticRendition: args.staticRendition,
-      status: "waiting",
-      createdAt: now,
-      updatedAt: now,
-    });
-  },
-});
+

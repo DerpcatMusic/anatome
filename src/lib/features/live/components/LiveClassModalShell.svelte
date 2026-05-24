@@ -27,14 +27,16 @@
     }
   }
 
-  const contentClass = $derived(`hb-dialog-content ${wide ? "hb-dialog-content--wide" : ""}`);
+  const contentClasses = $derived(
+    `calendar-modal-content ${wide ? "calendar-modal-content--wide" : ""}`
+  );
 </script>
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay class="hb-dialog-overlay" data-state={open ? "open" : "closed"} />
+    <Dialog.Overlay class="calendar-modal-overlay" data-state={open ? "open" : "closed"} />
     <Dialog.Content
-      class={contentClass}
+      class={contentClasses}
       aria-label={title}
     >
       <div class="modal-header">
@@ -42,7 +44,12 @@
           {icon}
         </span>
         <h2 class="modal-title">{title}</h2>
-        <button type="button" class="close-button" aria-label="סגור" onclick={() => { open = false; onClose?.(); }}>
+        <button
+          type="button"
+          class="close-button"
+          aria-label="סגור"
+          onclick={() => { open = false; onClose?.(); }}
+        >
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
@@ -54,22 +61,69 @@
 </Dialog.Root>
 
 <style>
+  :global(.calendar-modal-overlay) {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  :global(.calendar-modal-overlay[data-state="open"]) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  :global(.calendar-modal-content) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% + 6px));
+    z-index: 101;
+    background: var(--white);
+    border: var(--border);
+    border-radius: 6px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    width: min(480px, 92vw);
+    max-height: min(720px, 88vh);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    direction: rtl;
+    opacity: 0;
+    transition:
+      transform 0.2s ease-out,
+      opacity 0.15s ease;
+  }
+
+  :global(.calendar-modal-content[data-state="open"]) {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+
+  :global(.calendar-modal-content--wide) {
+    width: min(640px, 94vw);
+  }
+
   .modal-header {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     border-bottom: var(--border);
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    flex-shrink: 0;
   }
 
   .header-icon {
-    font-size: var(--step-2);
+    font-size: var(--step-1);
     flex-shrink: 0;
   }
 
   .modal-title {
     margin: 0;
-    font-size: var(--step-1);
+    font-size: var(--step-0);
     font-weight: 900;
     flex: 1;
     min-width: 0;
@@ -85,28 +139,34 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition:
-      background var(--duration-fast),
-      border-radius 0.45s cubic-bezier(0.34, 1.8, 0.64, 1),
-      transform 0.35s cubic-bezier(0.34, 1.8, 0.64, 1);
+    border-radius: 4px;
+    transition: color 0.15s ease, background 0.15s ease;
   }
 
   .close-button:hover {
-    background: var(--sky-soft);
-    border-radius: 999px;
-    transform: scale(1.15) rotate(90deg);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  .close-button:active {
+    background: var(--line-light);
   }
 
   .modal-body {
-    padding: var(--space-5);
+    padding: var(--space-4);
     overflow-y: auto;
-    max-height: calc(90vh - 72px);
+    flex: 1;
+    min-height: 0;
   }
 
-  @media (max-width: 52rem) {
+  @media (max-width: 860px) {
+    :global(.calendar-modal-content) {
+      width: 96vw;
+      max-height: 90vh;
+    }
+
     .modal-body {
       padding: var(--space-3);
-      max-height: calc(85vh - 64px);
     }
   }
 </style>

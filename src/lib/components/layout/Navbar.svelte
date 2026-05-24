@@ -6,16 +6,16 @@
   const auth = initAuth();
 
   function openAuth() {
-    window.dispatchEvent(new CustomEvent("homebody:auth-open"));
+    window.dispatchEvent(new CustomEvent("anatome:auth-open"));
   }
 </script>
 
 <nav class="navbar" aria-label="ניווט ראשי">
   <div class="navbar__inner">
     <a class="navbar__brand" href="/">
-      <span class="navbar__logo">HomeBody</span>
+      <span class="navbar__logo">AnatoMe</span>
       <span class="navbar__divider">/</span>
-      <span class="navbar__tagline">פילאטיס בבית</span>
+      <span class="navbar__tagline">פילאטיס שיקומי</span>
     </a>
 
     <div class="navbar__actions">
@@ -71,10 +71,9 @@
   }
 
   .navbar__logo {
-    font-family: var(--font-mono);
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-weight: 400;
     font-size: var(--step-1);
-    letter-spacing: -0.02em;
   }
 
   .navbar__divider {

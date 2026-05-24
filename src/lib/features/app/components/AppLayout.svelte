@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import AppSidebar from "./AppSidebar.svelte";
 
   let {
@@ -6,11 +7,13 @@
   }: {
     children: import("svelte").Snippet;
   } = $props();
+
+  const isFullbleed = $derived(page.url.pathname === "/i/live");
 </script>
 
 <div class="app-layout">
   <AppSidebar />
-  <main class="app-main">
+  <main class="app-main" data-fullbleed={isFullbleed ? "" : undefined}>
     {@render children()}
   </main>
 </div>
@@ -51,6 +54,12 @@
     overscroll-behavior: contain;
   }
 
+  .app-main[data-fullbleed] {
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+  }
+
   @media (max-width: 860px) {
     .app-layout {
       grid-template-columns: 1fr;
@@ -61,6 +70,10 @@
 
     .app-main {
       padding: var(--space-5) clamp(16px, 4vw, 32px);
+    }
+
+    .app-main[data-fullbleed] {
+      padding: 0;
     }
   }
 </style>

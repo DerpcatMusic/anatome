@@ -49,6 +49,9 @@ const roleStore = new PersistedState<string | null>(roleKey, null, {
 
 // Module-level refresh deduplication — survives component re-mounts within one page session.
 let refreshPromise: Promise<string | null> | null = null;
+let convexAuthWired = false;
+
+const refreshLockKey = `${namespace}:refresh-lock`;
 
 let state = $state<AuthState>({
   isLoading: true,
@@ -179,6 +182,85 @@ export function getAuthState() {
 
 export function getAccessToken() {
   return tokenStore.current;
+}
+
+function isTokenExpiredOrNearExpiry(token: string, leewaySeconds = 120): boolean {
+  try {
+    const payload = JSON.parse(globalThis.atob(token.split(".")[1]));
+    if (!payload.exp) return false;
+    return payload.exp - leewaySeconds < Date.now() / 1000;
+  } catch {
+    return true;
+  }
+}
+
+function hasPersistedSession(): boolean {
+  return tokenStore.current !== null || refreshTokenStore.current !== null;
+}
+
+async function withRefreshLock<T>(callback: () => Promise<T>): Promise<T> {
+  const lockManager = globalThis.navigator?.locks;
+  if (lockManager !== undefined) {
+    return await lockManager.request(refreshLockKey, callback);
+  }
+  return await callback();
+}
+
+/**
+ * Token fetcher for Convex's WebSocket client.
+ * Mirrors @convex-dev/auth's fetchAccessToken: return the cached JWT unless
+ * Convex explicitly requests a refresh, and dedupe concurrent refresh calls.
+ */
+export async function getAccessTokenForConvex(
+  args?: { forceRefreshToken: boolean }
+): Promise<string | null> {
+  if (!args?.forceRefreshToken) {
+    return tokenStore.current;
+  }
+
+  const tokenBeforeLock = tokenStore.current;
+  return await withRefreshLock(async () => {
+    if (tokenStore.current !== tokenBeforeLock) {
+      return tokenStore.current;
+    }
+    return await refreshToken();
+  });
+}
+
+/**
+ * Called by Convex when its internal auth state changes.
+ * If auth fails while we still have persisted tokens, the
+ * refresh token is dead — clear state and prompt re-login.
+ */
+export function handleAuthChange(isAuthenticated: boolean) {
+  if (!isAuthenticated && hasPersistedSession()) {
+    clearStaleSession();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("anatome:auth-open"));
+    }
+  }
+}
+
+/**
+ * Wire WebSocket auth once per page load when persisted tokens exist.
+ * Avoid calling from reactive effects — each setAuth() resets Convex auth
+ * state and retriggers refreshSession on the backend.
+ */
+export function wireConvexAuth(client: {
+  setAuth: (
+    fetchToken: (args: { forceRefreshToken: boolean }) => Promise<string | null>,
+    onChange: (isAuthenticated: boolean) => void
+  ) => void;
+}) {
+  if (typeof window === "undefined" || convexAuthWired || !hasPersistedSession()) {
+    return;
+  }
+
+  convexAuthWired = true;
+  client.setAuth(
+    (args) => getAccessTokenForConvex(args),
+    (isAuthenticated) => handleAuthChange(isAuthenticated)
+  );
 }
 
 export async function authQuery<Query extends FunctionReference<"query">>(

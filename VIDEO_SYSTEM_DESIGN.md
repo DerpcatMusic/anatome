@@ -141,13 +141,13 @@ async function startUpload(file: File, uploadUrl: string) {
 
 In Cloudflare dashboard:
 1. Go to Stream → Webhooks
-2. Add webhook URL: `https://<your-convex-site>.convex.site/videos/webhook`
+2. Add webhook URL: `https://<your-convex-site>.convex.site/mux/webhook`
 3. Convex HTTP action receives the webhook:
 
 ```typescript
 // convex/http.ts
 http.route({
-  path: "/videos/webhook",
+  path: "/mux/webhook",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const body = await request.json();

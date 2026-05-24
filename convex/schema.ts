@@ -256,10 +256,10 @@ export default defineSchema({
     title: v.string(),
     description: v.string(),
     provider: v.union(v.literal("cloudflare_stream"), v.literal("bunny_stream"), v.literal("mux")),
-    providerVideoId: v.string(),
+    muxAssetId: v.optional(v.string()),
     playbackId: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
-    durationSeconds: v.number(),
+    durationSeconds: v.optional(v.number()),
     requiredEquipment: equipmentListValidator,
     accessKind: v.union(v.literal("macroflow"), v.literal("microflow")),
     muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
@@ -274,23 +274,7 @@ export default defineSchema({
     .index("by_status_and_createdAt", ["status", "createdAt"])
     .index("by_instructorUserId_and_createdAt", ["instructorUserId", "createdAt"]),
 
-  videoUploads: defineTable({
-    videoId: v.id("videos"),
-    instructorUserId: v.id("users"),
-    muxUploadId: v.string(),
-    muxAssetId: v.optional(v.string()),
-    muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
-    muxMaxResolutionTier: v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p")),
-    staticRendition: v.union(v.literal("none"), v.literal("audio-only"), v.literal("720p"), v.literal("1080p")),
-    status: v.union(v.literal("waiting"), v.literal("asset_created"), v.literal("ready"), v.literal("errored")),
-    errorMessage: v.optional(v.string()),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_videoId", ["videoId"])
-    .index("by_muxUploadId", ["muxUploadId"])
-    .index("by_instructorUserId", ["instructorUserId"])
-    .index("by_status", ["status"]),
+
 
   videoEntitlements: defineTable({
     videoId: v.id("videos"),

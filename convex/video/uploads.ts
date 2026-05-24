@@ -2,7 +2,7 @@
 
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { action, internalAction } from "../_generated/server";
+import { action } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { getMuxClient, getCorsOrigin } from "./provider/mux";
 import { equipmentListValidator } from "../lib/validators";
@@ -45,10 +45,15 @@ export const requestUpload = action({
     });
     const staticRenditions =
       args.staticRendition === "none" ? undefined : [{ resolution: args.staticRendition, passthrough: videoId }];
+    const passthroughPayload = JSON.stringify({
+      videoId,
+      instructorUserId: userId,
+      title: args.title.trim(),
+    });
     const upload = await getMuxClient().video.uploads.create({
       new_asset_settings: {
         playback_policies: ["signed"],
-        passthrough: videoId,
+        passthrough: passthroughPayload,
         video_quality: args.muxVideoQuality,
         max_resolution_tier: args.muxMaxResolutionTier,
         static_renditions: staticRenditions,
@@ -56,42 +61,6 @@ export const requestUpload = action({
       cors_origin: getCorsOrigin(),
     });
     if (!upload.url) throw new Error("Mux did not return an upload URL");
-    await ctx.runMutation(internal.videoInternal.draft.attachMuxUpload, {
-      videoId,
-      muxUploadId: upload.id,
-      instructorUserId: userId,
-      muxVideoQuality: args.muxVideoQuality,
-      muxMaxResolutionTier: args.muxMaxResolutionTier,
-      staticRendition: args.staticRendition,
-    });
     return { videoId, uploadUrl: upload.url };
-  },
-});
-
-export const handleMuxWebhook = internalAction({
-  args: { muxUploadId: v.string(), muxAssetId: v.string(), duration: v.number(), thumbnailUrl: v.optional(v.string()), status: v.union(v.literal("ready"), v.literal("errored")) },
-  handler: async (ctx, args) => {
-    const upload = await ctx.runQuery(internal.videoInternal.upload.findByMuxId, { muxUploadId: args.muxUploadId });
-    if (upload === null) return;
-    if (args.status === "errored") {
-      await ctx.runMutation(internal.videoInternal.upload.markErrored, { uploadId: upload._id });
-      return;
-    }
-    let playbackId: string | undefined;
-    try {
-      const playback = await getMuxClient().video.assets.createPlaybackId(args.muxAssetId, { policy: "signed" });
-      playbackId = playback.id;
-    } catch (reason) {
-      const message = reason instanceof Error ? reason.message : String(reason);
-      await ctx.runMutation(internal.videoInternal.upload.markErrored, { uploadId: upload._id, errorMessage: message });
-      throw reason;
-    }
-    await ctx.runMutation(internal.videoInternal.upload.finalize, {
-      uploadId: upload._id,
-      muxAssetId: args.muxAssetId,
-      durationSeconds: args.duration,
-      thumbnailUrl: args.thumbnailUrl,
-      playbackId,
-    });
   },
 });

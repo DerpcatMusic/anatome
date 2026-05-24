@@ -13,7 +13,6 @@
 
 <section class="hero" aria-label="ראשי">
   <div class="hero__inner">
-    <p class="eyebrow">{t.landing.hero.eyebrow()}</p>
     <h1>{t.landing.hero.headline()}</h1>
     <p class="lead">{t.landing.hero.lead()}</p>
     <div class="actions">

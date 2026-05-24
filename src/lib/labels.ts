@@ -61,6 +61,7 @@ export function creditLabel(kind: "live" | "oneOnOne"): string {
   return kind === "oneOnOne" ? "קרדיט 1:1 אחד" : "קרדיט לייב אחד";
 }
 
-export function durationLabel(seconds: number): string {
+export function durationLabel(seconds: number | undefined | null): string {
+  if (seconds === undefined || seconds === null || seconds <= 0) return "—";
   return `${Math.round(seconds / 60)} דקות`;
 }

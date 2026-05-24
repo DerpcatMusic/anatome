@@ -21,14 +21,10 @@
   import Footer from "$components/layout/Footer.svelte";
   import {
     HeroSection,
-    PhilosophySection,
-    InstructorSection,
-    PreviewSection,
-    PillarsSection,
-    StepsSection,
+    AboutSection,
+    ExperienceSection,
     PricingSection,
     FAQSection,
-    CTASection,
   } from "$lib/features/landing/components";
   import { browser } from "$app/environment";
   import { useI18n } from "$lib/i18n/runes";
@@ -36,14 +32,11 @@
   const { t } = useI18n();
   let authOpen = $state(false);
 
-  /* ═══════════════════════════════════════════
-     FILL IN: Real instructor details
-     ═══════════════════════════════════════════ */
   const INSTRUCTOR = {
     name: "[שם המדריכה]",
     years: "X",
     story:
-      "[סיפור אישי קצר — למה התחלת ללמד פילאטיס, מה הוביל אותך לפתוח HomeBody, איך הירושה ממרתה פילאטיס מעצבת את השיטה שלך. 2-3 משפטים אמיתיים.]",
+      "[סיפור אישי קצר — למה התחלתי ללמד פילאטיס, מה הוביל אותי לפתוח AnatoMe, איך הירושה ממרתה פילאטיס מעצבת את השיטה שלי. 2-3 משפטים אמיתיים.]",
   };
 
   function openAuthOverlay() {
@@ -51,11 +44,10 @@
   }
 
   if (browser) {
-    useEventListener(window, "homebody:auth-open", () => { authOpen = true; });
-    useEventListener(window, "homebody:auth-close", () => { authOpen = false; });
+    useEventListener(window, "anatome:auth-open", () => { authOpen = true; });
+    useEventListener(window, "anatome:auth-close", () => { authOpen = false; });
   }
 
-  /* ─── Structured Data (honest — no fake reviews) ─── */
   const pageUrl = SITE.domain;
   const today = new Date().toISOString().split("T")[0];
 
@@ -151,14 +143,21 @@
 
 <main class="landing" id="main-content">
   <HeroSection {openAuthOverlay} />
-  <PhilosophySection />
-  <InstructorSection instructor={INSTRUCTOR} />
-  <PreviewSection />
-  <PillarsSection />
-  <StepsSection />
+  <AboutSection instructor={INSTRUCTOR} />
+  <ExperienceSection />
   <PricingSection {openAuthOverlay} />
   <FAQSection items={faqItems} />
-  <CTASection {openAuthOverlay} />
+
+  <section class="content-section" aria-label="התחילי עכשיו">
+    <div class="final-cta">
+      <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
+      <p>{t.landing.cta.subheadline()}</p>
+      <button class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
+        {t.landing.cta.button()}
+      </button>
+      <p class="final-cta-note">{t.landing.cta.note()}</p>
+    </div>
+  </section>
 </main>
 
 <Footer />

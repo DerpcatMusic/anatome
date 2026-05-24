@@ -10,9 +10,12 @@ import {
 } from "../credits/lib";
 import { reserveLiveCredits } from "../credits/reserveLive";
 import { reserveOneOnOneCredits } from "../credits/reserveOneOnOne";
-import { missingRequiredEquipment } from "../lib/equipment";
-import { RULES } from "../lib/constants";
 import { roomNameForClass } from "../lib/live";
+import {
+  maxLiveKitParticipants,
+  validateBaseJoinEligibility,
+  validateCustomerJoinEligibility,
+} from "./joinPolicy";
 
 type JoinContext = {
   ctx: MutationCtx;
@@ -21,40 +24,6 @@ type JoinContext = {
   liveClass: Doc<"liveClasses">;
   now: number;
 };
-
-/** Validates auth, class existence, and join window. Returns participant role. */
-async function validateJoinEligibility({ ctx, userId, profile, liveClass, now }: JoinContext) {
-  if (liveClass.status !== "live") throw new Error("השיעור אינו חי");
-
-  const isAdmin = profile.role === "admin";
-  const isInstructor = liveClass.instructorUserId === userId || isAdmin;
-  const participantRole: "instructor" | "customer" | "admin" = isAdmin
-    ? "admin"
-    : isInstructor
-      ? "instructor"
-      : "customer";
-
-  if (!isInstructor && (now < liveClass.joinOpensAt || now > liveClass.joinClosesAt)) {
-    throw new Error("השיעור מחוץ לחלון ההצטרפות");
-  }
-
-  return { isInstructor, participantRole };
-}
-
-/** Checks member profile and equipment for non-instructors. */
-async function checkMemberRequirements({ ctx, userId, liveClass }: JoinContext) {
-  const memberProfiles = await ctx.db
-    .query("memberProfiles")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
-  const memberProfile = memberProfiles[0] ?? null;
-  if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
-  if (
-    missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment).length > 0
-  ) {
-    throw new Error("חסר ציוד נדרש");
-  }
-}
 
 /** Handles walk-in join: capacity check, credit reservation, reservation creation. */
 async function handleWalkIn({ ctx, userId, liveClass, now }: JoinContext) {
@@ -155,23 +124,12 @@ export const prepareJoin = internalMutation({
     }
 
     const joinCtx: JoinContext = { ctx, userId, profile, liveClass, now };
-    const { isInstructor, participantRole } = await validateJoinEligibility(joinCtx);
+    const { isInstructor, participantRole } = await validateBaseJoinEligibility(joinCtx);
 
     let joinReason = "join_token_issued";
 
     if (!isInstructor) {
-      const reservations = await ctx.db
-        .query("liveReservations")
-        .withIndex("by_liveClassId_and_userId", (q) =>
-          q.eq("liveClassId", args.liveClassId).eq("userId", userId),
-        )
-        .take(10);
-      const reservation =
-        reservations.find((row) => row.status === "joined") ??
-        reservations.find((row) => row.status === "reserved") ??
-        null;
-
-      await checkMemberRequirements(joinCtx);
+      const reservation = await validateCustomerJoinEligibility(joinCtx);
 
       if (reservation !== null && reservation.status === "joined") {
         joinReason = "rejoin_token_issued";
@@ -199,6 +157,7 @@ export const prepareJoin = internalMutation({
       endsAt: liveClass.endsAt,
       joinClosesAt: liveClass.joinClosesAt,
       capacity: liveClass.capacity,
+      maxParticipants: maxLiveKitParticipants(liveClass.capacity),
     };
   },
 });

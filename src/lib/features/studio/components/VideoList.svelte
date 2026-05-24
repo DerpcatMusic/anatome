@@ -12,7 +12,7 @@
     _id: Id<"videos">;
     title: string;
     description: string;
-    durationSeconds: number;
+    durationSeconds?: number;
     accessKind: AccessKind;
     muxVideoQuality: string;
     muxMaxResolutionTier: string;

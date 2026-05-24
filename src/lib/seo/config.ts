@@ -3,10 +3,10 @@
  * Update `domain` when deploying to production.
  */
 export const SITE = {
-  domain: "https://homebody.fitness", // ← swap to real domain
-  name: "HomeBody",
-  nameHebrew: "הומבודי",
-  tagline: "פילאטיס שיקומי בבית",
+  domain: "https://anatome.co.il", // ← swap to real domain
+  name: "AnatoMe",
+  nameHebrew: "אנאטומי",
+  tagline: "פילאטיס שיקומי — Anatomy for Me",
   description:
     "פילאטיס אונליין בעברית — שיעורים חיים, מוקלטים ופרטיים. התמחות בפטולוגיות ופילאטיס שיקומי. למדתי אצל מרתה פילאטיס.",
   keywords: [
@@ -41,7 +41,7 @@ export const SITE = {
   twitterHandle: "@homebodypilates", // ← swap if different
   founded: "2024",
   phone: "+972-50-000-0000", // ← swap to real
-  email: "hello@homebody.fitness", // ← swap to real
+  email: "hello@anatome.fitness", // ← swap to real
   address: {
     street: "", // ← fill if physical
     city: "תל אביב",
@@ -54,9 +54,9 @@ export const SITE = {
     longitude: "34.7818",
   },
   social: {
-    instagram: "https://instagram.com/homebodypilates",
-    facebook: "https://facebook.com/homebodypilates",
-    youtube: "https://youtube.com/@homebodypilates",
+    instagram: "https://instagram.com/anatomepilates",
+    facebook: "https://facebook.com/anatomepilates",
+    youtube: "https://youtube.com/@anatomepilates",
     whatsapp: "https://wa.me/972500000000",
   },
   priceRange: "₪₪",

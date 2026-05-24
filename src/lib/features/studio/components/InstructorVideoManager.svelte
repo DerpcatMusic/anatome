@@ -14,15 +14,12 @@
   import VideoEditModal from "./VideoEditModal.svelte";
 
   type AccessKind = "macroflow" | "microflow";
-  type MuxVideoQuality = "basic" | "plus" | "premium";
-  type MuxMaxResolutionTier = "1080p" | "1440p" | "2160p";
-  type StaticRendition = "none" | "audio-only" | "720p" | "1080p";
 
   interface Video {
     _id: Id<"videos">;
     title: string;
     description: string;
-    durationSeconds: number;
+    durationSeconds?: number;
     accessKind: AccessKind;
     muxVideoQuality: string;
     muxMaxResolutionTier: string;
@@ -33,26 +30,19 @@
 
   const auth = initAuth();
 
-  // Upload panel toggle
+  // ── Panel state ──
   let showUpload = $state(false);
 
-  // Global actions state
+  // ── Global actions state ──
   let actionId = $state<string | null>(null);
   let actionError = $state("");
 
-  // Upload progress states
-  let uploadStatus = $state<"idle" | "uploading" | "processing" | "ready" | "error">("idle");
-  let uploadProgress = $state(0);
-  let uploadError = $state("");
-  let creatingCategory = $state(false);
-  let categoryError = $state("");
-
-  // Editing video states
+  // ── Editing state ──
   let editingVideoObj = $state<Video | null>(null);
 
-  // Convex Subscriptions & Resources
+  // ── Data ──
   const client = useConvexClient();
-  const listQuery = useQuery(api.video.admin.listAll, () => auth.isAuthenticated ? {} : 'skip');
+  const listQuery = useQuery(api.video.admin.listAll, () => (auth.isAuthenticated ? {} : "skip"));
   const library = $derived(listQuery.data ?? null);
 
   const categoriesResource = resource(
@@ -65,90 +55,7 @@
   );
   const categories = $derived(categoriesResource.current ?? []);
 
-  async function handleCreateCategory(name: string) {
-    creatingCategory = true;
-    categoryError = "";
-    try {
-      await client.mutation(api.video.categories.createCategory, { name });
-      await categoriesResource.refetch();
-    } catch (reason) {
-      categoryError = reason instanceof Error ? reason.message : "לא הצלחנו ליצור קטגוריה.";
-    } finally {
-      creatingCategory = false;
-    }
-  }
-
-  async function handleStartUpload(data: {
-    title: string;
-    description: string;
-    requiredEquipment: Equipment[];
-    accessKind: AccessKind;
-    categoryIds: Id<"videoCategories">[];
-    muxVideoQuality: MuxVideoQuality;
-    muxMaxResolutionTier: MuxMaxResolutionTier;
-    staticRendition: StaticRendition;
-    file: File;
-  }) {
-    uploadStatus = "uploading";
-    uploadProgress = 0;
-    uploadError = "";
-
-    try {
-      const result = await client.action(api.video.uploads.requestUpload, {
-        title: data.title,
-        description: data.description,
-        requiredEquipment: data.requiredEquipment,
-        accessKind: data.accessKind,
-        categoryIds: data.categoryIds,
-        muxVideoQuality: data.muxVideoQuality,
-        muxMaxResolutionTier: data.muxMaxResolutionTier,
-        staticRendition: data.staticRendition,
-      });
-
-      if (!result?.uploadUrl) {
-        uploadStatus = "error";
-        uploadError = "לא הצלחנו ליצור כתובת העלאה משרת Mux.";
-        return;
-      }
-
-      await uploadToMux(result.uploadUrl, data.file);
-      uploadStatus = "processing";
-
-      // Processing happens server-side via Mux webhook.
-      // Show success and collapse panel after a brief moment.
-      setTimeout(() => {
-        if (uploadStatus === "processing") {
-          uploadStatus = "ready";
-          showUpload = false;
-          uploadProgress = 0;
-        }
-      }, 1500);
-
-    } catch (reason) {
-      uploadStatus = "error";
-      uploadError = reason instanceof Error ? reason.message : "העלאת קובץ הווידאו נכשלה.";
-    }
-  }
-
-  function uploadToMux(url: string, file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          uploadProgress = Math.round((e.loaded / e.total) * 100);
-        }
-      });
-      xhr.addEventListener("load", () => {
-        if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else reject(new Error(`Mux returned failure code: ${xhr.status}`));
-      });
-      xhr.addEventListener("error", () => reject(new Error("שגיאת רשת במהלך העלאת קובץ.")));
-      xhr.open("PUT", url);
-      xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
-      xhr.send(file);
-    });
-  }
-
+  // ── Actions ──
   async function handlePublishVideo(videoId: Id<"videos">) {
     actionId = videoId;
     actionError = "";
@@ -194,21 +101,20 @@
 
 <PageShell
   title="ספריית שיעורי וידאו"
-  description="העלאת שיעורים חדשים, שיוך לקטגוריות Macroflow/Microflow, וניהול תוכן מתוזמן."
+  description="העלאת שיעורים חדשים וניהול תוכן מתוזמן."
 >
   {#if actionError}
     <Notice tone="danger">{actionError}</Notice>
   {/if}
 
-  {#if uploadStatus === "ready"}
-    <Notice tone="success">הווידאו הועלה בהצלחה! מעבדים אותו בשרתי Mux — יופיע בספריה תוך כמה דקות.</Notice>
-  {/if}
-
   <div class="manager-layout">
     <div class="manager-toolbar">
-      <Button.Root class="hb-button {showUpload ? 'hb-button--paper' : 'hb-button--ink'}"
+      <Button.Root
+        class="hb-button {showUpload ? 'hb-button--paper' : 'hb-button--ink'}"
         type="button"
-        onclick={() => { showUpload = !showUpload; }}
+        onclick={() => {
+          showUpload = !showUpload;
+        }}
       >
         <span class="material-symbols-rounded">{showUpload ? "close" : "cloud_upload"}</span>
         {showUpload ? "סגירת פאנל" : "העלאת וידאו חדש"}
@@ -219,14 +125,12 @@
       <div class="upload-panel">
         <VideoUploadForm
           {categories}
-          {uploadStatus}
-          {uploadProgress}
-          {uploadError}
-          {creatingCategory}
-          {categoryError}
-          onCreateCategory={handleCreateCategory}
-          onSubmit={handleStartUpload}
-          onCancel={() => { showUpload = false; }}
+          onComplete={() => {
+            showUpload = false;
+          }}
+          onCancel={() => {
+            showUpload = false;
+          }}
         />
       </div>
     {/if}
@@ -271,7 +175,13 @@
   }
 
   @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>

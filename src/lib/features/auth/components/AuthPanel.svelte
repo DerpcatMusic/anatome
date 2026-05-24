@@ -91,7 +91,7 @@
   }
 
   function closeModal() {
-    window.dispatchEvent(new CustomEvent("homebody:auth-close"));
+    window.dispatchEvent(new CustomEvent("anatome:auth-close"));
   }
 
   function switchToCode() {

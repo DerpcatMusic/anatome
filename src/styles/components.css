@@ -83,12 +83,11 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
-  backdrop-filter: blur(2px);
 }
 
 .edit-modal-card {
@@ -99,12 +98,13 @@ textarea {
   z-index: 101;
   background: var(--white);
   border: var(--border);
-  box-shadow: 8px 8px 0 var(--ink);
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   width: 100%;
   max-width: 520px;
   display: flex;
   flex-direction: column;
-  animation: modalPop var(--duration-fast) cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalPop 0.2s ease-out;
   direction: rtl;
 }
 
@@ -185,11 +185,11 @@ textarea {
 
 @keyframes modalPop {
   from {
-    transform: translate(-50%, -50%) scale(0.96) translateY(10px);
+    transform: translate(-50%, calc(-50% + 8px));
     opacity: 0;
   }
   to {
-    transform: translate(-50%, -50%) scale(1) translateY(0);
+    transform: translate(-50%, -50%);
     opacity: 1;
   }
 }

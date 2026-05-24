@@ -19,7 +19,13 @@ async function ensureLiveKitRoom(
 ) {
   const roomClient = new RoomServiceClient(httpUrlForLiveKit(wsUrl), apiKey, apiSecret);
   const existing = await roomClient.listRooms([roomName]);
-  if (existing.length > 0) return;
+  const serializedMetadata = JSON.stringify(metadata);
+  if (existing.length > 0) {
+    if (existing[0]?.metadata !== serializedMetadata) {
+      await roomClient.updateRoomMetadata(roomName, serializedMetadata);
+    }
+    return;
+  }
 
   const emptyTimeout = Math.max(TTL.MIN_EMPTY_TIMEOUT_SECONDS, Math.ceil((joinClosesAt - Date.now()) / 1000) + TTL.EMPTY_ROOM_BUFFER_SECONDS);
 
@@ -29,7 +35,7 @@ async function ensureLiveKitRoom(
       emptyTimeout,
       departureTimeout: TTL.DEPARTURE_TIMEOUT_SECONDS,
       maxParticipants,
-      metadata: JSON.stringify(metadata),
+      metadata: serializedMetadata,
     });
   } catch (reason: unknown) {
     const message = reason instanceof Error ? reason.message : String(reason);
@@ -66,6 +72,7 @@ export const issueJoin = action({
       endsAt: number;
       joinClosesAt: number;
       capacity: number;
+      maxParticipants: number;
     } = await ctx.runMutation(internal.live.room.prepareJoin, {
       liveClassId: args.liveClassId,
     });
@@ -85,7 +92,7 @@ export const issueJoin = action({
         layout: join.liveClassType === "one_on_one" ? "one_on_one" : "instructor_spotlight",
         instructorPriority: true,
       },
-      Math.max(2, join.capacity + 1),
+      join.maxParticipants,
       join.joinClosesAt,
     );
 
@@ -93,7 +100,7 @@ export const issueJoin = action({
     const token = new AccessToken(apiKey, apiSecret, {
       identity,
       name: join.displayName,
-      ttl: "10m",
+      ttl: TTL.JOIN_TOKEN,
     });
 
     const grant: VideoGrant =
