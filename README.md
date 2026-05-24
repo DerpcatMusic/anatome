@@ -81,21 +81,21 @@ Use your **production** Convex deployment URL (from `bunx convex dashboard` or `
 
 ## Resend (transactional email)
 
-Auth OTP / magic-link emails use the official [`@convex-dev/resend`](https://www.npmjs.com/package/@convex-dev/resend) component. Sending domain: **`anatome.dolmengatemedia.com`** (subdomain under Dolmen Gate Media for Resend free-tier domain limits).
+Auth OTP / magic-link emails use the official [`@convex-dev/resend`](https://www.npmjs.com/package/@convex-dev/resend) component. The **From** domain must be [verified in Resend](https://resend.com/domains) (403 `validation_error` otherwise).
 
-1. In [Resend](https://resend.com), add and verify the domain `anatome.dolmengatemedia.com` (DNS records on the parent zone).
-2. Create an API key and set Convex env vars:
+1. Use your verified domain (e.g. **`dolmengatemedia.com`**) or add DNS for a subdomain and wait until Resend shows it verified.
+2. Create an API key and set Convex env vars on **each** deployment (dev + prod):
 
 ```sh
 bunx convex env set RESEND_API_KEY "re_..."
-bunx convex env set RESEND_FROM "AnatoMe <noreply@anatome.dolmengatemedia.com>"
+bunx convex env set RESEND_FROM "AnatoMe <noreply@dolmengatemedia.com>"
 bunx convex env set FRONTEND_URL "https://www.anatome.co.il"
 bunx convex env set RESEND_TEST_MODE false
 ```
 
 `RESEND_TEST_MODE` defaults to **on** when `FRONTEND_URL` is unset or points at localhost. While test mode is on, the Resend component rejects real recipient addresses (only `*@resend.dev` test inboxes). **Production:** set `FRONTEND_URL` to your public site and `RESEND_TEST_MODE=false`.
 
-**OTP not arriving but sign-in “succeeds”?** The Resend component sends asynchronously. Check Convex **Logs** for `permanent_failure` / `Resend API error`, and in the dashboard open the **resend** component → **emails** table for `failed` rows. Also confirm the domain `anatome.dolmengatemedia.com` is verified in Resend.
+**OTP not arriving but sign-in “succeeds”?** The Resend component sends asynchronously. Check Convex **Logs** for `permanent_failure` / `Resend API error`, and the **resend** component → **emails** table for `failed` rows. A 403 *domain is not verified* means `RESEND_FROM` must use a domain that shows **Verified** on Resend (not only planned).
 
 3. Optional delivery webhooks (bounces, complaints, opens):
 
