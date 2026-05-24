@@ -48,6 +48,21 @@ bunx convex env set --from-file "$AUTH_ENV_FILE" --force
 
 For production, set `SITE_URL` to the public HomeBody domain.
 
+## Cloudflare Pages
+
+Build command: `bun run build`  
+Build output directory: `build`
+
+Set this **environment variable** for Production (and Preview if you use preview deploys):
+
+| Variable | Example |
+|----------|---------|
+| `PUBLIC_CONVEX_CLIENT_URL` | `https://your-deployment.convex.cloud` |
+
+Use your **production** Convex deployment URL (from `bunx convex dashboard` or `.env.local` after `bunx convex dev`). It is public and gets inlined into the static bundle at build time.
+
+`vite.config.js` also accepts `CONVEX_URL` if you prefer that name.
+
 ## Resend (transactional email)
 
 Auth OTP / magic-link emails use the official [`@convex-dev/resend`](https://www.npmjs.com/package/@convex-dev/resend) component. Sending domain: **`anatome.dolmengatemedia.com`** (subdomain under Dolmen Gate Media for Resend free-tier domain limits).
