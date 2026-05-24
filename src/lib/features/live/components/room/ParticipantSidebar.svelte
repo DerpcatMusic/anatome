@@ -18,7 +18,7 @@
 </script>
 
 {#if open}
-  <aside class="lr-panel lr-glass lr-panel--participants" aria-label={t.live.room.participantsTitle()}>
+  <aside class="lr-panel lr-panel--participants" aria-label={t.live.room.participantsTitle()}>
     <div class="lr-panel__header">
       <h3>{t.live.room.participantsTitle()}</h3>
       <Button.Root

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -16,12 +15,12 @@
     <h1>{t.landing.hero.headline()}</h1>
     <p class="lead">{t.landing.hero.lead()}</p>
     <div class="actions">
-      <Button.Root class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
+      <button class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
         {t.landing.hero.ctaPrimary()}
-      </Button.Root>
-      <Button.Root class="hb-button hb-button--paper" href="#instructor">
+      </button>
+      <a class="hb-button hb-button--paper" href="#instructor">
         {t.landing.hero.ctaSecondary()}
-      </Button.Root>
+      </a>
     </div>
   </div>
 </section>

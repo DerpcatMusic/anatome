@@ -120,17 +120,24 @@
     display: grid;
     grid-template-columns: 3fr 1fr;
     grid-template-rows: 1fr;
-    gap: var(--space-3);
-    padding: var(--space-3);
+    gap: 6px;
+    padding: 6px;
+    padding-block-start: 52px;
+    padding-block-end: 72px;
     box-sizing: border-box;
   }
 
-  .spotlight-main { min-width: 0; min-height: 0; overflow: hidden; }
+  .spotlight-main {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 6px;
+  }
 
   .spotlight-strip {
     display: grid;
     grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
-    gap: var(--space-3);
+    gap: 6px;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -142,7 +149,7 @@
     height: 100%;
     display: grid;
     place-items: center;
-    padding: var(--space-3);
+    padding: 52px 6px 72px;
     box-sizing: border-box;
   }
 
@@ -151,8 +158,9 @@
     width: 100%;
     height: 100%;
     margin: 0;
-    background: var(--video-bg);
+    background: var(--video-bg-warm);
     border: 1px solid var(--tile-border);
+    border-radius: 6px;
     overflow: hidden;
   }
 
@@ -161,11 +169,12 @@
     width: min(20vw, 180px);
     aspect-ratio: 16 / 9;
     margin: 0;
-    background: var(--video-bg);
+    background: var(--video-bg-warm);
     border: 1px solid var(--tile-border);
+    border-radius: 6px;
     overflow: hidden;
     inset-inline-end: var(--space-3);
-    inset-block-end: var(--space-3);
+    inset-block-end: 80px;
     z-index: 5;
   }
 
@@ -173,6 +182,8 @@
     .spotlight-layout {
       grid-template-columns: 1fr;
       grid-template-rows: 2fr 1fr;
+      padding-block-start: 48px;
+      padding-block-end: 64px;
     }
 
     .spotlight-strip {
@@ -180,8 +191,14 @@
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }
 
+    .student-stage {
+      padding-block-start: 48px;
+      padding-block-end: 64px;
+    }
+
     .student-pip {
       width: min(30vw, 140px);
+      inset-block-end: 72px;
     }
   }
 </style>

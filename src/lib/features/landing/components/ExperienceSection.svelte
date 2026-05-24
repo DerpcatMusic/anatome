@@ -23,19 +23,19 @@
 
   <div class="offerings-grid">
     <article class="offering">
-      <span class="material-symbols-rounded offering-icon">movie</span>
+      <span class="offering-icon offering-icon--macro" aria-hidden="true"></span>
       <h3>{t.landing.pillars.macroTitle()}</h3>
       <p class="offering-lead">{t.landing.pillars.macroLead()}</p>
       <p class="offering-body">{t.landing.pillars.macroBody()}</p>
     </article>
     <article class="offering">
-      <span class="material-symbols-rounded offering-icon">short_text</span>
+      <span class="offering-icon offering-icon--micro" aria-hidden="true"></span>
       <h3>{t.landing.pillars.microTitle()}</h3>
       <p class="offering-lead">{t.landing.pillars.microLead()}</p>
       <p class="offering-body">{t.landing.pillars.microBody()}</p>
     </article>
     <article class="offering">
-      <span class="material-symbols-rounded offering-icon">videocam</span>
+      <span class="offering-icon offering-icon--live" aria-hidden="true"></span>
       <h3>{t.landing.pillars.liveTitle()}</h3>
       <p class="offering-lead">{t.landing.pillars.liveLead()}</p>
       <p class="offering-body">{t.landing.pillars.liveBody()}</p>

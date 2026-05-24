@@ -142,7 +142,16 @@
   margin-inline: 1px;
   color: var(--ink);
   background: var(--surface);
-  transition: border-color 0.15s ease, background 0.15s ease, filter 0.15s ease;
+  opacity: 1;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    filter 0.15s ease,
+    inline-size 0.15s ease,
+    inset-inline-start 0.15s ease,
+    min-block-size 0.15s ease,
+    block-size 0.15s ease,
+    box-shadow 0.15s ease;
   overflow: hidden;
   min-width: 0;
   cursor: pointer;
@@ -173,7 +182,35 @@
 }
 
 .ec-event:hover {
-  z-index: 10;
+  z-index: 50;
+}
+
+/* Hover grow: scaleX from inline-start; layout box unchanged (no jitter).
+   Selectors use .ec.ec-time-grid (same element) — not .ec .ec-time-grid (descendant). */
+.ec.ec-time-grid .ec-events .ec-event {
+  transform-origin: inline-start center;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.ec.ec-time-grid .ec-events .ec-event:hover,
+.ec.ec-time-grid .ec-events .ec-event:focus-visible {
+  transform: scaleX(var(--ec-hover-scale-x, 1));
+  overflow: visible !important;
+  z-index: 50 !important;
+}
+
+.ec.ec-time-grid .ec-events .ec-event:hover .calendar-class-event-body .event-time,
+.ec.ec-time-grid .ec-events .ec-event:focus-visible .calendar-class-event-body .event-time {
+  display: block;
+}
+
+.ec.ec-time-grid .ec-events .ec-event:hover .calendar-class-event-body .event-title,
+.ec.ec-time-grid .ec-events .ec-event:focus-visible .calendar-class-event-body .event-title {
+  -webkit-line-clamp: 4;
 }
 
 .ec-event.ec-event-type--group_live:hover {
@@ -185,7 +222,7 @@
   filter: brightness(1.05);
 }
 
-.ec-event:active {
+.ec-event:active:not(:hover) {
   transform: translateY(1px);
 }
 
@@ -285,6 +322,16 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-word;
+}
+
+.calendar-class-event-body .event-time {
+  display: none;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: var(--step--2);
+  line-height: 1.25;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .calendar-class-event-body .event-meta {
@@ -456,6 +503,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ec-event {
+    transition: none;
+  }
+
+  .ec.ec-time-grid .ec-events .ec-event {
     transition: none;
   }
 }

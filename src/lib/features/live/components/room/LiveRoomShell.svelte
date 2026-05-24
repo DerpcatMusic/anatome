@@ -102,38 +102,7 @@
 
   <Tooltip.Provider delayDuration={160}>
     <div class="lr-room">
-      {#if room.connectionState === "reconnecting"}
-        <div class="lr-reconnect-banner" role="status" aria-live="polite">
-          <span class="material-symbols-rounded lr-reconnect-banner__icon" aria-hidden="true">sync</span>
-          <div class="lr-reconnect-banner__text">
-            <strong>{t.live.room.reconnectingOverlay()}</strong>
-            <span>{t.live.room.reconnectingHint()}</span>
-          </div>
-        </div>
-      {/if}
-
-      <RoomHeader
-        connectionState={room.connectionState}
-        connectionLabel={room.connectionLabel}
-        connectionQuality={room.connectionQuality}
-        connectionQualityLabel={room.connectionQualityLabel}
-        showConnectionWarning={room.showConnectionWarning}
-        joinExpiryLabel={room.joinExpiryLabel}
-        classTitle={room.joinInfo?.classTitle ?? ""}
-        participantCount={room.participants.length}
-        isInstructorRoom={room.isInstructorRoom}
-        showQualityPanel={room.showQualityPanel}
-        showParticipants={room.showParticipants}
-        onToggleParticipants={() => (room.showParticipants = !room.showParticipants)}
-        onToggleQualityPanel={() => (room.showQualityPanel = !room.showQualityPanel)}
-        onLeave={() => {
-          room.destroy();
-          window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
-        }}
-        onEndLive={room.isInstructorRoom ? () => room.endLive() : undefined}
-      />
-
-      <div class="lr-room__body">
+      <div class="lr-room__viewport">
         <VideoStage
           isInstructorRoom={room.isInstructorRoom}
           videoTiles={stageTracks.videoTiles}
@@ -146,6 +115,30 @@
           classTitle={room.joinInfo?.classTitle ?? ""}
           instructorName={room.joinInfo?.instructorName ?? ""}
         />
+
+        <div class="lr-room__header">
+          <RoomHeader
+            connectionState={room.connectionState}
+            connectionLabel={room.connectionLabel}
+            connectionQuality={room.connectionQuality}
+            connectionQualityLabel={room.connectionQualityLabel}
+            showConnectionWarning={room.showConnectionWarning}
+            joinExpiryLabel={room.joinExpiryLabel}
+            classTitle={room.joinInfo?.classTitle ?? ""}
+            participantCount={room.participants.length}
+            isInstructorRoom={room.isInstructorRoom}
+            showQualityPanel={room.showQualityPanel}
+            showParticipants={room.showParticipants}
+            onToggleParticipants={() => (room.showParticipants = !room.showParticipants)}
+            onToggleQualityPanel={() => (room.showQualityPanel = !room.showQualityPanel)}
+            onLeave={() => {
+              room.destroy();
+              window.location.href = room.isInstructorRoom ? "/i/live" : "/u/calendar";
+            }}
+            onEndLive={room.isInstructorRoom ? () => room.endLive() : undefined}
+          />
+        </div>
+
         <ParticipantSidebar
           open={room.showParticipants}
           participants={room.participants}
@@ -158,32 +151,49 @@
           onSend={() => room.sendChatMessage()}
           onClose={() => (room.showChat = false)}
         />
-      </div>
 
-      {#if room.statusBanner}
-        <div class="lr-network-hint" role="status" aria-live="polite">{room.statusBanner}</div>
-      {/if}
+        {#if room.connectionState === "reconnecting"}
+          <div class="lr-reconnect-banner" role="status" aria-live="polite">
+            <span class="material-symbols-rounded lr-reconnect-banner__icon" aria-hidden="true">sync</span>
+            <div class="lr-reconnect-banner__text">
+              <strong>{t.live.room.reconnectingOverlay()}</strong>
+              <span>{t.live.room.reconnectingHint()}</span>
+            </div>
+          </div>
+        {/if}
 
-      {#if room.mediaError}
-        <div class="lr-media-error" role="alert">
-          <span>{room.mediaError}</span>
-          <button type="button" class="lr-media-error__dismiss" onclick={() => room.dismissMediaError()}>
-            {t.live.room.mediaErrorDismiss()}
-          </button>
+        {#if room.statusBanner || room.mediaError}
+          <div class="lr-room__toasts">
+            {#if room.statusBanner}
+              <div class="lr-toast lr-toast--warn" role="status" aria-live="polite">{room.statusBanner}</div>
+            {/if}
+            {#if room.mediaError}
+              <div class="lr-toast lr-toast--error" role="alert">
+                <span>{room.mediaError}</span>
+                <button
+                  type="button"
+                  class="lr-toast__dismiss"
+                  onclick={() => room.dismissMediaError()}
+                >
+                  {t.live.room.mediaErrorDismiss()}
+                </button>
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        {#if room.isInstructorRoom && room.connectionState === "connected"}
+          <p class="lr-instructor-audio-hint">{t.live.room.instructorAudioHint()}</p>
+        {/if}
+
+        <ControlBar {room} />
+        <QualityPanel {room} />
+
+        <div class="lr-audio-sink" aria-hidden="true">
+          {#each room.audioTiles as tile (tile.id)}
+            <div use:mountMedia={tile.element}></div>
+          {/each}
         </div>
-      {/if}
-
-      {#if room.isInstructorRoom && room.connectionState === "connected"}
-        <p class="lr-instructor-audio-hint">{t.live.room.instructorAudioHint()}</p>
-      {/if}
-
-      <ControlBar {room} />
-      <QualityPanel {room} />
-
-      <div class="lr-audio-sink" aria-hidden="true">
-        {#each room.audioTiles as tile (tile.id)}
-          <div use:mountMedia={tile.element}></div>
-        {/each}
       </div>
     </div>
   </Tooltip.Provider>
@@ -301,81 +311,6 @@
     gap: var(--space-3);
     justify-content: center;
     padding-top: var(--space-2);
-  }
-
-  .lr-reconnect-banner {
-    position: absolute;
-    top: calc(var(--lr-header-h, 56px) + var(--space-2));
-    inset-inline: var(--space-3);
-    z-index: 40;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--primary);
-    background: var(--surface);
-    color: var(--ink);
-  }
-
-  .lr-reconnect-banner__icon {
-    animation: lr-spin 1.2s linear infinite;
-  }
-
-  .lr-reconnect-banner__text {
-    display: grid;
-    gap: 2px;
-    font-size: var(--step--1);
-  }
-
-  .lr-reconnect-banner__text strong {
-    font-size: var(--step-0);
-  }
-
-  .lr-network-hint {
-    margin: 0 var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--primary);
-    background: var(--surface);
-    color: var(--ink);
-    font-size: var(--step--1);
-    text-align: center;
-  }
-
-  .lr-media-error {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    margin: 0 var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--primary);
-    background: var(--surface);
-    color: var(--ink);
-    font-size: var(--step--1);
-  }
-
-  .lr-media-error__dismiss {
-    flex-shrink: 0;
-    padding: 4px 10px;
-    border: var(--lr-chrome-border);
-    background: var(--paper);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .lr-instructor-audio-hint {
-    margin: 0;
-    padding: 0 var(--space-3) var(--space-2);
-    font-size: var(--step--1);
-    color: var(--muted);
-    text-align: center;
-  }
-
-  @keyframes lr-spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
 
   .lr-spin {

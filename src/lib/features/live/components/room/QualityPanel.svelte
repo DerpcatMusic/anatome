@@ -16,7 +16,7 @@
 </script>
 
 {#if room.isInstructorRoom && room.showQualityPanel}
-  <aside class="lr-quality lr-glass" aria-label={t.live.stats.title()}>
+  <aside class="lr-quality" aria-label={t.live.stats.title()}>
     <div class="lr-panel__header">
       <h3>{t.live.stats.title()}</h3>
       <Button.Root

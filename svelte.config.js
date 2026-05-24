@@ -7,10 +7,19 @@ const config = {
 	kit: {
 		adapter: adapter({
 			fallback: '200.html',
-			precompress: false
+			precompress: true
 		}),
 		prerender: {
-			entries: ['/', '/sitemap.xml', '/robots.txt']
+			entries: [
+				'/',
+				'/sitemap.xml',
+				'/robots.txt',
+				'/legal/terms',
+				'/legal/privacy',
+				'/legal/cancellations',
+				'/legal/accessibility',
+				'/legal/health'
+			]
 		},
 		alias: {
 			$components: 'src/lib/components',

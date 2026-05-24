@@ -313,6 +313,7 @@
     location: string,
     message: string,
     data: Record<string, unknown> = {},
+    runId = "hover-expand",
   ) {
     // #region agent log
     fetch("http://127.0.0.1:7635/ingest/0058f30b-7dc0-4748-98aa-19722c5574a5", {
@@ -320,7 +321,7 @@
       headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f93d0d" },
       body: JSON.stringify({
         sessionId: "f93d0d",
-        runId: "refresh-fix",
+        runId,
         hypothesisId,
         location,
         message,
@@ -329,6 +330,64 @@
       }),
     }).catch(() => {});
     // #endregion
+  }
+
+  function getDayColumnEl(el: HTMLElement): HTMLElement | null {
+    const col = parseInt(getComputedStyle(el).gridColumnStart, 10);
+    if (!Number.isFinite(col)) return null;
+    const grid = el.closest(".ec-body")?.querySelector(".ec-grid");
+    if (!grid) return null;
+    return (grid.querySelectorAll(".ec-day")[col - 1] as HTMLElement | undefined) ?? null;
+  }
+
+  function computeHoverScale(el: HTMLElement) {
+    const dayEl = getDayColumnEl(el);
+    if (!dayEl) {
+      el.style.setProperty("--ec-hover-scale-x", "1");
+      return;
+    }
+    const dayWidth = dayEl.getBoundingClientRect().width;
+    const eventWidth = el.getBoundingClientRect().width;
+    if (dayWidth <= 0 || eventWidth <= 0) {
+      el.style.setProperty("--ec-hover-scale-x", "1");
+      return;
+    }
+    const scale = Math.min(Math.max((dayWidth - 2) / eventWidth, 1), 12);
+    el.style.setProperty("--ec-hover-scale-x", scale.toFixed(3));
+  }
+
+  function mountEventHoverScale(el: HTMLElement) {
+    if (el.dataset.ecHoverMount === "1") return;
+    if (el.classList.contains("ec-bg-event")) return;
+    el.dataset.ecHoverMount = "1";
+
+    const updateScale = () => {
+      computeHoverScale(el);
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(updateScale);
+    });
+
+    const resizeObserver = new ResizeObserver(updateScale);
+    resizeObserver.observe(el);
+    const dayEl = getDayColumnEl(el);
+    if (dayEl) resizeObserver.observe(dayEl);
+
+    el.addEventListener("mouseenter", () => {
+      const cs = getComputedStyle(el);
+      debugLog("H1", "WeeklyAgenda:hoverScale", "hover without layout shift", {
+        scale: el.style.getPropertyValue("--ec-hover-scale-x"),
+        eventWidth: el.getBoundingClientRect().width,
+        dayWidth: getDayColumnEl(el)?.getBoundingClientRect().width ?? null,
+        position: cs.position,
+        insetInlineStart: cs.insetInlineStart,
+        transform: cs.transform,
+        timeVisible: el.querySelector(".event-time")
+          ? getComputedStyle(el.querySelector(".event-time")!).display
+          : null,
+      });
+    });
   }
 
   function handleAvailabilitySelect(start: Date, end: Date) {
@@ -474,6 +533,11 @@
     events: [],
 
     datesSet: handleDatesSet,
+
+    eventDidMount: function (info: { el: HTMLElement; event: { display?: string } }) {
+      if (info.event.display === "background") return;
+      mountEventHoverScale(info.el);
+    },
 
     select: function (info: { start: Date; end: Date; jsEvent?: MouseEvent }) {
       if (availabilityPaintMode) {
@@ -626,8 +690,10 @@
       };
     }) {
       if (info.event.extendedProps?.kind === "availability") {
+        const start = formatEventCalendarWallTime(info.event.start);
+        const end = formatEventCalendarWallTime(info.event.end);
         return {
-          html: `<div class="calendar-class-event-body calendar-availability-event"><div class="event-title">${escapeHtml(info.event.title)}</div></div>`,
+          html: `<div class="calendar-class-event-body calendar-availability-event"><div class="event-title">${escapeHtml(info.event.title)}</div><span class="event-time">${start} \u2013 ${end}</span></div>`,
         };
       }
 
@@ -656,8 +722,9 @@
 
       return {
         html: `
-          <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} \u2022 ${formattedTime}">
+          <div class="calendar-class-event-body status-${c.status}">
             <div class="event-title">${escapeHtml(c.title)}</div>
+            <span class="event-time">${formattedTime}</span>
             ${c.status === "live" ? `<div class="event-meta"><span class="pulse-indicator" aria-label="\u05e9\u05d9\u05d3\u05d5\u05e8 \u05d7\u05d9"></span></div>` : ""}
           </div>
         `,
@@ -689,7 +756,7 @@
     flex-direction: column;
     width: 100%;
     direction: rtl;
-    contain: layout paint;
+    contain: layout;
   }
 
   .drag-error {

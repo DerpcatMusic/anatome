@@ -51,6 +51,10 @@
           ? "signal_cellular_off"
           : "network_check",
   );
+
+  function openLeaveModal() {
+    showLeaveModal = true;
+  }
 </script>
 
 <LeaveModal
@@ -63,11 +67,9 @@
 <header class="lr-header">
   <div class="lr-header__start">
     <Button.Root
-      class="hb-button hb-button--paper hb-button--sm lr-header__back"
+      class="lr-header-btn lr-header-btn--back"
       type="button"
-      onclick={() => {
-        showLeaveModal = true;
-      }}
+      onclick={openLeaveModal}
     >
       <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
       <span class="lr-header__back-label">{t.live.room.back()}</span>
@@ -105,20 +107,23 @@
     </span>
 
     <Tooltip.Root>
-      <Tooltip.Trigger class="hb-tooltip-trigger">
-        <Button.Root
-          class="hb-button hb-button--participants {showParticipants ? 'hb-button--control-participants-on' : ''}"
-          type="button"
-          onclick={onToggleParticipants}
-          aria-label={t.live.room.participantsTitle()}
-          aria-pressed={showParticipants}
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">people</span>
-          <span class="lr-header__participant-count">{participantCount}</span>
-        </Button.Root>
+      <Tooltip.Trigger>
+        {#snippet child({ props })}
+          <Button.Root
+            {...props}
+            class="lr-header-btn lr-header-btn--participants {showParticipants ? 'lr-header-btn--active' : ''}"
+            type="button"
+            onclick={onToggleParticipants}
+            aria-label={t.live.room.participantsTitle()}
+            aria-pressed={showParticipants}
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">people</span>
+            <span class="lr-header__participant-count">{participantCount}</span>
+          </Button.Root>
+        {/snippet}
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Content class="hb-tooltip-content">
+        <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
           {showParticipants ? t.live.room.hideParticipants() : t.live.room.showParticipants()}
         </Tooltip.Content>
       </Tooltip.Portal>
@@ -131,39 +136,43 @@
     {/if}
     {#if isInstructorRoom}
       <Tooltip.Root>
-        <Tooltip.Trigger class="hb-tooltip-trigger">
-          <Button.Root
-            class="hb-button hb-button--icon {showQualityPanel ? 'hb-button--icon-active' : ''}"
-            type="button"
-            onclick={onToggleQualityPanel}
-            aria-label={t.live.stats.title()}
-            aria-pressed={showQualityPanel}
-          >
-            <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
-          </Button.Root>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              class="lr-header-btn {showQualityPanel ? 'lr-header-btn--active' : ''}"
+              type="button"
+              onclick={onToggleQualityPanel}
+              aria-label={t.live.stats.title()}
+              aria-pressed={showQualityPanel}
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+            </Button.Root>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Portal>
-          <Tooltip.Content class="hb-tooltip-content">
+          <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
             {t.live.stats.title()}
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>
     {/if}
     <Tooltip.Root>
-      <Tooltip.Trigger class="hb-tooltip-trigger">
-        <Button.Root
-          class="hb-button hb-button--icon-danger"
-          type="button"
-          onclick={() => {
-            showLeaveModal = true;
-          }}
-          aria-label={t.live.room.leave()}
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
-        </Button.Root>
+      <Tooltip.Trigger>
+        {#snippet child({ props })}
+          <Button.Root
+            {...props}
+            class="lr-header-btn lr-header-btn--danger"
+            type="button"
+            onclick={openLeaveModal}
+            aria-label={t.live.room.leave()}
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+          </Button.Root>
+        {/snippet}
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Content class="hb-tooltip-content">
+        <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
           {t.live.room.leave()}
         </Tooltip.Content>
       </Tooltip.Portal>

@@ -45,7 +45,7 @@
 </script>
 
 {#if open}
-  <aside class="lr-chat lr-glass" aria-label={t.live.room.chatTitle()}>
+  <aside class="lr-chat" aria-label={t.live.room.chatTitle()}>
     <div class="lr-panel__header">
       <h3>{t.live.room.chatTitle()}</h3>
       <button

@@ -4,6 +4,8 @@
    Gveret Levin: human voice (quotes, story, annotations)
    ═══════════════════════════════════════════ */
 
+@import "@fontsource/gveret-levin/hebrew-400.css";
+
 .landing {
   display: flex;
   flex-direction: column;
@@ -262,9 +264,43 @@
 }
 
 .landing .offering-icon {
-  font-size: var(--step-2);
-  color: var(--secondary);
-  line-height: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--secondary);
+  border-radius: 4px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.landing .offering-icon--macro::after {
+  content: "";
+  position: absolute;
+  inset: 7px 5px;
+  border: 2px solid var(--secondary);
+  border-radius: 2px;
+}
+
+.landing .offering-icon--micro::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 11px;
+  height: 2px;
+  background: var(--secondary);
+  box-shadow: 0 6px 0 var(--secondary);
+}
+
+.landing .offering-icon--live::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--secondary);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .landing .offering h3 {
@@ -401,20 +437,27 @@
   text-align: start;
 }
 
+.landing .faq-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.landing .faq-item::marker {
+  content: "";
+}
+
 .landing .faq-chevron {
   flex-shrink: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
   transition: transform 0.2s ease;
-  display: inline-flex;
-  align-items: center;
+  margin-inline-start: var(--space-2);
 }
 
-.landing .faq-chevron .material-symbols-rounded {
-  font-size: var(--step-2);
-  color: var(--muted);
-}
-
-.landing .faq-item[data-state="open"] .faq-chevron {
-  transform: rotate(180deg);
+.landing .faq-item[open] .faq-chevron {
+  transform: rotate(225deg);
 }
 
 .landing .faq-answer {

@@ -51,6 +51,13 @@
   const fullTitle = $derived(title.includes(SITE.name) ? title : `${title} | ${SITE.name}`);
   const canonicalUrl = $derived(canonical ?? `${SITE.domain}${page.url.pathname}`);
   const ogImageUrl = $derived(ogImage.startsWith("http") ? ogImage : `${SITE.domain}${ogImage}`);
+  const ogImageType = $derived(
+    ogImage.endsWith(".webp")
+      ? "image/webp"
+      : ogImage.endsWith(".png")
+        ? "image/png"
+        : "image/jpeg"
+  );
 
   const robotsDirectives = $derived.by(() => {
     const parts: string[] = [];
@@ -110,6 +117,9 @@
   <meta property="og:url" content={canonicalUrl} />
   <meta property="og:locale" content={SITE.locale} />
   <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:image:type" content={ogImageType} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={fullTitle} />
 
   <!-- Twitter Cards -->

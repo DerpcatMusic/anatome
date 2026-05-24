@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DropdownMenu, Toggle, Tooltip } from "bits-ui";
+  import { DropdownMenu, Toggle } from "bits-ui";
 
   export type MediaDeviceOption = {
     deviceId: string;
@@ -14,7 +14,6 @@
     devices = [],
     selectedDeviceId = "",
     toggleLabel,
-    tooltipLabel,
     deviceMenuLabel,
     onToggle,
     onSelectDevice,
@@ -26,7 +25,6 @@
     devices?: MediaDeviceOption[];
     selectedDeviceId?: string;
     toggleLabel: string;
-    tooltipLabel: string;
     deviceMenuLabel: string;
     onToggle: () => void;
     onSelectDevice: (deviceId: string) => void;
@@ -46,44 +44,45 @@
 </script>
 
 <div
-  class="hb-media-split lr-media-split"
-  class:hb-media-split--on={enabled}
-  class:hb-media-split--busy={busy}
+  class="lr-media-split"
+  class:lr-media-split--on={enabled}
+  class:lr-media-split--busy={busy}
   data-kind={kind}
 >
-  <Tooltip.Root>
-    <Tooltip.Trigger class="hb-tooltip-trigger hb-media-split__main-wrap">
-      <Toggle.Root
-        pressed={enabled}
-        onPressedChange={() => onToggle()}
-        disabled={disabled || busy}
-        aria-label={toggleLabel}
-        aria-busy={busy}
+  <Toggle.Root
+    pressed={enabled}
+    onPressedChange={() => onToggle()}
+    disabled={disabled || busy}
+    aria-label={toggleLabel}
+    title={toggleLabel}
+    aria-busy={busy}
+  >
+    {#snippet child({ props, pressed })}
+      <button
+        {...props}
+        type="button"
+        class="lr-dock-btn lr-dock-btn--toggle"
+        class:lr-dock-btn--on={pressed}
+        data-state={pressed ? "on" : "off"}
       >
-        {#snippet child({ props, pressed })}
+        <span class="material-symbols-rounded" aria-hidden="true">{icon}</span>
+      </button>
+    {/snippet}
+  </Toggle.Root>
+
+  {#if hasDeviceMenu}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        {#snippet child({ props })}
           <button
             {...props}
             type="button"
-            class="hb-media-split__main"
-            data-state={pressed ? "on" : "off"}
+            class="lr-dock-btn lr-dock-btn--menu"
+            aria-label={deviceMenuLabel}
           >
-            <span class="material-symbols-rounded" aria-hidden="true">{icon}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
           </button>
         {/snippet}
-      </Toggle.Root>
-    </Tooltip.Trigger>
-    <Tooltip.Portal>
-      <Tooltip.Content class="hb-tooltip-content">{tooltipLabel}</Tooltip.Content>
-    </Tooltip.Portal>
-  </Tooltip.Root>
-
-  {#if hasDeviceMenu}
-    <span class="hb-media-split__divider" aria-hidden="true"></span>
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger class="hb-dropdown-trigger">
-        <button type="button" class="hb-media-split__menu" aria-label={deviceMenuLabel}>
-          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
-        </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
@@ -113,9 +112,3 @@
     </DropdownMenu.Root>
   {/if}
 </div>
-
-<style>
-  .hb-media-split__main-wrap {
-    display: contents;
-  }
-</style>

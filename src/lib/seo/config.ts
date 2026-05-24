@@ -37,7 +37,7 @@ export const SITE = {
   lang: "he",
   dir: "rtl" as const,
   themeColor: "#faf8f3",
-  ogImage: "/og-image.jpg", // ← add this image to static/
+  ogImage: "/og-image.webp",
   twitterHandle: "@homebodypilates", // ← swap if different
   founded: "2024",
   phone: "+972-50-000-0000", // ← swap to real

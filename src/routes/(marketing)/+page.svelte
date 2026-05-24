@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { useEventListener } from "runed";
-  import { Dialog } from "bits-ui";
   import "$lib/features/landing/landing.css";
   import SEO from "$components/seo/SEO.svelte";
   import { SITE } from "$lib/seo/config";
@@ -17,7 +15,6 @@
     personSchema,
     breadcrumbSchema,
   } from "$lib/seo/schema";
-  import AuthPanel from "$features/auth/components/AuthPanel.svelte";
   import Footer from "$components/layout/Footer.svelte";
   import {
     HeroSection,
@@ -26,11 +23,9 @@
     PricingSection,
     FAQSection,
   } from "$lib/features/landing/components";
-  import { browser } from "$app/environment";
   import { useI18n } from "$lib/i18n/runes";
 
   const { t } = useI18n();
-  let authOpen = $state(false);
 
   const INSTRUCTOR = {
     name: "[שם המדריכה]",
@@ -40,12 +35,7 @@
   };
 
   function openAuthOverlay() {
-    authOpen = true;
-  }
-
-  if (browser) {
-    useEventListener(window, "anatome:auth-open", () => { authOpen = true; });
-    useEventListener(window, "anatome:auth-close", () => { authOpen = false; });
+    window.dispatchEvent(new CustomEvent("anatome:auth-open"));
   }
 
   const pageUrl = SITE.domain;
@@ -161,12 +151,3 @@
 </main>
 
 <Footer />
-
-<Dialog.Root bind:open={authOpen}>
-  <Dialog.Portal>
-    <Dialog.Overlay class="auth-overlay" />
-    <Dialog.Content class="auth-card" aria-label="כניסה והרשמה">
-      <AuthPanel />
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>

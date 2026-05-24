@@ -15,6 +15,9 @@
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
     "@convex-dev/resend": "^0.2.4",
+    "@fontsource/assistant": "^5.2.9",
+    "@fontsource/gveret-levin": "^5.2.1",
+    "@fontsource/secular-one": "^5.2.8",
     "@livekit/components-core": "^0.12.13",
     "@mux/convex": "^0.3.2",
     "@mux/mux-node": "^14.1.0",

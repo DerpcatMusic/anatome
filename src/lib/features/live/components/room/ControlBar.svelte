@@ -30,8 +30,8 @@
 </script>
 
 <footer class="lr-control-bar">
-  <Toolbar.Root class="hb-toolbar lr-control-bar__toolbar" aria-label={t.live.room.settingsTitle()}>
-    <div class="hb-toolbar__group lr-control-bar__media" role="group" aria-label={t.live.preConnect.micLabel()}>
+  <Toolbar.Root class="lr-control-bar__toolbar" aria-label={t.live.room.settingsTitle()}>
+    <div class="lr-control-bar__media" role="group" aria-label={t.live.preConnect.micLabel()}>
       <LiveMediaSplitControl
         kind="mic"
         enabled={room.micEnabled}
@@ -40,7 +40,6 @@
         devices={room.audioDevices}
         selectedDeviceId={room.selectedAudioDevice}
         toggleLabel={room.micEnabled ? t.live.controls.micOnLabel() : t.live.controls.micOffLabel()}
-        tooltipLabel={room.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic()}
         deviceMenuLabel={t.live.preConnect.micLabel()}
         onToggle={() => room.toggleMic()}
         onSelectDevice={switchMic}
@@ -54,7 +53,6 @@
         devices={room.videoDevices}
         selectedDeviceId={room.selectedVideoDevice}
         toggleLabel={room.cameraEnabled ? t.live.controls.cameraOnLabel() : t.live.controls.cameraOffLabel()}
-        tooltipLabel={room.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera()}
         deviceMenuLabel={t.live.preConnect.cameraLabel()}
         onToggle={() => room.toggleCamera()}
         onSelectDevice={switchCamera}
@@ -62,22 +60,25 @@
     </div>
 
     {#if room.isInstructorRoom}
-      <div class="hb-toolbar__group" role="group" aria-label={t.live.controls.startScreen()}>
+      <div class="lr-control-bar__group" role="group" aria-label={t.live.controls.startScreen()}>
         <Tooltip.Root>
-          <Tooltip.Trigger class="hb-tooltip-trigger">
-            <Toolbar.Button
-              class="hb-button hb-button--control {room.screenShareEnabled ? 'hb-button--control-on' : ''}"
-              disabled={controlsDisabled}
-              onclick={() => room.toggleScreenShare()}
-              aria-label={room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen()}
-            >
-              <span class="material-symbols-rounded" aria-hidden="true">
-                {room.screenShareEnabled ? "stop_screen_share" : "screen_share"}
-              </span>
-            </Toolbar.Button>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Toolbar.Button
+                {...props}
+                class="lr-dock-btn lr-dock-btn--toggle {room.screenShareEnabled ? 'lr-dock-btn--on' : ''}"
+                disabled={controlsDisabled}
+                onclick={() => room.toggleScreenShare()}
+                aria-label={room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen()}
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">
+                  {room.screenShareEnabled ? "stop_screen_share" : "screen_share"}
+                </span>
+              </Toolbar.Button>
+            {/snippet}
           </Tooltip.Trigger>
           <Tooltip.Portal>
-            <Tooltip.Content class="hb-tooltip-content">
+            <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
               {room.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen()}
             </Tooltip.Content>
           </Tooltip.Portal>
@@ -85,39 +86,48 @@
       </div>
     {/if}
 
-    <div class="hb-toolbar__group lr-panel-toggles" role="group" aria-label={t.live.room.chatTitle()}>
+    <div class="lr-control-bar__group lr-control-bar__panels" role="group" aria-label={t.live.room.chatTitle()}>
       <Tooltip.Root>
-        <Tooltip.Trigger class="hb-tooltip-trigger">
-          <Toolbar.Button
-            class="hb-button hb-button--control hb-toolbar-control {room.showChat ? 'hb-button--control-on' : ''}"
-            onclick={() => (room.showChat = !room.showChat)}
-            aria-label={room.showChat ? t.live.room.hideChat() : t.live.room.showChat()}
-            aria-pressed={room.showChat}
-          >
-            <span class="material-symbols-rounded" aria-hidden="true">
-              {room.showChat ? "chat" : "chat_bubble_outline"}
-            </span>
-            {#if room.unreadChatCount > 0 && !room.showChat}
-              <span class="hb-toolbar-control__badge" aria-label={t.live.room.newMessages()}>
-                {room.unreadChatCount}
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Toolbar.Button
+              {...props}
+              class="lr-dock-btn lr-dock-btn--toggle lr-dock-btn--chat {room.showChat ? 'lr-dock-btn--on' : ''}"
+              onclick={() => (room.showChat = !room.showChat)}
+              aria-label={room.showChat ? t.live.room.hideChat() : t.live.room.showChat()}
+              aria-pressed={room.showChat}
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">
+                {room.showChat ? "chat" : "chat_bubble_outline"}
               </span>
-            {/if}
-          </Toolbar.Button>
+              {#if room.unreadChatCount > 0 && !room.showChat}
+                <span class="lr-dock-btn__badge" aria-label={t.live.room.newMessages()}>
+                  {room.unreadChatCount}
+                </span>
+              {/if}
+            </Toolbar.Button>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Portal>
-          <Tooltip.Content class="hb-tooltip-content">
+          <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
             {room.showChat ? t.live.room.hideChat() : t.live.room.showChat()}
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>
     </div>
 
-    <div class="hb-toolbar__group" role="group" aria-label={t.live.room.settingsTitle()}>
+    <div class="lr-control-bar__group" role="group" aria-label={t.live.room.settingsTitle()}>
       <Popover.Root>
-        <Popover.Trigger class="hb-popover-trigger">
-          <Toolbar.Button class="hb-button hb-button--control" aria-label={t.live.room.settingsTitle()}>
-            <span class="material-symbols-rounded" aria-hidden="true">settings</span>
-          </Toolbar.Button>
+        <Popover.Trigger>
+          {#snippet child({ props })}
+            <Toolbar.Button
+              {...props}
+              class="lr-dock-btn lr-dock-btn--toggle"
+              aria-label={t.live.room.settingsTitle()}
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+            </Toolbar.Button>
+          {/snippet}
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content
