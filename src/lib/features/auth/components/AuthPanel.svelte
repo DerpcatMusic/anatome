@@ -1,6 +1,6 @@
 <script lang="ts">
   import Notice from "$components/ui/Notice.svelte";
-  import { initAuth, signOut, storeTokens } from "$lib/auth/session.svelte";
+  import { completeSignIn, initAuth, signOut, storeTokens } from "$lib/auth/session.svelte";
 
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useConvexClient } from "convex-svelte";
@@ -75,7 +75,7 @@
         params: { email, code: code.trim() },
       });
       storeTokens(result.tokens ?? null);
-      window.location.assign("/onboarding");
+      await completeSignIn();
     } catch (reason) {
       status = reason instanceof Error ? reason.message : t.auth.statusCodeError();
     } finally {

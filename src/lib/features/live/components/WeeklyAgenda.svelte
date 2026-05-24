@@ -17,12 +17,16 @@
   } from "$features/live/types/selection-anchor";
   import {
     applySelectionToPainted,
+    eraseAvailabilityRange,
     expandPaintedToEvents,
     selectionTouchesPainted,
     type PaintedSlots,
   } from "$features/studio/lib/one-on-one-availability";
 
   const QUICK_CREATE_PREVIEW_ID = "__quick_create_preview__";
+  const AVAILABILITY_DOUBLE_CLICK_MS = 400;
+
+  let lastAvailabilityClick = { eventId: "", at: 0 };
 
   function startOfWeek(date: Date, firstDay = 0): Date {
     const d = new Date(date);
@@ -34,15 +38,16 @@
   }
 
   type LiveClass = FunctionReturnType<typeof api.live.class.listMine>[number];
+  type ClassTypeFilter = "all" | "group_live" | "one_on_one";
 
   interface Props {
     classes: LiveClass[];
+    /** Live-class rows only; availability blocks always show in every mode. */
+    typeFilter?: ClassTypeFilter;
     onStart: (id: Id<"liveClasses">) => void;
     onEnd: (id: Id<"liveClasses">) => void;
     actionId: string | null;
     onSelectSlot: (timeLocalString: string, durationMinutes: number, anchor: SelectionAnchor) => void;
-    onRefreshClasses: () => Promise<void>;
-    onCreateButtonClick: () => void;
     onEventClick: (liveClass: LiveClass, anchor: SelectionAnchor) => void;
     createPreview?: { startsAt: number; endsAt: number } | null;
     onCreatePreviewChange?: (startsAt: number, endsAt: number) => void;
@@ -53,12 +58,11 @@
 
   let {
     classes,
+    typeFilter = "all",
     onStart,
     onEnd,
     actionId,
     onSelectSlot,
-    onRefreshClasses,
-    onCreateButtonClick,
     onEventClick,
     createPreview = null,
     onCreatePreviewChange,
@@ -71,7 +75,36 @@
 
   let submitting = $state(false);
   let dragError = $state("");
-  let calendarRef = $state<{ unselect: () => void } | undefined>();
+  type CalendarHandle = {
+    unselect: () => void;
+    getEvents: () => Array<{
+      id: string;
+      start: Date;
+      end: Date;
+      title: string;
+      classNames?: string[];
+      extendedProps?: { originalClass?: { type?: string }; kind?: string };
+    }>;
+    updateEvent: (event: Record<string, unknown>) => unknown;
+    addEvent: (event: Record<string, unknown>) => unknown;
+    removeEventById: (id: string) => void;
+  };
+
+  type CalendarEventInput = {
+    id: string;
+    title: string;
+    start: Date;
+    end: Date;
+    editable?: boolean;
+    startEditable?: boolean;
+    durationEditable?: boolean;
+    display?: string;
+    classNames?: string[];
+    extendedProps?: Record<string, unknown>;
+  };
+
+  let calendarRef = $state<CalendarHandle | undefined>();
+  let containerEl = $state<HTMLElement | undefined>();
 
   const weekStart = startOfWeek(new Date(), 0);
   let viewStart = $state(new Date(weekStart));
@@ -205,7 +238,11 @@
         title: liveClass.title,
         description: liveClass.description,
       });
-      await onRefreshClasses();
+      debugLog("R2", "WeeklyAgenda:rescheduleFromDrag", "persisted without full reload", {
+        liveClassId: liveClass._id,
+        startsAt,
+        durationMinutes,
+      });
     } catch (err) {
       dragError = err instanceof Error ? err.message : "לא הצלחנו לתזמן מחדש את השיעור.";
       throw err;
@@ -214,7 +251,151 @@
     }
   }
 
+  const calendarLiveClasses = $derived(
+    typeFilter === "all" ? classes : classes.filter((c) => c.type === typeFilter),
+  );
+
+  function buildCalendarEvents(
+    paintMode: boolean,
+    liveClasses: LiveClass[],
+  ): CalendarEventInput[] {
+    return [
+      ...availabilityEvents,
+      ...liveClasses
+        .filter((c) => c.status !== "cancelled")
+        .map((c) => ({
+          id: c._id,
+          title: c.title,
+          start: new Date(c.startsAt),
+          end: new Date(c.endsAt),
+          editable: !paintMode && c.status === "scheduled",
+          startEditable: !paintMode && c.status === "scheduled",
+          durationEditable: !paintMode && c.status === "scheduled",
+          classNames: [`ec-event-status--${c.status}`, `ec-event-type--${c.type}`],
+          extendedProps: { originalClass: c },
+        })),
+      ...(createPreview
+        ? [
+            {
+              id: QUICK_CREATE_PREVIEW_ID,
+              title: "שיעור חדש",
+              start: new Date(createPreview.startsAt),
+              end: new Date(createPreview.endsAt),
+              display: "preview",
+              editable: true,
+              startEditable: true,
+              durationEditable: true,
+              classNames: ["ec-preview", "ec-quick-create-preview"],
+            },
+          ]
+        : []),
+    ];
+  }
+
+  function sameEventTimes(
+    a: { start: Date; end: Date },
+    b: { start: Date; end: Date },
+  ): boolean {
+    return a.start.getTime() === b.start.getTime() && a.end.getTime() === b.end.getTime();
+  }
+
+  function eventClassNamesKey(event: {
+    classNames?: string[];
+    extendedProps?: { originalClass?: { type?: string } };
+  }): string {
+    const names = event.classNames ?? [];
+    const type = event.extendedProps?.originalClass?.type ?? "";
+    return `${names.join(",")}|${type}`;
+  }
+
+  function debugLog(
+    hypothesisId: string,
+    location: string,
+    message: string,
+    data: Record<string, unknown> = {},
+  ) {
+    // #region agent log
+    fetch("http://127.0.0.1:7635/ingest/0058f30b-7dc0-4748-98aa-19722c5574a5", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f93d0d" },
+      body: JSON.stringify({
+        sessionId: "f93d0d",
+        runId: "refresh-fix",
+        hypothesisId,
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  }
+
+  function handleAvailabilitySelect(start: Date, end: Date) {
+    if (!availabilityPainted || !onAvailabilityPaintChange) return;
+    const touches = selectionTouchesPainted(availabilityPainted, start, end);
+    const mode = touches ? "remove" : "add";
+    debugLog("H5", "WeeklyAgenda:handleAvailabilitySelect", "native select applied", {
+      start: start.toISOString(),
+      end: end.toISOString(),
+      mode,
+      touches,
+    });
+    onAvailabilityPaintChange(applySelectionToPainted(availabilityPainted, start, end, mode));
+    clearCalendarSelection();
+  }
+
   const plugins = [TimeGrid, Interaction];
+
+  $effect(() => {
+    const cal = calendarRef;
+    const liveClasses = calendarLiveClasses;
+    const nextEvents = buildCalendarEvents(availabilityPaintMode, liveClasses);
+    if (!cal) return;
+
+    const existing = cal.getEvents();
+    const existingById = new Map(existing.map((event) => [String(event.id), event]));
+    const desiredIds = new Set(nextEvents.map((event) => String(event.id)));
+
+    let added = 0;
+    let updated = 0;
+    let removed = 0;
+
+    for (const event of nextEvents) {
+      const id = String(event.id);
+      const current = existingById.get(id);
+      if (!current) {
+        cal.addEvent(event);
+        added += 1;
+        continue;
+      }
+      if (
+        !sameEventTimes(current, event) ||
+        current.title !== event.title ||
+        eventClassNamesKey(current) !== eventClassNamesKey(event)
+      ) {
+        cal.updateEvent({ ...event, id });
+        updated += 1;
+      }
+    }
+
+    for (const event of existing) {
+      const id = String(event.id);
+      if (!desiredIds.has(id)) {
+        cal.removeEventById(id);
+        removed += 1;
+      }
+    }
+
+    if (added > 0 || updated > 0 || removed > 0) {
+      debugLog("R1", "WeeklyAgenda:syncEvents", "incremental calendar sync", {
+        added,
+        updated,
+        removed,
+        total: nextEvents.length,
+      });
+    }
+  });
 
   function handleDatesSet(info: { start: Date; end: Date }) {
     const nextStartMs = info.start.getTime();
@@ -236,7 +417,7 @@
     slotDuration: "00:30:00",
     snapDuration: "00:15:00",
     slotLabelInterval: "01:00:00",
-    slotEventOverlap: false,
+    slotEventOverlap: true,
     slotHeight: 36,
 
     slotMinTime: "00:00:00",
@@ -252,81 +433,51 @@
       : ".live-event-popover, .live-event-popover *, .ec-quick-create-preview",
     selectMinDistance: 8,
     editable: !availabilityPaintMode,
-    eventStartEditable: true,
-    eventDurationEditable: true,
-    pointer: true,
+    eventStartEditable: !availabilityPaintMode,
+    eventDurationEditable: !availabilityPaintMode,
+    pointer: availabilityPaintMode,
     nowIndicator: true,
     customScrollbars: true,
-    selectBackgroundColor: availabilityPaintMode
-      ? theme.isDark
-        ? "var(--violet-strong)"
-        : "var(--violet-soft)"
-      : theme.isDark
-        ? "var(--sky-strong)"
-        : "var(--sky-soft)",
+    selectBackgroundColor: "var(--secondary)",
     longPressDelay: isCoarsePointer ? 450 : 600,
 
     headerToolbar: {
-      start: "customCreate",
+      start: "",
       center: "title",
       end: "today prev,next",
-    },
-    customButtons: {
-      customCreate: {
-        text: "שיעור לייב חדש",
-        click: onCreateButtonClick,
-      },
     },
     buttonText: {
       today: "היום",
     },
 
-    events: [
-      ...availabilityEvents,
-      ...classes
-        .filter((c) => c.status !== "cancelled")
-        .map((c) => ({
-          id: c._id,
-          title: c.title,
-          start: new Date(c.startsAt),
-          end: new Date(c.endsAt),
-          editable: !availabilityPaintMode && c.status === "scheduled",
-          startEditable: !availabilityPaintMode && c.status === "scheduled",
-          durationEditable: !availabilityPaintMode && c.status === "scheduled",
-          classNames: [`ec-event-status--${c.status}`, `ec-event-type--${c.type}`],
-          extendedProps: { originalClass: c },
-        })),
-      ...(createPreview
-        ? [
-            {
-              id: QUICK_CREATE_PREVIEW_ID,
-              title: "שיעור חדש",
-              start: new Date(createPreview.startsAt),
-              end: new Date(createPreview.endsAt),
-              display: "preview",
-              editable: true,
-              startEditable: true,
-              durationEditable: true,
-              classNames: ["ec-preview", "ec-quick-create-preview"],
-            },
-          ]
-        : []),
-    ],
+    eventOrder(
+      a: {
+        extendedProps?: { kind?: string; originalClass?: { type?: string } };
+        start: Date;
+      },
+      b: {
+        extendedProps?: { kind?: string; originalClass?: { type?: string } };
+        start: Date;
+      },
+    ) {
+      const stackRank = (e: (typeof a)["extendedProps"]) => {
+        if (e?.kind === "availability") return 0;
+        if (e?.originalClass?.type === "group_live") return 2;
+        if (e?.originalClass?.type === "one_on_one") return 2;
+        return 1;
+      };
+      const rankDiff = stackRank(a.extendedProps) - stackRank(b.extendedProps);
+      if (rankDiff !== 0) return rankDiff;
+      return a.start.getTime() - b.start.getTime();
+    },
+
+    events: [],
 
     datesSet: handleDatesSet,
 
     select: function (info: { start: Date; end: Date; jsEvent?: MouseEvent }) {
-      if (availabilityPaintMode && availabilityPainted && onAvailabilityPaintChange) {
-        const remove = selectionTouchesPainted(availabilityPainted, info.start, info.end);
-        onAvailabilityPaintChange(
-          applySelectionToPainted(
-            availabilityPainted,
-            info.start,
-            info.end,
-            remove ? "remove" : "add",
-          ),
-        );
-        clearCalendarSelection();
+      if (availabilityPaintMode) {
+        handleAvailabilitySelect(info.start, info.end);
         return;
       }
       emitSelectSlot(info.start, info.end, info.jsEvent);
@@ -337,12 +488,52 @@
         id: string;
         start: Date;
         end: Date;
-        extendedProps: { originalClass?: LiveClass };
+        extendedProps: {
+          originalClass?: LiveClass;
+          kind?: string;
+          weekday?: number;
+          startMinute?: number;
+          endMinute?: number;
+        };
       };
       el?: HTMLElement;
       jsEvent?: MouseEvent;
     }) {
       if (isQuickCreatePreview(info.event.id)) return;
+
+      if (info.event.extendedProps?.kind === "availability") {
+        if (!availabilityPaintMode) return;
+
+        const eventId = String(info.event.id);
+        const now = Date.now();
+        const isDoubleClick =
+          lastAvailabilityClick.eventId === eventId &&
+          now - lastAvailabilityClick.at <= AVAILABILITY_DOUBLE_CLICK_MS;
+        lastAvailabilityClick = { eventId, at: now };
+
+        if (
+          isDoubleClick &&
+          availabilityPainted &&
+          onAvailabilityPaintChange &&
+          info.event.extendedProps.weekday !== undefined &&
+          info.event.extendedProps.startMinute !== undefined &&
+          info.event.extendedProps.endMinute !== undefined
+        ) {
+          lastAvailabilityClick = { eventId: "", at: 0 };
+          onAvailabilityPaintChange(
+            eraseAvailabilityRange(
+              availabilityPainted,
+              info.event.extendedProps.weekday,
+              info.event.extendedProps.startMinute,
+              info.event.extendedProps.endMinute,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (availabilityPaintMode) return;
+
       const liveClass = info.event.extendedProps?.originalClass;
       if (!liveClass) return;
       dragError = "";
@@ -372,6 +563,10 @@
       event: { id: string; start: Date; end: Date; extendedProps: { originalClass?: LiveClass } };
       revert: () => void;
     }) {
+      if (availabilityPaintMode) {
+        info.revert();
+        return;
+      }
       if (isQuickCreatePreview(info.event.id)) {
         emitPreviewChange(info.event.start, info.event.end);
         return;
@@ -395,6 +590,10 @@
       event: { id: string; start: Date; end: Date; extendedProps: { originalClass?: LiveClass } };
       revert: () => void;
     }) {
+      if (availabilityPaintMode) {
+        info.revert();
+        return;
+      }
       if (isQuickCreatePreview(info.event.id)) {
         emitPreviewChange(info.event.start, info.event.end);
         return;
@@ -417,11 +616,21 @@
     eventContent: function (info: {
       event: {
         display: string;
-        extendedProps: { originalClass?: LiveClass };
+        title: string;
+        extendedProps: {
+          originalClass?: LiveClass;
+          kind?: string;
+        };
         start: Date;
         end: Date;
       };
     }) {
+      if (info.event.extendedProps?.kind === "availability") {
+        return {
+          html: `<div class="calendar-class-event-body calendar-availability-event"><div class="event-title">${escapeHtml(info.event.title)}</div></div>`,
+        };
+      }
+
       const c = info.event.extendedProps?.originalClass;
 
       if (info.event.display === "preview") {
@@ -444,19 +653,12 @@
       }
 
       const formattedTime = `${formatLocalTime(c.startsAt)} \u2013 ${formatLocalTime(c.endsAt)}`;
-      const statusDot =
-        c.status === "live"
-          ? `<span class="pulse-indicator" aria-label="\u05e9\u05d9\u05d3\u05d5\u05e8 \u05d7\u05d9"></span>`
-          : "";
 
       return {
         html: `
           <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} \u2022 ${formattedTime}">
             <div class="event-title">${escapeHtml(c.title)}</div>
-            <div class="event-meta">
-              ${statusDot}
-              <span class="meta-badge">${c.type === "one_on_one" ? "1:1" : "\u05e7\u05d1\u05d5\u05e6\u05ea\u05d9"}</span>
-            </div>
+            ${c.status === "live" ? `<div class="event-meta"><span class="pulse-indicator" aria-label="\u05e9\u05d9\u05d3\u05d5\u05e8 \u05d7\u05d9"></span></div>` : ""}
           </div>
         `,
       };
@@ -465,6 +667,7 @@
 </script>
 
 <div
+  bind:this={containerEl}
   class="weekly-agenda-container"
   class:ec-dark={theme.isDark}
   class:weekly-agenda-container--availability-paint={availabilityPaintMode}
@@ -495,8 +698,8 @@
     gap: var(--space-2);
     margin: 0 var(--space-3) var(--space-2);
     padding: var(--space-2) var(--space-3);
-    background: var(--danger-soft);
-    color: var(--danger-text);
+    background: var(--surface);
+    color: var(--danger);
     border: 1px solid var(--danger);
     font-weight: 800;
     font-size: var(--step--1);
@@ -509,28 +712,51 @@
   }
 
   :global(.weekly-agenda-container .ec-highlight) {
-    outline: 2px solid var(--sky-strong);
+    outline: 2px solid var(--secondary);
     outline-offset: -1px;
   }
 
   :global(.weekly-agenda-container .ec-selecting .ec-day) {
-    outline: 2px dashed var(--sky-strong);
+    outline: 2px dashed var(--secondary);
     outline-offset: -1px;
   }
 
-  :global(.weekly-agenda-container--availability-paint .ec-highlight) {
-    outline-color: var(--violet-strong);
-  }
-
-  :global(.weekly-agenda-container--availability-paint .ec-selecting .ec-day) {
-    outline-color: var(--violet-strong);
-  }
-
-  :global(.weekly-agenda-container--availability-paint .ec-selecting) {
+  :global(.weekly-agenda-container--availability-paint) {
     cursor: crosshair;
   }
 
   :global(.weekly-agenda-container--availability-paint .ec-body) {
     cursor: crosshair;
+  }
+
+  /* 70/30 when availability overlaps a live class in the same column */
+  :global(
+    .weekly-agenda-container
+      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
+      .ec-event-type--availability
+  ) {
+    inline-size: 30% !important;
+    inset-inline-start: 0 !important;
+    z-index: 1 !important;
+  }
+
+  :global(
+    .weekly-agenda-container
+      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
+      .ec-event-type--one_on_one
+  ) {
+    inline-size: 70% !important;
+    inset-inline-start: 30% !important;
+    z-index: 2 !important;
+  }
+
+  :global(
+    .weekly-agenda-container
+      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
+      .ec-event-type--group_live
+  ) {
+    inline-size: 70% !important;
+    inset-inline-start: 30% !important;
+    z-index: 3 !important;
   }
 </style>

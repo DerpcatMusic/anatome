@@ -155,7 +155,7 @@
                     {#if item.owned}
                       <Button.Root class="hb-button hb-button--ink" href={`/watch?videoId=${item._id}`}>לצפות</Button.Root>
                     {:else}
-                      <Button.Root class="hb-button hb-button--sky"
+                      <Button.Root class="hb-button hb-button--secondary"
                         type="button"
                         onclick={() => purchaseMacroflow(item._id)}
                         disabled={actionId === item._id}

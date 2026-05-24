@@ -3,8 +3,15 @@ import type { FunctionReference } from "convex/server";
 import { PersistedState } from "runed";
 import { api } from "$convex/_generated/api";
 import { convex } from "$lib/convex/client";
+import {
+  dashboardPathForRole,
+  dashboardPathFromCachedRole,
+  type AppRole,
+} from "$lib/auth/post-sign-in";
 
 import { PUBLIC_CONVEX_CLIENT_URL } from "$env/static/public";
+
+export { dashboardPathForRole, dashboardPathFromCachedRole, type AppRole };
 
 type Tokens = {
   token: string;
@@ -50,6 +57,8 @@ const roleStore = new PersistedState<string | null>(roleKey, null, {
 // Module-level refresh deduplication — survives component re-mounts within one page session.
 let refreshPromise: Promise<string | null> | null = null;
 let convexAuthWired = false;
+/** Ignore transient WS `onChange(false)` until Convex has authenticated once. */
+let convexWsAuthEstablished = false;
 
 const refreshLockKey = `${namespace}:refresh-lock`;
 
@@ -82,7 +91,10 @@ function syncAuthState() {
 export function storeTokens(tokens: Tokens | null) {
   tokenStore.current = tokens?.token ?? null;
   refreshTokenStore.current = tokens?.refreshToken ?? null;
-  if (tokens === null) roleStore.current = null;
+  if (tokens === null) {
+    roleStore.current = null;
+    convexWsAuthEstablished = false;
+  }
   syncAuthState();
   state.isLoading = false;
   state.error = "";
@@ -229,15 +241,29 @@ export async function getAccessTokenForConvex(
 
 /**
  * Called by Convex when its internal auth state changes.
- * If auth fails while we still have persisted tokens, the
- * refresh token is dead — clear state and prompt re-login.
+ * Only clear persisted tokens after WS auth was established and HTTP
+ * session.resolve still fails (avoids sign-in loop on initial handshake).
  */
 export function handleAuthChange(isAuthenticated: boolean) {
-  if (!isAuthenticated && hasPersistedSession()) {
-    clearStaleSession();
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("anatome:auth-open"));
-    }
+  if (isAuthenticated) {
+    convexWsAuthEstablished = true;
+    return;
+  }
+
+  if (!convexWsAuthEstablished || !hasPersistedSession()) {
+    return;
+  }
+
+  void verifyPersistedSessionOrClear();
+}
+
+async function verifyPersistedSessionOrClear() {
+  const session = await authQuery(api.users.session.resolve, {});
+  if (session !== null) return;
+
+  clearStaleSession();
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("anatome:auth-open"));
   }
 }
 
@@ -317,7 +343,7 @@ export async function verifyEmailCode(email: string, code: string) {
   });
 
   storeTokens(result.tokens ?? null);
-  await redirectAfterAuth();
+  await completeSignIn();
 }
 
 export async function verifyMagicLinkCode(code: string) {
@@ -327,26 +353,25 @@ export async function verifyMagicLinkCode(code: string) {
   });
 
   storeTokens(result.tokens ?? null);
-  await redirectAfterAuth();
+  await completeSignIn();
 }
 
-async function redirectAfterAuth() {
+/** Resolve role over HTTP and redirect to the correct app area. */
+export async function completeSignIn() {
   if (!state.isAuthenticated) {
     window.location.assign("/");
     return;
   }
 
-  try {
-    const dashboard = await authQuery(api.users.dashboard.get, {});
-    if (dashboard?.role) setCachedRole(dashboard.role);
-    if (dashboard?.needsOnboarding) {
-      window.location.assign("/onboarding");
-    } else {
-      window.location.assign("/u/dashboard");
-    }
-  } catch {
-    window.location.assign("/u/dashboard");
+  const session = await authQuery(api.users.session.resolve, {});
+  if (session === null) {
+    clearStaleSession();
+    window.location.assign("/");
+    return;
   }
+
+  setCachedRole(session.role);
+  window.location.assign(dashboardPathForRole(session.role, session.needsOnboarding));
 }
 
 export async function signOut() {

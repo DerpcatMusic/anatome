@@ -170,10 +170,10 @@
   }
 
   :global(.live-event-popover--group) {
-    border-inline-start-color: var(--sky-strong);
+    border-inline-start-color: var(--secondary);
   }
 
   :global(.live-event-popover--one-on-one) {
-    border-inline-start-color: var(--violet-strong);
+    border-inline-start-color: var(--primary);
   }
 </style>

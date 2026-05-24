@@ -1,6 +1,9 @@
 import type { Id } from "$convex/_generated/dataModel";
 
+import { CALENDAR_SLOT_HEIGHT_PX } from "$features/live/types/selection-anchor";
+
 export const AVAILABILITY_SLOT_STEP = 30;
+export const AVAILABILITY_EVENT_TITLE = "זמינות";
 
 export type AvailabilityRule = {
   _id: Id<"oneOnOneAvailabilityRules">;
@@ -16,11 +19,24 @@ export type PaintedSlots = Record<number, Set<number>>;
 
 export type AvailabilityCalendarEvent = {
   id: string;
+  title: string;
   start: Date;
   end: Date;
-  display: "background";
   editable: false;
+  startEditable: false;
+  durationEditable: false;
   classNames: string[];
+  extendedProps: {
+    kind: "availability";
+    weekday: number;
+    startMinute: number;
+    endMinute: number;
+  };
+};
+
+export type PaintSlot = {
+  weekday: number;
+  slotIndex: number;
 };
 
 export function createEmptyPainted(): PaintedSlots {
@@ -103,11 +119,19 @@ function expandPaintedDay(
     for (const range of ranges) {
       events.push({
         id: `${idPrefix}-${weekday}-${day.getTime()}-${range.startMinute}`,
+        title: AVAILABILITY_EVENT_TITLE,
         start: dateAtMinutes(day, range.startMinute),
         end: dateAtMinutes(day, range.endMinute),
-        display: "background",
         editable: false,
+        startEditable: false,
+        durationEditable: false,
         classNames,
+        extendedProps: {
+          kind: "availability",
+          weekday,
+          startMinute: range.startMinute,
+          endMinute: range.endMinute,
+        },
       });
     }
   }
@@ -121,8 +145,8 @@ export function expandPaintedToEvents(
   paintMode: boolean,
 ): AvailabilityCalendarEvent[] {
   const classNames = paintMode
-    ? ["ec-availability-block", "ec-availability-block--paint"]
-    : ["ec-availability-block"];
+    ? ["ec-event-type--availability", "ec-availability-editable"]
+    : ["ec-event-type--availability", "ec-availability-passive"];
   const events: AvailabilityCalendarEvent[] = [];
   for (let weekday = 0; weekday < 7; weekday += 1) {
     const indices = painted[weekday];
@@ -187,4 +211,98 @@ export function paintedEquals(a: PaintedSlots, b: PaintedSlots): boolean {
 
 export function hasAnyPaintedSlots(painted: PaintedSlots): boolean {
   return Object.values(painted).some((set) => (set?.size ?? 0) > 0);
+}
+
+/** Map pointer position on the time grid to a recurring weekday + 30-min slot index. */
+export function paintSlotFromPointer(
+  clientX: number,
+  clientY: number,
+  root?: ParentNode | null,
+  log?: (hypothesisId: string, location: string, message: string, data?: Record<string, unknown>) => void,
+): PaintSlot | null {
+  const scope = root ?? document;
+  const days = scope.querySelectorAll(".ec-time-grid .ec-body .ec-day");
+  let hitDay = false;
+  let missingPayload = 0;
+  let hitColIndex = -1;
+
+  for (const [index, day] of [...days].entries()) {
+    if (!(day instanceof HTMLElement)) continue;
+    const rect = day.getBoundingClientRect();
+    if (
+      clientX < rect.left ||
+      clientX >= rect.right ||
+      clientY < rect.top ||
+      clientY >= rect.bottom
+    ) {
+      continue;
+    }
+    hitDay = true;
+    hitColIndex = index;
+
+    const payload = (day as HTMLElement & { __ec_payload?: { date?: Date } }).__ec_payload;
+    const colDate = payload?.date;
+    if (!colDate) {
+      missingPayload += 1;
+      log?.("H3", "paintSlotFromPointer", "day hit but no __ec_payload date", {
+        colIndex: index,
+        symbolPropCount: Object.getOwnPropertySymbols(day).length,
+        className: day.className,
+      });
+      continue;
+    }
+
+    const yInDay = clientY - rect.top;
+    const slotIndex = Math.floor(yInDay / CALENDAR_SLOT_HEIGHT_PX);
+    const maxSlots = (24 * 60) / AVAILABILITY_SLOT_STEP;
+    if (slotIndex < 0 || slotIndex >= maxSlots) return null;
+
+    return { weekday: colDate.getDay(), slotIndex };
+  }
+
+  log?.("H3", "paintSlotFromPointer", "no slot resolved", {
+    dayCount: days.length,
+    hitDay,
+    hitColIndex,
+    missingPayload,
+    clientX,
+    clientY,
+  });
+  return null;
+}
+
+export function paintSlotKey(slot: PaintSlot): string {
+  return `${slot.weekday}-${slot.slotIndex}`;
+}
+
+export function applyBrushToPainted(
+  painted: PaintedSlots,
+  slot: PaintSlot,
+  erase: boolean,
+): PaintedSlots {
+  const next: PaintedSlots = {};
+  for (let d = 0; d < 7; d += 1) {
+    next[d] = new Set(painted[d]);
+  }
+  if (erase) next[slot.weekday].delete(slot.slotIndex);
+  else next[slot.weekday].add(slot.slotIndex);
+  return next;
+}
+
+export function eraseAvailabilityRange(
+  painted: PaintedSlots,
+  weekday: number,
+  startMinute: number,
+  endMinute: number,
+): PaintedSlots {
+  const startIdx = slotIndexFromMinute(startMinute);
+  const endIdx = slotIndexFromMinute(endMinute);
+  const next: PaintedSlots = {};
+  for (let d = 0; d < 7; d += 1) {
+    next[d] = new Set(painted[d]);
+  }
+  for (let i = startIdx; i < endIdx; i += 1) {
+    next[weekday].delete(i);
+  }
+  return next;
 }

@@ -1,13 +1,22 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { auth } from "./auth";
+import { resend } from "./email/resend";
 import { registerMuxHttpRoutes } from "./muxHttp";
 
 const http = httpRouter();
 
 auth.addHttpRoutes(http);
 registerMuxHttpRoutes(http);
+
+http.route({
+  path: "/resend-webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    return await resend.handleResendEventWebhook(ctx, req);
+  }),
+});
 
 // ─── LiveKit webhook handler ───
 http.route({

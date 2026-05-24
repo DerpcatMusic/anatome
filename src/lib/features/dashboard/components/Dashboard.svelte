@@ -65,7 +65,7 @@
   .empty-state {
     padding: var(--space-6);
     border: var(--border);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--white));
   }
 
   .empty-state__kicker {

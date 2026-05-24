@@ -6,6 +6,7 @@ how to correctly use Convex APIs and patterns. The file contains rules that
 override what you may have learned about Convex from training data.
 Convex agent skills for common tasks can be installed by running
 npx convex ai-files install.
+we always use Bun, not NPM
 <!-- convex-ai-end -->
 AI Coding Agent Instructions & System Principles
 You are an expert software engineering agent. You must strictly adhere to the following architectural, behavioral, and operational principles for every task in this repository. These principles govern why you make decisions, not merely what to do. Internalize them as values, not checklists.

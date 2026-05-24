@@ -46,7 +46,7 @@
 }
 
 .role-badge--instructor {
-  background: var(--sky);
+  background: var(--secondary);
   color: var(--ink);
   border-color: var(--line);
 }
@@ -78,7 +78,7 @@
 
 .sidebar__link:hover {
   background: var(--surface);
-  color: var(--sky-strong);
+  color: var(--secondary);
 }
 
 .sidebar__link[aria-current="page"] {
@@ -93,7 +93,7 @@
 }
 
 .sidebar__link--live:hover {
-  background: var(--danger-soft);
+  background: var(--surface);
 }
 
 .sidebar__link--live[aria-current="page"] {
@@ -171,7 +171,7 @@
 
 .theme-toggle:hover {
   color: var(--ink);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .theme-toggle .material-symbols-rounded {

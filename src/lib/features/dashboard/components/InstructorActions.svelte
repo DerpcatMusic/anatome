@@ -35,7 +35,7 @@
     flex-direction: column;
     gap: var(--space-3);
     border: var(--border);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--white));
     padding: var(--space-6);
     text-decoration: none;
     color: var(--ink);
@@ -57,7 +57,7 @@
   .action-card__num {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--sky-strong);
+    color: var(--secondary);
     font-weight: 700;
   }
 

@@ -211,7 +211,7 @@
     gap: var(--space-5);
     padding: var(--space-6);
     border: var(--border);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--sky-soft) 3%), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--white));
     min-width: 0;
   }
 
@@ -255,14 +255,14 @@
   }
 
   .subscription-badge[data-tone="success"] {
-    background: var(--success-bg);
-    color: var(--success-text);
+    background: var(--surface);
+    color: var(--success);
     border-color: transparent;
   }
 
   .subscription-badge[data-tone="warning"] {
-    background: var(--sky-soft);
-    color: var(--sky-strong);
+    background: var(--surface);
+    color: var(--secondary);
     border-color: transparent;
   }
 
@@ -309,13 +309,13 @@
   }
 
   .plan-option--active {
-    border-color: var(--sky-strong);
-    background: color-mix(in srgb, var(--sky-soft) 18%, var(--white));
+    border-color: var(--secondary);
+    background: var(--surface);
   }
 
   .plan-option--scheduled {
     border-color: var(--warning);
-    background: color-mix(in srgb, var(--warning-bg) 42%, var(--white));
+    background: var(--surface);
   }
 
   .plan-option__head {

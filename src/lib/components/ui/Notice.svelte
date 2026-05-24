@@ -25,19 +25,19 @@
 
   .notice--danger {
     border-color: var(--danger);
-    background: var(--danger-soft);
+    background: var(--surface);
     color: var(--ink);
   }
 
   .notice--success {
     border-color: var(--success);
-    background: var(--success-soft);
+    background: var(--surface);
     color: var(--ink);
   }
 
   .notice--caution {
-    border-color: var(--caution);
-    background: var(--caution-soft);
+    border-color: var(--warning);
+    background: var(--surface);
     color: var(--ink);
   }
 </style>

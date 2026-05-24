@@ -38,7 +38,7 @@
 
   .notes-wrap textarea:focus {
     outline: none;
-    border-color: var(--sky-strong);
+    border-color: var(--secondary);
   }
 
   .char-count {

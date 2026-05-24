@@ -19,12 +19,12 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--sky-strong) 35%, transparent);
+  background: var(--secondary);
   color: var(--ink);
 }
 
 [data-theme="dark"] ::selection {
-  background: color-mix(in srgb, var(--sky) 50%, transparent);
+  background: var(--secondary);
   color: var(--paper);
 }
 
@@ -127,7 +127,7 @@ h3 {
 
 .button:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
   border-radius: 26px;
 }
 
@@ -155,13 +155,13 @@ h3 {
   background: var(--surface);
 }
 
-.button--sky {
-  background: var(--sky);
+.button--secondary {
+  background: var(--secondary);
   color: var(--ink);
 }
 
-.button--sky:hover {
-  background: var(--sky-strong);
+.button--secondary:hover {
+  background: var(--secondary);
   color: var(--white);
 }
 
@@ -209,7 +209,7 @@ h3 {
 .features-grid .number {
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  color: var(--sky-strong);
+  color: var(--secondary);
   font-weight: 700;
 }
 

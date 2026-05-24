@@ -1,6 +1,10 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
-  import { initAuth, setCachedRole } from "$lib/auth/session.svelte";
+  import {
+    dashboardPathForRole,
+    initAuth,
+    setCachedRole,
+  } from "$lib/auth/session.svelte";
 
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useQuery } from "convex-svelte";
@@ -37,15 +41,15 @@
     }
     const dashboard = dashboardQuery.data;
     if (dashboard === null) {
-      status = "locked";
+      // WS may still be connecting; keep skeleton unless local session is gone.
+      status = auth.isAuthenticated ? "checking" : "locked";
     } else {
       if (dashboard.role) setCachedRole(dashboard.role);
-      if (dashboard.role === "instructor" || dashboard.role === "admin") {
+      if (!dashboard.needsOnboarding) {
         status = "done";
-        window.location.assign("/u/dashboard");
-      } else if (!dashboard.needsOnboarding) {
-        status = "done";
-        window.location.assign("/u/dashboard");
+        window.location.assign(
+          dashboardPathForRole(dashboard.role, false),
+        );
       } else {
         status = "ready";
       }

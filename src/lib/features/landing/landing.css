@@ -63,14 +63,14 @@
 
 /* ─── Landing button overrides ─── */
 .landing .hb-button--ink {
-  background: var(--terra);
+  background: var(--primary);
   color: var(--white);
-  border-color: var(--terra);
+  border-color: var(--primary);
 }
 
 .landing .hb-button--ink:hover {
-  background: var(--terra-strong);
-  border-color: var(--terra-strong);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .landing .hb-button--paper {
@@ -80,7 +80,7 @@
 
 .landing .hb-button--paper:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 /* ─── CONTENT SECTIONS ─── */
@@ -196,7 +196,7 @@
 
 .landing .cred-item::before {
   content: '—';
-  color: var(--sky-strong);
+  color: var(--secondary);
   font-weight: 700;
 }
 
@@ -263,7 +263,7 @@
 
 .landing .offering-icon {
   font-size: var(--step-2);
-  color: var(--sky-strong);
+  color: var(--secondary);
   line-height: 1;
 }
 
@@ -306,22 +306,22 @@
 }
 
 .landing .pricing-card--featured {
-  background: var(--terra);
+  background: var(--primary);
   color: var(--white);
-  border-color: var(--terra);
+  border-color: var(--primary);
 }
 
 .landing .pricing-card--featured .pricing-label {
-  color: var(--terra-soft);
+  color: var(--surface);
 }
 
 .landing .pricing-card--featured .pricing-note {
-  color: var(--terra-soft);
+  color: var(--surface);
 }
 
 .landing .pricing-card--featured .pricing-breakdown {
-  border-color: color-mix(in srgb, var(--white) 35%, transparent);
-  color: var(--terra-soft);
+  border-color: var(--white);
+  color: var(--surface);
 }
 
 .landing .pricing-header {

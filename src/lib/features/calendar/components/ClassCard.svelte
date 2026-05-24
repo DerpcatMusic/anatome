@@ -38,7 +38,7 @@
     if (item.liveClass.status === "live") {
       return {
         label: t.calendar.status.nowLive(),
-        tone: item.liveClass.type === "one_on_one" ? ("violet" as const) : ("terra" as const),
+        tone: item.liveClass.type === "one_on_one" ? ("primary" as const) : ("secondary" as const),
       };
     }
     if (item.seatsRemaining <= 0) {
@@ -50,7 +50,7 @@
     if (item.viewerAvailableCredits < item.liveClass.creditCost) {
       return { label: t.calendar.status.notEnoughCredits(), tone: "muted" as const };
     }
-    return { label: t.calendar.status.open(), tone: "sky" as const };
+    return { label: t.calendar.status.open(), tone: "secondary" as const };
   }
 
   function rsvpText(item: CalendarClass): string | null {
@@ -93,7 +93,7 @@
           <span class="meta-tag">{item.seatsRemaining} / {item.liveClass.capacity}</span>
         {/if}
         {#if rsvp}
-          <span class="meta-tag meta-tag--rsvp" class:meta-tag--urgent={info.tone === "sky" && item.liveClass.joinClosesAt - Date.now() < 1000 * 60 * 60}>
+          <span class="meta-tag meta-tag--rsvp" class:meta-tag--urgent={info.tone === "secondary" && item.liveClass.joinClosesAt - Date.now() < 1000 * 60 * 60}>
             {rsvp}
           </span>
         {/if}
@@ -104,14 +104,14 @@
       {#if item.viewerCanJoin}
         {#if item.viewerIsWalkIn}
           <Button.Root
-            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'violet' : 'terra'} hb-button--sm"
+            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'} hb-button--sm"
             href={liveRoomHref(item.liveClass._id)}
           >
             {t.calendar.class.joinWalkIn()}
           </Button.Root>
         {:else}
           <Button.Root
-            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'violet' : 'terra'} hb-button--sm"
+            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'} hb-button--sm"
             href={liveRoomHref(item.liveClass._id)}
           >
             {t.calendar.class.join()}
@@ -126,7 +126,7 @@
           רכישת קרדיטים
         </Button.Root>
       {:else}
-        <Button.Root class="hb-button hb-button--sm {info.tone === 'sky' ? 'hb-button--ink' : 'hb-button--paper'}"
+        <Button.Root class="hb-button hb-button--sm {info.tone === 'secondary' ? 'hb-button--ink' : 'hb-button--paper'}"
           type="button"
           onclick={() => onReserve(item.liveClass._id)}
           disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
@@ -151,7 +151,7 @@
   }
 
   .class-card:hover {
-    background: color-mix(in srgb, var(--sky-soft) 30%, var(--white));
+    background: var(--surface);
   }
 
   .class-card__time {
@@ -218,24 +218,19 @@
     white-space: nowrap;
   }
 
-  .status-badge--sky {
-    background: var(--sky-soft);
-    color: var(--sky-strong);
+  .status-badge--secondary {
+    background: var(--surface);
+    color: var(--secondary);
   }
 
-  .status-badge--terra {
-    background: var(--terra-soft);
-    color: var(--terra-strong);
-  }
-
-  .status-badge--violet {
-    background: var(--violet-soft);
-    color: var(--violet-strong);
+  .status-badge--primary {
+    background: var(--surface);
+    color: var(--primary);
   }
 
   .status-badge--success {
-    background: var(--success-bg);
-    color: var(--success-text);
+    background: var(--surface);
+    color: var(--success);
   }
 
   .status-badge--muted {
@@ -264,21 +259,21 @@
   }
 
   .meta-tag--one-on-one {
-    color: var(--violet-strong);
+    color: var(--primary);
     font-weight: 800;
   }
 
   .meta-tag--group-live {
-    color: var(--sky-strong);
+    color: var(--secondary);
     font-weight: 800;
   }
 
   .class-card:has(.meta-tag--one-on-one) {
-    border-inline-start: 3px solid var(--violet-strong);
+    border-inline-start: 3px solid var(--primary);
   }
 
   .class-card:has(.meta-tag--group-live) {
-    border-inline-start: 3px solid var(--sky-strong);
+    border-inline-start: 3px solid var(--secondary);
   }
 
   .meta-tag--rsvp {
@@ -287,7 +282,7 @@
   }
 
   .meta-tag--urgent {
-    color: var(--terra-strong);
+    color: var(--primary);
     font-weight: 800;
   }
 

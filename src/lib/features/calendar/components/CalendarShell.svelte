@@ -28,6 +28,7 @@
   let selectedDay = $state(rangeStart);
   let actionId = $state<string | null>(null);
   let actionError = $state("");
+  let oneOnOneNote = $state("");
 
   const typeFilter = $derived.by((): TypeFilter => {
     const raw = page.url.searchParams.get("type");
@@ -37,6 +38,11 @@
 
   const auth = initAuth();
   const client = useConvexClient();
+
+  const profileQuery = useQuery(api.profiles.viewer.get, () =>
+    auth.isAuthenticated ? {} : "skip",
+  );
+  const isCustomer = $derived(profileQuery.data?.role === "customer");
 
   const query = useQuery(api.live.calendar.listRange, () =>
     auth.isAuthenticated
@@ -48,7 +54,7 @@
   );
 
   const slotsQuery = useQuery(api.oneOnOne.customer.listAvailableSlots, () =>
-    auth.isAuthenticated
+    auth.isAuthenticated && isCustomer
       ? {
           from: rangeStart,
           to: rangeEnd,
@@ -57,7 +63,7 @@
   );
 
   const pendingRequestsQuery = useQuery(api.oneOnOne.customer.listMine, () =>
-    auth.isAuthenticated && typeFilter !== "group_live" ? {} : "skip",
+    auth.isAuthenticated && isCustomer && typeFilter !== "group_live" ? {} : "skip",
   );
 
   const classes = $derived(query.data ?? []);
@@ -105,15 +111,15 @@
   });
 
   const calendarEvents = $derived.by(() => {
-    const dayTones = new Map<number, "sky" | "terra" | "violet" | "success" | "muted">();
+    const dayTones = new Map<number, "secondary" | "primary" | "success" | "muted">();
 
     for (const item of filteredClasses) {
       const dayStart = startOfLocalDay(item.liveClass.startsAt);
       const existing = dayTones.get(dayStart);
-      let tone: "sky" | "terra" | "violet" | "success" | "muted" = "sky";
+      let tone: "secondary" | "primary" | "success" | "muted" = "secondary";
 
       if (item.liveClass.status === "live") {
-        tone = item.liveClass.type === "one_on_one" ? "violet" : "terra";
+        tone = item.liveClass.type === "one_on_one" ? "primary" : "secondary";
       } else if (
         item.viewerReservationStatus === "reserved" ||
         item.viewerReservationStatus === "joined"
@@ -122,10 +128,10 @@
       } else if (item.seatsRemaining <= 0) {
         tone = "muted";
       } else if (item.liveClass.type === "one_on_one") {
-        tone = "violet";
+        tone = "primary";
       }
 
-      const priority = { terra: 4, violet: 4, success: 3, sky: 2, muted: 1 };
+      const priority = { secondary: 4, primary: 4, success: 3, muted: 1 };
       if (!existing || priority[tone] > priority[existing]) {
         dayTones.set(dayStart, tone);
       }
@@ -135,11 +141,11 @@
       const dayStart = startOfLocalDay(slot.startsAt);
       const existing = dayTones.get(dayStart);
       if (!existing || existing === "muted") {
-        dayTones.set(dayStart, "violet");
+        dayTones.set(dayStart, "primary");
       }
     }
 
-    const events: { date: DateValue; tone: "sky" | "terra" | "violet" | "success" | "muted" }[] =
+    const events: { date: DateValue; tone: "secondary" | "primary" | "success" | "muted" }[] =
       [];
     for (const [dayStart, tone] of dayTones) {
       const d = new Date(dayStart);
@@ -203,18 +209,31 @@
     }
   }
 
-  async function bookOpenSlot(slot: OpenSlot) {
+  async function requestOneOnOneSlot(slot: OpenSlot) {
     const key = `${slot.instructorUserId}-${slot.startsAt}`;
     actionId = key;
     actionError = "";
     try {
-      await client.mutation(api.oneOnOne.customer.bookOpenSlot, {
+      await client.mutation(api.oneOnOne.customer.requestSlot, {
         instructorUserId: slot.instructorUserId,
         startsAt: slot.startsAt,
         endsAt: slot.endsAt,
+        note: oneOnOneNote,
       });
     } catch (reason) {
-      actionError = reason instanceof Error ? reason.message : "לא הצלחנו להזמין את החלון.";
+      actionError = reason instanceof Error ? reason.message : "לא הצלחנו לשלוח בקשה.";
+    } finally {
+      actionId = null;
+    }
+  }
+
+  async function cancelOneOnOneRequest(requestId: Id<"oneOnOneRequests">) {
+    actionId = requestId;
+    actionError = "";
+    try {
+      await client.mutation(api.oneOnOne.customer.cancelRequest, { requestId });
+    } catch (reason) {
+      actionError = reason instanceof Error ? reason.message : "לא הצלחנו לבטל את הבקשה.";
     } finally {
       actionId = null;
     }
@@ -224,8 +243,22 @@
     void goto("/u/dashboard");
   }
 
-  const errorMessage = $derived((query.error?.message ?? slotsQuery.error?.message ?? actionError) || null);
-  const loading = $derived(query.isLoading || slotsQuery.isLoading);
+  const errorMessage = $derived(
+    (query.error?.message ?? slotsQuery.error?.message ?? pendingRequestsQuery.error?.message ?? actionError) ||
+      null,
+  );
+  const loading = $derived(
+    query.isLoading || (isCustomer && (slotsQuery.isLoading || pendingRequestsQuery.isLoading)),
+  );
+
+  const slotDateFormatter = new Intl.DateTimeFormat("he-IL", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jerusalem",
+  });
 </script>
 
 <PageShell
@@ -271,22 +304,80 @@
       selectedDay = date;
     }} />
 
-    {#if typeFilter !== "group_live" && pendingRequests.length > 0}
-      <div class="pending-requests" role="status">
-        <span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>
-        <p>
-          {pendingRequests.length} בקשות 1:1 ממתינות לאישור המדריכה. חלונות שפורסמו בלוח ניתן להזמין מיידית.
-        </p>
-      </div>
+    {#if isCustomer && typeFilter !== "group_live"}
+      <section class="one-on-one-tools" aria-labelledby="one-on-one-tools-heading">
+        <header class="one-on-one-tools__head">
+          <p id="one-on-one-tools-heading" class="one-on-one-tools__kicker">שיעור אישי 1:1</p>
+          <p class="one-on-one-tools__lead">בחרי חלון, הוסיפי הערה אם צריך — המדריכה מאשרת לפני פתיחת החדר.</p>
+        </header>
+
+        {#if pendingRequests.length > 0}
+          <div class="one-on-one-pending" role="region" aria-labelledby="one-on-one-pending-heading">
+            <div class="one-on-one-pending__banner">
+              <span class="material-symbols-rounded one-on-one-pending__icon" aria-hidden="true">hourglass_top</span>
+              <div class="one-on-one-pending__summary">
+                <h3 id="one-on-one-pending-heading" class="one-on-one-pending__title">
+                  {pendingRequests.length}
+                  {pendingRequests.length === 1 ? "בקשה ממתינה" : "בקשות ממתינות"}
+                </h3>
+                <p>קרדיט 1:1 שמור עד אישור או דחייה.</p>
+              </div>
+            </div>
+            <ul class="one-on-one-pending__list">
+              {#each pendingRequests as request (request._id)}
+                <li class="one-on-one-pending__row">
+                  <div class="one-on-one-pending__when">
+                    <time datetime={new Date(request.requestedStartsAt).toISOString()}>
+                      {slotDateFormatter.format(new Date(request.requestedStartsAt))}
+                    </time>
+                    <span class="one-on-one-pending__badge">ממתינה</span>
+                  </div>
+                  {#if request.note?.trim()}
+                    <p class="one-on-one-pending__note">{request.note}</p>
+                  {/if}
+                  <div class="one-on-one-pending__action">
+                    <Button.Root
+                      class="hb-button hb-button--paper hb-button--sm"
+                      type="button"
+                      onclick={() => cancelOneOnOneRequest(request._id)}
+                      disabled={actionId === request._id}
+                      aria-busy={actionId === request._id}
+                    >
+                      {actionId === request._id ? "מבטלת..." : "ביטול"}
+                    </Button.Root>
+                  </div>
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+
+        <label class="hb-field hb-field--compact one-on-one-note" for="one-on-one-note">
+          <span class="hb-field__label">הערה למדריכה</span>
+          <textarea
+            id="one-on-one-note"
+            class="hb-textarea one-on-one-note__input"
+            bind:value={oneOnOneNote}
+            maxlength="500"
+            placeholder="מטרות, מגבלות, ציוד — אופציונלי"
+            rows="2"
+          ></textarea>
+        </label>
+      </section>
     {/if}
 
     <div class="agenda" aria-live="polite">
       {#if visibleAgenda.length === 0}
-        <div class="empty-state">
-          <p class="empty-state__kicker">{t.calendar.empty.kicker()}</p>
-          <p>{t.calendar.empty.text()}</p>
+        <div class="empty-state" class:empty-state--one-on-one={typeFilter === "one_on_one"}>
           {#if typeFilter === "one_on_one"}
-            <p class="empty-state__hint">נסי סינון "הכל" או בדקי שוב מאוחר יותר — חלונות 1:1 נפתחים לפי זמינות המדריכה.</p>
+            <span class="material-symbols-rounded empty-state__icon" aria-hidden="true">event_available</span>
+            <p class="empty-state__kicker">אין חלונות 1:1 ביום זה</p>
+            <p class="empty-state__hint">
+              המדריכה פותחת זמינות לפי לוח השבוע. נסי יום אחר, או סינון &quot;הכל&quot; לראות שיעורים קבוצתיים.
+            </p>
+          {:else}
+            <p class="empty-state__kicker">{t.calendar.empty.kicker()}</p>
+            <p>{t.calendar.empty.text()}</p>
           {/if}
         </div>
       {:else}
@@ -303,7 +394,7 @@
             <OneOnOneSlotCard
               slot={entry.slot}
               {actionId}
-              onBook={bookOpenSlot}
+              onRequest={requestOneOnOneSlot}
               onBuyCredits={goBuyCredits}
             />
           {/if}
@@ -349,8 +440,8 @@
   }
 
   :global(.calendar-filter__item[data-state="on"][data-value="one_on_one"]) {
-    background: var(--violet-strong);
-    border-color: var(--violet-strong);
+    background: var(--primary);
+    border-color: var(--primary);
     color: var(--paper);
   }
 
@@ -368,27 +459,160 @@
     border-radius: 4px;
   }
 
-  .pending-requests {
+  .one-on-one-tools {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--surface);
+    border: var(--border);
+    border-inline-start: 3px solid var(--primary);
+    border-radius: 4px;
+  }
+
+  .one-on-one-tools__head {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .one-on-one-tools__kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+  }
+
+  .one-on-one-tools__lead {
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: color-mix(in oklch, var(--ink) 75%, var(--muted));
+    max-width: 52ch;
+  }
+
+  .one-on-one-pending {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: var(--border);
+    border-inline-start: 3px solid var(--secondary);
+    border-radius: 4px;
+    background: var(--white);
+    overflow: hidden;
+  }
+
+  .one-on-one-pending__banner {
     display: flex;
     align-items: flex-start;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    background: color-mix(in srgb, var(--violet-soft) 35%, var(--white));
-    border: 1px solid var(--violet-strong);
-    border-radius: 4px;
-    font-size: var(--step--1);
-    font-weight: 600;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: color-mix(in oklch, var(--secondary) 8%, var(--surface));
+    border-bottom: 1px solid var(--line-light);
+  }
+
+  .one-on-one-pending__icon {
+    color: var(--secondary);
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .one-on-one-pending__summary {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .one-on-one-pending__title {
+    margin: 0;
+    font-size: var(--step-0);
+    font-weight: 800;
+    line-height: 1.2;
     color: var(--ink);
   }
 
-  .pending-requests p {
+  .one-on-one-pending__summary p {
     margin: 0;
+    font-size: var(--step--1);
     line-height: 1.4;
+    color: var(--muted);
+    font-weight: 600;
   }
 
-  .pending-requests .material-symbols-rounded {
-    color: var(--violet-strong);
-    flex-shrink: 0;
+  .one-on-one-pending__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .one-on-one-pending__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "when action"
+      "note note";
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--line-light);
+  }
+
+  .one-on-one-pending__row:last-child {
+    border-bottom: none;
+  }
+
+  .one-on-one-pending__when {
+    grid-area: when;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .one-on-one-pending__when time {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .one-on-one-pending__badge {
+    font-size: var(--step--2);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--secondary) 14%, var(--surface));
+    color: var(--secondary);
+    border: 1px solid color-mix(in oklch, var(--secondary) 24%, var(--line-light));
+  }
+
+  .one-on-one-pending__note {
+    grid-area: note;
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--muted);
+    border-inline-start: 2px solid var(--line-light);
+    padding-inline-start: var(--space-3);
+  }
+
+  .one-on-one-pending__action {
+    grid-area: action;
+    justify-self: end;
+  }
+
+  .one-on-one-note {
+    margin: 0;
+  }
+
+  .one-on-one-note__input {
+    min-height: 4.5rem;
   }
 
   .agenda {
@@ -425,5 +649,44 @@
     font-size: var(--step--1);
     max-width: 36ch;
     margin-inline: auto;
+    line-height: 1.5;
+  }
+
+  .empty-state--one-on-one {
+    padding-block: var(--space-7);
+  }
+
+  .empty-state__icon {
+    font-size: 2rem;
+    color: color-mix(in oklch, var(--primary) 70%, var(--muted));
+    margin-inline: auto;
+  }
+
+  .empty-state--one-on-one .empty-state__kicker {
+    color: var(--ink);
+    font-size: var(--step-0);
+    font-weight: 800;
+    font-family: inherit;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  @media (max-width: 680px) {
+    .one-on-one-pending__row {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "when"
+        "note"
+        "action";
+    }
+
+    .one-on-one-pending__action {
+      justify-self: stretch;
+      width: 100%;
+    }
+
+    .one-on-one-pending__action :global(.hb-button) {
+      width: 100%;
+    }
   }
 </style>

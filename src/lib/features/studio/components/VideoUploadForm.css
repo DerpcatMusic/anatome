@@ -21,8 +21,8 @@
 
 .drop-zone:hover,
 .drop-zone.active {
-  border-color: var(--sky-strong);
-  background: color-mix(in srgb, var(--sky-soft) 20%, var(--surface));
+  border-color: var(--secondary);
+  background: var(--surface);
 }
 
 .drop-icon {
@@ -72,7 +72,7 @@
 }
 
 .file-chip__icon {
-  color: var(--sky-strong);
+  color: var(--secondary);
   font-size: var(--step-1);
   flex-shrink: 0;
 }
@@ -112,7 +112,7 @@
 }
 
 .required {
-  color: var(--terra);
+  color: var(--primary);
   font-weight: 800;
 }
 
@@ -134,7 +134,7 @@
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .field input:disabled,
@@ -146,12 +146,12 @@
 
 .field.invalid input,
 .field.invalid textarea {
-  border-color: var(--terra);
+  border-color: var(--primary);
 }
 
 .field-error {
   font-size: var(--step--1);
-  color: var(--terra);
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .field-group.invalid .category-wrap {
-  border-color: var(--terra);
+  border-color: var(--primary);
 }
 
 /* ── Category / tag chips ── */
@@ -215,26 +215,26 @@
 }
 
 .status-box.success {
-  background: color-mix(in srgb, var(--grass-soft) 30%, var(--white));
-  border-color: var(--grass);
+  background: var(--surface);
+  border-color: var(--success);
   flex-direction: row;
   align-items: center;
   gap: var(--space-3);
 }
 
 .status-box.success .status-icon {
-  color: var(--grass);
+  color: var(--success);
   font-size: var(--step-2);
   flex-shrink: 0;
 }
 
 .status-box.error {
-  background: color-mix(in srgb, var(--terra-soft) 30%, var(--white));
-  border-color: var(--terra);
+  background: var(--surface);
+  border-color: var(--primary);
   flex-direction: row;
   align-items: center;
   gap: var(--space-2);
-  color: var(--terra);
+  color: var(--primary);
 }
 
 .status-box.error .status-icon {
@@ -250,7 +250,7 @@
 }
 
 .status-percent {
-  color: var(--sky-strong);
+  color: var(--secondary);
 }
 
 .progress-track {
@@ -262,7 +262,7 @@
 
 .progress-fill {
   height: 100%;
-  background: var(--sky-strong);
+  background: var(--secondary);
   transition: width 0.1s linear;
 }
 

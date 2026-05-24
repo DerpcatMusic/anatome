@@ -143,13 +143,13 @@
   }
 
   :global(.otp-cell[data-active="true"]) {
-    border-color: var(--sky-strong);
-    box-shadow: 0 0 0 1px var(--sky-strong);
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 1px var(--secondary);
   }
 
   :global(.otp-cell:focus-within) {
-    border-color: var(--sky-strong);
-    box-shadow: 0 0 0 1px var(--sky-strong);
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 1px var(--secondary);
   }
 
 </style>

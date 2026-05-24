@@ -54,7 +54,7 @@
 
 .time-field input:focus {
   outline: none;
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .form-actions {
@@ -125,7 +125,7 @@
 
 .rule-btn:hover {
   color: var(--ink);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .rule-btn .material-symbols-rounded {
@@ -188,9 +188,9 @@
   width: fit-content;
 }
 
-.status-badge--pending { background: var(--sky-soft); color: var(--sky-strong); }
-.status-badge--approved { background: var(--success-bg); color: var(--success-text); }
-.status-badge--rejected { background: var(--danger-soft); color: var(--danger-text); }
+.status-badge--pending { background: var(--surface); color: var(--secondary); }
+.status-badge--approved { background: var(--surface); color: var(--success); }
+.status-badge--rejected { background: var(--surface); color: var(--danger); }
 .status-badge--cancelled { background: var(--surface); color: var(--muted); }
 .status-badge--expired { background: var(--surface); color: var(--muted); }
 

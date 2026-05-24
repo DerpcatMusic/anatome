@@ -84,12 +84,12 @@
 }
 
 .filter-chip.macro.active {
-  background: var(--sky);
+  background: var(--secondary);
   color: var(--ink);
 }
 
 .filter-chip.micro.active {
-  background: var(--terra);
+  background: var(--primary);
   color: var(--white);
 }
 
@@ -123,7 +123,7 @@
 }
 
 .group-icon.published {
-  color: var(--sky-strong);
+  color: var(--secondary);
 }
 
 .group-title {

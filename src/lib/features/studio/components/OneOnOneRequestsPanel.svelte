@@ -158,7 +158,7 @@
 
   .requests-panel__error {
     margin: 0 0 var(--space-3);
-    color: var(--danger-text);
+    color: var(--danger);
     font-weight: 700;
     font-size: var(--step--1);
   }

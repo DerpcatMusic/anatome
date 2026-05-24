@@ -7,7 +7,7 @@
     onClose,
     title,
     icon = "edit_calendar",
-    iconColor = "var(--sky-strong)",
+    iconColor = "var(--secondary)",
     children,
     wide = false,
   }: {

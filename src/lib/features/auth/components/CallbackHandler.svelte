@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { storeTokens } from "$lib/auth/session.svelte";
+  import { completeSignIn, storeTokens } from "$lib/auth/session.svelte";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
 
@@ -20,7 +20,7 @@
     try {
       const result = await client.action(api.auth.signIn, { provider: "email", params: { code } });
       storeTokens(result.tokens ?? null);
-      window.location.assign("/onboarding");
+      await completeSignIn();
     } catch (err) {
       console.error("Magic link failed:", err);
       error = "הקוד פג תוקף או כבר נוצל. נסי להתחבר שוב.";
@@ -61,6 +61,6 @@
   }
   .sub {
     font-size: var(--step--1);
-    color: var(--muted-light);
+    color: var(--muted);
   }
 </style>

@@ -361,13 +361,13 @@
   }
 
   .type-badge--group {
-    border-color: var(--sky-strong);
-    color: var(--sky-strong);
+    border-color: var(--secondary);
+    color: var(--secondary);
   }
 
   .type-badge--one-on-one {
-    border-color: var(--violet-strong);
-    color: var(--violet-strong);
+    border-color: var(--primary);
+    color: var(--primary);
   }
 
   .capacity-row {
@@ -532,7 +532,7 @@
     font-family: var(--font-mono);
     font-size: var(--step--1);
     font-weight: 800;
-    color: var(--terra);
+    color: var(--primary);
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -541,7 +541,7 @@
   .live-dot {
     width: 8px;
     height: 8px;
-    background: var(--terra-strong);
+    background: var(--primary);
     border-radius: 50%;
     display: inline-block;
   }

@@ -12,7 +12,7 @@ import {
   startOfLocalDay,
   weekday,
 } from "../lib/oneOnOne";
-import { LIMITS } from "../lib/constants";
+import { LIMITS, RULES } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "../live/schedule";
 import { createReminderEventsForReservation } from "../liveReminders/create";
@@ -85,13 +85,14 @@ export const setAvailabilityRule = mutation({
     if (args.startMinute < 0 || args.endMinute > 24 * 60 || args.startMinute >= args.endMinute) {
       throw new Error("שעות זמינות לא תקינות");
     }
-    if (args.slotMinutes < 20 || args.slotMinutes > 120) throw new Error("משך חלון זמן לא תקין");
-    if (args.bufferMinutes < 0 || args.bufferMinutes > 60) throw new Error("חוצץ זמן לא תקין");
+
+    const slotMinutes = RULES.ONE_ON_ONE_DURATION_MINUTES;
+    const bufferMinutes = RULES.ONE_ON_ONE_BUFFER_MINUTES;
 
     const now = Date.now();
     const payload = {
       weekday: args.weekday, startMinute: args.startMinute, endMinute: args.endMinute,
-      slotMinutes: args.slotMinutes, bufferMinutes: args.bufferMinutes,
+      slotMinutes, bufferMinutes,
       timezone: oneOnOneTimezone, isActive: args.isActive, updatedAt: now,
     };
 
@@ -106,6 +107,7 @@ export const setAvailabilityRule = mutation({
   },
 });
 
+/** @deprecated Prefer weekly rules + customer requestSlot. Bulk-creates empty liveClasses for legacy calendars. */
 export const publishAvailability = mutation({
   args: {
     weeksAhead: v.optional(v.number()),
@@ -134,8 +136,8 @@ export const publishAvailability = mutation({
     for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart += dayMs) {
       const dayRules = activeRules.filter((rule) => rule.weekday === weekday(dayStart));
       for (const rule of dayRules) {
-        const step = (rule.slotMinutes + rule.bufferMinutes) * minuteMs;
-        const duration = rule.slotMinutes * minuteMs;
+        const step = (RULES.ONE_ON_ONE_DURATION_MINUTES + RULES.ONE_ON_ONE_BUFFER_MINUTES) * minuteMs;
+        const duration = RULES.ONE_ON_ONE_DURATION_MINUTES * minuteMs;
         for (
           let startsAt = dayStart + rule.startMinute * minuteMs;
           startsAt + duration <= dayStart + rule.endMinute * minuteMs;

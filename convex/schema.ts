@@ -229,6 +229,7 @@ export default defineSchema({
     .index("by_instructorUserId_and_weekday", ["instructorUserId", "weekday"])
     .index("by_isActive_and_weekday", ["isActive", "weekday"]),
 
+  /** Reserved for future blocked/extra-open overrides; not used yet. */
   oneOnOneAvailabilityExceptions: defineTable({
     instructorUserId: v.id("users"),
     startsAt: v.number(),

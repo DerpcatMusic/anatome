@@ -259,7 +259,7 @@
     flex-direction: column;
     gap: var(--space-4);
     border: var(--border);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--white));
     padding: var(--space-5);
   }
 
@@ -309,7 +309,7 @@
 
   .file-drop:hover {
     background: var(--surface);
-    border-color: var(--sky-strong);
+    border-color: var(--secondary);
   }
 
   .file-drop input {

@@ -31,6 +31,10 @@ export const RULES = {
   MAX_PENDING_ONE_ON_ONE_REQUESTS: 5,
   /** Max onboarding notes length */
   MAX_ONBOARDING_NOTES_LENGTH: 600,
+  /** Fixed duration for private 1:1 lessons (minutes) */
+  ONE_ON_ONE_DURATION_MINUTES: 45,
+  /** Gap between bookable 1:1 slots generated from availability rules (minutes) */
+  ONE_ON_ONE_BUFFER_MINUTES: 15,
   /** Minutes before startsAt when live room join opens (customers + instructors) */
   LIVE_JOIN_OPENS_MINUTES_BEFORE: 15,
   /** Max configurable join-opens offset when scheduling a class */

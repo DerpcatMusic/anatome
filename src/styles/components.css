@@ -118,7 +118,7 @@ textarea {
 
 .edit-modal-card .header-icon {
   font-size: var(--step-2);
-  color: var(--terra);
+  color: var(--primary);
 }
 
 .edit-modal-card .modal-title {
@@ -313,12 +313,12 @@ textarea {
 
 .day-pill:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
+  border-color: var(--secondary);
 }
 
 .day-pill[data-state="on"] {
-  background: var(--sky-soft);
-  border-color: var(--sky-strong);
+  background: var(--surface);
+  border-color: var(--secondary);
   border-radius: 12px;
 }
 
@@ -331,7 +331,7 @@ textarea {
 }
 
 .day-pill[data-state="on"] .day-pill__name {
-  color: var(--sky-strong);
+  color: var(--secondary);
 }
 
 .day-pill__num {

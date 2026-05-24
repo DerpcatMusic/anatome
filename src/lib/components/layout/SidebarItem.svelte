@@ -46,7 +46,7 @@
   }
 
   .sidebar-item:hover {
-    color: var(--sky-strong);
+    color: var(--secondary);
   }
 
   .sidebar-item--current {

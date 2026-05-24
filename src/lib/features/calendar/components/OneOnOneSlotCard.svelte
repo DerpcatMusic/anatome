@@ -8,12 +8,12 @@
   let {
     slot,
     actionId,
-    onBook,
+    onRequest,
     onBuyCredits,
   }: {
     slot: OpenSlot;
     actionId: string | null;
-    onBook: (slot: OpenSlot) => void;
+    onRequest: (slot: OpenSlot) => void;
     onBuyCredits: () => void;
   } = $props();
 
@@ -27,8 +27,8 @@
   const hasCredits = $derived(slot.availableCredits >= 1);
 </script>
 
-<article class="class-card class-card--open-slot">
-  <div class="class-card__time">
+<article class="class-card class-card--request-slot">
+  <div class="class-card__time" aria-hidden="true">
     <span class="class-card__start">{timeFormatter.format(new Date(slot.startsAt))}</span>
     <span class="class-card__end">{timeFormatter.format(new Date(slot.endsAt))}</span>
   </div>
@@ -37,12 +37,13 @@
     <div class="class-card__main">
       <div class="class-card__title-row">
         <h3>שיעור 1:1 אישי</h3>
-        <span class="status-badge status-badge--violet">חלון פתוח</span>
+        <span class="status-badge status-badge--request">זמין לבקשה</span>
       </div>
 
       <div class="class-card__meta">
-        <span class="meta-tag meta-tag--type meta-tag--one-on-one">1:1</span>
-        <span class="meta-tag">קרדיט 1:1 אחד</span>
+        <span class="meta-tag meta-tag--one-on-one">1:1</span>
+        <span class="meta-tag">קרדיט אחד</span>
+        <span class="meta-tag meta-tag--flow">שליחה → אישור המדריכה</span>
         {#if !hasCredits}
           <span class="meta-tag meta-tag--urgent">אין קרדיטים זמינים</span>
         {/if}
@@ -52,12 +53,13 @@
     <div class="class-card__action">
       {#if hasCredits}
         <Button.Root
-          class="hb-button hb-button--violet hb-button--sm"
+          class="hb-button hb-button--primary hb-button--sm"
           type="button"
-          onclick={() => onBook(slot)}
+          onclick={() => onRequest(slot)}
           disabled={actionId === slotKey}
+          aria-busy={actionId === slotKey}
         >
-          {actionId === slotKey ? "מזמינה..." : "הזמנה מיידית"}
+          {actionId === slotKey ? "שולחת..." : "שליחת בקשה"}
         </Button.Root>
       {:else}
         <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={onBuyCredits}>
@@ -77,11 +79,16 @@
     padding: var(--space-3) var(--space-4);
     background: var(--white);
     border-bottom: 1px solid var(--line-light);
+    transition: background var(--duration-fast, 0.15s ease);
   }
 
-  .class-card--open-slot {
-    border-inline-start: 3px solid var(--violet-strong);
-    background: color-mix(in srgb, var(--violet-soft) 18%, var(--white));
+  .class-card--request-slot {
+    border-inline-start: 3px solid var(--primary);
+    background: color-mix(in oklch, var(--surface) 72%, var(--white));
+  }
+
+  .class-card--request-slot:hover {
+    background: color-mix(in oklch, var(--surface) 88%, var(--white));
   }
 
   .class-card__time {
@@ -148,9 +155,10 @@
     white-space: nowrap;
   }
 
-  .status-badge--violet {
-    background: var(--violet-soft);
-    color: var(--violet-strong);
+  .status-badge--request {
+    background: color-mix(in oklch, var(--primary) 12%, var(--surface));
+    color: var(--primary);
+    border: 1px solid color-mix(in oklch, var(--primary) 28%, var(--line-light));
   }
 
   .class-card__meta {
@@ -158,6 +166,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
+    min-width: 0;
   }
 
   .meta-tag {
@@ -167,22 +176,50 @@
     white-space: nowrap;
   }
 
-  .meta-tag--type {
-    color: var(--ink);
-    font-weight: 700;
-  }
-
   .meta-tag--one-on-one {
-    color: var(--violet-strong);
+    color: var(--primary);
     font-weight: 800;
   }
 
+  .meta-tag--flow {
+    font-size: var(--step--2);
+    color: color-mix(in oklch, var(--ink) 55%, var(--muted));
+  }
+
   .meta-tag--urgent {
-    color: var(--violet-strong);
+    color: var(--primary);
     font-weight: 800;
   }
 
   .class-card__action {
     flex-shrink: 0;
+  }
+
+  @media (max-width: 680px) {
+    .class-card {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+      padding: var(--space-3);
+    }
+
+    .class-card__time {
+      flex-direction: row;
+      gap: var(--space-2);
+      justify-content: flex-start;
+    }
+
+    .class-card__body {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+
+    .class-card__title-row h3 {
+      white-space: normal;
+    }
+
+    .class-card__action :global(.hb-button) {
+      width: 100%;
+    }
   }
 </style>

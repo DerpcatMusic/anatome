@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
+  import { onMount } from "svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
-  import { authQuery, setCachedRole } from "$lib/auth/session.svelte";
-  import { useConvexClient } from "convex-svelte";
+  import { authQuery, initAuth, setCachedRole } from "$lib/auth/session.svelte";
+  import { useConvexClient, useQuery } from "convex-svelte";
   import { liveRoomHref } from "$lib/i18n/context";
   import { Button, Toggle, ToggleGroup } from "bits-ui";
   import WeeklyAgenda from "$features/live/components/WeeklyAgenda.svelte";
@@ -13,25 +13,28 @@
   import OneOnOneRequestsPanel from "./OneOnOneRequestsPanel.svelte";
   import {
     createEmptyPainted,
-    hasAnyPaintedSlots,
     paintedEquals,
     rulesToPainted,
     type AvailabilityRule,
     type PaintedSlots,
   } from "$features/studio/lib/one-on-one-availability";
   import { saveAvailabilityFromPainted } from "$features/studio/lib/save-availability-rules";
+  import { calendarVisibleClasses } from "$features/studio/lib/live-class-display";
   import type { Equipment } from "$lib/labels";
   import type { SelectionAnchor } from "$features/live/types/selection-anchor";
   import { anchorFromCalendarSelection } from "$features/live/types/selection-anchor";
   import { parseDateTimeLocal, toDateTimeLocalString } from "$lib/datetime/local";
 
   type LiveClass = FunctionReturnType<typeof api.live.class.listMine>[number];
-  type ViewerProfile = FunctionReturnType<typeof api.profiles.viewer.get>;
   type ClassTypeFilter = "all" | "group_live" | "one_on_one";
 
-  let profile = $state<ViewerProfile | null>(null);
-  let classes = $state<LiveClass[]>([]);
-  let loading = $state(true);
+  const auth = initAuth();
+  const profileQuery = useQuery(api.profiles.viewer.get, () => (auth.isAuthenticated ? {} : "skip"));
+  const classesQuery = useQuery(api.live.class.listMine, () => (auth.isAuthenticated ? {} : "skip"));
+
+  const classes = $derived(classesQuery.data ?? []);
+  const loading = $derived(profileQuery.isLoading || classesQuery.isLoading);
+
   let error = $state("");
   let actionId = $state<string | null>(null);
 
@@ -47,11 +50,9 @@
   let availabilityRules = $state<AvailabilityRule[]>([]);
   let availabilityPainted = $state<PaintedSlots>(createEmptyPainted());
   let availabilitySavedPainted = $state<PaintedSlots>(createEmptyPainted());
-  let availabilitySlotMinutes = $state(50);
-  let availabilityBufferMinutes = $state(10);
-  let availabilityActionId = $state<string | null>(null);
+  let availabilitySaving = $state(false);
   let availabilityError = $state("");
-  let availabilityPublishResult = $state<{ created: number; skipped: number } | null>(null);
+  let availabilitySaveTimer: ReturnType<typeof setTimeout> | undefined;
 
   let title = $state("פילאטיס לייב - נשימה, כוח ותנועה");
   let description = $state("שיעור דו־כיווני קטן עם תיקונים אישיים. הכיני מרחב שקט, מצלמה פתוחה וציוד מתאים.");
@@ -67,9 +68,8 @@
 
   const client = useConvexClient();
 
-  const filteredClasses = $derived(
-    typeFilter === "all" ? classes : classes.filter((c) => c.type === typeFilter),
-  );
+  /** Open 1:1 publish windows are hidden; type filtering happens in WeeklyAgenda. */
+  const studioCalendarClasses = $derived(calendarVisibleClasses(classes));
 
   const quickCreatePreview = $derived(
     popoverOpen && popoverMode === "create" && startsAtLocal
@@ -88,9 +88,19 @@
     !paintedEquals(availabilityPainted, availabilitySavedPainted),
   );
 
-  const activeAvailabilityRuleCount = $derived(
-    availabilityRules.filter((r) => r.isActive).length,
-  );
+  $effect(() => {
+    if (profileQuery.isLoading) return;
+    const profile = profileQuery.data;
+    if (profile === null || profile === undefined) {
+      window.location.assign("/calendar");
+      return;
+    }
+    if (profile.role !== "admin" && profile.role !== "instructor") {
+      window.location.assign("/calendar");
+      return;
+    }
+    setCachedRole(profile.role);
+  });
 
   function defaultStartsAtLocal() {
     const date = new Date(Date.now() + 60 * 60 * 1000);
@@ -150,10 +160,6 @@
     try {
       const loaded = (await authQuery(api.oneOnOne.instructor.listAvailability, {})) ?? [];
       availabilityRules = loaded;
-      if (loaded.length > 0) {
-        availabilitySlotMinutes = loaded[0].slotMinutes;
-        availabilityBufferMinutes = loaded[0].bufferMinutes;
-      }
       const painted = rulesToPainted(loaded);
       availabilityPainted = painted;
       availabilitySavedPainted = painted;
@@ -163,77 +169,46 @@
     }
   }
 
-  async function load() {
-    loading = true;
+  async function retryLoad() {
     error = "";
-    try {
-      profile = await authQuery(api.profiles.viewer.get, {});
-      if (profile === null || (profile.role !== "admin" && profile.role !== "instructor")) {
-        window.location.assign("/calendar");
-        return;
-      }
-      setCachedRole(profile.role);
-      classes = (await authQuery(api.live.class.listMine, {})) ?? [];
-      const panel = untrack(() => requestsPanel);
-      await Promise.all([panel?.refresh(), loadAvailability()]);
-    } catch (reason) {
-      error = reason instanceof Error ? reason.message : "לא הצלחנו לטעון את אזור הלייב.";
-    } finally {
-      loading = false;
-    }
+    await loadAvailability();
   }
 
   async function saveAvailability() {
-    availabilityActionId = "save";
+    if (!availabilityDirty) return;
+    availabilitySaving = true;
     availabilityError = "";
     try {
-      await saveAvailabilityFromPainted(
-        client,
-        availabilityPainted,
-        availabilityRules,
-        availabilitySlotMinutes,
-        availabilityBufferMinutes,
-      );
+      await saveAvailabilityFromPainted(client, availabilityPainted, availabilityRules);
       await loadAvailability();
     } catch (reason) {
       availabilityError =
         reason instanceof Error ? reason.message : "לא הצלחנו לשמור זמינות.";
     } finally {
-      availabilityActionId = null;
+      availabilitySaving = false;
     }
   }
 
-  async function publishAvailability() {
-    availabilityActionId = "publish";
-    availabilityError = "";
-    availabilityPublishResult = null;
-    try {
-      if (availabilityDirty) await saveAvailability();
-      availabilityPublishResult = await client.mutation(
-        api.oneOnOne.instructor.publishAvailability,
-        { weeksAhead: 4 },
-      );
-      await load();
-    } catch (reason) {
-      availabilityError =
-        reason instanceof Error ? reason.message : "לא הצלחנו לפרסם חלונות.";
-    } finally {
-      availabilityActionId = null;
-    }
+  function scheduleAvailabilitySave() {
+    if (availabilitySaveTimer) clearTimeout(availabilitySaveTimer);
+    availabilitySaveTimer = setTimeout(() => {
+      void saveAvailability();
+    }, 450);
   }
 
   function handleAvailabilityPaintChange(next: PaintedSlots) {
     availabilityPainted = next;
+    scheduleAvailabilitySave();
   }
 
   function toggleAvailabilityPaintMode(pressed: boolean) {
     availabilityPaintMode = pressed;
     weeklyAgenda?.clearCalendarSelection();
-    if (availabilityPaintMode) closePopover();
-  }
-
-  async function retryLoad() {
-    await load();
+    if (availabilityPaintMode) {
+      closePopover();
+    } else if (availabilityDirty) {
+      void saveAvailability();
+    }
   }
 
   async function createClass() {
@@ -245,7 +220,7 @@
         description,
         type: liveType,
         startsAt: parseDateTimeLocal(startsAtLocal),
-        durationMinutes,
+        durationMinutes: liveType === "one_on_one" ? 45 : durationMinutes,
         joinOpensMinutesBefore,
         capacity: liveType === "one_on_one" ? 1 : capacity,
         requiredEquipment: requiredEquipment.length > 0 ? requiredEquipment : ["mat"],
@@ -254,7 +229,6 @@
       durationMinutes = 50;
       closePopover();
       resetCreateForm();
-      await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו ליצור לייב.";
     } finally {
@@ -270,7 +244,7 @@
       await client.mutation(api.live.class.reschedule, {
         liveClassId: popoverEditClass._id,
         startsAt: parseDateTimeLocal(startsAtLocal),
-        durationMinutes,
+        durationMinutes: liveType === "one_on_one" ? 45 : durationMinutes,
         joinOpensMinutesBefore,
         capacity: liveType === "one_on_one" ? 1 : capacity,
         requiredEquipment: requiredEquipment.length > 0 ? requiredEquipment : ["mat"],
@@ -278,7 +252,6 @@
         description: description.trim(),
       });
       closePopover();
-      await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לעדכן את השיעור.";
     } finally {
@@ -295,7 +268,6 @@
         liveClassId: popoverEditClass._id,
       });
       closePopover();
-      await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לבטל את השיעור.";
     } finally {
@@ -308,7 +280,6 @@
     error = "";
     try {
       await client.mutation(api.live.class.start, { liveClassId });
-      await load();
       window.location.assign(liveRoomHref(liveClassId));
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו להתחיל את הלייב.";
@@ -323,7 +294,6 @@
     try {
       await client.mutation(api.live.class.end, { liveClassId });
       closePopover();
-      await load();
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לסיים את הלייב.";
     } finally {
@@ -406,7 +376,7 @@
   }
 
   onMount(() => {
-    void load();
+    void loadAvailability();
   });
 </script>
 
@@ -432,85 +402,45 @@
         class="studio-filter"
         aria-label="סינון לפי סוג שיעור"
       >
-        <ToggleGroup.Item value="all" class="studio-filter__item">הכל</ToggleGroup.Item>
-        <ToggleGroup.Item value="group_live" class="studio-filter__item">קבוצתי</ToggleGroup.Item>
-        <ToggleGroup.Item value="one_on_one" class="studio-filter__item">1:1</ToggleGroup.Item>
+        <ToggleGroup.Item value="all" class="studio-bar-btn">הכל</ToggleGroup.Item>
+        <ToggleGroup.Item value="group_live" class="studio-bar-btn">קבוצתי</ToggleGroup.Item>
+        <ToggleGroup.Item value="one_on_one" class="studio-bar-btn">1:1</ToggleGroup.Item>
       </ToggleGroup.Root>
 
       <div class="studio-toolbar__actions">
         <Toggle.Root
           bind:pressed={availabilityPaintMode}
           onPressedChange={toggleAvailabilityPaintMode}
-          aria-label="מצב ציור זמינות 1:1"
+          aria-label="עריכת זמינות שבועית"
         >
           {#snippet child({ props, pressed })}
-            <button {...props} class="studio-availability-toggle" data-pressed={pressed ? "" : undefined}>
-              <span
-                class="studio-availability-toggle__inner"
-                class:studio-availability-toggle__inner--on={pressed}
-              >
-                <span class="material-symbols-rounded" aria-hidden="true">brush</span>
-                זמינות 1:1
-              </span>
+            <button
+              {...props}
+              class="studio-bar-btn studio-bar-btn--icon studio-bar-btn--availability"
+              data-state={pressed ? "on" : "off"}
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">edit_calendar</span>
+              זמינות
+              {#if availabilitySaving}
+                <span class="studio-availability-chip__dot" aria-hidden="true"></span>
+              {/if}
             </button>
           {/snippet}
         </Toggle.Root>
 
-        {#if availabilityPaintMode}
-          <label class="studio-availability-field">
-            <span>משך (דק׳)</span>
-            <input
-              type="number"
-              min="20"
-              max="120"
-              bind:value={availabilitySlotMinutes}
-              disabled={availabilityActionId !== null}
-            />
-          </label>
-          <label class="studio-availability-field">
-            <span>מרווח</span>
-            <input
-              type="number"
-              min="0"
-              max="60"
-              bind:value={availabilityBufferMinutes}
-              disabled={availabilityActionId !== null}
-            />
-          </label>
-          <Button.Root
-            class="hb-button hb-button--paper studio-toolbar__btn"
-            type="button"
-            disabled={availabilityActionId !== null || !availabilityDirty}
-            onclick={() => void saveAvailability()}
-          >
-            {availabilityActionId === "save" ? "שומרות..." : "שמירה"}
-          </Button.Root>
-          <Button.Root
-            class="hb-button hb-button--violet studio-toolbar__btn"
-            type="button"
-            disabled={
-              availabilityActionId === "publish" ||
-              (!hasAnyPaintedSlots(availabilityPainted) && activeAvailabilityRuleCount === 0)
-            }
-            onclick={() => void publishAvailability()}
-          >
-            {availabilityActionId === "publish" ? "מפרסמת..." : "פרסום חלונות"}
-          </Button.Root>
-        {/if}
-
-        <Button.Root
-          class="hb-button hb-button--paper studio-toolbar__btn"
+        <button
+          class="studio-bar-btn studio-bar-btn--icon"
           type="button"
           onclick={() => (showRequestsPanel = true)}
         >
           <span class="material-symbols-rounded" aria-hidden="true">inbox</span>
-          בקשות 1:1
+          בקשות
           {#if pendingRequestCount > 0}
             <span class="studio-badge" aria-label="{pendingRequestCount} בקשות ממתינות">
               {pendingRequestCount}
             </span>
           {/if}
-        </Button.Root>
+        </button>
       </div>
     </header>
 
@@ -528,27 +458,14 @@
       </div>
     {/if}
 
-    {#if availabilityPublishResult}
-      <p class="studio-publish-result" role="status">
-        נוצרו {availabilityPublishResult.created} חלונות · דולגו {availabilityPublishResult.skipped}
-      </p>
-    {/if}
-
-    {#if availabilityPaintMode}
-      <p class="studio-availability-hint">
-        גררי על הלוח כדי לצייר שעות פנויות חוזרות (לפי יום בשבוע). לחיצה על אזור צבוע מסירה אותו.
-      </p>
-    {/if}
-
     <WeeklyAgenda
       bind:this={weeklyAgenda}
-      classes={filteredClasses}
+      classes={studioCalendarClasses}
+      {typeFilter}
       onStart={startLive}
       onEnd={endLive}
       {actionId}
       onSelectSlot={handleSelectSlot}
-      onRefreshClasses={load}
-      onCreateButtonClick={openToolbarQuickCreate}
       onEventClick={handleEventClick}
       createPreview={availabilityPaintMode ? null : quickCreatePreview}
       onCreatePreviewChange={handleCreatePreviewChange}
@@ -583,9 +500,9 @@
 
 <LiveClassModalShell
   bind:open={showRequestsPanel}
-  title="בקשות 1:1 ממתינות"
+  title="בקשות ממתינות"
   icon="inbox"
-  iconColor="var(--violet-strong)"
+  iconColor="var(--primary)"
   wide
 >
   <OneOnOneRequestsPanel bind:this={requestsPanel} onPendingCountChange={(n) => (pendingRequestCount = n)} />
@@ -598,7 +515,7 @@
     height: 100%;
     min-height: 0;
     direction: rtl;
-    gap: var(--space-2);
+    gap: 0;
   }
 
   .studio-toolbar {
@@ -607,10 +524,10 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-3) 0;
+    padding: var(--space-2) var(--space-3);
     flex-shrink: 0;
-    position: relative;
-    z-index: 5;
+    border-bottom: 1px solid var(--line-light);
+    background: var(--paper);
   }
 
   :global(.studio-filter) {
@@ -619,29 +536,91 @@
     flex-wrap: wrap;
   }
 
-  :global(.studio-filter__item) {
+  :global(.studio-bar-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
     min-height: 40px;
     padding: var(--space-1) var(--space-3);
-    border: var(--border);
+    border: 1px solid var(--line-light);
     background: var(--white);
+    color: var(--ink);
     font: inherit;
-    font-weight: 800;
+    font-weight: 700;
     font-size: var(--step--1);
     cursor: pointer;
     border-radius: 4px;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
-  :global(.studio-filter__item[data-state="on"]) {
+  :global(.studio-bar-btn:hover:not([data-state="on"])) {
+    background: var(--surface);
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 1px var(--secondary);
+  }
+
+  :global(.studio-bar-btn:focus-visible) {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+  }
+
+  :global(.studio-bar-btn--icon .material-symbols-rounded) {
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+
+  :global(.studio-bar-btn[data-state="on"][data-value="one_on_one"]) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--paper);
+  }
+
+  :global(.studio-bar-btn[data-state="on"][data-value="one_on_one"]:hover) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--paper);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+
+  :global(.studio-filter .studio-bar-btn:hover:not([data-state="on"])[data-value="one_on_one"]) {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+
+  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]),
+  :global(.studio-bar-btn--availability[data-state="on"]) {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: var(--ink);
+  }
+
+  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]:hover),
+  :global(.studio-bar-btn--availability[data-state="on"]:hover) {
+    box-shadow: 0 0 0 1px var(--secondary);
+  }
+
+  :global(.studio-filter .studio-bar-btn[data-state="on"][data-value="all"]) {
     background: var(--ink);
-    color: var(--paper);
     border-color: var(--ink);
+    color: var(--paper);
   }
 
-  :global(.studio-filter__item[data-state="on"][data-value="one_on_one"]) {
-    background: var(--violet-strong);
-    border-color: var(--violet-strong);
-    color: var(--paper);
+  :global(.studio-filter .studio-bar-btn[data-state="on"][data-value="all"]:hover) {
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+
+  .studio-availability-chip__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+    animation: pulse 1s ease-in-out infinite;
   }
 
   .studio-toolbar__actions {
@@ -649,79 +628,6 @@
     flex-wrap: wrap;
     gap: var(--space-2);
     align-items: center;
-  }
-
-  :global(.studio-toolbar__btn) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    position: relative;
-  }
-
-  :global(.studio-availability-toggle) {
-    border: none;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
-    font: inherit;
-    position: relative;
-    z-index: 2;
-  }
-
-  :global(.studio-availability-toggle__inner) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: 40px;
-    padding: var(--space-1) var(--space-3);
-    border: var(--border);
-    background: var(--white);
-    font-weight: 800;
-    font-size: var(--step--1);
-    border-radius: 4px;
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease;
-  }
-
-  :global(.studio-availability-toggle__inner--on) {
-    background: var(--violet-strong);
-    border-color: var(--violet-strong);
-    color: var(--paper);
-  }
-
-  .studio-availability-field {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: var(--step--2);
-    font-weight: 700;
-    color: var(--muted);
-  }
-
-  .studio-availability-field input {
-    width: 4.25rem;
-    min-height: 36px;
-    padding: var(--space-1) var(--space-2);
-    font-family: var(--font-mono);
-    font-weight: 800;
-    font-size: var(--step--2);
-  }
-
-  .studio-availability-hint {
-    margin: 0 var(--space-3);
-    font-size: var(--step--2);
-    font-weight: 700;
-    color: var(--muted);
-    font-family: var(--font-mono);
-  }
-
-  .studio-publish-result {
-    margin: 0 var(--space-3);
-    font-size: var(--step--1);
-    font-weight: 700;
-    color: var(--success-text);
   }
 
   .studio-badge {
@@ -732,7 +638,7 @@
     height: 1.25rem;
     padding: 0 0.35rem;
     border-radius: 999px;
-    background: var(--violet-strong);
+    background: var(--primary);
     color: var(--paper);
     font-family: var(--font-mono);
     font-size: var(--step--2);
@@ -774,7 +680,7 @@
   }
 
   .studio-error p {
-    color: var(--danger-text);
+    color: var(--danger);
     font-weight: 700;
     margin: 0;
   }
@@ -783,8 +689,8 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    background: var(--danger-soft);
-    color: var(--danger-text);
+    background: var(--surface);
+    color: var(--danger);
     border: 1px solid var(--danger);
     padding: var(--space-3);
     font-weight: 800;

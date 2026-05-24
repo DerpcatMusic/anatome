@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { LIMITS } from "../lib/constants";
+import { LIMITS, MS } from "../lib/constants";
 
 export const oneOnOneTimezone = "Asia/Jerusalem";
 export const dayMs = 24 * 60 * 60 * 1000;
@@ -135,6 +135,7 @@ export async function buildAvailableSlots(
       ) {
         const endsAt = startsAt + duration;
         if (startsAt < from || endsAt > to) continue;
+        if (startsAt <= Date.now() + MS.TWO_HOURS) continue;
         if (!(await isOneOnOneSlotFree(ctx, rule.instructorUserId, startsAt, endsAt))) continue;
         slots.push({ instructorUserId: rule.instructorUserId, startsAt, endsAt, availableCredits });
       }

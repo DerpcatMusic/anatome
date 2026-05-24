@@ -86,7 +86,7 @@
       max-resolution={maxResolution ?? undefined}
       max-auto-resolution="1080p"
       cap-rendition-to-player-size
-      accent-color="var(--sky-strong)"
+      accent-color="var(--secondary)"
       style="--controls-backdrop-color: rgba(0,0,0,0.6);"
       ontimeupdate={() => reportProgress(false)}
       onpause={() => reportProgress(true)}

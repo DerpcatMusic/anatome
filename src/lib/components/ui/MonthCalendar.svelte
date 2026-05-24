@@ -4,7 +4,7 @@
 
   type EventDot = {
     date: DateValue;
-    tone: "sky" | "terra" | "violet" | "success" | "muted";
+    tone: "secondary" | "primary" | "success" | "muted";
   };
 
   let {
@@ -104,16 +104,12 @@
     flex-shrink: 0;
   }
 
-  .event-dot--sky {
-    background: var(--sky-strong);
+  .event-dot--secondary {
+    background: var(--secondary);
   }
 
-  .event-dot--terra {
-    background: var(--terra-strong);
-  }
-
-  .event-dot--violet {
-    background: var(--violet-strong);
+  .event-dot--primary {
+    background: var(--primary);
   }
 
   .event-dot--success {

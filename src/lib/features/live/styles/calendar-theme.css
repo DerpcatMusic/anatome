@@ -1,14 +1,13 @@
-/* ── EventCalendar Theme — HomeBody Design System ── */
+/* ── EventCalendar — atomic tokens only (--primary, --secondary, neutrals) ── */
 
-/* Map library tokens to design system (light default on .ec) */
 .ec {
   font-family: var(--font-body);
   color-scheme: light;
   --ec-bg-color: var(--white);
   --ec-border-color: var(--line-light);
   --ec-text-color: var(--ink);
-  --ec-today-bg-color: color-mix(in srgb, var(--sky-soft) 14%, var(--white));
-  --ec-highlight-color: var(--sky-soft);
+  --ec-today-bg-color: var(--surface);
+  --ec-highlight-color: var(--surface);
   --ec-button-bg-color: var(--white);
   --ec-button-border-color: var(--line-light);
   --ec-button-active-bg-color: var(--surface);
@@ -16,14 +15,13 @@
   --ec-bg-event-color: var(--line-light);
 }
 
-/* App dark mode: ancestor .ec-dark enables library dark color-scheme + tokens */
 .ec-dark .ec {
   color-scheme: dark;
   --ec-bg-color: var(--surface);
   --ec-border-color: var(--line);
   --ec-text-color: var(--ink);
-  --ec-today-bg-color: color-mix(in srgb, var(--sky-soft) 18%, var(--surface));
-  --ec-highlight-color: color-mix(in srgb, var(--sky-strong) 35%, var(--surface));
+  --ec-today-bg-color: var(--surface);
+  --ec-highlight-color: var(--surface);
   --ec-button-bg-color: var(--surface);
   --ec-button-border-color: var(--line);
   --ec-button-active-bg-color: var(--line-light);
@@ -31,10 +29,6 @@
   --ec-bg-event-color: var(--line);
 }
 
-/*
- * EventCalendar draws 2px vertical stripes on day columns (CRT moiré on today/highlight).
- * Keep horizontal slot lines only.
- */
 .ec .ec-time-grid .ec-body .ec-day {
   background-color: var(--ec-day-bg-color);
   background-image: linear-gradient(
@@ -50,34 +44,31 @@
   background-color: var(--ec-day-bg-color);
 }
 
-/* ── Toolbar ── */
 .ec-toolbar {
   padding: var(--space-2) var(--space-3);
   background: var(--ec-bg-color);
   border-bottom: 1px solid var(--ec-border-color);
+  gap: var(--space-2);
+  min-height: 48px;
 }
 
 .ec-button {
   font-family: var(--font-body);
   font-size: var(--step--1);
   font-weight: 700;
-  padding: var(--space-2) var(--space-3);
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--ec-button-border-color);
   background: var(--ec-button-bg-color);
   color: var(--ec-text-color);
   cursor: pointer;
   border-radius: 4px;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    border-radius 0.35s ease,
-    transform 0.08s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .ec-button:hover {
   background: var(--surface);
-  border-color: var(--sky-strong);
-  border-radius: 20px;
+  border-color: var(--line);
 }
 
 .ec-button:active {
@@ -92,13 +83,12 @@
 }
 
 .ec-title {
-  font-family: var(--font-mono);
-  font-size: var(--step-1);
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-weight: 800;
   color: var(--ec-text-color);
 }
 
-/* ── Header / day columns ── */
 .ec-header {
   background: var(--ec-bg-color);
   border-bottom: 1px solid var(--ec-border-color);
@@ -114,16 +104,12 @@
   background: var(--ec-bg-color);
 }
 
-.ec-day-head.ec-today {
+.ec-day-head.ec-today,
+.ec-col-head.ec-today {
   background: var(--ec-today-bg-color);
   border-radius: 4px;
 }
 
-.ec-col-head.ec-today {
-  background: var(--ec-today-bg-color);
-}
-
-/* ── Time column ── */
 .ec-time {
   font-family: var(--font-mono);
   font-weight: 800;
@@ -147,24 +133,56 @@
   background: var(--ec-bg-color);
 }
 
-/* ── Events ── */
+/* ── Events: group = sky (--secondary), 1:1 + availability = crimson (--primary) ── */
 .ec-event {
   border-radius: 3px;
   border: 1px solid transparent;
-  border-inline-start: 3px solid transparent;
+  border-inline-start-width: 3px;
   padding: 0;
   margin-inline: 1px;
   color: var(--ink);
   background: var(--surface);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, filter 0.15s ease;
   overflow: hidden;
   min-width: 0;
   cursor: pointer;
 }
 
+.ec-event.ec-event-type--availability {
+  z-index: 1;
+  background: var(--primary);
+  border-inline-start-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--paper);
+}
+
+.ec-event.ec-event-type--one_on_one {
+  z-index: 2;
+  background: var(--primary);
+  border-inline-start-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--paper);
+}
+
+.ec-event.ec-event-type--group_live {
+  z-index: 3;
+  background: var(--secondary);
+  border-inline-start-color: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--ink);
+}
+
 .ec-event:hover {
-  border-color: var(--sky-strong);
   z-index: 10;
+}
+
+.ec-event.ec-event-type--group_live:hover {
+  filter: brightness(0.97);
+}
+
+.ec-event.ec-event-type--one_on_one:hover,
+.ec-event.ec-event-type--availability:hover {
+  filter: brightness(1.05);
 }
 
 .ec-event:active {
@@ -180,52 +198,23 @@
   opacity: 1;
 }
 
-.ec-event-status--scheduled.ec-event-type--group_live {
-  border-inline-start-color: var(--sky-strong);
-  border-color: var(--sky-strong);
-  background: var(--sky-soft);
-  color: var(--ink);
+.ec-event-status--scheduled,
+.ec-event-status--live {
   opacity: 1;
 }
 
-.ec-event-status--scheduled.ec-event-type--one_on_one {
-  border-inline-start-color: var(--violet-strong);
-  border-color: var(--violet-strong);
-  background: var(--violet-soft);
-  color: var(--ink);
-  opacity: 1;
-}
-
-.ec-dark .ec .ec-event-status--scheduled.ec-event-type--group_live {
-  background: var(--sky-strong);
-  border-color: var(--sky-strong);
+.ec-dark .ec .ec-event.ec-event-type--group_live {
   color: var(--paper);
-  opacity: 1;
 }
 
-.ec-dark .ec .ec-event-status--scheduled.ec-event-type--one_on_one {
-  background: var(--violet-strong);
-  border-color: var(--violet-strong);
+.ec-dark .ec .ec-event.ec-event-type--one_on_one,
+.ec-dark .ec .ec-event.ec-event-type--availability {
   color: var(--paper);
-  opacity: 1;
-}
-
-.ec-event-status--live.ec-event-type--group_live {
-  border-inline-start-color: var(--sky-strong);
-  border-color: var(--sky-strong);
-  background: var(--sky-soft);
-  opacity: 1;
-}
-
-.ec-event-status--live.ec-event-type--one_on_one {
-  border-inline-start-color: var(--violet-strong);
-  border-color: var(--violet-strong);
-  background: var(--violet-soft);
-  opacity: 1;
 }
 
 .ec-event-status--ended {
   border-inline-start-color: var(--muted);
+  border-color: var(--line-light);
   background: var(--line-light);
   opacity: 0.55;
 }
@@ -234,6 +223,37 @@
   text-decoration: line-through;
   text-decoration-color: var(--muted);
   text-decoration-thickness: 1px;
+}
+
+.ec .ec-event.ec-availability-editable {
+  outline: 1px dashed var(--primary);
+  outline-offset: -1px;
+}
+
+/* Passive availability (toggle off): faded, not interactive */
+.weekly-agenda-container:not(.weekly-agenda-container--availability-paint)
+  .ec-event.ec-event-type--availability {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Paint mode: live/1:1 events are visual only; availability stays interactive */
+.weekly-agenda-container--availability-paint
+  .ec-event:not(.ec-event-type--availability) {
+  pointer-events: none;
+}
+
+/* Paint mode: full opacity, interactive, clear hover */
+.weekly-agenda-container--availability-paint .ec-event.ec-event-type--availability {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.weekly-agenda-container--availability-paint .ec-event.ec-event-type--availability:hover {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+  filter: brightness(1.08);
 }
 
 .calendar-class-event-body {
@@ -248,6 +268,13 @@
   justify-content: space-between;
 }
 
+.calendar-class-event-body .event-title,
+.calendar-class-event-body .event-meta,
+.calendar-preview-event .preview-start,
+.calendar-preview-event .preview-end {
+  color: inherit;
+}
+
 .calendar-class-event-body .event-title {
   font-weight: 800;
   font-size: var(--step--1);
@@ -257,7 +284,6 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  color: inherit;
   word-break: break-word;
 }
 
@@ -293,74 +319,53 @@
 .pulse-indicator {
   width: 8px;
   height: 8px;
-  background: var(--violet-strong);
+  background: var(--primary);
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
 }
 
 .ec-now-indicator {
-  border-color: var(--violet-strong);
+  border-color: var(--primary);
   border-width: 2px;
   z-index: 5;
 }
 
 .ec-now-indicator::before {
-  background: var(--violet-strong);
+  background: var(--primary);
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
 
-/* ── 1:1 weekly availability (background layer) ── */
-.ec .ec-event.ec-availability-block {
-  z-index: 0;
-  pointer-events: none;
-  border: none;
-  border-radius: 0;
-  margin-inline: 0;
-  opacity: 1;
-  background-color: var(--violet-soft);
-  background-image: none;
-}
-
-.ec-dark .ec .ec-event.ec-availability-block {
-  background-color: color-mix(in srgb, var(--violet-strong) 55%, var(--surface));
-  background-image: none;
-}
-
-.ec .ec-event.ec-availability-block--paint {
-  z-index: 2;
-  background-color: var(--violet-soft);
-  background-image: none;
-  outline: 2px dashed var(--violet-strong);
-  outline-offset: -1px;
-}
-
-.ec-dark .ec .ec-event.ec-availability-block--paint {
-  background-color: color-mix(in srgb, var(--violet-strong) 65%, var(--surface));
-  outline-color: var(--violet-muted);
+.ec .ec-event.ec-event-type--availability .calendar-availability-event .event-title {
+  font-weight: 700;
+  font-size: var(--step--2);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ec-event.ec-preview {
   z-index: 1000;
   user-select: none;
   opacity: 1;
-  border-inline-start-color: var(--sky-strong);
-  background: var(--sky-soft);
-  border-color: var(--sky-strong);
+  border-inline-start-color: var(--secondary);
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--ink);
   border-radius: 3px;
   overflow: visible;
   cursor: grab;
 }
 
 .ec-dark .ec .ec-event.ec-preview {
-  background: var(--sky-strong);
   color: var(--paper);
 }
 
 .ec-event.ec-preview.ec-quick-create-preview {
-  outline: 2px solid var(--sky-strong);
+  outline: 2px solid var(--secondary);
   outline-offset: -1px;
 }
 
@@ -382,7 +387,7 @@
 .ec-event.ec-preview.ec-quick-create-preview:hover .ec-event-resizer,
 .ec-event.ec-preview.ec-quick-create-preview.ec-resizing .ec-event-resizer {
   opacity: 1;
-  background: var(--sky-strong);
+  background: var(--secondary);
 }
 
 .ec-event.ec-preview.ec-quick-create-preview:active {
@@ -412,7 +417,6 @@
   font-weight: 800;
   font-size: var(--step-0);
   line-height: 1.2;
-  color: var(--ink);
   white-space: nowrap;
 }
 

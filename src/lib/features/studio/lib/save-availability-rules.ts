@@ -1,20 +1,21 @@
 import { api } from "$convex/_generated/api";
 import type { useConvexClient } from "convex-svelte";
-
-type ConvexClient = ReturnType<typeof useConvexClient>;
+import { RULES } from "$convex/lib/constants";
 import {
   mergeRanges,
   type AvailabilityRule,
   type PaintedSlots,
 } from "./one-on-one-availability";
 
+type ConvexClient = ReturnType<typeof useConvexClient>;
+
 export async function saveAvailabilityFromPainted(
   client: ConvexClient,
   painted: PaintedSlots,
   rules: AvailabilityRule[],
-  slotMinutes: number,
-  bufferMinutes: number,
 ): Promise<void> {
+  const slotMinutes = RULES.ONE_ON_ONE_DURATION_MINUTES;
+  const bufferMinutes = RULES.ONE_ON_ONE_BUFFER_MINUTES;
   for (let weekday = 0; weekday < 7; weekday += 1) {
     const indices = [...(painted[weekday] ?? [])];
     const desiredRanges = mergeRanges(indices);

@@ -99,7 +99,7 @@
   .profile-summary {
     border: var(--border);
     padding: var(--space-6);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--white) 97%, var(--beige) 3%), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--white));
   }
 
   .profile-summary__header {
@@ -125,7 +125,7 @@
   .profile-summary__edit {
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--sky-strong);
+    color: var(--secondary);
     text-decoration: none;
     transition: color var(--duration-fast);
   }

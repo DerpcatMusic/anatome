@@ -180,7 +180,9 @@ export const create = mutation({
     requireRole(profile, ["instructor", "admin"]);
 
     if (args.title.trim().length < 3) throw new Error("כותרת השיעור קצרה מדי");
-    if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
+    const durationMinutes =
+      args.type === "one_on_one" ? RULES.ONE_ON_ONE_DURATION_MINUTES : args.durationMinutes;
+    if (durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
       throw new Error(`משך השיעור חייב להיות בין ${RULES.MIN_CLASS_DURATION_MINUTES} ל-${RULES.MAX_CLASS_DURATION_MINUTES} דקות`);
     }
     const maxCapacity = args.type === "one_on_one" ? 1 : RULES.MAX_GROUP_CAPACITY;
@@ -193,7 +195,7 @@ export const create = mutation({
     }
 
     const now = Date.now();
-    const endsAt = args.startsAt + args.durationMinutes * 60 * 1000;
+    const endsAt = args.startsAt + durationMinutes * 60 * 1000;
     const joinOpensAt = args.startsAt - args.joinOpensMinutesBefore * 60 * 1000;
     const joinClosesAt = endsAt;
 
@@ -362,7 +364,9 @@ export const reschedule = mutation({
       throw new Error("ניתן לתזמן מחדש רק שיעורים מתוזמנים");
     }
 
-    if (args.durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || args.durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
+    const durationMinutes =
+      liveClass.type === "one_on_one" ? RULES.ONE_ON_ONE_DURATION_MINUTES : args.durationMinutes;
+    if (durationMinutes < RULES.MIN_CLASS_DURATION_MINUTES || durationMinutes > RULES.MAX_CLASS_DURATION_MINUTES) {
       throw new Error(`משך השיעור חייב להיות בין ${RULES.MIN_CLASS_DURATION_MINUTES} ל-${RULES.MAX_CLASS_DURATION_MINUTES} דקות`);
     }
     const maxCapacity = liveClass.type === "one_on_one" ? 1 : RULES.MAX_GROUP_CAPACITY;
@@ -377,7 +381,7 @@ export const reschedule = mutation({
     }
 
     const now = Date.now();
-    const endsAt = args.startsAt + args.durationMinutes * 60 * 1000;
+    const endsAt = args.startsAt + durationMinutes * 60 * 1000;
     const joinOpensAt = args.startsAt - args.joinOpensMinutesBefore * 60 * 1000;
     const joinClosesAt = endsAt;
 
