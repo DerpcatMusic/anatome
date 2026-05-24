@@ -2,7 +2,8 @@
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
 	import { PUBLIC_CONVEX_CLIENT_URL } from '$env/static/public';
-	import { setupConvex, useConvexClient } from 'convex-svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { initConvex } from '$lib/convex/setup';
 	import AuthPanel from '$features/auth/components/AuthPanel.svelte';
 	import { wireConvexAuth } from '$lib/auth/session.svelte';
 
@@ -12,7 +13,7 @@
 
 	let { open = $bindable() }: Props = $props();
 
-	setupConvex(PUBLIC_CONVEX_CLIENT_URL);
+		initConvex(PUBLIC_CONVEX_CLIENT_URL);
 
 	const client = useConvexClient();
 	if (browser) {

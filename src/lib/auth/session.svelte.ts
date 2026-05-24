@@ -10,6 +10,11 @@ import {
 } from "$lib/auth/post-sign-in";
 
 import { PUBLIC_CONVEX_CLIENT_URL } from "$env/static/public";
+import { normalizeConvexDeploymentUrl } from "$lib/convex/deployment-url";
+
+const convexDeploymentUrl = PUBLIC_CONVEX_CLIENT_URL
+  ? normalizeConvexDeploymentUrl(PUBLIC_CONVEX_CLIENT_URL)
+  : "";
 
 export { dashboardPathForRole, dashboardPathFromCachedRole, type AppRole };
 
@@ -24,7 +29,7 @@ type AuthState = {
   error: string;
 };
 
-const namespace = `homebody:${PUBLIC_CONVEX_CLIENT_URL ?? "ssr"}`;
+const namespace = `homebody:${convexDeploymentUrl || "ssr"}`;
 const tokenKey = `${namespace}:jwt`;
 const refreshTokenKey = `${namespace}:refresh`;
 
@@ -123,7 +128,7 @@ function clearStaleSession(message = expiredSessionMessage) {
  * that trigger refresh-token storms.
  */
 function makeHttpClient(token: string) {
-  return new ConvexHttpClient(PUBLIC_CONVEX_CLIENT_URL!, {
+  return new ConvexHttpClient(convexDeploymentUrl, {
     auth: token,
     logger: false,
   });
@@ -151,7 +156,7 @@ async function doRefreshToken(): Promise<string | null> {
 
   try {
     // Use an unauthenticated client for the refresh action itself.
-    const client = new ConvexHttpClient(PUBLIC_CONVEX_CLIENT_URL!, {
+    const client = new ConvexHttpClient(convexDeploymentUrl, {
       logger: false,
     });
     const result = await withTimeout(

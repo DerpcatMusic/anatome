@@ -73,7 +73,7 @@ Set this **environment variable** for Production (and Preview if you use preview
 
 | Variable | Example |
 |----------|---------|
-| `PUBLIC_CONVEX_CLIENT_URL` | `https://your-deployment.convex.cloud` |
+| `PUBLIC_CONVEX_CLIENT_URL` | `https://your-deployment.convex.cloud` (no trailing `/`) |
 
 Use your **production** Convex deployment URL (from `bunx convex dashboard` or `.env.local` after `bunx convex dev`). It is public and gets inlined into the static bundle at build time.
 

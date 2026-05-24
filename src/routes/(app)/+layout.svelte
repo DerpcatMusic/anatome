@@ -2,7 +2,8 @@
 	import { browser } from '$app/environment';
 	import { PUBLIC_CONVEX_CLIENT_URL } from '$env/static/public';
 	import { api } from "$convex/_generated/api";
-	import { useQuery, setupConvex, useConvexClient } from "convex-svelte";
+	import { useQuery, useConvexClient } from "convex-svelte";
+	import { initConvex } from "$lib/convex/setup";
 	import { initAuth, wireConvexAuth } from "$lib/auth/session.svelte";
 	import { setAppContext } from "$features/app/context/appContext";
 	import AppLayout from "$features/app/components/AppLayout.svelte";
@@ -10,7 +11,7 @@
 
 	let { children } = $props();
 
-	setupConvex(PUBLIC_CONVEX_CLIENT_URL);
+	initConvex(PUBLIC_CONVEX_CLIENT_URL);
 
 	const client = useConvexClient();
 	if (browser) {

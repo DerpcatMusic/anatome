@@ -1,14 +1,22 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig, loadEnv } from 'vite';
 
+/** @param {string} url */
+function normalizeConvexDeploymentUrl(url) {
+	const trimmed = String(url).trim();
+	if (!trimmed) return trimmed;
+	return trimmed.replace(/\/+$/, '');
+}
+
+/** @param {Record<string, string>} env */
 function resolvePublicConvexUrl(env) {
-	return (
+	const raw =
 		process.env.PUBLIC_CONVEX_CLIENT_URL ||
 		env.PUBLIC_CONVEX_CLIENT_URL ||
 		env.CONVEX_URL ||
 		env.VITE_CONVEX_URL ||
-		''
-	);
+		'';
+	return normalizeConvexDeploymentUrl(raw);
 }
 
 /** @type {import('vite').UserConfigFnObject} */
