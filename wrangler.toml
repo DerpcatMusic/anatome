@@ -3,13 +3,13 @@
 # Cloudflare Pages (Git):
 #   Build command:        bun run build
 #   Build output dir:     build
-#   Deploy command:       (leave empty — Pages uploads `build/` automatically)
+#   Deploy command:       bun run deploy
+#     (or leave deploy empty if the dashboard allows it)
 #
-# Do NOT use `wrangler deploy` (Workers / adapter-cloudflare). That expects
-# `.svelte-kit/cloudflare/_worker.js` and will fail on this project.
+# Do NOT use `wrangler deploy` — that is Workers. Wrangler will warn:
+# "run wrangler pages deploy on a Pages project" and fail without main/assets.
 #
-# Optional manual upload:
-#   bun run build && npx wrangler pages deploy build --project-name=anatome
+# Manual: bun run build && bun run deploy
 
 name = "anatome"
 pages_build_output_dir = "build"

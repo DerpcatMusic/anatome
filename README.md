@@ -56,15 +56,24 @@ This app is a **static** SvelteKit site (`adapter-static`). Use **Pages**, not W
 |---------|--------|
 | **Build command** | `bun run build` |
 | **Build output directory** | `build` |
-| **Deploy command** | **Leave empty** (do not set `npx wrangler deploy`) |
+| **Deploy command** | `bun run deploy` (see below) |
 
-If a deploy command is set, Cloudflare runs `wrangler deploy`, tries to switch the project to Workers + `adapter-cloudflare`, and fails (`worker-configuration.d.ts` / wrong output path). Pages already publishes `build/` after a successful build when deploy command is blank.
+This is **Cloudflare Pages** (static assets), not a Workers script. If the dashboard requires a deploy command, use one of these — **not** `npx wrangler deploy`:
 
-Optional CLI upload after a local build:
+| Deploy command | When |
+|----------------|------|
+| *(empty)* | Best, if the UI allows it — Pages uploads `build/` after build |
+| `bun run deploy` | If a deploy step is required (runs `wrangler pages deploy`) |
+| `npx wrangler pages deploy build --project-name=anatome` | Same, without Bun script |
+
+`wrangler deploy` targets Workers and fails with *Missing entry-point to Worker script* even though Wrangler detects a Pages project.
+
+Project name in `wrangler.toml` / `package.json` deploy script is `anatome` — change both if your Pages project name differs.
+
+Local full pipeline:
 
 ```sh
-bun run build
-npx wrangler pages deploy build --project-name=anatome
+bun run pages:deploy
 ```
 
 Set this **environment variable** for Production (and Preview if you use preview deploys):
