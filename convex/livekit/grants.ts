@@ -1,3 +1,5 @@
+"use node";
+
 import { TrackSource, type VideoGrant } from "livekit-server-sdk";
 import type { LiveParticipantRole } from "../live/joinContract";
 import { isPrivilegedLiveParticipant } from "../live/joinPolicy";

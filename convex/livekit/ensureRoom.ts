@@ -1,3 +1,5 @@
+"use node";
+
 import { RoomServiceClient } from "livekit-server-sdk";
 import { TTL } from "../lib/constants";
 import { httpUrlForLiveKit } from "../lib/livekitEnv";
