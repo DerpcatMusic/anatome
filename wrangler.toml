@@ -1,14 +1,14 @@
-# Cloudflare Workers — static assets only (same `build/` as adapter-static).
-# Convex/LiveKit/Mux stay off Cloudflare; this only hosts HTML/JS/CSS.
+# Static SvelteKit (@sveltejs/adapter-static → build/). Convex stays off Cloudflare.
 #
-# CI (Workers project with Git):
-#   Build:  bun run build
-#   Deploy: bun run deploy   (or npx wrangler deploy)
+# CI: build = bun run build, deploy = bun run deploy
 #
-# SPA app routes use static/_redirects → /app.html (not Workers' default /index.html SPA mode).
+# Custom domains: anatome.co.il + www.anatome.co.il (delete apex A to old host first).
 
 name = "anatome"
 compatibility_date = "2026-05-24"
+main = "worker/index.ts"
 
 [assets]
 directory = "build"
+binding = "ASSETS"
+html_handling = "none"
