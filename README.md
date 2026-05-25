@@ -50,6 +50,23 @@ For production, set `SITE_URL` to the public AnatoMe domain.
 
 ## Cloudflare (Workers static assets)
 
+**Pushing to `master` does not deploy by itself** unless CI or Cloudflare Git integration is configured. This repo uses **GitHub Actions** (`.github/workflows/deploy-cloudflare.yml`) on every push to `master`.
+
+### GitHub Actions secrets (required for deploy)
+
+In GitHub → **Settings → Secrets and variables → Actions**, add:
+
+| Secret | Value |
+|--------|--------|
+| `CLOUDFLARE_API_TOKEN` | API token with **Workers Scripts Edit** (+ Account read) |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+| `PUBLIC_CONVEX_CLIENT_URL` | `https://<prod>.convex.cloud` (no trailing `/`) |
+| `PUBLIC_MUX_ENV_KEY` | Optional; leave empty if unused |
+
+Without `PUBLIC_CONVEX_CLIENT_URL`, `bun run build` **fails** — Cloudflare dashboard builds show the same error.
+
+After adding secrets, push to `master` or run the workflow manually (**Actions → Deploy to Cloudflare → Run workflow**).
+
 This app is a **static** SvelteKit site (`adapter-static` → `build/`). Cloudflare is moving new work to **Workers with static assets** ([migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)); Pages still works, but Workers is the long-term default.
 
 You do **not** need `@sveltejs/adapter-cloudflare` or SSR on Cloudflare. Convex is still your API/auth backend; the Worker only serves files.
