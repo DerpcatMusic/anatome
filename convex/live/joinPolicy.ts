@@ -88,7 +88,7 @@ export async function checkMemberRequirements({
     .withIndex("by_userId", (q) => q.eq("userId", userId))
     .take(1);
   const memberProfile = memberProfiles[0] ?? null;
-  if (memberProfile === null) throw new Error("נדרש פרופיל פילאטיס");
+  if (memberProfile === null) throw new Error("נדרש פרופיל אישי");
   if (
     missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment).length > 0
   ) {

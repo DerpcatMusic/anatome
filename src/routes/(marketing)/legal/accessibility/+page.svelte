@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>הצהרת נגישות | HomeBody</title>
+  <title>הצהרת נגישות | AnatoMe</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 

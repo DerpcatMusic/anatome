@@ -65,7 +65,7 @@
   </div>
 {:else if playbackData}
   <div class="watch-header">
-    <p class="eyebrow">HomeBody Video</p>
+    <p class="eyebrow">AnatoMe Video</p>
     <h1>{playbackData.video.title}</h1>
   </div>
 

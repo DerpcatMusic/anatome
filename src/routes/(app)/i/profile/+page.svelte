@@ -2,4 +2,4 @@
   import ProfileShell from "$features/profile/components/ProfileShell.svelte";
 </script>
 
-<ProfileShell />
+<ProfileShell audience="instructor" />

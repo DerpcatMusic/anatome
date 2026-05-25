@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>הצהרת בריאות | HomeBody</title>
+  <title>הצהרת בריאות | AnatoMe</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 

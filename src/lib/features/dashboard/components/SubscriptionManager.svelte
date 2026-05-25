@@ -4,6 +4,9 @@
   import { api } from "$convex/_generated/api";
   import { useConvexClient, useQuery } from "convex-svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import { SUBSCRIPTIONS_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
+  import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<DashboardData["subscriptionPlan"]>;
@@ -23,13 +26,16 @@
   } = $props();
 
   const client = useConvexClient();
-  const plansQuery = useQuery(api.subscriptions.customer.listPlans, {});
+  const plansQuery = useQuery(api.subscriptions.customer.listPlans, () =>
+    SUBSCRIPTIONS_ENABLED ? {} : "skip",
+  );
   let pending = $state<string | null>(null);
   let error = $state("");
+  let planModalOpen = $state(false);
 
-  const activePlanSlug = $derived(subscriptionPlan?.slug ?? null);
-  const pendingPlanSlug = $derived(pendingSubscriptionPlan?.slug ?? null);
-  const renewalDate = $derived(subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null);
+  const renewalDate = $derived(
+    subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null,
+  );
   const vodAvailable = $derived(wallet ? Math.max(0, wallet.vodBalance) : 0);
   const liveAvailable = $derived(wallet ? Math.max(0, wallet.liveBalance) : 0);
   const oneOnOneAvailable = $derived(wallet ? Math.max(0, wallet.oneOnOneBalance) : 0);
@@ -46,6 +52,7 @@
   }
 
   async function choosePlan(slug: string) {
+    if (!SUBSCRIPTIONS_ENABLED) return;
     error = "";
     pending = slug;
     try {
@@ -54,6 +61,7 @@
       } else {
         await client.mutation(api.subscriptions.customer.activatePlan, { planSlug: slug });
       }
+      planModalOpen = false;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לעדכן מנוי כרגע.";
     } finally {
@@ -62,10 +70,12 @@
   }
 
   async function cancelAtPeriodEnd() {
+    if (!SUBSCRIPTIONS_ENABLED) return;
     error = "";
     pending = "cancel";
     try {
       await client.mutation(api.subscriptions.customer.cancelAtPeriodEnd, {});
+      planModalOpen = false;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לבטל מנוי כרגע.";
     } finally {
@@ -74,6 +84,7 @@
   }
 
   async function cancelPendingPlanChange() {
+    if (!SUBSCRIPTIONS_ENABLED) return;
     error = "";
     pending = "cancel-change";
     try {
@@ -86,10 +97,12 @@
   }
 
   async function resume() {
+    if (!SUBSCRIPTIONS_ENABLED) return;
     error = "";
     pending = "resume";
     try {
       await client.mutation(api.subscriptions.customer.resume, {});
+      planModalOpen = false;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לחדש מנוי כרגע.";
     } finally {
@@ -102,9 +115,21 @@
   <div class="subscription-panel__header">
     <div>
       <p class="subscription-panel__kicker">מנוי וקרדיטים</p>
-      <h2 id="subscription-title">{subscriptionPlan?.nameHe ?? "אין מנוי פעיל"}</h2>
+      <div class="subscription-panel__title-row">
+        <h2 id="subscription-title">{subscriptionPlan?.nameHe ?? "אין מנוי פעיל"}</h2>
+        {#if subscriptionPlan}
+          <PlanBadge planName={subscriptionPlan.nameHe} planSlug={subscriptionPlan.slug} />
+        {/if}
+      </div>
     </div>
-    <span class="subscription-badge" data-tone={subscription?.cancelAtPeriodEnd || pendingSubscriptionPlan ? "warning" : subscription ? "success" : "muted"}>
+    <span
+      class="subscription-badge"
+      data-tone={subscription?.cancelAtPeriodEnd || pendingSubscriptionPlan
+        ? "warning"
+        : subscription
+          ? "success"
+          : "muted"}
+    >
       {statusLabel(subscription)}
     </span>
   </div>
@@ -114,11 +139,16 @@
       {#if pendingSubscriptionPlan}
         המסלול הנוכחי נשאר פעיל עד {renewalDate}, ואז יתחדש במסלול {pendingSubscriptionPlan.nameHe}.
       {:else}
-        {subscription.cancelAtPeriodEnd ? "הגישה תישאר פעילה עד" : "התקופה הנוכחית מסתיימת ב"} {renewalDate}
+        {subscription.cancelAtPeriodEnd ? "הגישה תישאר פעילה עד" : "התקופה הנוכחית מסתיימת ב"}
+        {renewalDate}
       {/if}
     </p>
-  {:else}
+  {:else if SUBSCRIPTIONS_ENABLED}
     <p class="subscription-panel__meta">אפשר להפעיל מסלול עכשיו. חיוב יחובר בהמשך דרך ספק ישראלי.</p>
+  {:else}
+    <p class="subscription-panel__meta">
+      שינוי מסלול אינו זמין כרגע באתר. לעדכון מנוי, פנו לצוות AnatoMe.
+    </p>
   {/if}
 
   <div class="credit-strip" aria-label="קרדיטים זמינים">
@@ -136,72 +166,39 @@
     </div>
   </div>
 
-  {#if plansQuery.error}
-    <Notice tone="danger">לא הצלחנו לטעון מסלולים. נסו שוב בעוד רגע.</Notice>
-  {:else if plansQuery.isLoading}
-    <Notice>טוענים מסלולים...</Notice>
-  {:else}
-    <div class="plan-grid">
-      {#each plansQuery.data ?? [] as plan}
-        {@const isScheduled = plan.slug === pendingPlanSlug}
-        {@const isActive = plan.slug === activePlanSlug}
-        {@const isDowngrade = Boolean(subscriptionPlan && plan.monthlyPriceIls < subscriptionPlan.monthlyPriceIls)}
-        <article class="plan-option" class:plan-option--active={isActive} class:plan-option--scheduled={isScheduled}>
-          <div class="plan-option__head">
-            <span class="plan-option__name">{plan.nameHe}</span>
-            <span class="plan-option__price">{plan.monthlyPriceIls} ₪</span>
-          </div>
-          <div class="plan-option__credits">
-            <span>{plan.vodCreditsPerMonth} Macroflow</span>
-            <span>{plan.liveCreditsPerMonth} לייב</span>
-            <span>{plan.oneOnOneCreditsPerMonth} פרטי</span>
-          </div>
-          <Button.Root
-            class="hb-button hb-button--paper hb-button--sm"
-            type="button"
-            disabled={pending !== null || isActive || isScheduled}
-            onclick={() => choosePlan(plan.slug)}
-          >
-            {#if isActive}
-              המסלול הנוכחי
-            {:else if isScheduled}
-              מתוזמן לחידוש
-            {:else if pending === plan.slug}
-              מעדכנים...
-            {:else if subscription && isDowngrade}
-              שינוי בסוף החודש
-            {:else if subscription}
-              שדרוג עכשיו
-            {:else}
-              הפעלת מסלול
-            {/if}
-          </Button.Root>
-        </article>
-      {/each}
-    </div>
+  {#if SUBSCRIPTIONS_ENABLED}
+    {#if plansQuery.error}
+      <Notice tone="danger">לא הצלחנו לטעון מסלולים. נסו שוב בעוד רגע.</Notice>
+    {:else if plansQuery.isLoading}
+      <Notice>טוענים מסלולים...</Notice>
+    {:else}
+      <div class="subscription-panel__cta">
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--sm"
+          type="button"
+          onclick={() => { planModalOpen = true; }}
+        >
+          {subscription ? "שינוי מסלול" : "בחירת מסלול"}
+        </Button.Root>
+      </div>
+
+      <SubscriptionPlanModal
+        bind:open={planModalOpen}
+        plans={plansQuery.data ?? []}
+        {subscription}
+        {subscriptionPlan}
+        {pendingSubscriptionPlan}
+        {pending}
+        onChoosePlan={choosePlan}
+        onCancelAtPeriodEnd={cancelAtPeriodEnd}
+        onCancelPendingPlanChange={cancelPendingPlanChange}
+        onResume={resume}
+      />
+    {/if}
   {/if}
 
   {#if error}
     <Notice tone="danger">{error}</Notice>
-  {/if}
-
-  {#if subscription}
-    <div class="subscription-actions">
-      {#if pendingSubscriptionPlan}
-        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" disabled={pending !== null} onclick={cancelPendingPlanChange}>
-          {pending === "cancel-change" ? "מבטלים..." : "ביטול שינוי מתוזמן"}
-        </Button.Root>
-      {/if}
-      {#if subscription.cancelAtPeriodEnd}
-        <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" disabled={pending !== null} onclick={resume}>
-          {pending === "resume" ? "מחדשים..." : "להשאיר מנוי פעיל"}
-        </Button.Root>
-      {:else}
-        <Button.Root class="hb-button hb-button--ghost hb-button--sm" type="button" disabled={pending !== null} onclick={cancelAtPeriodEnd}>
-          {pending === "cancel" ? "מבטלים..." : "ביטול בסוף התקופה"}
-        </Button.Root>
-      {/if}
-    </div>
   {/if}
 </section>
 
@@ -229,6 +226,13 @@
     font-size: var(--step--1);
     color: var(--muted);
     font-weight: 700;
+  }
+
+  .subscription-panel__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
   }
 
   .subscription-panel h2 {
@@ -271,21 +275,16 @@
     color: var(--muted);
   }
 
-  .credit-strip,
-  .plan-grid {
+  .credit-strip {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-3);
   }
 
-  .credit-tile,
-  .plan-option {
+  .credit-tile {
     min-width: 0;
     border: var(--border);
     background: var(--white);
-  }
-
-  .credit-tile {
     display: grid;
     gap: var(--space-1);
     padding: var(--space-4);
@@ -302,74 +301,18 @@
     font-size: var(--step--1);
   }
 
-  .plan-option {
-    display: grid;
-    gap: var(--space-3);
-    padding: var(--space-4);
-  }
-
-  .plan-option--active {
-    border-color: var(--secondary);
-    background: var(--surface);
-  }
-
-  .plan-option--scheduled {
-    border-color: var(--warning);
-    background: var(--surface);
-  }
-
-  .plan-option__head {
+  .subscription-panel__cta {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-
-  .plan-option__name {
-    font-weight: 800;
-    overflow-wrap: anywhere;
-  }
-
-  .plan-option__price {
-    flex: 0 0 auto;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--muted);
-  }
-
-  .plan-option__credits {
-    display: grid;
-    gap: var(--space-1);
-    color: var(--muted);
-    font-size: var(--step--1);
-    line-height: 1.45;
-  }
-
-  .subscription-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
     justify-content: flex-end;
-    padding-top: var(--space-4);
-    border-top: var(--border);
-  }
-
-  @media (max-width: 900px) {
-    .plan-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
   }
 
   @media (max-width: 640px) {
-    .subscription-panel__header,
-    .subscription-actions {
+    .subscription-panel__header {
       align-items: stretch;
       flex-direction: column;
     }
 
-    .credit-strip,
-    .plan-grid {
+    .credit-strip {
       grid-template-columns: 1fr;
     }
   }

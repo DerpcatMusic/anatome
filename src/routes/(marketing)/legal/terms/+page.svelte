@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>תנאי שימוש | HomeBody</title>
+  <title>תנאי שימוש | AnatoMe</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -11,7 +11,7 @@
 
     <section>
       <h2>פרטי העסק</h2>
-      <p>שם השירות: HomeBody / Martha Pilates Online.</p>
+      <p>שם השירות: AnatoMe / Martha Pilates Online.</p>
       <p>הישות המשפטית, מספר עוסק/ח.פ, כתובת, דוא"ל וטלפון יושלמו לאחר אישור עו"ד ורו"ח. אין לפרסם תעודת זהות או כתובת פרטית אם קיימת חלופה עסקית חוקית.</p>
     </section>
 

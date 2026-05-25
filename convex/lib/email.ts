@@ -16,6 +16,19 @@ export function resolveResendFromAddress(): string {
 }
 
 /**
+ * When true, auth OTP emails are logged only — Resend is not called.
+ * Defaults to {@link isResendTestMode} so local/sandbox dev can use any inbox.
+ * Set `RESEND_SKIP_SEND=false` to send via Resend while test mode is on
+ * (recipients must be `*@resend.dev`).
+ */
+export function shouldSkipResendForAuth(): boolean {
+  const flag = process.env.RESEND_SKIP_SEND?.trim().toLowerCase();
+  if (flag === "true" || flag === "1") return true;
+  if (flag === "false" || flag === "0") return false;
+  return isResendTestMode();
+}
+
+/**
  * When true, the Resend component only accepts @resend.dev test inboxes.
  * Matches @convex-dev/resend default (test mode on) for local frontends only.
  */

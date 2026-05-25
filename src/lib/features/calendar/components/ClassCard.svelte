@@ -4,20 +4,28 @@
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { classTypeLabel, creditLabel } from "$lib/labels";
   import { liveRoomHref } from "$lib/i18n/context";
+  import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import type { TypeFilter } from "../lib/agenda";
+  import InstructorAvatar from "./InstructorAvatar.svelte";
+  import "../styles/cal-time.css";
+  import "../styles/agenda-card.css";
 
   type CalendarClass = FunctionReturnType<typeof api.live.calendar.listRange>[number];
 
   let {
     item,
+    typeFilter = "all",
     actionId,
+    nowMs,
     onReserve,
     onCancel,
     onBuyCredits,
   }: {
     item: CalendarClass;
+    typeFilter?: TypeFilter;
     actionId: string | null;
+    nowMs: number;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
     onCancel: (liveClassId: Id<"liveClasses">) => void;
     onBuyCredits?: () => void;
@@ -33,100 +41,129 @@
 
   function statusInfo(item: CalendarClass) {
     if (item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined") {
-      return { label: t.calendar.status.reserved(), tone: "success" as const };
+      return { label: t.calendar.status.reserved(), emphasis: true, live: false };
     }
     if (item.liveClass.status === "live") {
-      return {
-        label: t.calendar.status.nowLive(),
-        tone: item.liveClass.type === "one_on_one" ? ("primary" as const) : ("secondary" as const),
-      };
+      return { label: t.calendar.status.nowLive(), emphasis: false, live: true };
     }
     if (item.seatsRemaining <= 0) {
-      return { label: t.calendar.status.full(), tone: "muted" as const };
+      return { label: t.calendar.status.full(), emphasis: false, live: false };
     }
     if (item.viewerMissingEquipment.length > 0) {
-      return { label: t.calendar.status.missingEquipmentShort(), tone: "muted" as const };
+      return { label: t.calendar.status.missingEquipmentShort(), emphasis: false, live: false };
     }
     if (item.viewerAvailableCredits < item.liveClass.creditCost) {
-      return { label: t.calendar.status.notEnoughCredits(), tone: "muted" as const };
+      return { label: t.calendar.status.notEnoughCredits(), emphasis: false, live: false };
     }
-    return { label: t.calendar.status.open(), tone: "secondary" as const };
-  }
-
-  function rsvpText(item: CalendarClass): string | null {
-    const now = Date.now();
-    const closesAt = item.liveClass.joinClosesAt;
-    if (closesAt <= now) return "ההרשמה נסגרה";
-    const diffMs = closesAt - now;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    if (diffMinutes < 60) return `נסגרת בעוד ${diffMinutes} דקות`;
-    if (diffHours < 24) return `נסגרת בעוד ${diffHours} שעות`;
     return null;
   }
 
-  const info = $derived(statusInfo(item));
-  const rsvp = $derived(rsvpText(item));
+  function rsvpText(item: CalendarClass, now: number): string | null {
+    const closesAt = item.liveClass.joinClosesAt;
+    const diffMs = closesAt - now;
+    if (diffMs <= 0 || diffMs > 1000 * 60 * 60) return null;
+    const diffMinutes = Math.max(1, Math.floor(diffMs / (1000 * 60)));
+    return t.calendar.class.registrationClosesMinutes({ minutes: diffMinutes });
+  }
+
+  const status = $derived(statusInfo(item));
+  const rsvp = $derived(rsvpText(item, nowMs));
+  const showStatusBadge = $derived(status !== null && (status.emphasis || status.live));
+
+  const isPrivate = $derived(item.liveClass.type === "one_on_one");
+  const lacksCredits = $derived(item.viewerAvailableCredits < item.liveClass.creditCost);
+  const isPrivateCreditBlocked = $derived(isPrivate && lacksCredits);
+  const showSeats = $derived(item.liveClass.capacity > 1);
 </script>
 
-<article class="class-card">
-  <div class="class-card__time">
-    <span class="class-card__start">{timeFormatter.format(new Date(item.liveClass.startsAt))}</span>
-    <span class="class-card__end">{timeFormatter.format(new Date(item.liveClass.endsAt))}</span>
-  </div>
+<article
+  class="agenda-card agenda-card--list cal-time"
+  class:agenda-card--private={isPrivate}
+  class:agenda-card--group={!isPrivate}
+  class:agenda-card--disabled={isPrivateCreditBlocked && !item.viewerCanJoin}
+>
+  <div class="agenda-card__row">
+    <div class="agenda-card__time">
+      <span class="agenda-card__start">{timeFormatter.format(new Date(item.liveClass.startsAt))}</span>
+      <span class="agenda-card__end">{timeFormatter.format(new Date(item.liveClass.endsAt))}</span>
+    </div>
 
-  <div class="class-card__body">
-    <div class="class-card__main">
-      <div class="class-card__title-row">
+    <div class="agenda-card__identity">
+      <InstructorAvatar
+        name={item.instructorDisplayName}
+        avatarUrl={item.instructorAvatarUrl}
+        size={36}
+      />
+    </div>
+
+    <div class="agenda-card__main">
+      <div class="agenda-card__title-row">
         <h3>{item.liveClass.title}</h3>
-        <span class="status-badge status-badge--{info.tone}">{info.label}</span>
-      </div>
-
-      <div class="class-card__meta">
-        <span
-          class="meta-tag meta-tag--type"
-          class:meta-tag--one-on-one={item.liveClass.type === "one_on_one"}
-          class:meta-tag--group-live={item.liveClass.type === "group_live"}
-        >{classTypeLabel(item.liveClass.type)}</span>
-        <span class="meta-tag">{creditLabel(item.liveClass.creditKind)}</span>
-        {#if item.liveClass.capacity > 1}
-          <span class="meta-tag">{item.seatsRemaining} / {item.liveClass.capacity}</span>
-        {/if}
-        {#if rsvp}
-          <span class="meta-tag meta-tag--rsvp" class:meta-tag--urgent={info.tone === "secondary" && item.liveClass.joinClosesAt - Date.now() < 1000 * 60 * 60}>
-            {rsvp}
+        {#if showStatusBadge && status}
+          <span
+            class="agenda-status-badge"
+            class:agenda-status-badge--emphasis={status.emphasis}
+            class:agenda-status-badge--live={status.live && !isPrivate}
+            class:agenda-status-badge--live-private={status.live && isPrivate}
+          >
+            {status.label}
           </span>
         {/if}
       </div>
+
+      {#if !isPrivate || showSeats || (status && !showStatusBadge)}
+        <p class="agenda-card__meta-line">
+          {#if !isPrivate}
+            <span>{item.instructorDisplayName}</span>
+          {/if}
+          {#if showSeats}
+            {#if !isPrivate}
+              <span class="agenda-card__meta-sep" aria-hidden="true">·</span>
+            {/if}
+            <span class="agenda-card__meta-strong">
+              {item.seatsRemaining}/{item.liveClass.capacity}
+            </span>
+          {/if}
+          {#if status && !showStatusBadge}
+            <span class="agenda-card__meta-sep" aria-hidden="true">·</span>
+            <span>{status.label}</span>
+          {/if}
+        </p>
+      {/if}
+
+      {#if rsvp}
+        <p class="agenda-card__rsvp agenda-card__rsvp--urgent">{rsvp}</p>
+      {/if}
     </div>
 
-    <div class="class-card__action">
+    <div class="agenda-card__action">
       {#if item.viewerCanJoin}
-        {#if item.viewerIsWalkIn}
-          <Button.Root
-            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'} hb-button--sm"
-            href={liveRoomHref(item.liveClass._id)}
-          >
-            {t.calendar.class.joinWalkIn()}
-          </Button.Root>
-        {:else}
-          <Button.Root
-            class="hb-button hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'} hb-button--sm"
-            href={liveRoomHref(item.liveClass._id)}
-          >
-            {t.calendar.class.join()}
-          </Button.Root>
-        {/if}
+        <Button.Root
+          class="hb-button hb-button--sm hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'}"
+          href={liveRoomHref(item.liveClass._id)}
+        >
+          {item.viewerIsWalkIn ? t.calendar.class.joinWalkIn() : t.calendar.class.join()}
+        </Button.Root>
       {:else if item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined"}
-        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={() => onCancel(item.liveClass._id)} disabled={actionId === item.liveClass._id}>
+        <Button.Root
+          class="hb-button hb-button--paper hb-button--sm"
+          type="button"
+          onclick={() => onCancel(item.liveClass._id)}
+          disabled={actionId === item.liveClass._id}
+        >
           {t.calendar.class.cancel()}
         </Button.Root>
-      {:else if item.viewerAvailableCredits < item.liveClass.creditCost && onBuyCredits}
+      {:else if lacksCredits && CREDITS_PURCHASE_ENABLED && onBuyCredits}
         <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={onBuyCredits}>
           רכישת קרדיטים
         </Button.Root>
+      {:else if isPrivateCreditBlocked}
+        <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" disabled>
+          {t.calendar.class.noCredits()}
+        </Button.Root>
       {:else}
-        <Button.Root class="hb-button hb-button--sm {info.tone === 'secondary' ? 'hb-button--ink' : 'hb-button--paper'}"
+        <Button.Root
+          class="hb-button hb-button--sm {isPrivate ? 'hb-button--primary' : 'hb-button--secondary'}"
           type="button"
           onclick={() => onReserve(item.liveClass._id)}
           disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
@@ -137,182 +174,3 @@
     </div>
   </div>
 </article>
-
-<style>
-  .class-card {
-    display: grid;
-    grid-template-columns: 72px 1fr;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-3) var(--space-4);
-    background: var(--white);
-    border-bottom: 1px solid var(--line-light);
-    transition: background var(--duration-fast);
-  }
-
-  .class-card:hover {
-    background: var(--surface);
-  }
-
-  .class-card__time {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    font-family: var(--font-mono);
-    text-align: center;
-  }
-
-  .class-card__start {
-    font-size: var(--step-1);
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .class-card__end {
-    font-size: var(--step--2);
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .class-card__body {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-
-  .class-card__main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    min-width: 0;
-    flex: 1;
-  }
-
-  .class-card__title-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-
-  .class-card__title-row h3 {
-    font-size: var(--step-0);
-    line-height: 1.2;
-    margin: 0;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .status-badge {
-    flex-shrink: 0;
-    font-size: var(--step--2);
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 2px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-  }
-
-  .status-badge--secondary {
-    background: var(--surface);
-    color: var(--secondary);
-  }
-
-  .status-badge--primary {
-    background: var(--surface);
-    color: var(--primary);
-  }
-
-  .status-badge--success {
-    background: var(--surface);
-    color: var(--success);
-  }
-
-  .status-badge--muted {
-    background: var(--surface);
-    color: var(--muted);
-  }
-
-  .class-card__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    min-width: 0;
-  }
-
-  .meta-tag {
-    font-size: var(--step--1);
-    color: var(--muted);
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .meta-tag--type {
-    color: var(--ink);
-    font-weight: 700;
-  }
-
-  .meta-tag--one-on-one {
-    color: var(--primary);
-    font-weight: 800;
-  }
-
-  .meta-tag--group-live {
-    color: var(--secondary);
-    font-weight: 800;
-  }
-
-  .class-card:has(.meta-tag--one-on-one) {
-    border-inline-start: 3px solid var(--primary);
-  }
-
-  .class-card:has(.meta-tag--group-live) {
-    border-inline-start: 3px solid var(--secondary);
-  }
-
-  .meta-tag--rsvp {
-    color: var(--muted);
-    font-size: var(--step--2);
-  }
-
-  .meta-tag--urgent {
-    color: var(--primary);
-    font-weight: 800;
-  }
-
-  .class-card__action {
-    flex-shrink: 0;
-  }
-
-
-
-  @media (max-width: 680px) {
-    .class-card {
-      grid-template-columns: 1fr;
-      gap: var(--space-3);
-      padding: var(--space-3);
-    }
-
-    .class-card__time {
-      flex-direction: row;
-      gap: var(--space-2);
-      justify-content: flex-start;
-    }
-
-    .class-card__body {
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--space-3);
-    }
-
-    .class-card__title-row h3 {
-      white-space: normal;
-    }
-  }
-</style>

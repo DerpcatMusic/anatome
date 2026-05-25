@@ -2,7 +2,8 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
-import { requireUserId } from "../lib/authz";
+import { requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
+import type { Id } from "../_generated/dataModel";
 import {
   getActiveSubscription,
   grantSubscriptionPeriodCredits,
@@ -12,6 +13,16 @@ import {
 import { getCreditAccess, ensureUserWallet } from "../credits/lib";
 import { DEFAULT_PLANS, planPayload } from "./plans";
 import { scheduleSubscriptionRenewal } from "./schedule";
+import { assertSubscriptionsEnabled } from "../lib/featureFlags";
+
+async function assertSelfServeSubscriptionCustomer(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+) {
+  assertSubscriptionsEnabled();
+  const profile = await requireAppProfile(ctx, userId);
+  requireCustomer(profile);
+}
 
 export const listPlans = query({
   args: {},
@@ -61,6 +72,7 @@ export const activatePlan = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
+    await assertSelfServeSubscriptionCustomer(ctx, userId);
     const planSlug = args.planSlug.trim().toLowerCase();
 
     let plan = await getActivePlanBySlug(ctx, planSlug);
@@ -113,6 +125,7 @@ export const changePlan = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
+    await assertSelfServeSubscriptionCustomer(ctx, userId);
     const subscription = await getActiveSubscription(ctx, userId);
     if (subscription === null) throw new Error("No active subscription");
     const currentPlan = await ctx.db.get(subscription.planId);
@@ -175,6 +188,7 @@ export const cancelPendingPlanChange = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
+    await assertSelfServeSubscriptionCustomer(ctx, userId);
     const subscription = await getActiveSubscription(ctx, userId);
     if (subscription === null) throw new Error("No active subscription");
 
@@ -193,6 +207,7 @@ export const cancelAtPeriodEnd = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
+    await assertSelfServeSubscriptionCustomer(ctx, userId);
     const subscription = await getActiveSubscription(ctx, userId);
     if (subscription === null) throw new Error("No active subscription");
 
@@ -212,6 +227,7 @@ export const resume = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
+    await assertSelfServeSubscriptionCustomer(ctx, userId);
     const subscription = await getActiveSubscription(ctx, userId);
     if (subscription === null) throw new Error("No active subscription");
 

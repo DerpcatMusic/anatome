@@ -1,5 +1,9 @@
 export { default as HeroSection } from "./HeroSection.svelte";
+export { default as HeroBackground } from "./HeroBackground.svelte";
 export { default as AboutSection } from "./AboutSection.svelte";
 export { default as ExperienceSection } from "./ExperienceSection.svelte";
+export { default as StepsSection } from "./StepsSection.svelte";
 export { default as PricingSection } from "./PricingSection.svelte";
 export { default as FAQSection } from "./FAQSection.svelte";
+export { default as MeshGradient } from "./MeshGradient.svelte";
+export { default as LandingFooter } from "./LandingFooter.svelte";

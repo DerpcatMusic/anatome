@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -11,16 +12,29 @@
 </script>
 
 <section class="hero" aria-label="ראשי">
-  <div class="hero__inner">
-    <h1>{t.landing.hero.headline()}</h1>
-    <p class="lead">{t.landing.hero.lead()}</p>
-    <div class="actions">
-      <button class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
+  <div class="l-shell hero__inner">
+    <h1 class="hero__title l-in">
+      {t.landing.hero.headlineBefore()}<span class="hero__accent">{t.landing.hero.headlineAccent()}</span>{t.landing.hero.headlineAfter()}
+    </h1>
+    <p class="hero__lead l-in l-in--1">{t.landing.hero.lead()}</p>
+    <p class="hero__equipment l-in l-in--1">{t.landing.hero.equipment()}</p>
+
+    <div class="l-actions l-in l-in--2">
+      <Button.Root
+        class="hb-button hb-button--brand hb-button--pill"
+        type="button"
+        onclick={openAuthOverlay}
+      >
         {t.landing.hero.ctaPrimary()}
-      </button>
-      <a class="hb-button hb-button--paper" href="#instructor">
+      </Button.Root>
+      <Button.Root
+        class="hb-button hb-button--paper hb-button--pill"
+        href="#about"
+      >
         {t.landing.hero.ctaSecondary()}
-      </a>
+      </Button.Root>
     </div>
+
+    <p class="hero__note l-in l-in--3">{t.landing.hero.note()}</p>
   </div>
 </section>

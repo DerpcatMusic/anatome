@@ -1,0 +1,5 @@
+:global(.cal-time) {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

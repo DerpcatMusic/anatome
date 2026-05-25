@@ -3,12 +3,12 @@
  * Update `domain` when deploying to production.
  */
 export const SITE = {
-  domain: "https://anatome.co.il", // ← swap to real domain
+  domain: "https://www.anatome.co.il",
   name: "AnatoMe",
-  nameHebrew: "אנאטומי",
-  tagline: "פילאטיס שיקומי — Anatomy for Me",
+  nameHebrew: "אנטומי",
+  tagline: "פילאטיס שיקומי לכל גוף — בבית שלך ובקצב שלך",
   description:
-    "פילאטיס אונליין בעברית — שיעורים חיים, מוקלטים ופרטיים. התמחות בפטולוגיות ופילאטיס שיקומי. למדתי אצל מרתה פילאטיס.",
+    "שיעורי פילאטיס שיקומי אונליין בעברית בהנחיית יובל דלל (בוגרת מרתה פילאטיס). טיפול בכאבים, פריצות דיסק, אוסטאופורוזיס ושיקום תנועתי ללא לחץ.",
   keywords: [
     "פילאטיס אונליין",
     "שיעורי פילאטיס אונליין",
@@ -38,10 +38,13 @@ export const SITE = {
   dir: "rtl" as const,
   themeColor: "#faf8f3",
   ogImage: "/og-image.webp",
-  twitterHandle: "@homebodypilates", // ← swap if different
+  /** Full-bleed hero video — add `static/media/hero-yuval.mp4` (see static/media/README.md) */
+  heroVideo: "/media/hero-yuval.mp4",
+  heroPoster: "/og-image.webp",
+  twitterHandle: "@anatomepilates",
   founded: "2024",
   phone: "+972-50-000-0000", // ← swap to real
-  email: "hello@anatome.fitness", // ← swap to real
+  email: "hello@anatome.co.il",
   address: {
     street: "", // ← fill if physical
     city: "תל אביב",

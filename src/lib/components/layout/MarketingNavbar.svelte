@@ -1,33 +1,54 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { Button } from 'bits-ui';
 	import { theme } from '$features/app/theme.svelte';
+	import { useI18n } from '$lib/i18n/runes';
+
+	const { t } = useI18n();
+
+	let scrolled = $state(false);
+
+	$effect(() => {
+		if (!browser) return;
+
+		const onScroll = () => {
+			scrolled = window.scrollY > 12;
+		};
+
+		onScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	});
 
 	function openAuth() {
 		window.dispatchEvent(new CustomEvent('anatome:auth-open'));
 	}
 </script>
 
-<nav class="navbar" aria-label="ניווט ראשי">
+<nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
 	<div class="navbar__inner">
 		<a class="navbar__brand" href="/">
-			<span class="navbar__logo">AnatoMe</span>
-			<span class="navbar__divider">/</span>
-			<span class="navbar__tagline">פילאטיס שיקומי</span>
+			<span class="navbar__logo">{t.site.name()}</span>
 		</a>
 
 		<div class="navbar__actions">
-			<button
+			<Button.Root
+				class="hb-button hb-button--icon navbar__theme"
 				type="button"
-				class="navbar__theme"
 				onclick={() => theme.toggle()}
 				title={theme.isDark ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'}
 				aria-label={theme.isDark ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'}
 			>
 				<span class="navbar__theme-icon" aria-hidden="true">{theme.isDark ? '☀' : '☽'}</span>
-			</button>
+			</Button.Root>
 
-			<button class="hb-button hb-button--ink hb-button--sm" type="button" onclick={openAuth}>
-				כניסה
-			</button>
+			<Button.Root
+				class="hb-button hb-button--brand hb-button--pill navbar__cta"
+				type="button"
+				onclick={openAuth}
+			>
+				{t.nav.login()}
+			</Button.Root>
 		</div>
 	</div>
 </nav>
@@ -38,8 +59,19 @@
 		top: 0;
 		z-index: 50;
 		height: 56px;
-		background: var(--paper);
-		border-bottom: var(--border);
+		direction: rtl;
+		background: color-mix(in oklch, var(--paper) 88%, transparent);
+		border-bottom: 1px solid transparent;
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.navbar--scrolled {
+		background: color-mix(in oklch, var(--paper) 94%, transparent);
+		border-bottom-color: var(--line-light);
 	}
 
 	.navbar__inner {
@@ -48,13 +80,12 @@
 		justify-content: space-between;
 		gap: var(--space-4);
 		height: 100%;
-		padding: 0 clamp(16px, 3vw, 32px);
+		max-width: 68rem;
+		margin-inline: auto;
+		padding: 0 clamp(1.25rem, 5vw, 3.5rem);
 	}
 
 	.navbar__brand {
-		display: flex;
-		align-items: baseline;
-		gap: var(--space-2);
 		text-decoration: none;
 		color: var(--ink);
 	}
@@ -65,58 +96,28 @@
 		font-size: var(--step-1);
 	}
 
-	.navbar__divider {
-		color: var(--line-light);
-		font-family: var(--font-mono);
-		font-size: var(--step--1);
-	}
-
-	.navbar__tagline {
-		font-size: var(--step-0);
-		color: var(--muted);
-		font-weight: 600;
-	}
-
 	.navbar__actions {
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
 	}
 
-	.navbar__theme {
+	.navbar :global(.navbar__theme) {
 		width: 36px;
 		height: 36px;
-		display: inline-grid;
-		place-items: center;
-		background: transparent;
-		border: var(--border);
-		color: var(--muted);
-		cursor: pointer;
+		min-height: 36px;
 		padding: 0;
-		transition:
-			color var(--duration-fast),
-			border-color var(--duration-fast),
-			background var(--duration-fast);
-	}
-
-	.navbar__theme:hover {
-		color: var(--ink);
-		border-color: var(--secondary);
-		background: var(--surface);
+		border-radius: 50%;
 	}
 
 	.navbar__theme-icon {
-		font-size: 1.1rem;
+		font-size: 1rem;
 		line-height: 1;
 	}
 
-	@media (max-width: 520px) {
-		.navbar__tagline {
-			display: none;
-		}
-
-		.navbar__inner {
-			padding: var(--space-3) 16px;
-		}
+	.navbar :global(.navbar__cta) {
+		min-height: 40px;
+		padding-inline: var(--space-5);
+		font-weight: 800;
 	}
 </style>

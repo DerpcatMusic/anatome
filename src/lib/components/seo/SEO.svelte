@@ -17,6 +17,8 @@
     jsonLd?: JsonLd | JsonLd[];
     breadcrumbs?: { name: string; url: string }[];
     alternateLanguages?: { lang: string; url: string }[];
+    /** LCP image — e.g. hero poster (Astro-style early hint) */
+    preloadImage?: string;
     article?: {
       publishedTime?: string;
       modifiedTime?: string;
@@ -44,6 +46,7 @@
     jsonLd,
     breadcrumbs,
     alternateLanguages,
+    preloadImage,
     article,
     video,
   }: Props = $props();
@@ -57,6 +60,14 @@
       : ogImage.endsWith(".png")
         ? "image/png"
         : "image/jpeg"
+  );
+
+  const preloadImageUrl = $derived(
+    preloadImage
+      ? preloadImage.startsWith("http")
+        ? preloadImage
+        : `${SITE.domain}${preloadImage}`
+      : null
   );
 
   const robotsDirectives = $derived.by(() => {
@@ -96,6 +107,9 @@
   <meta name="description" content={description} />
   <meta name="keywords" content={keywords} />
   <link rel="canonical" href={canonicalUrl} />
+  {#if preloadImageUrl}
+    <link rel="preload" as="image" href={preloadImageUrl} fetchpriority="high" />
+  {/if}
 
   <!-- Robots -->
   <meta name="robots" content={robotsDirectives} />

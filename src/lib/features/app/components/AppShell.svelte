@@ -22,7 +22,7 @@
 {:else if !auth.isAuthenticated}
   <div class="app-frame">
     <div class="locked">
-      <p class="locked__kicker">HomeBody</p>
+      <p class="locked__kicker">AnatoMe</p>
       <h1>צריך להתחבר</h1>
       <p>כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p>
       <div class="locked__actions">

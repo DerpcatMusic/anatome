@@ -26,10 +26,12 @@
     isStaff,
     appProfile,
     profile,
+    showEditLink = true,
   }: {
     isStaff: boolean;
     appProfile?: StaffProfile | null;
     profile?: CustomerProfile | null;
+    showEditLink?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -39,7 +41,9 @@
   <div class="profile-summary">
     <div class="profile-summary__header">
       <p class="profile-summary__kicker">{t.dashboard.staffProfile.title()}</p>
-      <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      {#if showEditLink}
+        <a href="/i/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      {/if}
     </div>
     <div class="profile-summary__grid">
       <div class="profile-summary__cell">
@@ -69,7 +73,9 @@
   <div class="profile-summary">
     <div class="profile-summary__header">
       <p class="profile-summary__kicker">{t.dashboard.customerProfile.title()}</p>
-      <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      {#if showEditLink}
+        <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+      {/if}
     </div>
 
     <div class="profile-summary__grid">

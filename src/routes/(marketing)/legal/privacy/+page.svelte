@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>מדיניות פרטיות | HomeBody</title>
+  <title>מדיניות פרטיות | AnatoMe</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 

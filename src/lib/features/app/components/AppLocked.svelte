@@ -1,6 +1,6 @@
 <script lang="ts">
   let {
-    kicker = "HomeBody",
+    kicker = "AnatoMe",
     title,
     subtitle,
     actions,

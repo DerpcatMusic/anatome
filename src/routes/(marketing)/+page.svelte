@@ -15,24 +15,34 @@
     personSchema,
     breadcrumbSchema,
   } from "$lib/seo/schema";
-  import Footer from "$components/layout/Footer.svelte";
+  import HeroBackground from "$lib/features/landing/components/HeroBackground.svelte";
+  import { createHeroScrollActive } from "$lib/features/landing/lib/hero-scroll";
+  import LandingFooter from "$lib/features/landing/components/LandingFooter.svelte";
   import {
     HeroSection,
     AboutSection,
     ExperienceSection,
+    StepsSection,
     PricingSection,
     FAQSection,
   } from "$lib/features/landing/components";
   import { useI18n } from "$lib/i18n/runes";
+  import { Button } from "bits-ui";
+  import { browser } from "$app/environment";
 
   const { t } = useI18n();
 
-  const INSTRUCTOR = {
-    name: "[שם המדריכה]",
-    years: "X",
-    story:
-      "[סיפור אישי קצר — למה התחלתי ללמד פילאטיס, מה הוביל אותי לפתוח AnatoMe, איך הירושה ממרתה פילאטיס מעצבת את השיטה שלי. 2-3 משפטים אמיתיים.]",
-  };
+  let heroActive = $state(true);
+
+  $effect(() => createHeroScrollActive((active) => {
+    heroActive = active;
+  }));
+
+  const INSTRUCTOR = $derived({
+    name: t.landing.instructor.name(),
+    years: "10",
+    story: t.landing.instructor.storyClosing(),
+  });
 
   function openAuthOverlay() {
     window.dispatchEvent(new CustomEvent("anatome:auth-open"));
@@ -41,60 +51,20 @@
   const pageUrl = SITE.domain;
   const today = new Date().toISOString().split("T")[0];
 
-  const faqItems = [
-    {
-      question: "אני מתחילה לגמרי — זה מתאים לי?",
-      answer:
-        "לגמרי. יש שיעורי מבוא שמסבירים את הבסיס — איך לנשום, איך להפעיל את ליבת הגוף, איך להתאים כל תרגיל לרמה שלך. אם יש לך מגבלה פיזית ספציפית (דיסק, כתף קפואה, כאבי ברכיים), תמיד אפשר לשאול לפני השיעור איזה תרגילים להימנע מהם.",
-    },
-    {
-      question: "האם השיעורים מתאימים לכאבי גב / דיסק / כתף קפואה?",
-      answer:
-        `כן — זה בדיוק התמחות שלנו. כל שיעור מלווה בהסברים על איזה תרגיל מתאים לאיזו פתולוגיה, ומה לעשות אם משהו כואב. אנחנו לא עושים "תעשי איתי" בלי הסבר. אם יש לך אבחון רפואי ספציפי, מומלץ לשלוח אותו לפני השיעור הראשון כדי שהמדריכה תוכל להתאים את התוכנית.`,
-    },
-    {
-      question: "מה ההבדל בין מקרופלואו למיקרופלואו?",
-      answer:
-        "מקרופלואו — סרטוני פילאטיס פלואו שלם בין חצי שעה לשעה. כל סרטון עולה קרדיט אחד ונשאר אצלך לתמיד, גם אחרי שאת כבר לא רשומה. מיקרופלואו — סרטונים קצרים של תרגיל או שניים, מתמקדים על שריר או גיד או פטולוגיה אחת. זמין לכל מי שמשלם מנוי. כשמפסיקים להיות רשומים — אין גישה אליהם יותר.",
-    },
-    {
-      question: "איך עובד הלייב? זום? גוגל מיט?",
-      answer:
-        "בכלל לא. הכל בפלטפורמה שלנו. נרשמת? את כבר בפנים. בלי להסתבך עם אימייל וקישורים ובלאגן. שיעורים קבוצתיים בלייב — אנחנו רואים אותם, הם רואים אותנו, והמדריכה נותנת תיקונים בזמן אמת. יש גם אפשרות לאחד על אחד.",
-    },
-    {
-      question: "איזה ציוד אני צריכה?",
-      answer:
-        "רק מזרן. אין צורך בציוד מקצועי או בסטודיו יקר. חלק מהשיעורים משתמשים בחפצים פשוטים מהבית — כרית, מגבת מגולגלת, כדור טניס. כל מה שצריך מופיע בתיאור השיעור לפני שמתחילים.",
-    },
-    {
-      question: "איך עובד השיעור הפרטי?",
-      answer:
-        "תואמים זמן דרך המערכת, מתחברים בווידאו, והמדריכה בונה שיעור מותאם אישית — על בסיס אבחון קצר שתמלאי לפני השיעור. אחרי השיעור תקבלי תכנית עבודה אישית עם תרגילים לשבוע הקרוב.",
-    },
-    {
-      question: "איך נראית הגרפיקה האנטומית בפועל?",
-      answer:
-        "בכל שיעור מוקלט מופיעים חצים ותוויות על גבי הסרטון שמראים בדיוק איזו שריר מופעל באותו רגע. אם התרגיל מיועד לדיסק צווארי — תראי בדיוק איזה חלק בגוף עובד ולמה. זה לא אנטומיה גנרית — זה מותאם לתרגיל הספציפי.",
-    },
-  ];
+  const faqItems = $derived([
+    { question: t.landing.faq.q1(), answer: t.landing.faq.a1() },
+    { question: t.landing.faq.q2(), answer: t.landing.faq.a2() },
+    { question: t.landing.faq.q3(), answer: t.landing.faq.a3() },
+    { question: t.landing.faq.q4(), answer: t.landing.faq.a4() },
+    { question: t.landing.faq.q5(), answer: t.landing.faq.a5() },
+    { question: t.landing.faq.q6(), answer: t.landing.faq.a6() },
+    { question: t.landing.faq.q7(), answer: t.landing.faq.a7() },
+  ]);
 
   const howToSteps = [
-    {
-      position: 1,
-      name: t.landing.schema.step1Name(),
-      text: t.landing.schema.step1Text(),
-    },
-    {
-      position: 2,
-      name: t.landing.schema.step2Name(),
-      text: t.landing.schema.step2Text(),
-    },
-    {
-      position: 3,
-      name: t.landing.schema.step3Name(),
-      text: t.landing.schema.step3Text(),
-    },
+    { position: 1, name: t.landing.schema.step1Name(), text: t.landing.schema.step1Text() },
+    { position: 2, name: t.landing.schema.step2Name(), text: t.landing.schema.step2Text() },
+    { position: 3, name: t.landing.schema.step3Name(), text: t.landing.schema.step3Text() },
   ];
 
   const jsonLd = schemaGraph(
@@ -105,12 +75,7 @@
     courseSchema(),
     faqPageSchema(faqItems),
     howToSchema(t.landing.schema.howToTitle(), t.landing.schema.howToDescription(), howToSteps),
-    medicalWebPageSchema(
-      t.landing.seo.pageTitle(),
-      SITE.description,
-      pageUrl,
-      today
-    ),
+    medicalWebPageSchema(t.landing.seo.pageTitle(), SITE.description, pageUrl, today),
     personSchema(
       INSTRUCTOR.name,
       INSTRUCTOR.story,
@@ -129,25 +94,46 @@
   canonical={SITE.domain}
   jsonLd={jsonLd}
   breadcrumbs={[{ name: t.landing.seo.breadcrumbHome(), url: SITE.domain }]}
+  preloadImage={SITE.heroPoster}
 />
 
-<main class="landing" id="main-content">
-  <HeroSection {openAuthOverlay} />
-  <AboutSection instructor={INSTRUCTOR} />
-  <ExperienceSection />
-  <PricingSection {openAuthOverlay} />
-  <FAQSection items={faqItems} />
+<div class="landing-page">
+  <div class="l-hero-fixed" class:l-hero-fixed--inactive={!heroActive}>
+    <HeroBackground />
+    {#if browser}
+      {#await import("$lib/features/landing/components/MeshGradient.svelte") then { default: MeshGradient }}
+        <div class="landing-page__mesh">
+          <MeshGradient variant="hero" />
+        </div>
+      {/await}
+    {/if}
+    <HeroSection {openAuthOverlay} />
+  </div>
 
-  <section class="content-section" aria-label="התחילי עכשיו">
-    <div class="final-cta">
-      <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
-      <p>{t.landing.cta.subheadline()}</p>
-      <button class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
-        {t.landing.cta.button()}
-      </button>
-      <p class="final-cta-note">{t.landing.cta.note()}</p>
-    </div>
-  </section>
-</main>
+  <main class="landing l-scroll-cover" id="main-content">
+    <div class="l-hero-spacer" aria-hidden="true"></div>
 
-<Footer />
+    <AboutSection instructor={INSTRUCTOR} />
+    <StepsSection />
+    <ExperienceSection />
+    <PricingSection {openAuthOverlay} />
+    <FAQSection items={faqItems} />
+
+    <section class="l-panel l-section section--cta" aria-label="התחילי עכשיו">
+      <div class="l-shell cta l-in">
+        <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
+        <p class="cta__lead">{t.landing.cta.subheadline()}</p>
+        <Button.Root
+          class="hb-button hb-button--brand hb-button--pill"
+          type="button"
+          onclick={openAuthOverlay}
+        >
+          {t.landing.cta.button()}
+        </Button.Root>
+        <p class="cta__note">{t.landing.cta.note()}</p>
+      </div>
+    </section>
+  </main>
+
+  <LandingFooter />
+</div>

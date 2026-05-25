@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>מדיניות ביטולים | HomeBody</title>
+  <title>מדיניות ביטולים | AnatoMe</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 

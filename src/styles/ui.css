@@ -78,6 +78,27 @@
   background: var(--primary);
 }
 
+.hb-button--brand {
+  background: var(--accent-bright, var(--primary));
+  color: var(--on-primary);
+  border-color: var(--accent-bright, var(--primary));
+}
+
+.hb-button--brand:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.hb-button--brand:active {
+  background: var(--primary);
+  filter: brightness(0.96);
+}
+
+.hb-button--pill {
+  border-radius: 999px;
+}
+
 .hb-button--paper {
   background: var(--white);
   color: var(--ink);

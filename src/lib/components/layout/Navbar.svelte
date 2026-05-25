@@ -2,8 +2,10 @@
   import { Button } from "bits-ui";
   import { initAuth, signOut } from "$lib/auth/session.svelte";
   import { theme } from "$features/app/theme.svelte";
+  import { useI18n } from "$lib/i18n/runes";
 
   const auth = initAuth();
+  const { t } = useI18n();
 
   function openAuth() {
     window.dispatchEvent(new CustomEvent("anatome:auth-open"));
@@ -13,9 +15,9 @@
 <nav class="navbar" aria-label="ניווט ראשי">
   <div class="navbar__inner">
     <a class="navbar__brand" href="/">
-      <span class="navbar__logo">AnatoMe</span>
+      <span class="navbar__logo">{t.site.name()}</span>
       <span class="navbar__divider">/</span>
-      <span class="navbar__tagline">פילאטיס שיקומי</span>
+      <span class="navbar__tagline">{t.site.tagline()}</span>
     </a>
 
     <div class="navbar__actions">

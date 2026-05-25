@@ -22,9 +22,11 @@
     redirectTo,
     initialProfile,
     mode = "onboarding",
+    onSaved,
   }: {
     redirectTo?: string;
     mode?: "onboarding" | "edit";
+    onSaved?: () => void;
     initialProfile?: {
       equipment: string[];
       experience: "new" | "some" | "steady";
@@ -99,6 +101,11 @@
       await client.mutation(api.users.onboarding.complete, {
         equipment, experience, goals, notes, healthInfoConsent, healthDeclarationAccepted,
       });
+      if (mode === "edit") {
+        onSaved?.();
+        pending = false;
+        return;
+      }
       submitted = true;
       const target = redirectTo ?? "/u/dashboard";
       setTimeout(() => window.location.assign(target), 800);

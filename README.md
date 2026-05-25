@@ -1,4 +1,4 @@
-# HomeBody
+# AnatoMe
 
 Hebrew-first Pilates platform built with Astro 6, Svelte 5, Bun, Convex, and Convex Auth.
 
@@ -46,7 +46,7 @@ AUTH_ENV_FILE="$(node scripts/set-convex-auth-keys.mjs)"
 bunx convex env set --from-file "$AUTH_ENV_FILE" --force
 ```
 
-For production, set `SITE_URL` to the public HomeBody domain.
+For production, set `SITE_URL` to the public AnatoMe domain.
 
 ## Cloudflare (Workers static assets)
 
@@ -93,7 +93,7 @@ bunx convex env set FRONTEND_URL "https://www.anatome.co.il"
 bunx convex env set RESEND_TEST_MODE false
 ```
 
-`RESEND_TEST_MODE` defaults to **on** when `FRONTEND_URL` is unset or points at localhost. While test mode is on, the Resend component rejects real recipient addresses (only `*@resend.dev` test inboxes). **Production:** set `FRONTEND_URL` to your public site and `RESEND_TEST_MODE=false`.
+`RESEND_TEST_MODE` defaults to **on** when `FRONTEND_URL` is unset or points at localhost. While test mode is on, **auth OTPs are not sent through Resend** — they are logged in the Convex terminal so you can sign in with any email. Set `RESEND_SKIP_SEND=true` on a non-local deployment for the same behavior. Set `RESEND_SKIP_SEND=false` if you want to exercise Resend in test mode (recipients must be `*@resend.dev`). **Production:** set `FRONTEND_URL` to your public site and `RESEND_TEST_MODE=false`.
 
 **OTP not arriving but sign-in “succeeds”?** The Resend component sends asynchronously. Check Convex **Logs** for `permanent_failure` / `Resend API error`, and the **resend** component → **emails** table for `failed` rows. A 403 *domain is not verified* means `RESEND_FROM` must use a domain that shows **Verified** on Resend (not only planned).
 
@@ -105,4 +105,4 @@ bunx convex env get CONVEX_SITE_URL
 bunx convex env set RESEND_WEBHOOK_SECRET "<secret from Resend>"
 ```
 
-Local dev without `RESEND_API_KEY` still logs the OTP and magic link to the Convex terminal.
+Local dev (test mode / `RESEND_SKIP_SEND`) logs the OTP and magic link to the Convex terminal; `RESEND_API_KEY` is optional there.

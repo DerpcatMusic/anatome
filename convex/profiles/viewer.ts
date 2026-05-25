@@ -9,6 +9,13 @@ export const get = query({
       .query("appProfiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .take(1);
-    return profiles[0] ?? null;
+    const profile = profiles[0] ?? null;
+    if (profile === null) return null;
+
+    const avatarUrl = profile.avatarStorageId
+      ? await ctx.storage.getUrl(profile.avatarStorageId)
+      : null;
+
+    return { ...profile, avatarUrl };
   },
 });

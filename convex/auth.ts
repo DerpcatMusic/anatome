@@ -1,6 +1,6 @@
 import { Email } from "@convex-dev/auth/providers/Email";
 import { convexAuth } from "@convex-dev/auth/server";
-import { isResendTestMode } from "./lib/email";
+import { isResendTestMode, shouldSkipResendForAuth } from "./lib/email";
 import { sendAuthVerificationEmail } from "./email/authVerification";
 
 declare const process: {
@@ -33,18 +33,15 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       async sendVerificationRequest({ identifier, token, expires }, ctx) {
         const siteUrl = getFrontendUrl();
         const magicLink = `${siteUrl}/callback?code=${encodeURIComponent(token)}&email=${encodeURIComponent(identifier)}`;
-        const isLocal = /localhost|127\.0\.0\.1/.test(siteUrl);
 
-        if (isLocal) {
+        if (shouldSkipResendForAuth()) {
           console.log(`AnatoMe login OTP for ${identifier}: ${token}`);
           console.log(`AnatoMe magic link for ${identifier}: ${magicLink}`);
+          return;
         }
 
         if (!process.env.RESEND_API_KEY) {
-          if (!isLocal) {
-            throw new Error("RESEND_API_KEY is not configured for this deployment");
-          }
-          return;
+          throw new Error("RESEND_API_KEY is not configured for this deployment");
         }
 
         try {

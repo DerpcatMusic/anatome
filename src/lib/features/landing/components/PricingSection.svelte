@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
   import { LANDING_PLANS, PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
 
@@ -9,36 +10,55 @@
   let { openAuthOverlay }: Props = $props();
 
   const { t } = useI18n();
+
+  const featuredSlug = "guided";
+  const featured = $derived(LANDING_PLANS.find((p) => p.slug === featuredSlug));
+  const otherPlans = $derived(LANDING_PLANS.filter((p) => p.slug !== featuredSlug));
 </script>
 
-<section class="content-section section--pricing" aria-label="מחירים">
-  <div class="section-header section-header--center">
-    <span class="section-tag">{t.landing.pricing.tag()}</span>
-    <h2>{t.landing.pricing.headline()}</h2>
-  </div>
-  <div class="pricing-grid">
-    {#each LANDING_PLANS as plan, index}
-      <div class="pricing-card" class:pricing-card--featured={index === 1}>
-        <div class="pricing-header">
-          <span class="pricing-label">{plan.nameHe}</span>
-          <span class="pricing-price" class:pricing-price--highlight={index !== 1}
-            >{plan.monthlyPriceIls} ₪/חודש</span
-          >
+<section class="l-panel l-section section--pricing" aria-label="מחירים">
+  <div class="l-shell">
+    <h2 class="section-title l-in">{t.landing.pricing.headline()}</h2>
+
+    <div class="pricing">
+      {#if featured}
+        <div class="pricing__featured l-in">
+          <div>
+            <p class="pricing__badge">{t.landing.pricing.featuredBadge()}</p>
+            <h3>{featured.nameHe}</h3>
+            <p class="pricing__desc">{PLAN_DESCRIPTIONS[featured.slug] ?? t.landing.pricing.planNoteFallback()}</p>
+          </div>
+          <div class="pricing__featured-side">
+            <p class="pricing__price">{featured.monthlyPriceIls} {t.landing.pricing.perMonth()}</p>
+            <Button.Root
+              class="hb-button hb-button--brand hb-button--pill"
+              type="button"
+              onclick={openAuthOverlay}
+            >
+              {t.landing.pricing.ctaButton()}
+            </Button.Root>
+          </div>
         </div>
-        <p class="pricing-note">{PLAN_DESCRIPTIONS[plan.slug] ?? "מסלול חודשי עם קרדיטים לתרגול."}</p>
-        <div class="pricing-breakdown">
-          <span>פלטפורמה: {plan.platformFeeIls} ₪</span>
-          <span>Macroflow: {plan.vodCreditsPerMonth} קרדיטים</span>
-          <span>לייב קבוצתי: {plan.liveCreditsPerMonth} קרדיטים</span>
-          <span>1:1 אישי: {plan.oneOnOneCreditsPerMonth} קרדיטים</span>
-        </div>
-        <button class="hb-button hb-button--ink" type="button" onclick={openAuthOverlay}>
-          הפעלת מסלול
-        </button>
+      {/if}
+
+      <div class="pricing__grid">
+        {#each otherPlans as plan (plan.slug)}
+          <article class="pricing__card l-in">
+            <h3>{plan.nameHe}</h3>
+            <p class="pricing__price">{plan.monthlyPriceIls} {t.landing.pricing.perMonth()}</p>
+            <p class="pricing__desc">{PLAN_DESCRIPTIONS[plan.slug] ?? t.landing.pricing.planNoteFallback()}</p>
+            <Button.Root
+              class="hb-button hb-button--paper hb-button--pill"
+              type="button"
+              onclick={openAuthOverlay}
+            >
+              {t.landing.pricing.ctaButton()}
+            </Button.Root>
+          </article>
+        {/each}
       </div>
-    {/each}
+    </div>
+
+    <p class="pricing__guarantee l-in">{t.landing.pricing.guarantee()}</p>
   </div>
-  <p class="pricing-guarantee">
-    כרגע אין ספק תשלום מחובר: המסלולים אמיתיים, והחיוב יחובר בהמשך דרך ספק סליקה ישראלי.
-  </p>
 </section>

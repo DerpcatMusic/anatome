@@ -80,3 +80,7 @@ Execution Workflow For Every Prompt:
     Implement: Write complete, fully realized code. No placeholders. Reference the plan continuously.
     Verify: Run tests, typecheck, lint, or build. Confirm the change works. Update tests for behavioral shifts.
     Deliver: Confirm completion only after verification passes. If verification fails, return to step 5
+
+## Design Context
+
+For UI, marketing, and visual work, read [`docs/design-context.md`](docs/design-context.md) first (palette, voice, motion, anti-patterns).

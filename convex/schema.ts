@@ -89,6 +89,7 @@ export default defineSchema({
     credentials: v.optional(v.string()),
     certificateDocument: v.optional(v.string()),
     insuranceDocument: v.optional(v.string()),
+    avatarStorageId: v.optional(v.id("_storage")),
     updatedAt: v.number(),
   })
     // NOTE: Convex does not yet support unique non-ID indexes.

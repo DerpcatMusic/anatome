@@ -9,6 +9,7 @@ import {
 import { missingRequiredEquipment } from "../lib/equipment";
 import { LIMITS } from "../lib/constants";
 import { isInLiveJoinWindow } from "../lib/liveJoin";
+import { loadInstructorProfiles } from "../lib/instructorProfile";
 
 export const listUpcoming = query({
   args: {},
@@ -81,6 +82,11 @@ export const listRange = query({
             .withIndex("by_userId", (q) => q.eq("userId", userId))
             .take(1);
     const appProfile = appProfiles[0] ?? null;
+    const instructorProfiles = await loadInstructorProfiles(
+      ctx,
+      [...new Set(classes.map((c) => c.instructorUserId))],
+    );
+
     const now = Date.now();
     const results = [];
     for (const liveClass of classes) {
@@ -116,8 +122,14 @@ export const listRange = query({
         available >= liveClass.creditCost &&
         viewerMissingEquipment.length === 0;
 
+      const instructor =
+        instructorProfiles.get(liveClass.instructorUserId as string) ?? null;
+
       results.push({
         liveClass,
+        instructorUserId: liveClass.instructorUserId,
+        instructorDisplayName: instructor?.displayName ?? "המדריכה",
+        instructorAvatarUrl: instructor?.avatarUrl ?? null,
         seatsTaken,
         seatsRemaining,
         viewerReservationStatus,

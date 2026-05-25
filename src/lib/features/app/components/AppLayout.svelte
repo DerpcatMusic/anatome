@@ -24,7 +24,7 @@
     display: grid;
     grid-template-columns: var(--app-sidebar-size) minmax(0, 1fr);
     align-items: stretch;
-    height: calc(100dvh - 56px);
+    height: 100dvh;
     min-height: 0;
     overflow: hidden;
 
@@ -52,7 +52,7 @@
     .app-layout {
       grid-template-columns: 1fr;
       height: auto;
-      min-height: calc(100dvh - 56px);
+      min-height: 100dvh;
       overflow: visible;
     }
 

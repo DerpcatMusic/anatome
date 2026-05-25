@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { slide } from "svelte/transition";
+  import { cubicOut } from "svelte/easing";
   import { useI18n } from "$lib/i18n/runes";
 
   interface Props {
@@ -8,23 +10,41 @@
   let { items }: Props = $props();
 
   const { t } = useI18n();
+
+  let openIndex = $state<number | null>(null);
+
+  function toggle(index: number) {
+    openIndex = openIndex === index ? null : index;
+  }
 </script>
 
-<section class="content-section" aria-label="שאלות נפוצות">
-  <div class="section-header section-header--center">
-    <h2>{t.landing.faq.headline()}</h2>
-  </div>
-  <div class="faq-list">
-    {#each items as item (item.question)}
-      <details class="faq-item">
-        <summary class="faq-trigger">
-          {item.question}
-          <span class="faq-chevron" aria-hidden="true"></span>
-        </summary>
-        <div class="faq-answer">
-          <p>{item.answer}</p>
+<section class="l-panel l-section section--faq" aria-label="שאלות נפוצות">
+  <div class="l-shell">
+    <h2 class="section-title l-in">{t.landing.faq.headline()}</h2>
+
+    <div class="faq">
+      {#each items as item, index (item.question)}
+        <div class="faq__item l-in">
+          <button
+            type="button"
+            class="faq__trigger"
+            aria-expanded={openIndex === index}
+            onclick={() => toggle(index)}
+          >
+            <span>{item.question}</span>
+            <span class="faq__icon" class:faq__icon--open={openIndex === index} aria-hidden="true"></span>
+          </button>
+          {#if openIndex === index}
+            <div
+              class="faq__body"
+              in:slide={{ duration: 280, easing: cubicOut }}
+              out:slide={{ duration: 240, easing: cubicOut }}
+            >
+              <p>{item.answer}</p>
+            </div>
+          {/if}
         </div>
-      </details>
-    {/each}
+      {/each}
+    </div>
   </div>
 </section>

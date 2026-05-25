@@ -3,41 +3,55 @@
   import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
-  import { useConvexClient } from "convex-svelte";
+  import { useConvexClient, useQuery } from "convex-svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
   import AppLocked from "$features/app/components/AppLocked.svelte";
   import OnboardingForm from "$features/onboarding/components/OnboardingForm.svelte";
   import PageShell from "$features/app/components/PageShell.svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import SubscriptionManager from "$features/dashboard/components/SubscriptionManager.svelte";
+  import MemberProfileView from "./MemberProfileView.svelte";
+  import InstructorProfileView from "./InstructorProfileView.svelte";
+  import AvatarUpload from "./AvatarUpload.svelte";
+
+  let {
+    audience,
+  }: {
+    audience: "member" | "instructor";
+  } = $props();
 
   const auth = initAuth();
+  const isInstructorAudience = $derived(audience === "instructor");
 
   const dashboardResource = resource(
     () => auth.isAuthenticated,
     async (isAuthenticated) => {
       if (!isAuthenticated) return null;
       return await authQuery(api.users.dashboard.get, {});
-    }
+    },
   );
 
   const appProfileResource = resource(
-    () => auth.isAuthenticated,
+    () => auth.isAuthenticated && isInstructorAudience,
     async (isAuthenticated) => {
       if (!isAuthenticated) return null;
       return await authQuery(api.profiles.viewer.get, {});
-    }
+    },
   );
 
-  const role = $derived(dashboardResource.current?.role ?? null);
-  const isStaff = $derived(role === "instructor" || role === "admin");
   const displayName = $derived(appProfileResource.current?.displayName ?? "");
   const nameParts = $derived(displayName.split(" "));
 
+  let instructorEditing = $state(false);
+  let memberEditing = $state(false);
   let instructorName = $state("");
   let instructorSurname = $state("");
   let instructorCredentials = $state("");
   let credentialsEl = $state<HTMLTextAreaElement | null>(null);
-  const credentialsAutosize = new TextareaAutosize({ element: () => credentialsEl ?? undefined, input: () => instructorCredentials });
+  const credentialsAutosize = new TextareaAutosize({
+    element: () => credentialsEl ?? undefined,
+    input: () => instructorCredentials,
+  });
   let certificateFile = $state<File | null>(null);
   let certificateDataUrl = $state("");
   let insuranceFile = $state<File | null>(null);
@@ -47,6 +61,16 @@
   let saveSuccess = $state(false);
 
   const client = useConvexClient();
+
+  const viewerQuery = useQuery(api.profiles.viewer.get, () =>
+    auth.isAuthenticated ? {} : "skip",
+  );
+  const viewerAvatarUrl = $derived(viewerQuery.data?.avatarUrl ?? null);
+  const viewerDisplayName = $derived(viewerQuery.data?.displayName ?? "");
+
+  async function refreshViewerProfile() {
+    await appProfileResource.refetch();
+  }
 
   $effect(() => {
     if (appProfileResource.current) {
@@ -66,8 +90,10 @@
           goals: dashboardResource.current.profile.goals,
           notes: dashboardResource.current.profile.notes ?? "",
         }
-      : null
+      : null,
   );
+
+  const dashboard = $derived(dashboardResource.current);
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
@@ -130,7 +156,11 @@
       saveSuccess = true;
       certificateFile = null;
       insuranceFile = null;
-      setTimeout(() => { saveSuccess = false; }, 3000);
+      instructorEditing = false;
+      await appProfileResource.refetch();
+      setTimeout(() => {
+        saveSuccess = false;
+      }, 3000);
     } catch (reason) {
       saveError = reason instanceof Error ? reason.message : "לא הצלחנו לשמור.";
     } finally {
@@ -138,12 +168,17 @@
     }
   }
 
+  async function onMemberProfileSaved() {
+    memberEditing = false;
+    await dashboardResource.refetch();
+  }
+
   async function retryDashboard() {
     await dashboardResource.refetch();
   }
 </script>
 
-{#if auth.isLoading || dashboardResource.loading || (isStaff && appProfileResource.loading)}
+{#if auth.isLoading || dashboardResource.loading || (isInstructorAudience && appProfileResource.loading)}
   <AppSkeleton />
 {:else if !auth.isAuthenticated}
   <AppLocked title="צריך להתחבר קודם" subtitle="כדי לערוך את הפרופיל, נכנסים עם כתובת אימייל.">
@@ -157,96 +192,220 @@
       <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>לנסות שוב</Button.Root>
     {/snippet}
   </AppLocked>
-{:else if isStaff}
+{:else if isInstructorAudience}
   <PageShell
-    kicker="HomeBody Studio"
+    kicker="AnatoMe Studio"
     title="פרופיל מדריכה"
-    description="פרטים אישיים, הכשרות, ומסמכים משפטיים נדרשים."
+    description="פרטים אישיים, הכשרות ומסמכים — לצפייה ולעריכה כאן."
   >
+    <div class="profile-toolbar">
+      {#if !instructorEditing}
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--sm"
+          type="button"
+          onclick={() => { instructorEditing = true; }}
+        >
+          עריכת פרופיל
+        </Button.Root>
+      {:else}
+        <Button.Root
+          class="hb-button hb-button--ghost hb-button--sm"
+          type="button"
+          onclick={() => { instructorEditing = false; saveError = ""; }}
+        >
+          ביטול עריכה
+        </Button.Root>
+      {/if}
+    </div>
+
     {#if saveError}<Notice tone="danger">{saveError}</Notice>{/if}
     {#if saveSuccess}<Notice tone="success">הפרטים נשמרו בהצלחה.</Notice>{/if}
 
-    <div class="instructor-form">
-      <section class="form-section">
-        <h3>פרטים אישיים</h3>
-        <label class="field">
-          <span class="field__label">שם פרטי</span>
-          <input bind:value={instructorName} placeholder="שם" />
-        </label>
-        <label class="field">
-          <span class="field__label">שם משפחה</span>
-          <input bind:value={instructorSurname} placeholder="שם משפחה" />
-        </label>
-      </section>
+    <section class="profile-avatar-section" aria-label="תמונת פרופיל">
+      <AvatarUpload
+        avatarUrl={viewerAvatarUrl}
+        displayName={viewerDisplayName}
+        onUpdated={refreshViewerProfile}
+      />
+    </section>
 
-      <section class="form-section">
-        <h3>הכשרות וביטוח</h3>
-        <label class="field">
-          <span class="field__label">תיאור הכשרות</span>
-          <textarea bind:value={instructorCredentials} bind:this={credentialsEl} placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..."></textarea>
-        </label>
-      </section>
+    {#if instructorEditing}
+      <div class="instructor-form">
+        <section class="form-section">
+          <h3>פרטים אישיים</h3>
+          <label class="field">
+            <span class="field__label">שם פרטי</span>
+            <input bind:value={instructorName} placeholder="שם" />
+          </label>
+          <label class="field">
+            <span class="field__label">שם משפחה</span>
+            <input bind:value={instructorSurname} placeholder="שם משפחה" />
+          </label>
+        </section>
 
-      <section class="form-section">
-        <h3>מסמכים משפטיים</h3>
+        <section class="form-section">
+          <h3>הכשרות וביטוח</h3>
+          <label class="field">
+            <span class="field__label">תיאור הכשרות</span>
+            <textarea
+              bind:value={instructorCredentials}
+              bind:this={credentialsEl}
+              placeholder="היכן למדת, תעודות הכשרה, שנות ניסיון..."
+            ></textarea>
+          </label>
+        </section>
 
-        <div class="doc-upload">
-          <span class="field__label">תעודת הכשרה</span>
-          {#if certificateDataUrl}
-            <div class="doc-preview">
-              {#if isImageDataUrl(certificateDataUrl)}
-                <img src={certificateDataUrl} alt="תעודת הכשרה" />
-              {:else if isPdfDataUrl(certificateDataUrl)}
-                <span class="doc-icon">PDF</span>
-              {:else}
-                <span class="doc-icon">קובץ</span>
-              {/if}
-              <span class="doc-name">{certificateFile?.name || "תעודה"}</span>
-              <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { certificateFile = null; certificateDataUrl = ""; }}>מחק</Button.Root>
-            </div>
-          {:else}
-            <label class="file-drop">
-              <input type="file" accept="image/*,.pdf" onchange={onCertificateSelect} />
-              <span class="drop-text">גררי תמונה או PDF<br /><small>עד 2MB</small></span>
-            </label>
-          {/if}
-        </div>
+        <section class="form-section">
+          <h3>מסמכים משפטיים</h3>
 
-        <div class="doc-upload">
-          <span class="field__label">ביטוח אחריות מקצועית</span>
-          {#if insuranceDataUrl}
-            <div class="doc-preview">
-              {#if isImageDataUrl(insuranceDataUrl)}
-                <img src={insuranceDataUrl} alt="ביטוח" />
-              {:else if isPdfDataUrl(insuranceDataUrl)}
-                <span class="doc-icon">PDF</span>
-              {:else}
-                <span class="doc-icon">קובץ</span>
-              {/if}
-              <span class="doc-name">{insuranceFile?.name || "ביטוח"}</span>
-              <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { insuranceFile = null; insuranceDataUrl = ""; }}>מחק</Button.Root>
-            </div>
-          {:else}
-            <label class="file-drop">
-              <input type="file" accept="image/*,.pdf" onchange={onInsuranceSelect} />
-              <span class="drop-text">גררי תמונה או PDF<br /><small>עד 2MB</small></span>
-            </label>
-          {/if}
-        </div>
-      </section>
+          <div class="doc-upload">
+            <span class="field__label">תעודת הכשרה</span>
+            {#if certificateDataUrl}
+              <div class="doc-preview">
+                {#if isImageDataUrl(certificateDataUrl)}
+                  <img src={certificateDataUrl} alt="תעודת הכשרה" />
+                {:else if isPdfDataUrl(certificateDataUrl)}
+                  <span class="doc-icon">PDF</span>
+                {:else}
+                  <span class="doc-icon">קובץ</span>
+                {/if}
+                <span class="doc-name">{certificateFile?.name || "תעודה"}</span>
+                <Button.Root
+                  class="hb-button hb-button--ghost"
+                  type="button"
+                  onclick={() => {
+                    certificateFile = null;
+                    certificateDataUrl = "";
+                  }}>מחק</Button.Root
+                >
+              </div>
+            {:else}
+              <label class="file-drop">
+                <input type="file" accept="image/*,.pdf" onchange={onCertificateSelect} />
+                <span class="drop-text">גררי תמונה או PDF<br /><small>עד 2MB</small></span>
+              </label>
+            {/if}
+          </div>
 
-      <Button.Root class="hb-button hb-button--ink" type="button" onclick={saveInstructorProfile} disabled={saving}>
-        {saving ? "שומר..." : "שמור פרופיל"}
-      </Button.Root>
-    </div>
+          <div class="doc-upload">
+            <span class="field__label">ביטוח אחריות מקצועית</span>
+            {#if insuranceDataUrl}
+              <div class="doc-preview">
+                {#if isImageDataUrl(insuranceDataUrl)}
+                  <img src={insuranceDataUrl} alt="ביטוח" />
+                {:else if isPdfDataUrl(insuranceDataUrl)}
+                  <span class="doc-icon">PDF</span>
+                {:else}
+                  <span class="doc-icon">קובץ</span>
+                {/if}
+                <span class="doc-name">{insuranceFile?.name || "ביטוח"}</span>
+                <Button.Root
+                  class="hb-button hb-button--ghost"
+                  type="button"
+                  onclick={() => {
+                    insuranceFile = null;
+                    insuranceDataUrl = "";
+                  }}>מחק</Button.Root
+                >
+              </div>
+            {:else}
+              <label class="file-drop">
+                <input type="file" accept="image/*,.pdf" onchange={onInsuranceSelect} />
+                <span class="drop-text">גררי תמונה או PDF<br /><small>עד 2MB</small></span>
+              </label>
+            {/if}
+          </div>
+        </section>
+
+        <Button.Root
+          class="hb-button hb-button--ink"
+          type="button"
+          onclick={saveInstructorProfile}
+          disabled={saving}
+        >
+          {saving ? "שומר..." : "שמירת פרופיל"}
+        </Button.Root>
+      </div>
+    {:else}
+      <InstructorProfileView
+        displayName={appProfileResource.current?.displayName}
+        credentials={appProfileResource.current?.credentials}
+        certificateDocument={appProfileResource.current?.certificateDocument}
+        insuranceDocument={appProfileResource.current?.insuranceDocument}
+      />
+    {/if}
   </PageShell>
 {:else if profile}
-  <OnboardingForm mode="edit" initialProfile={profile} />
+  <PageShell
+    kicker="AnatoMe"
+    title="הפרופיל שלי"
+    description="ההתאמה האישית שלך לפילאטיס — צפייה, עריכה ועדכון בכל עת."
+  >
+    {#if !memberEditing}
+      <div class="profile-toolbar">
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--sm"
+          type="button"
+          onclick={() => { memberEditing = true; }}
+        >
+          עריכת פרופיל
+        </Button.Root>
+      </div>
+
+      <section class="profile-avatar-section" aria-label="תמונת פרופיל">
+        <AvatarUpload
+          avatarUrl={viewerAvatarUrl}
+          displayName={viewerDisplayName}
+          onUpdated={refreshViewerProfile}
+        />
+      </section>
+
+      <MemberProfileView {profile} />
+
+      <SubscriptionManager
+        subscription={dashboard?.subscription ?? null}
+        subscriptionPlan={dashboard?.subscriptionPlan ?? null}
+        pendingSubscriptionPlan={dashboard?.pendingSubscriptionPlan ?? null}
+        wallet={dashboard?.wallet ?? null}
+      />
+    {:else}
+      <div class="profile-toolbar">
+        <Button.Root
+          class="hb-button hb-button--ghost hb-button--sm"
+          type="button"
+          onclick={() => { memberEditing = false; }}
+        >
+          חזרה לתצוגה
+        </Button.Root>
+      </div>
+      <OnboardingForm mode="edit" initialProfile={profile} onSaved={onMemberProfileSaved} />
+    {/if}
+  </PageShell>
 {:else}
-  <AppSkeleton />
+  <AppLocked
+    title="עדיין לא התאמת פרופיל"
+    subtitle="כדי לראות את הפרופיל שלך כאן, ממלאים פעם אחת את שאלון ההתאמה."
+  >
+    {#snippet actions()}
+      <a href="/onboarding" class="locked__action">להתחלת התאמה אישית</a>
+      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>רענון</Button.Root>
+    {/snippet}
+  </AppLocked>
 {/if}
 
 <style>
+  .profile-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-4);
+  }
+
+  .profile-avatar-section {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-6);
+    border-bottom: var(--border);
+  }
+
   .instructor-form {
     display: flex;
     flex-direction: column;
@@ -259,7 +418,7 @@
     flex-direction: column;
     gap: var(--space-4);
     border: var(--border);
-    background: linear-gradient(135deg, var(--white), var(--white));
+    background: linear-gradient(135deg, var(--white), var(--surface));
     padding: var(--space-5);
   }
 
@@ -360,5 +519,4 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
 </style>

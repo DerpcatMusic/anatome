@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { useI18n } from "$lib/i18n/runes";
+  const { t } = useI18n();
   const year = new Date().getFullYear();
 </script>
 
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <span class="footer-logo">AnatoMe</span>
-      <span class="footer-tagline">פילאטיס שיקומי אונליין</span>
+      <span class="footer-logo">{t.site.name()}</span>
+      <span class="footer-tagline">{t.site.tagline()}</span>
     </div>
 
     <div class="footer-links">
@@ -19,14 +21,14 @@
 
     <div class="footer-contact">
       <!-- FILL IN: אימייל אמיתי -->
-      <a href="mailto:hello@anatome.fitness">hello@anatome.fitness</a>
+      <a href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
       <!-- FILL IN: טלפון אמיתי -->
       <span dir="ltr">+972-50-000-0000</span>
     </div>
   </div>
 
   <div class="footer-legal">
-    <span>© {year} AnatoMe</span>
+    <span>© {year} {t.site.name()}</span>
     <a href="/legal/health">הצהרת בריאות</a>
     <a href="/legal/privacy">פרטיות</a>
   </div>
