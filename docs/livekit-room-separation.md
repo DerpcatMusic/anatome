@@ -24,8 +24,36 @@ How Homebody keeps each live class in its own LiveKit room and aligns with [Live
 ## Ops
 
 - **Dev vs prod on one project:** set `LIVEKIT_ROOM_PREFIX=homebody_dev` in Convex env for dev.
-- **CLI:** `lk room list`, `lk token create --room <name>` (see [CLI docs](https://docs.livekit.io/reference/developer-tools/livekit-cli/)).
 - **Stale rooms:** if delete fails, the same class id reuses the same name; metadata collision checks prevent cross-class reuse.
+
+### LiveKit CLI (debug helper)
+
+Scripts load `LIVEKIT_*` from your linked Convex deployment (`bunx convex env get`), then call `lk`. Requires [LiveKit CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/) and a logged-in Convex project.
+
+```bash
+# Active rooms for this app prefix
+bun run lk:rooms
+
+# One class (from URL ?classId=… or browser logs)
+bun run lk:class -- kd7dfr344ckvh676bf8xkp6bpx87faqa
+```
+
+Manual equivalents (after `source scripts/lk-env.sh`):
+
+```bash
+lk room list homebody_liveClass_<liveClassId> --json
+lk room participants list homebody_liveClass_<liveClassId> --json
+```
+
+**Reading results**
+
+| Observation | Likely cause |
+| --- | --- |
+| No active room, Convex class `live` | Room deleted (end cron / instructor end) but class row stale, or nobody connected yet |
+| Room active, you get `PARTICIPANT_REMOVED` then reconnect UI | Server dropped you; check duplicate tab, token refresh, or room delete — client now re-checks Convex before “class ended” |
+| Class `ended` in Convex while calendar still shows slot | Wrong `startsAt`/`joinClosesAt` (browser TZ at create time) or `endOne` / expire cron fired — fix timestamps or reschedule |
+
+Cloudflare `beacon.min.js` CORS/SRI errors come from the Cloudflare dashboard injection, not this repo.
 
 ## Frontend tracks (components-core)
 

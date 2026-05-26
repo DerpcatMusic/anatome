@@ -6,6 +6,7 @@ import {
   getMediaErrorMessage,
   i18n,
   isEquipmentJoinError,
+  LK_DISCONNECT,
   participantIdentity,
   trackSource,
 } from "./live-room-shared";
@@ -46,11 +47,15 @@ export class LiveRoomConnection extends LiveRoomMedia {
   }
 
   handleClassEnded() {
+    void this.confirmClassEndedAndApplyOverlay();
+  }
+
+  private applySessionEnded(message: string) {
     if (this.sessionEndedByHost) return;
     this.sessionEndedByHost = true;
     this.needsManualReconnect = false;
     this.showJoinExpiryModal = false;
-    this.mediaError = i18n.t.live.room.disconnectRoomEnded();
+    this.mediaError = message;
     this.inRoom = false;
     this.stopStatsTimer();
     this.stopTokenRefreshTimer();
@@ -58,6 +63,30 @@ export class LiveRoomConnection extends LiveRoomMedia {
     this.clearMediaTiles();
     this._room?.disconnect();
     this._room = null;
+  }
+
+  private async fetchJoinAccessSnapshot() {
+    const liveClassId = this.getClassId();
+    if (liveClassId === null) return null;
+    try {
+      return await this.client.query(api.live.class.getJoinAccess, { liveClassId });
+    } catch (reason) {
+      console.warn("[LiveKit] Join access snapshot failed:", reason);
+      return null;
+    }
+  }
+
+  private async confirmClassEndedAndApplyOverlay() {
+    if (this.sessionEndedByHost) return;
+    const access = await this.fetchJoinAccessSnapshot();
+    if (
+      access !== null &&
+      access.status !== "ended" &&
+      access.status !== "cancelled"
+    ) {
+      return;
+    }
+    this.applySessionEnded(i18n.t.live.room.disconnectRoomEnded());
   }
 
   private handleDisconnected(reason: number | undefined) {
@@ -68,28 +97,43 @@ export class LiveRoomConnection extends LiveRoomMedia {
     } else if (this.micEnabled) {
       this.instructorMicBeforeDrop = true;
     }
+    void this.resolveDisconnectOutcome(reason);
+  }
 
+  private async resolveDisconnectOutcome(reason: number | undefined) {
     const reasonMessage = disconnectMessage(reason);
-    const endedByHost =
-      reasonMessage !== null &&
-      (reasonMessage === i18n.t.live.room.disconnectRoomEnded() ||
-        reasonMessage === i18n.t.live.room.disconnectRemoved());
 
-    if (endedByHost) {
-      this.sessionEndedByHost = true;
+    if (reason === LK_DISCONNECT.DUPLICATE_IDENTITY) {
+      this.mediaError = reasonMessage ?? "";
       this.needsManualReconnect = false;
       this.inRoom = false;
-      this.mediaError = reasonMessage;
       return;
+    }
+
+    const verifyWithConvex =
+      reason === LK_DISCONNECT.PARTICIPANT_REMOVED ||
+      reason === LK_DISCONNECT.ROOM_DELETED ||
+      reason === LK_DISCONNECT.ROOM_CLOSED;
+
+    if (verifyWithConvex) {
+      const access = await this.fetchJoinAccessSnapshot();
+      if (access?.status === "ended" || access?.status === "cancelled") {
+        this.applySessionEnded(i18n.t.live.room.disconnectRoomEnded());
+        return;
+      }
+      if (access?.canEnter && this.inRoom) {
+        this.connectionState = "disconnected";
+        this.needsManualReconnect = true;
+        this.mediaError =
+          reason === LK_DISCONNECT.PARTICIPANT_REMOVED
+            ? i18n.t.live.room.disconnectRemoved()
+            : i18n.t.live.room.reconnectBody();
+        return;
+      }
     }
 
     if (reasonMessage) {
       this.mediaError = reasonMessage;
-      if (reasonMessage === i18n.t.live.room.disconnectDuplicate()) {
-        this.needsManualReconnect = false;
-        this.inRoom = false;
-        return;
-      }
     }
 
     if (this.joinInfo && Date.now() < this.joinInfo.joinClosesAt && this.inRoom) {

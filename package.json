@@ -12,7 +12,9 @@
     "deploy": "bunx wrangler deploy",
     "pages:deploy": "vite build && bun run deploy",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "lk:class": "bash scripts/lk-class.sh",
+    "lk:rooms": "bash scripts/lk-rooms-active.sh"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
