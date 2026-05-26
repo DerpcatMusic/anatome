@@ -8,7 +8,7 @@
 
   $effect(() => {
     if (!ctx.isLoading && (ctx.role === "instructor" || ctx.role === "admin")) {
-      goto("/i/dashboard");
+      void goto("/i/dashboard", { replaceState: true });
     }
   });
 </script>

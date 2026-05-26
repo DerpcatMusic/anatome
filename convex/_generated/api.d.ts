@@ -27,6 +27,7 @@ import type * as lib_liveJoin from "../lib/liveJoin.js";
 import type * as lib_liveSidebar from "../lib/liveSidebar.js";
 import type * as lib_livekitEnv from "../lib/livekitEnv.js";
 import type * as lib_oneOnOne from "../lib/oneOnOne.js";
+import type * as lib_promoteInstructor from "../lib/promoteInstructor.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as lifecycle_repair from "../lifecycle/repair.js";
@@ -116,6 +117,7 @@ declare const fullApi: ApiFromModules<{
   "lib/liveSidebar": typeof lib_liveSidebar;
   "lib/livekitEnv": typeof lib_livekitEnv;
   "lib/oneOnOne": typeof lib_oneOnOne;
+  "lib/promoteInstructor": typeof lib_promoteInstructor;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/validators": typeof lib_validators;
   "lifecycle/repair": typeof lifecycle_repair;

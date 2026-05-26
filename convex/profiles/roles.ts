@@ -3,6 +3,7 @@ import { mutation } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { requireUserId, getOrCreateAppProfile, requireAppProfile, requireRole } from "../lib/authz";
+import { promoteUserToInstructor } from "../lib/promoteInstructor";
 
 const roleValidator = v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin"));
 
@@ -24,7 +25,11 @@ async function assertNotLastAdminDemotion(
 }
 
 export const setByEmail = mutation({
-  args: { email: v.string(), role: roleValidator },
+  args: {
+    email: v.string(),
+    role: roleValidator,
+    clearMemberProfile: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const actorUserId = await requireUserId(ctx);
     const actorProfile = await requireAppProfile(ctx, actorUserId);
@@ -39,14 +44,19 @@ export const setByEmail = mutation({
     await assertNotLastAdminDemotion(ctx, profile._id, profile.role, args.role);
 
     const now = Date.now();
-    const rolePatch =
-      args.role === "instructor"
-        ? { role: args.role, instructorEnabledAt: now, updatedAt: now }
-        : args.role === "customer"
+    let profileId = profile._id;
+
+    if (args.role === "instructor") {
+      profileId = await promoteUserToInstructor(ctx, user._id, {
+        clearMemberProfile: args.clearMemberProfile,
+      });
+    } else {
+      const rolePatch =
+        args.role === "customer"
           ? { role: args.role, instructorDisabledAt: now, updatedAt: now }
           : { role: args.role, updatedAt: now };
-
-    await ctx.db.patch(profile._id, rolePatch);
+      await ctx.db.patch(profile._id, rolePatch);
+    }
 
     await ctx.db.insert("adminAuditEvents", {
       actorUserId,
@@ -56,7 +66,7 @@ export const setByEmail = mutation({
       createdAt: now,
     });
 
-    return profile._id;
+    return profileId;
   },
 });
 
@@ -78,15 +88,19 @@ export const toggleInstructor = mutation({
     if (targetProfile.role === "admin") throw new Error("Cannot toggle instructor status for admin");
 
     const now = Date.now();
-    const newRole = args.enabled ? "instructor" : "customer";
-    const patch: Partial<Doc<"appProfiles">> = { role: newRole, updatedAt: now };
-    if (args.enabled) {
-      patch.instructorEnabledAt = now;
-    } else {
-      patch.instructorDisabledAt = now;
-    }
 
-    await ctx.db.patch(targetProfile._id, patch);
+    if (args.enabled) {
+      await promoteUserToInstructor(ctx, targetProfile.userId, {
+        clearMemberProfile: true,
+      });
+    } else {
+      const patch: Partial<Doc<"appProfiles">> = {
+        role: "customer",
+        updatedAt: now,
+        instructorDisabledAt: now,
+      };
+      await ctx.db.patch(targetProfile._id, patch);
+    }
 
     await ctx.db.insert("adminAuditEvents", {
       actorUserId,

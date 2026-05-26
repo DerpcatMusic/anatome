@@ -17,10 +17,6 @@
   <div class="app-frame">
     <p>{t.app.loading()}</p>
   </div>
-{:else if auth.isAuthenticated && query.data === null && !query.error}
-  <div class="app-frame">
-    <p>{t.app.loading()}</p>
-  </div>
 {:else if !auth.isAuthenticated}
   <div class="app-frame">
     <div class="locked">

@@ -74,38 +74,7 @@ function syncQueryAuthReady() {
     state.isAuthenticated && convexWsAuthEstablished && pendingAuthRefresh === 0;
   if (queryAuthReady === next) return;
   queryAuthReady = next;
-  // #region agent log
-  agentDebugLog("A", "session.svelte.ts:syncQueryAuthReady", "queryAuthReady changed", {
-    queryAuthReady: next,
-    cachedRole: roleStore.current,
-  });
-  // #endregion
 }
-
-// #region agent log
-function agentDebugLog(
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data: Record<string, unknown> = {},
-) {
-  fetch("http://127.0.0.1:7635/ingest/0058f30b-7dc0-4748-98aa-19722c5574a5", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "3a81d3",
-    },
-    body: JSON.stringify({
-      sessionId: "3a81d3",
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-}
-// #endregion
 
 const refreshLockKey = `${namespace}:refresh-lock`;
 
@@ -260,18 +229,6 @@ export function initAuth() {
   syncAuthState();
   state.isLoading = false;
 
-  // #region agent log
-  agentDebugLog("A", "session.svelte.ts:initAuth", "initAuth complete", {
-    isAuthenticated: state.isAuthenticated,
-    hasAccessToken: tokenStore.current !== null,
-    hasRefreshToken: refreshTokenStore.current !== null,
-    convexWsAuthEstablished,
-    tokenExpired: tokenStore.current
-      ? isTokenExpiredOrNearExpiry(tokenStore.current)
-      : null,
-  });
-  // #endregion
-
   return state;
 }
 
@@ -281,11 +238,6 @@ export function initAuth() {
  */
 export function canRunAuthenticatedQuery(): boolean {
   return queryAuthReady;
-}
-
-/** Debug: WS auth handshake finished (onChange(true) at least once). */
-export function isConvexWsAuthEstablished(): boolean {
-  return convexWsAuthEstablished;
 }
 
 export function getAuthState() {
@@ -327,26 +279,10 @@ export async function getAccessTokenForConvex(
   args?: { forceRefreshToken: boolean }
 ): Promise<string | null> {
   if (!args?.forceRefreshToken) {
-    const token = tokenStore.current;
-    // #region agent log
-    agentDebugLog("B", "session.svelte.ts:getAccessTokenForConvex", "return cached token", {
-      forceRefresh: false,
-      hasToken: token !== null,
-      tokenExpired: token ? isTokenExpiredOrNearExpiry(token) : null,
-    });
-    // #endregion
-    return token;
+    return tokenStore.current;
   }
 
   const tokenBeforeLock = tokenStore.current;
-  // #region agent log
-  agentDebugLog("B", "session.svelte.ts:getAccessTokenForConvex", "force refresh requested", {
-    hasTokenBefore: tokenBeforeLock !== null,
-    tokenExpiredBefore: tokenBeforeLock
-      ? isTokenExpiredOrNearExpiry(tokenBeforeLock)
-      : null,
-  });
-  // #endregion
   pendingAuthRefresh += 1;
   syncQueryAuthReady();
   try {
@@ -354,13 +290,7 @@ export async function getAccessTokenForConvex(
       if (tokenStore.current !== tokenBeforeLock) {
         return tokenStore.current;
       }
-      const refreshed = await refreshToken();
-      // #region agent log
-      agentDebugLog("B", "session.svelte.ts:getAccessTokenForConvex", "force refresh done", {
-        hasTokenAfter: refreshed !== null,
-      });
-      // #endregion
-      return refreshed;
+      return await refreshToken();
     });
   } finally {
     pendingAuthRefresh = Math.max(0, pendingAuthRefresh - 1);
@@ -374,14 +304,6 @@ export async function getAccessTokenForConvex(
  * session.resolve still fails (avoids sign-in loop on initial handshake).
  */
 export function handleAuthChange(isAuthenticated: boolean) {
-  // #region agent log
-  agentDebugLog("C", "session.svelte.ts:handleAuthChange", "WS auth onChange", {
-    isAuthenticated,
-    convexWsAuthEstablishedBefore: convexWsAuthEstablished,
-    hasPersistedSession: hasPersistedSession(),
-  });
-  // #endregion
-
   if (isAuthenticated) {
     convexWsAuthEstablished = true;
     syncQueryAuthReady();
@@ -419,26 +341,10 @@ export function wireConvexAuth(client: {
   ) => void;
 }) {
   if (typeof window === "undefined" || convexAuthWired || !hasPersistedSession()) {
-    // #region agent log
-    agentDebugLog("E", "session.svelte.ts:wireConvexAuth", "wireConvexAuth skipped", {
-      isBrowser: typeof window !== "undefined",
-      convexAuthWired,
-      hasPersistedSession: hasPersistedSession(),
-    });
-    // #endregion
     return;
   }
 
   convexAuthWired = true;
-  // #region agent log
-  agentDebugLog("E", "session.svelte.ts:wireConvexAuth", "wireConvexAuth calling setAuth", {
-    hasAccessToken: tokenStore.current !== null,
-    hasRefreshToken: refreshTokenStore.current !== null,
-    tokenExpired: tokenStore.current
-      ? isTokenExpiredOrNearExpiry(tokenStore.current)
-      : null,
-  });
-  // #endregion
   client.setAuth(
     (args) => getAccessTokenForConvex(args),
     (isAuthenticated) => handleAuthChange(isAuthenticated)

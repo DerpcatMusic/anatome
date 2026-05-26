@@ -1,10 +1,13 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
-import { getOrCreateAppProfile } from "../lib/authz";
 import { grantWalletCredits } from "../credits/lib";
+import { promoteUserToInstructor } from "../lib/promoteInstructor";
 
 export const setInstructorByEmail = internalMutation({
-  args: { email: v.string() },
+  args: {
+    email: v.string(),
+    clearMemberProfile: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const email = args.email.trim().toLowerCase();
     const users = await ctx.db
@@ -14,14 +17,9 @@ export const setInstructorByEmail = internalMutation({
     const user = users[0] ?? null;
     if (user === null) throw new Error("No user found for email");
 
-    const profile = await getOrCreateAppProfile(ctx, user._id);
-    const now = Date.now();
-    await ctx.db.patch(profile._id, {
-      role: "instructor",
-      instructorEnabledAt: now,
-      updatedAt: now,
+    return await promoteUserToInstructor(ctx, user._id, {
+      clearMemberProfile: args.clearMemberProfile,
     });
-    return profile._id;
   },
 });
 
