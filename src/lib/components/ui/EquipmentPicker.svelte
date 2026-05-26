@@ -75,18 +75,17 @@
   }
 
   .equipment-grid--compact {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    max-height: calc(3 * 30px + 2 * var(--space-1));
-    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    width: 100%;
   }
 
   .equipment-grid--compact :global(.hb-choice) {
-    flex: 0 0 auto;
-    min-height: 28px;
-    padding: var(--space-1) var(--space-2);
-    border-radius: 4px;
+    min-height: 48px;
+    min-width: 0;
+    padding: var(--space-2) var(--space-1);
+    border-radius: 8px;
   }
 
   .equipment-choice-content {
@@ -98,8 +97,11 @@
   }
 
   .equipment-choice-content--compact {
-    gap: var(--space-1);
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
     padding: 0;
+    text-align: center;
   }
 
   .icon-wrapper {
@@ -124,6 +126,11 @@
   }
 
   .choice-label--compact {
-    font-size: var(--step--2);
+    font-size: 0.65rem;
+    line-height: 1.15;
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
   }
+
 </style>

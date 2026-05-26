@@ -23,7 +23,9 @@
       <RadioGroup.Item value={option.value} class="hb-choice experience-choice">
         {#snippet children({ checked })}
           <span class="hb-choice__title">{option.label}</span>
-          <span class="hb-choice__description">{option.description}</span>
+          {#if option.description}
+            <span class="hb-choice__description">{option.description}</span>
+          {/if}
         {/snippet}
       </RadioGroup.Item>
     {/each}

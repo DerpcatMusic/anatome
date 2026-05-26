@@ -31,7 +31,7 @@
           <div class="pricing__featured-side">
             <p class="pricing__price">{featured.monthlyPriceIls} {t.landing.pricing.perMonth()}</p>
             <Button.Root
-              class="hb-button hb-button--brand hb-button--pill"
+              class="hb-button hb-button--brand"
               type="button"
               onclick={openAuthOverlay}
             >
@@ -48,7 +48,7 @@
             <p class="pricing__price">{plan.monthlyPriceIls} {t.landing.pricing.perMonth()}</p>
             <p class="pricing__desc">{PLAN_DESCRIPTIONS[plan.slug] ?? t.landing.pricing.planNoteFallback()}</p>
             <Button.Root
-              class="hb-button hb-button--paper hb-button--pill"
+              class="hb-button hb-button--paper"
               type="button"
               onclick={openAuthOverlay}
             >

@@ -13,6 +13,9 @@
   import MemberProfileView from "./MemberProfileView.svelte";
   import InstructorProfileView from "./InstructorProfileView.svelte";
   import AvatarUpload from "./AvatarUpload.svelte";
+  import { useI18n } from "$lib/i18n/runes.svelte";
+
+  const { t } = useI18n();
 
   let {
     audience,
@@ -181,23 +184,19 @@
 {#if auth.isLoading || dashboardResource.loading || (isInstructorAudience && appProfileResource.loading)}
   <AppSkeleton />
 {:else if !auth.isAuthenticated}
-  <AppLocked title="צריך להתחבר קודם" subtitle="כדי לערוך את הפרופיל, נכנסים עם כתובת אימייל.">
+  <AppLocked title={t.app.locked.title()} subtitle={t.onboarding.locked.subtitle()}>
     {#snippet actions()}
-      <a href="/" class="locked__action">לעמוד הראשי</a>
+      <a href="/" class="locked__action">{t.onboarding.locked.cta()}</a>
     {/snippet}
   </AppLocked>
 {:else if dashboardResource.error}
-  <AppLocked title="לא הצלחנו לטעון" subtitle="נסי לרענן את הדף.">
+  <AppLocked title={t.profile.error()} subtitle={t.app.errorRetry()}>
     {#snippet actions()}
       <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>לנסות שוב</Button.Root>
     {/snippet}
   </AppLocked>
 {:else if isInstructorAudience}
-  <PageShell
-    kicker="AnatoMe Studio"
-    title="פרופיל מדריכה"
-    description="פרטים אישיים, הכשרות ומסמכים — לצפייה ולעריכה כאן."
-  >
+  <PageShell title="פרופיל מדריכה">
     <div class="profile-toolbar">
       {#if !instructorEditing}
         <Button.Root
@@ -219,7 +218,7 @@
     </div>
 
     {#if saveError}<Notice tone="danger">{saveError}</Notice>{/if}
-    {#if saveSuccess}<Notice tone="success">הפרטים נשמרו בהצלחה.</Notice>{/if}
+    {#if saveSuccess}<Notice tone="success">נשמר.</Notice>{/if}
 
     <section class="profile-avatar-section" aria-label="תמונת פרופיל">
       <AvatarUpload
@@ -336,11 +335,7 @@
     {/if}
   </PageShell>
 {:else if profile}
-  <PageShell
-    kicker="AnatoMe"
-    title="הפרופיל שלי"
-    description="ההתאמה האישית שלך לפילאטיס — צפייה, עריכה ועדכון בכל עת."
-  >
+  <PageShell title={t.profile.title()}>
     {#if !memberEditing}
       <div class="profile-toolbar">
         <Button.Root
@@ -383,11 +378,11 @@
   </PageShell>
 {:else}
   <AppLocked
-    title="עדיין לא התאמת פרופיל"
-    subtitle="כדי לראות את הפרופיל שלך כאן, ממלאים פעם אחת את שאלון ההתאמה."
+    title={t.app.needsOnboarding.title()}
+    subtitle={t.app.needsOnboarding.subtitle()}
   >
     {#snippet actions()}
-      <a href="/onboarding" class="locked__action">להתחלת התאמה אישית</a>
+      <a href="/onboarding" class="locked__action">{t.app.needsOnboarding.cta()}</a>
       <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>רענון</Button.Root>
     {/snippet}
   </AppLocked>
@@ -401,9 +396,7 @@
   }
 
   .profile-avatar-section {
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-6);
-    border-bottom: var(--border);
+    margin-bottom: var(--space-4);
   }
 
   .instructor-form {
@@ -418,7 +411,7 @@
     flex-direction: column;
     gap: var(--space-4);
     border: var(--border);
-    background: linear-gradient(135deg, var(--white), var(--surface));
+    background: var(--elevated);
     padding: var(--space-5);
   }
 
@@ -444,7 +437,7 @@
   textarea {
     min-height: 46px;
     border: var(--border);
-    background: var(--white);
+    background: var(--paper);
     color: var(--ink);
     padding: var(--space-3);
     font: inherit;
@@ -467,8 +460,8 @@
   }
 
   .file-drop:hover {
-    background: var(--surface);
-    border-color: var(--secondary);
+    background: var(--accent-soft);
+    border-color: var(--primary);
   }
 
   .file-drop input {
@@ -504,7 +497,7 @@
   .doc-icon {
     display: grid;
     place-items: center;
-    background: var(--white);
+    background: var(--elevated);
     font-family: var(--font-mono);
     font-size: var(--step--2);
     font-weight: 900;

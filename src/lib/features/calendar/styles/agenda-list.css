@@ -4,7 +4,7 @@
 .agenda-pane__stream {
   border: 1px solid var(--line-light);
   border-radius: 12px;
-  background: var(--white);
+  background: var(--elevated);
   overflow: hidden;
 }
 
@@ -28,7 +28,7 @@
 }
 
 .agenda-pane--group .agenda-pane__title {
-  color: var(--secondary);
+  color: var(--secondary-cool);
 }
 
 .agenda-pane--one-on-one .agenda-pane__title {
@@ -57,7 +57,7 @@
   font-size: var(--step--2);
   font-weight: 700;
   color: var(--muted);
-  background: color-mix(in oklch, var(--surface) 35%, var(--white));
+  background: var(--surface);
 }
 
 .agenda-pane__rows {

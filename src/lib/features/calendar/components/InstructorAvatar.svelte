@@ -33,8 +33,8 @@
     height: var(--avatar-size);
     border-radius: 50%;
     overflow: hidden;
-    border: 2px solid color-mix(in oklch, var(--line-light) 70%, var(--white));
-    background: color-mix(in oklch, var(--secondary) 12%, var(--surface));
+    border: 2px solid var(--line-light);
+    background: var(--accent-soft);
   }
 
   .instructor-avatar__img {
@@ -52,7 +52,7 @@
     height: 100%;
     font-size: calc(var(--avatar-size) * 0.42);
     font-weight: 800;
-    color: var(--secondary);
+    color: var(--primary);
     text-transform: uppercase;
   }
 </style>

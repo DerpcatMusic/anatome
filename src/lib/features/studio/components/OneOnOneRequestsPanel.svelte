@@ -104,7 +104,7 @@
           <div class="empty-state">
             <span class="material-symbols-rounded empty-icon">inbox</span>
             <p>אין בקשות ממתינות כרגע.</p>
-            <p class="empty-hint">כאשר לקוחה תבקש שיעור 1:1, הבקשה תופיע כאן.</p>
+            <p class="empty-hint">בקשות 1:1 יופיעו כאן.</p>
           </div>
         {:else}
           <div class="request-list">

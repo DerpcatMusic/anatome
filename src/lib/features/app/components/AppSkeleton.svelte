@@ -18,7 +18,7 @@
     margin-top: 15vh;
     padding: var(--space-5);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
   }
 
   .skeleton {

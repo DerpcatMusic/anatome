@@ -104,18 +104,16 @@
 <style>
   .profile-summary {
     border: var(--border);
-    padding: var(--space-6);
-    background: linear-gradient(135deg, var(--white), var(--white));
+    padding: var(--space-4);
+    background: var(--elevated);
   }
 
   .profile-summary__header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-4);
-    margin-bottom: var(--space-5);
-    padding-bottom: var(--space-4);
-    border-bottom: var(--border);
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
   }
 
   .profile-summary__kicker {
@@ -131,7 +129,7 @@
   .profile-summary__edit {
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--secondary);
+    color: var(--primary);
     text-decoration: none;
     transition: color var(--duration-fast);
   }
@@ -141,7 +139,7 @@
   .profile-summary__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-5);
+    gap: var(--space-3);
   }
 
   .profile-summary__cell {
@@ -166,10 +164,8 @@
   .compliance-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: var(--border);
+    gap: var(--space-3);
+    margin-top: var(--space-3);
   }
 
   .compliance-item {

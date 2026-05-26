@@ -268,7 +268,7 @@
     min-height: 480px;
     direction: rtl;
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     padding: var(--space-3);
     border-radius: 4px;
   }
@@ -276,7 +276,7 @@
   :global(.customer-booking-calendar .ec-event-type--availability-window) {
     border-style: dashed !important;
     opacity: 0.88;
-    background: color-mix(in oklch, var(--primary) 10%, var(--white)) !important;
+    background: var(--accent-soft) !important;
   }
 
   :global(.customer-booking-calendar .ec-event--reserved) {

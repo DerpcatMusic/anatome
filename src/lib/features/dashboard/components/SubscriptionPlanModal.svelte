@@ -39,9 +39,9 @@
   <Dialog.Portal>
     <Dialog.Overlay class="hb-dialog-overlay" />
     <Dialog.Content class="hb-dialog-content subscription-modal" aria-label="ניהול מנוי חודשי">
-      <Dialog.Title class="subscription-modal__title">מסלולי מנוי חודשיים</Dialog.Title>
+      <Dialog.Title class="subscription-modal__title">מסלולים</Dialog.Title>
       <Dialog.Description class="subscription-modal__desc">
-        שדרוג נכנס לתוקף מיד. שנמוך יותר יתחיל בסוף התקופה הנוכחית. חיוב יחובר בהמשך.
+        שדרוג מידי. שנמוך — בסוף התקופה.
       </Dialog.Description>
 
       <div class="plan-grid">
@@ -57,7 +57,7 @@
               <span class="plan-option__price">{plan.monthlyPriceIls} ₪</span>
             </div>
             <div class="plan-option__credits">
-              <span>{plan.vodCreditsPerMonth} Macroflow</span>
+              <span>{plan.vodCreditsPerMonth} מוקלט</span>
               <span>{plan.liveCreditsPerMonth} לייב</span>
               <span>{plan.oneOnOneCreditsPerMonth} פרטי</span>
             </div>
@@ -158,13 +158,13 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     min-width: 0;
   }
 
   .plan-option--active {
-    border-color: var(--secondary);
-    background: var(--surface);
+    border-color: var(--primary);
+    background: var(--accent-soft);
   }
 
   .plan-option--scheduled {

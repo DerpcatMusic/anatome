@@ -478,11 +478,30 @@ export const cancel = mutation({
     }
 
     const now = Date.now();
+    const wasLive = liveClass.status === "live";
 
     await ctx.db.patch(args.liveClassId, {
       status: "cancelled",
       updatedAt: now,
     });
+
+    if (wasLive) {
+      const rooms = await ctx.db
+        .query("liveRooms")
+        .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
+        .take(1);
+      const room = rooms[0] ?? null;
+      if (room !== null) {
+        await ctx.db.patch(room._id, {
+          status: "ended",
+          endedAt: now,
+          updatedAt: now,
+        });
+        await ctx.scheduler.runAfter(0, internal.livekit.rooms.deleteRoomByName, {
+          roomName: room.roomName,
+        });
+      }
+    }
 
     const reservations = await ctx.db
       .query("liveReservations")

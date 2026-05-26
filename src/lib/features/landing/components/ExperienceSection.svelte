@@ -9,15 +9,15 @@
     <h2 class="section-title l-in">{t.landing.preview.headline()}</h2>
     <p class="section-lead l-in">{t.landing.preview.lead()}</p>
 
-    <button
-      type="button"
+    <a
+      href="/library"
       class="video-card l-in l-in--1"
       aria-label={t.landing.preview.videoPlaceholderTitle()}
     >
       <span class="video-card__play" aria-hidden="true"></span>
       <span class="video-card__title">{t.landing.preview.videoPlaceholderTitle()}</span>
       <span class="video-card__sub">{t.landing.preview.videoPlaceholderSubtitle()}</span>
-    </button>
+    </a>
 
     <div class="pillars">
       <article class="pillar l-in l-in--1">

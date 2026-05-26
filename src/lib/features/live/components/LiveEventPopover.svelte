@@ -152,28 +152,30 @@
 
   :global(.hb-popover-content.live-event-popover) {
     z-index: 90;
-    width: min(380px, 92vw);
+    width: min(400px, 92vw);
     min-width: 320px;
-    max-width: 380px;
+    max-width: 400px;
     padding: 0;
     direction: rtl;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--paper);
     border: 1px solid var(--line-light);
-    border-inline-start-width: 4px;
-    border-inline-start-style: solid;
-    box-shadow: none;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.1);
     backdrop-filter: none;
   }
 
   :global(.live-event-popover--group) {
-    border-inline-start-color: var(--secondary);
+    box-shadow:
+      0 8px 32px rgb(0 0 0 / 0.1),
+      inset 0 3px 0 var(--secondary-cool);
   }
 
   :global(.live-event-popover--one-on-one) {
-    border-inline-start-color: var(--primary);
+    box-shadow:
+      0 8px 32px rgb(0 0 0 / 0.1),
+      inset 0 3px 0 var(--primary);
   }
 </style>

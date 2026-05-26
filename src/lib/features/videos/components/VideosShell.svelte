@@ -7,7 +7,7 @@
   import { authQuery, initAuth } from "$lib/auth/session.svelte";
   import { useQuery } from "convex-svelte";
   import { resource } from "runed";
-  import "./VideosShell.css";
+  import "../videos-feature.css";
 
   const auth = initAuth();
   const profileQuery = useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
@@ -35,24 +35,24 @@
 </script>
 
 {#if auth.isLoading}
-  <div class="skeleton-shell">
+  <div class="videos-skeleton-shell">
     <div class="skeleton skeleton--hero"></div>
-    <div class="skeleton-row">
-      <div class="skeleton skeleton--card"></div>
-      <div class="skeleton skeleton--card"></div>
-      <div class="skeleton skeleton--card"></div>
+    <div class="videos-skeleton-row">
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
     </div>
   </div>
 {:else if !auth.isAuthenticated}
-  <div class="state-card">
-    <p class="eyebrow">חשבון נעול</p>
+  <div class="videos-state-card">
+    <p class="videos-eyebrow">חשבון נעול</p>
     <h2>צריך להתחבר כדי לצפות בווידאו</h2>
     <a class="button-link" href="/">כניסה</a>
   </div>
 {:else if isStaff}
   <InstructorVideoManager />
 {:else if libraryResource.error}
-  <div class="state-card">
+  <div class="videos-state-card">
     <Notice tone="danger">{libraryResource.error?.message ?? "שגיאה בטעינת הספרייה"}</Notice>
     <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { void libraryResource.refetch(); }}>
       לנסות שוב
@@ -66,12 +66,12 @@
     }}
   />
 {:else}
-  <div class="skeleton-shell">
+  <div class="videos-skeleton-shell">
     <div class="skeleton skeleton--hero"></div>
-    <div class="skeleton-row">
-      <div class="skeleton skeleton--card"></div>
-      <div class="skeleton skeleton--card"></div>
-      <div class="skeleton skeleton--card"></div>
+    <div class="videos-skeleton-row">
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
     </div>
   </div>
 {/if}

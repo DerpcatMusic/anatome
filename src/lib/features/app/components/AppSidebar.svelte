@@ -27,15 +27,15 @@
   const navMap: Record<string, { href: string; label: string }[]> = {
     "/u": [
       { href: "/u/dashboard", label: "סקירה" },
-      { href: "/u/calendar", label: "לוח לייבים" },
-      { href: "/u/videos", label: "וידאו" },
-      { href: "/u/profile", label: "הפרופיל שלי" },
+      { href: "/u/calendar", label: "לייבים" },
+      { href: "/u/library", label: "וידאו" },
+      { href: "/u/profile", label: "פרופיל" },
     ],
     "/i": [
       { href: "/i/dashboard", label: "סקירה" },
-      { href: "/i/live", label: "סטודיו לייב" },
-      { href: "/i/videos", label: "ניהול וידאו" },
-      { href: "/i/profile", label: "פרופיל מדריכה" },
+      { href: "/i/live", label: "סטודיו" },
+      { href: "/i/videos", label: "וידאו" },
+      { href: "/i/profile", label: "פרופיל" },
     ],
   };
 
@@ -59,7 +59,16 @@
 
   const nextLiveQuery = useQuery(api.live.next.get, () => auth.isAuthenticated ? {} : "skip");
   const nextLive = $derived(nextLiveQuery.data ?? null);
-  const showLiveTab = $derived(nextLive !== null && nextLive.status !== "ended" && nextLive.status !== "cancelled");
+  const showLiveTab = $derived.by(() => {
+    if (!nextLive) return false;
+    if (nextLive.status === "ended" || nextLive.status === "cancelled") return false;
+    if (nextLive.status === "live") return true;
+    const opens = nextLive.joinOpensAt;
+    const closes = nextLive.joinClosesAt;
+    if (typeof opens !== "number" || typeof closes !== "number") return false;
+    const now = Date.now();
+    return now >= opens && now <= closes;
+  });
 
   const baseNav = $derived(navMap[prefix] ?? navMap["/u"]);
   const navItems = $derived(showLiveTab
@@ -79,13 +88,11 @@
 
 <aside class="sidebar" aria-label="ניווט אזור אישי">
   <header class="sidebar__brand">
-    <a class="sidebar__home" href="/" aria-label="{t.site.name()} — חזרה לדף הבית">
+    <a class="sidebar__home" href="/" aria-label="{t.site.name()} — {t.site.tagline()}">
       <span class="sidebar__logo">{t.site.name()}</span>
-      <span class="sidebar__divider">/</span>
-      <span class="sidebar__tagline">{t.site.tagline()}</span>
     </a>
     <div class="sidebar__area">
-      <span class="sidebar__area-label">{isInstructorPrefix ? "סטודיו" : "אזור אישי"}</span>
+      <span class="sidebar__area-label">{isInstructorPrefix ? "סטודיו" : "אישי"}</span>
       {#if isInstructorPrefix && ctx.role}
         <span class="role-badge role-badge--{ctx.role}">{ctx.role === "admin" ? "Admin" : "Instructor"}</span>
       {/if}

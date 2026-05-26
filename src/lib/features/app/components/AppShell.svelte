@@ -6,42 +6,42 @@
 
   import { useQuery } from "convex-svelte";
   import { initAuth } from "$lib/auth/session.svelte";
+  import { useI18n } from "$lib/i18n/runes.svelte";
 
   const auth = initAuth();
+  const { t } = useI18n();
   const query = useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : "skip");
 </script>
 
 {#if query.isLoading || (auth.isAuthenticated && query.data === undefined && !query.error)}
   <div class="app-frame">
-    <p>טוען...</p>
+    <p>{t.app.loading()}</p>
   </div>
 {:else if auth.isAuthenticated && query.data === null && !query.error}
   <div class="app-frame">
-    <p>טוען...</p>
+    <p>{t.app.loading()}</p>
   </div>
 {:else if !auth.isAuthenticated}
   <div class="app-frame">
     <div class="locked">
-      <p class="locked__kicker">AnatoMe</p>
-      <h1>צריך להתחבר</h1>
-      <p>כדי לפתוח את האזור האישי, נכנסים עם כתובת אימייל.</p>
+      <h1>{t.app.locked.title()}</h1>
+      <p>{t.app.locked.subtitle()}</p>
       <div class="locked__actions">
-        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign('/')}>כניסה</Button.Root>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign('/')}>{t.app.locked.cta()}</Button.Root>
       </div>
     </div>
   </div>
 {:else if query.error}
   <div class="app-frame">
-    <p>שגיאה: {query.error.message}</p>
+    <p>{t.app.error()}: {query.error.message}</p>
   </div>
 {:else if query.data?.needsOnboarding}
   <div class="app-frame">
     <div class="locked">
-      <p class="locked__kicker">כמעט שם</p>
-      <h1>צריך לסיים התאמה אישית</h1>
-      <p>קצר, פשוט, ויעזור לנו להתאים לך שיעורים.</p>
+      <h1>{t.app.needsOnboarding.title()}</h1>
+      <p>{t.app.needsOnboarding.subtitle()}</p>
       <div class="locked__actions">
-        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign("/onboarding")}>להמשיך בהתאמה</Button.Root>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign("/onboarding")}>{t.app.needsOnboarding.cta()}</Button.Root>
         <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={signOut}>יציאה</Button.Root>
       </div>
     </div>
@@ -56,6 +56,7 @@
     subscriptionPlan={query.data.subscriptionPlan}
     pendingSubscriptionPlan={query.data.pendingSubscriptionPlan}
     wallet={query.data.wallet}
+    user={query.data.user}
   />
 {/if}
 
@@ -79,7 +80,7 @@
     width: 100%;
     padding: var(--space-7) var(--space-6);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
   }
 
   .locked__kicker {

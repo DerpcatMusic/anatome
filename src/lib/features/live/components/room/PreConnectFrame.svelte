@@ -52,10 +52,9 @@
     grid-template-rows: auto 1fr;
     gap: clamp(20px, 3vw, 36px);
     padding: clamp(18px, 3vw, 36px);
-    border: var(--glass-border);
-    background: var(--glass-bg);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
-    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--line-light);
+    background: var(--elevated);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.08);
   }
 
   .live-entry__header {
@@ -72,7 +71,7 @@
     width: 36px;
     height: 36px;
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     color: var(--muted);
     text-decoration: none;
     border-radius: 0;

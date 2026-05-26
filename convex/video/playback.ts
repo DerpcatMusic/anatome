@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireUserId } from "../lib/authz";
@@ -57,5 +58,47 @@ export const updateProgress = mutation({
       completed,
       updatedAt: now,
     });
+  },
+});
+
+const continueWatchingValidator = v.object({
+  videoId: v.id("videos"),
+  title: v.string(),
+  thumbnailUrl: v.union(v.string(), v.null()),
+  durationSeconds: v.union(v.number(), v.null()),
+  currentTimeSeconds: v.number(),
+  percentWatched: v.number(),
+  updatedAt: v.number(),
+});
+
+/** Most recent in-progress video for the member dashboard hero. */
+export const getContinueWatching = query({
+  args: {},
+  returns: v.union(v.null(), continueWatchingValidator),
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return null;
+
+    const rows = await ctx.db
+      .query("videoProgress")
+      .withIndex("by_userId_and_updatedAt", (q) => q.eq("userId", userId))
+      .order("desc")
+      .take(12);
+
+    for (const row of rows) {
+      if (row.completed || row.percentWatched >= 90) continue;
+      const video = await ctx.db.get(row.videoId);
+      if (video === null || video.status !== "published") continue;
+      return {
+        videoId: row.videoId,
+        title: video.title,
+        thumbnailUrl: video.thumbnailUrl ?? null,
+        durationSeconds: video.durationSeconds ?? null,
+        currentTimeSeconds: row.currentTimeSeconds,
+        percentWatched: row.percentWatched,
+        updatedAt: row.updatedAt,
+      };
+    }
+    return null;
   },
 });

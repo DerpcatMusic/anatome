@@ -1,0 +1,36 @@
+const liveWhenFormatter = new Intl.DateTimeFormat("he-IL", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const liveTimeFormatter = new Intl.DateTimeFormat("he-IL", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+export function formatLiveStartsAt(startsAt: number, now = Date.now()): string {
+  const dayStart = new Date(now);
+  dayStart.setHours(0, 0, 0, 0);
+  const targetDay = new Date(startsAt);
+  targetDay.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((targetDay.getTime() - dayStart.getTime()) / 86_400_000);
+
+  if (diffDays === 0) return `היום · ${liveTimeFormatter.format(startsAt)}`;
+  if (diffDays === 1) return `מחר · ${liveTimeFormatter.format(startsAt)}`;
+  return liveWhenFormatter.format(startsAt);
+}
+
+export function formatProgressLabel(currentSeconds: number, durationSeconds: number | null): string {
+  const format = (total: number) => {
+    const m = Math.floor(total / 60);
+    const s = Math.floor(total % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+  if (durationSeconds && durationSeconds > 0) {
+    return `${format(currentSeconds)} / ${format(durationSeconds)}`;
+  }
+  return format(currentSeconds);
+}

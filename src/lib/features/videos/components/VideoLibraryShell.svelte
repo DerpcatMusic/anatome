@@ -13,9 +13,9 @@
     type CategoryGroup,
   } from "./MicroflowCategorySection.svelte";
   import RedeemVideoDialog, { type RedeemTarget } from "./RedeemVideoDialog.svelte";
-  import "./VideoLibraryShell.css";
+  import "../videos-feature.css";
 
-  type LibraryData = FunctionReturnType<typeof api.video.catalog.listLibrary>;
+  type LibraryData = FunctionReturnType<typeof api.video.catalog.listCatalog>;
   /** Pre-migration listLibrary rows still expose `videos` instead of `macroflowVideos`. */
   type LegacyLibraryData = LibraryData & {
     videos?: RowVideo[];
@@ -88,7 +88,7 @@
       return;
     }
     if (library.vodCredits < 1) {
-      actionError = "אין מספיק קרדיטי Macroflow לפתיחת שיעור חדש.";
+      actionError = "אין מספיק קרדיטים.";
       return;
     }
     openRedeem(video);
@@ -104,7 +104,7 @@
       goWatch(video._id);
       return;
     }
-    actionError = "שיעורי Microflow נפתחים עם מנוי פעיל.";
+    actionError = "נדרש מנוי פעיל.";
   }
 
   async function confirmRedeem() {
@@ -126,43 +126,29 @@
   }
 </script>
 
-<PageShell
-  kicker="AnatoMe Video"
-  title="ספריית שיעורים"
-  description="גללי בין שיעורי Macroflow לרכישה קבועה, ובין Microflow לפי נושא עם מנוי פעיל."
->
+<PageShell title="ספריית שיעורים">
   {#snippet headerExtra()}
     <MacroflowCreditsBadge balance={library.vodCredits} />
   {/snippet}
 
   <div class="video-library">
-    <div class="video-library__top">
-      <MacroflowCreditsBadge balance={library.vodCredits} />
-    </div>
 
     {#if actionError}
       <Notice tone="danger">{actionError}</Notice>
     {/if}
 
     {#if !CREDITS_PURCHASE_ENABLED && library.vodCredits < 1}
-      <Notice tone="neutral">
-        רכישת קרדיטים אינה זמינה כרגע. קרדיטים חדשים יתווספו עם חידוש המנוי.
-      </Notice>
+      <Notice tone="neutral">קרדיטים עם חידוש המנוי.</Notice>
     {/if}
 
-    <section class="macroflow-section" aria-labelledby="macroflow-heading">
-      <header class="macroflow-section__intro">
-        <p class="macroflow-section__eyebrow">Macroflow</p>
-        <h2 id="macroflow-heading" class="macroflow-section__title">שיעורים לשמירה</h2>
-        <p class="macroflow-section__desc">
-          קרדיט אחד פותח שיעור לצמיתות. כבר פתחת {ownedMacroflowCount} שיעורים.
-        </p>
-      </header>
+    <section class="videos-hero-block" aria-labelledby="macroflow-heading">
+      <h2 id="macroflow-heading" class="videos-hero-block__title">שיעורי עומק</h2>
 
       <HorizontalVideoRow
-        title="כל שיעורי Macroflow"
+        title=""
+        hideHeader
         videos={library.macroflowVideos}
-        emptyMessage="עדיין אין שיעורי Macroflow מפורסמים."
+        emptyMessage="אין שיעורים עדיין."
         {pendingId}
         onSelect={handleMacroflowSelect}
       />

@@ -112,7 +112,7 @@
     text-transform: uppercase;
     padding: 2px 8px;
     border: var(--border);
-    background: var(--surface);
+    background: var(--accent-soft);
     color: var(--ink);
     flex: 0 0 auto;
   }
@@ -129,7 +129,7 @@
     flex-direction: column;
     gap: var(--space-3);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     padding: var(--space-5);
   }
 

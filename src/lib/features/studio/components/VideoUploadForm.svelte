@@ -2,12 +2,11 @@
   import "@mux/mux-uploader";
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
+  import { videoAccessLabel, type Equipment, type VideoAccessKind } from "$lib/labels";
   import { useConvexClient } from "convex-svelte";
   import { Button, Checkbox, RadioGroup, Progress } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
-
-  type AccessKind = "macroflow" | "microflow";
 
   interface Props {
     categories: Array<{ _id: Id<"videoCategories">; name: string }>;
@@ -19,50 +18,44 @@
 
   const client = useConvexClient();
 
-  // ── Form state ──
   let title = $state("");
   let description = $state("");
-  let accessKind = $state<AccessKind>("macroflow");
+  let accessKind = $state<VideoAccessKind>("macroflow");
   let selectedCategoryIds = $state<Id<"videoCategories">[]>([]);
   let requiredEquipment = $state<string[]>(["mat"]);
   let file = $state<File | null>(null);
   let isDragOver = $state(false);
 
-  // ── Validation state ──
   let titleError = $state<string | null>(null);
   let categoryError = $state<string | null>(null);
   let fileError = $state<string | null>(null);
 
-  // ── Upload state ──
   let step = $state<"idle" | "uploading" | "success" | "error">("idle");
   let progress = $state(0);
   let uploadErrorMsg = $state("");
 
-  // ── Mux uploader engine (hidden) ──
   let muxUploader = $state<HTMLElement | null>(null);
 
-  // ── Derived ──
   const canSubmit = $derived(
     file !== null &&
       title.trim().length >= 3 &&
       selectedCategoryIds.length > 0 &&
-      step !== "uploading"
+      step !== "uploading",
   );
 
   const accessOptions = [
     {
       value: "macroflow" as const,
-      label: "רכישה חד-פעמית",
-      description: "הלקוחה רוכשת גישה קבועה לשיעור באמצעות קרדיט.",
+      label: videoAccessLabel("macroflow"),
+      description: "קרדיט — גישה לצמיתות.",
     },
     {
       value: "microflow" as const,
-      label: "מנוי בלבד",
-      description: "זמין למנויות פעילות ללא צריכת קרדיט.",
+      label: videoAccessLabel("microflow"),
+      description: "למנויות פעילות.",
     },
   ];
 
-  // ── Wire mux-uploader events ──
   $effect(() => {
     if (!muxUploader) return;
 
@@ -74,7 +67,7 @@
     };
     const onError = (e: CustomEvent<{ message?: string }>) => {
       step = "error";
-      uploadErrorMsg = e.detail?.message ?? "העלאה נכשלה";
+      uploadErrorMsg = e.detail?.message ?? "ההעלאה נכשלה. נסי שוב.";
     };
 
     muxUploader.addEventListener("progress", onProgress as EventListener);
@@ -88,15 +81,13 @@
     };
   });
 
-  // ── Validation ──
   function validate(): boolean {
-    titleError = title.trim().length >= 3 ? null : "הכותרת חייבת להכיל לפחות 3 תווים";
-    categoryError = selectedCategoryIds.length > 0 ? null : "נדרשת לפחות קטגוריה אחת";
-    fileError = file !== null ? null : "יש לבחור קובץ וידאו";
+    titleError = title.trim().length >= 3 ? null : "כותרת קצרה מדי — לפחות 3 תווים.";
+    categoryError = selectedCategoryIds.length > 0 ? null : "בחרי לפחות קטגוריה אחת.";
+    fileError = file !== null ? null : "צריך לבחור קובץ וידאו.";
     return titleError === null && categoryError === null && fileError === null;
   }
 
-  // ── File handling ──
   function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -104,11 +95,11 @@
     const dropped = e.dataTransfer?.files?.[0];
     if (!dropped) return;
     if (!dropped.type.startsWith("video/")) {
-      fileError = "יש לבחור קובץ וידאו בלבד";
+      fileError = "רק קבצי וידאו — MP4, MOV וכדומה.";
       return;
     }
     if (dropped.size > 2 * 1024 * 1024 * 1024) {
-      fileError = "הקובץ גדול מ-2GB. צריך לדחוס או לחתוך.";
+      fileError = "הקובץ מעל 2GB. כדאי לדחוס או לקצר לפני העלאה.";
       return;
     }
     file = dropped;
@@ -132,7 +123,7 @@
     const selected = input.files?.[0];
     if (selected) {
       if (selected.size > 2 * 1024 * 1024 * 1024) {
-        fileError = "הקובץ גדול מ-2GB. צריך לדחוס או לחתוך.";
+        fileError = "הקובץ מעל 2GB. כדאי לדחוס או לקצר לפני העלאה.";
         input.value = "";
         return;
       }
@@ -144,10 +135,9 @@
 
   function clearFile() {
     file = null;
-    if (muxUploader) (muxUploader as any).file = null;
+    if (muxUploader) (muxUploader as HTMLElement & { file: File | null }).file = null;
   }
 
-  // ── Category handling ──
   function toggleCategory(id: Id<"videoCategories">) {
     selectedCategoryIds = selectedCategoryIds.includes(id)
       ? selectedCategoryIds.filter((c) => c !== id)
@@ -155,7 +145,6 @@
     categoryError = null;
   }
 
-  // ── Submit ──
   async function handleSubmit(e: Event) {
     e.preventDefault();
     if (!validate() || !muxUploader || !file) return;
@@ -168,7 +157,7 @@
       const result = await client.action(api.video.uploads.requestUpload, {
         title: title.trim(),
         description: description.trim(),
-        requiredEquipment: requiredEquipment as any,
+        requiredEquipment: requiredEquipment as Equipment[],
         accessKind,
         categoryIds: selectedCategoryIds,
         muxVideoQuality: "plus",
@@ -176,13 +165,14 @@
         staticRendition: "none",
       });
 
-      if (!result?.uploadUrl) throw new Error("לא קיבלנו כתובת העלאה מהשרת");
+      if (!result?.uploadUrl) throw new Error("לא התקבלה כתובת העלאה. רענני ונסי שוב.");
 
-      (muxUploader as any).endpoint = result.uploadUrl;
-      (muxUploader as any).file = file;
+      const uploader = muxUploader as HTMLElement & { endpoint: string; file: File };
+      uploader.endpoint = result.uploadUrl;
+      uploader.file = file;
     } catch (reason) {
       step = "error";
-      uploadErrorMsg = reason instanceof Error ? reason.message : "התחלת ההעלאה נכשלה";
+      uploadErrorMsg = reason instanceof Error ? reason.message : "לא הצלחנו להתחיל העלאה.";
     }
   }
 
@@ -200,136 +190,136 @@
     categoryError = null;
     fileError = null;
     if (muxUploader) {
-      (muxUploader as any).file = null;
-      (muxUploader as any).endpoint = null;
+      const uploader = muxUploader as HTMLElement & { file: File | null; endpoint: string | null };
+      uploader.file = null;
+      uploader.endpoint = null;
     }
   }
 </script>
 
-<!-- Hidden Mux upload engine -->
-<mux-uploader bind:this={muxUploader} style="display: none;"></mux-uploader>
+<mux-uploader bind:this={muxUploader} style="display: none;" hidden aria-hidden="true"></mux-uploader>
 
 <form class="upload-form" onsubmit={handleSubmit}>
-  <!-- File -->
-  {#if !file}
-    <div
-      class="drop-zone"
-      class:active={isDragOver}
-      ondragover={handleDragOver}
-      ondragleave={handleDragLeave}
-      ondrop={handleDrop}
-      role="region"
-      aria-label="אזור גרירת קובץ וידאו"
-    >
-      <span class="material-symbols-rounded drop-icon">video_file</span>
-      <div class="drop-text">
-        <strong>גררי קובץ וידאו לכאן</strong>
-        <span>או לחצי לבחירה מהמחשב · עד 2GB</span>
-      </div>
-      <label class="browse-wrap">
-        <Button.Root class="hb-button hb-button--ink" type="button">בחירת קובץ</Button.Root>
-        <input type="file" accept="video/*" onchange={handleFileInput} />
-      </label>
-      {#if fileError}
-        <span class="field-error">{fileError}</span>
-      {/if}
-    </div>
-  {:else}
-    <div class="file-chip">
-      <span class="material-symbols-rounded file-chip__icon">movie</span>
-      <span class="file-chip__name">{file.name}</span>
-      <span class="file-chip__meta">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
-      <Button.Root
-        class="hb-button hb-button--icon hb-button--icon-danger"
-        type="button"
-        onclick={clearFile}
-        aria-label="הסרת קובץ"
-      >
-        <span class="material-symbols-rounded">close</span>
-      </Button.Root>
-    </div>
-  {/if}
-
-  <!-- Title -->
-  <label class="field" class:invalid={titleError !== null}>
-    <span class="field-label">כותרת השיעור <span class="required">*</span></span>
-    <input
-      type="text"
-      bind:value={title}
-      placeholder="למשל: יסודות הרפורמר למתחילות"
-      maxlength="120"
-      disabled={step === "uploading"}
-    />
-    {#if titleError}
-      <span class="field-error">{titleError}</span>
-    {/if}
-  </label>
-
-  <!-- Description -->
-  <label class="field">
-    <span class="field-label">תיאור השיעור</span>
-    <textarea
-      bind:value={description}
-      placeholder="ספרי למתאמנות מה נעשה בשיעור זה..."
-      maxlength="500"
-      rows="2"
-      disabled={step === "uploading"}
-    ></textarea>
-  </label>
-
-  <!-- Access Model -->
-  <div class="field-group">
-    <span class="field-label">מודל גישה <span class="required">*</span></span>
-    <RadioGroup.Root bind:value={accessKind} orientation="horizontal" class="hb-choice-grid">
-      {#each accessOptions as option}
-        <RadioGroup.Item value={option.value} class="hb-choice access-choice">
-          <span class="hb-choice__title">{option.label}</span>
-          <span class="hb-choice__description">{option.description}</span>
-        </RadioGroup.Item>
-      {/each}
-    </RadioGroup.Root>
-  </div>
-
-  <!-- Categories / Tags -->
-  <div class="field-group" class:invalid={categoryError !== null}>
-    <span class="field-label">
-      קטגוריות
-      <span class="required">*</span>
-      {#if selectedCategoryIds.length > 0}
-        <span class="count-pill">{selectedCategoryIds.length}</span>
-      {/if}
-    </span>
-    {#if categories.length === 0}
-      <Notice tone="neutral">אין קטגוריות זמינות.</Notice>
-    {:else}
-      <div class="category-wrap">
-        {#each categories as cat (cat._id)}
-          <Checkbox.Root
-            class="hb-choice tag-choice"
-            checked={selectedCategoryIds.includes(cat._id)}
-            onchange={() => toggleCategory(cat._id)}
-            disabled={step === "uploading"}
+  <div class="upload-form__body">
+    <div class="upload-form__primary">
+      {#if !file}
+        <div
+          class="drop-zone"
+          class:active={isDragOver}
+          ondragover={handleDragOver}
+          ondragleave={handleDragLeave}
+          ondrop={handleDrop}
+          role="region"
+          aria-label="אזור גרירת קובץ וידאו"
+        >
+          <span class="material-symbols-rounded drop-icon" aria-hidden="true">video_file</span>
+          <div class="drop-text">
+            <strong>גררי וידאו לכאן</strong>
+            <span>או בחרי מהמחשב · עד 2GB</span>
+          </div>
+          <label class="browse-wrap">
+            <Button.Root class="hb-button hb-button--ink" type="button">בחירת קובץ</Button.Root>
+            <input type="file" accept="video/*" onchange={handleFileInput} />
+          </label>
+          {#if fileError}
+            <span class="field-error" role="alert">{fileError}</span>
+          {/if}
+        </div>
+      {:else}
+        <div class="file-chip">
+          <span class="material-symbols-rounded file-chip__icon" aria-hidden="true">movie</span>
+          <span class="file-chip__name">{file.name}</span>
+          <span class="file-chip__meta">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+          <Button.Root
+            class="hb-button hb-button--icon hb-button--icon-danger"
+            type="button"
+            onclick={clearFile}
+            aria-label="הסרת קובץ"
           >
-            <span class="hb-choice__title">{cat.name}</span>
-          </Checkbox.Root>
-        {/each}
+            <span class="material-symbols-rounded">close</span>
+          </Button.Root>
+        </div>
+      {/if}
+
+      <label class="field" class:invalid={titleError !== null}>
+        <span class="field-label">כותרת השיעור <span class="required" aria-hidden="true">*</span></span>
+        <input
+          type="text"
+          bind:value={title}
+          placeholder="לדוגמה: יסודות רפורמר למתחילות"
+          maxlength="120"
+          disabled={step === "uploading"}
+          autocomplete="off"
+        />
+        {#if titleError}
+          <span class="field-error" role="alert">{titleError}</span>
+        {/if}
+      </label>
+
+      <label class="field">
+        <span class="field-label">תיאור (אופציונלי)</span>
+        <textarea
+          bind:value={description}
+          placeholder="מה נעשה בשיעור? למי הוא מתאים?"
+          maxlength="500"
+          rows="3"
+          disabled={step === "uploading"}
+        ></textarea>
+      </label>
+    </div>
+
+    <div class="upload-form__meta">
+      <div class="field-group access-grid">
+        <span class="field-label">איך לקוחות יגיעו לשיעור? <span class="required" aria-hidden="true">*</span></span>
+        <RadioGroup.Root bind:value={accessKind} orientation="horizontal" class="hb-choice-grid">
+          {#each accessOptions as option}
+            <RadioGroup.Item value={option.value} class="hb-choice">
+              <span class="hb-choice__title">{option.label}</span>
+              <span class="hb-choice__description">{option.description}</span>
+            </RadioGroup.Item>
+          {/each}
+        </RadioGroup.Root>
       </div>
-    {/if}
-    {#if categoryError}
-      <span class="field-error">{categoryError}</span>
-    {/if}
+
+      <div class="field-group" class:invalid={categoryError !== null}>
+        <span class="field-label">
+          קטגוריות
+          <span class="required" aria-hidden="true">*</span>
+          {#if selectedCategoryIds.length > 0}
+            <span class="count-pill">{selectedCategoryIds.length}</span>
+          {/if}
+        </span>
+        {#if categories.length === 0}
+          <Notice tone="neutral">עדיין אין קטגוריות במערכת. פני למנהלת להוספה.</Notice>
+        {:else}
+          <div class="category-grid">
+            {#each categories as cat (cat._id)}
+              <Checkbox.Root
+                class="hb-choice"
+                checked={selectedCategoryIds.includes(cat._id)}
+                onchange={() => toggleCategory(cat._id)}
+                disabled={step === "uploading"}
+              >
+                <span class="hb-choice__title">{cat.name}</span>
+              </Checkbox.Root>
+            {/each}
+          </div>
+        {/if}
+        {#if categoryError}
+          <span class="field-error" role="alert">{categoryError}</span>
+        {/if}
+      </div>
+
+      <div class="field-group equipment-section">
+        <EquipmentPicker bind:selected={requiredEquipment} label="ציוד בשיעור" disabled={step === "uploading"} />
+      </div>
+    </div>
   </div>
 
-  <!-- Equipment -->
-  <div class="field-group">
-    <EquipmentPicker bind:selected={requiredEquipment} compact disabled={step === "uploading"} />
-  </div>
-
-  <!-- Status -->
   {#if step === "uploading"}
-    <div class="status-box uploading">
+    <div class="status-box uploading" role="status" aria-live="polite">
       <div class="status-header">
-        <span>מעלה קובץ...</span>
+        <span>מעלה את הקובץ…</span>
         <span class="status-percent">{Math.round(progress)}%</span>
       </div>
       <Progress.Root class="progress-track" value={progress} max={100}>
@@ -337,29 +327,26 @@
       </Progress.Root>
     </div>
   {:else if step === "success"}
-    <div class="status-box success">
-      <span class="material-symbols-rounded status-icon">check_circle</span>
+    <div class="status-box success" role="status">
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">check_circle</span>
       <div class="status-text">
-        <strong>השיעור הועלה בהצלחה</strong>
-        <span>יופיע בספריה לאחר עיבוד (כ־2–5 דקות)</span>
+        <strong>הועלה בהצלחה</strong>
+        <span>השיעור יופיע בספרייה אחרי עיבוד (בדרך כלל 2–5 דקות).</span>
       </div>
     </div>
   {:else if step === "error"}
-    <div class="status-box error">
-      <span class="material-symbols-rounded status-icon">error</span>
+    <div class="status-box error" role="alert">
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">error</span>
       <span class="status-text">{uploadErrorMsg}</span>
     </div>
   {/if}
 
-  <!-- Actions -->
-  <div class="actions">
+  <div class="upload-form__actions">
     {#if step === "success"}
       <Button.Root class="hb-button hb-button--paper" type="button" onclick={handleReset}>
         העלאת שיעור נוסף
       </Button.Root>
-      <Button.Root class="hb-button hb-button--ink" type="button" onclick={onComplete}>
-        סיום
-      </Button.Root>
+      <Button.Root class="hb-button hb-button--ink" type="button" onclick={onComplete}>סיום</Button.Root>
     {:else}
       <Button.Root
         class="hb-button hb-button--ghost"
@@ -374,11 +361,7 @@
         type="submit"
         disabled={!canSubmit || step === "uploading"}
       >
-        {#if step === "uploading"}
-          מעלה...
-        {:else}
-          העלאה לספריה
-        {/if}
+        {step === "uploading" ? "מעלה…" : "העלאה לספרייה"}
       </Button.Root>
     {/if}
   </div>

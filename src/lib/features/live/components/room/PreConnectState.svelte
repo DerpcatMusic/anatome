@@ -59,11 +59,8 @@
     gap: var(--space-4);
     padding: clamp(28px, 6vw, 72px);
     border: var(--border);
-    background:
-      linear-gradient(135deg, var(--surface), transparent 58%),
-      var(--white);
+    background: var(--elevated);
     text-align: center;
-    backdrop-filter: blur(18px);
   }
 
   .entry-state h2 {
@@ -80,7 +77,7 @@
   .entry-state__spinner {
     width: 42px;
     height: 42px;
-    border: 3px solid var(--secondary);
+    border: 3px solid color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
     border-top-color: var(--ink);
     border-radius: 50%;
     animation: spin 0.75s linear infinite;

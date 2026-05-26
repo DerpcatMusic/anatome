@@ -130,7 +130,7 @@
     border-radius: 50%;
     border: var(--border);
     overflow: hidden;
-    background: linear-gradient(145deg, var(--surface), var(--white));
+    background: var(--accent-soft);
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -145,7 +145,7 @@
   .avatar-upload__initials {
     font-size: var(--step-2);
     font-weight: 800;
-    color: var(--secondary);
+    color: var(--primary);
   }
 
   .avatar-upload__actions {

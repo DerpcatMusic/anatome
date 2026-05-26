@@ -1,5 +1,6 @@
 <script lang="ts">
   import HorizontalVideoRow, { type RowVideo } from "./HorizontalVideoRow.svelte";
+  import "../videos-feature.css";
 
   export type CategoryGroup = {
     category: {
@@ -13,10 +14,24 @@
   let {
     groups = [],
     pendingId = null,
+    eyebrow = "",
+    title = "תרגולים ממוקדים",
+    description = "",
+    categoryEmptyMessage = "אין שיעורים בקטגוריה.",
+    sectionsEmptyMessage = "אין קטגוריות.",
+    statusLabelFor,
+    useLockGlyph = false,
     onSelect,
   }: {
     groups?: CategoryGroup[];
     pendingId?: string | null;
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    categoryEmptyMessage?: string;
+    sectionsEmptyMessage?: string;
+    statusLabelFor?: (video: RowVideo) => string;
+    useLockGlyph?: boolean;
     onSelect: (video: RowVideo) => void;
   } = $props();
 
@@ -30,11 +45,13 @@
 
 <section class="microflow-section" aria-labelledby="microflow-heading">
   <header class="microflow-section__intro">
-    <p class="microflow-section__eyebrow">Microflow</p>
-    <h2 id="microflow-heading" class="microflow-section__title">שיעורים לפי נושא</h2>
-    <p class="microflow-section__desc">
-      נפתחים עם מנוי פעיל — גללי בין הקטגוריות ובחרי שיעור.
-    </p>
+    {#if eyebrow}
+      <p class="videos-eyebrow videos-eyebrow--video">{eyebrow}</p>
+    {/if}
+    <h2 id="microflow-heading" class="microflow-section__title">{title}</h2>
+    {#if description}
+      <p class="microflow-section__desc">{description}</p>
+    {/if}
   </header>
 
   <div class="microflow-section__rows">
@@ -43,12 +60,14 @@
         title={group.category.name}
         subtitle={group.category.description}
         videos={group.items}
-        emptyMessage="עדיין אין שיעורי Microflow בקטגוריה הזו."
+        emptyMessage={categoryEmptyMessage}
         {pendingId}
+        {statusLabelFor}
+        {useLockGlyph}
         {onSelect}
       />
     {:else}
-      <p class="microflow-section__empty">אין קטגוריות פעילות כרגע.</p>
+      <p class="microflow-section__empty">{sectionsEmptyMessage}</p>
     {/each}
   </div>
 </section>
@@ -59,7 +78,7 @@
     gap: var(--space-5);
     padding: var(--space-5);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     min-width: 0;
   }
 
@@ -67,16 +86,6 @@
     display: grid;
     gap: var(--space-2);
     max-width: 52ch;
-  }
-
-  .microflow-section__eyebrow {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--primary);
-    font-weight: 800;
   }
 
   .microflow-section__title {

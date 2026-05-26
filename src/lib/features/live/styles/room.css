@@ -27,8 +27,8 @@
   --lr-dock-border: 1px solid oklch(100% 0 0 / 0.1);
   --lr-chip-bg: oklch(100% 0 0 / 0.1);
   --lr-bar-edge: oklch(100% 0 0 / 0.12);
-  --lr-on-tint: color-mix(in oklch, var(--secondary) 28%, oklch(100% 0 0 / 0.08));
-  --lr-on-ring: color-mix(in oklch, var(--secondary) 45%, transparent);
+  --lr-on-tint: color-mix(in oklch, var(--secondary-cool) 28%, oklch(100% 0 0 / 0.08));
+  --lr-on-ring: color-mix(in oklch, var(--secondary-cool) 45%, transparent);
   --lr-control-off-bg: transparent;
   --lr-header-btn-bg: oklch(100% 0 0 / 0.08);
   --lr-header-btn-hover: oklch(100% 0 0 / 0.14);
@@ -53,8 +53,8 @@ html[data-theme="light"] .lr-room {
   --lr-dock-border: 1px solid var(--line-light);
   --lr-chip-bg: color-mix(in oklch, var(--ink) 4%, var(--surface));
   --lr-bar-edge: var(--line-light);
-  --lr-on-tint: color-mix(in oklch, var(--secondary) 22%, var(--surface));
-  --lr-on-ring: color-mix(in oklch, var(--secondary) 50%, var(--line-light));
+  --lr-on-tint: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
+  --lr-on-ring: color-mix(in oklch, var(--secondary-cool) 50%, var(--line-light));
   --lr-header-btn-bg: color-mix(in oklch, var(--ink) 5%, var(--surface));
   --lr-header-btn-hover: color-mix(in oklch, var(--ink) 8%, var(--surface));
   --lr-border: 1px solid var(--line-light);
@@ -152,7 +152,7 @@ html[data-theme="dark"] .lr-room {
 }
 
 .lr-tile--self {
-  outline: 2px solid var(--secondary);
+  outline: 2px solid var(--secondary-cool);
   outline-offset: -2px;
 }
 
@@ -519,8 +519,8 @@ html[data-theme="dark"] .lr-room {
   height: 1rem;
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--secondary);
-  color: var(--white);
+  background: color-mix(in oklch, var(--secondary-cool) 88%, var(--lr-dock-bg));
+  color: var(--lr-text);
   font-family: var(--font-mono);
   font-size: 0.65rem;
   font-weight: 900;
@@ -688,7 +688,7 @@ html[data-theme="dark"] .lr-room {
 
 .lr-chat__input:focus {
   outline: none;
-  border-color: color-mix(in oklch, var(--secondary) 40%, var(--lr-bar-edge));
+  border-color: color-mix(in oklch, var(--secondary-cool) 40%, var(--lr-bar-edge));
 }
 
 .lr-chat__empty {
@@ -702,9 +702,9 @@ html[data-theme="dark"] .lr-room {
 }
 
 .lr-room .lr-chat__form .hb-button--ink {
-  background: var(--secondary);
-  color: var(--white);
-  border: none;
+  background: color-mix(in oklch, var(--secondary-cool) 75%, var(--lr-chip-bg));
+  color: var(--lr-text);
+  border: 1px solid color-mix(in oklch, var(--secondary-cool) 45%, var(--lr-bar-edge));
 }
 
 /* ── Participants ── */
@@ -969,6 +969,31 @@ html[data-theme="dark"] .lr-room {
 .lr-glass-strong {
   background: var(--lr-surface);
   border: var(--lr-border);
+}
+
+/* Global control chips inside conference chrome — no nested white boxes */
+.lr-room .hb-button--control,
+.lr-room .hb-media-split {
+  background: var(--lr-control-off-bg);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.lr-room .hb-button--control:hover:not(:disabled),
+.lr-room .hb-media-split:hover {
+  background: var(--lr-chip-bg);
+  border-color: transparent;
+  border-radius: var(--lr-bar-radius);
+}
+
+.lr-room .hb-button--control-on,
+.lr-room .hb-button--control-active,
+.lr-room .hb-button--control-participants-on,
+.lr-room .hb-media-split--on {
+  background: var(--lr-on-tint);
+  border-color: transparent;
+  color: var(--lr-text);
+  box-shadow: 0 0 0 1px var(--lr-on-ring);
 }
 
 @media (max-width: 48rem) {

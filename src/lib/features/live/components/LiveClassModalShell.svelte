@@ -7,7 +7,7 @@
     onClose,
     title,
     icon = "edit_calendar",
-    iconColor = "var(--secondary)",
+    iconColor = "var(--secondary-cool)",
     children,
     wide = false,
   }: {
@@ -82,7 +82,7 @@
     left: 50%;
     transform: translate(-50%, calc(-50% + 6px));
     z-index: 101;
-    background: var(--white);
+    background: var(--elevated);
     border: var(--border);
     border-radius: 6px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);

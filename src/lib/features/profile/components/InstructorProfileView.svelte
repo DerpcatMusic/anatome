@@ -42,7 +42,7 @@
   .profile-view {
     border: var(--border);
     padding: var(--space-6);
-    background: linear-gradient(135deg, var(--white), var(--surface));
+    background: var(--elevated);
     display: grid;
     gap: var(--space-5);
   }

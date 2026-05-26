@@ -25,15 +25,24 @@
   .live-alert {
     border: var(--border);
     background: var(--ink);
-    color: var(--white);
-    padding: var(--space-4);
+    color: var(--on-primary);
+    padding: var(--space-3) var(--space-4);
     text-decoration: none;
-    width: fit-content;
+    width: 100%;
+    max-width: 36rem;
+    min-width: 0;
   }
 
-  .live-alert strong, .live-alert small { display: block; }
+  .live-alert strong,
   .live-alert small {
-    color: rgba(255, 255, 255, 0.72);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .live-alert small {
+    color: var(--on-primary-muted);
     margin-top: 2px;
   }
 

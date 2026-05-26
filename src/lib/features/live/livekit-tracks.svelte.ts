@@ -174,14 +174,24 @@ export function createLiveKitStageTracks(options: LiveKitStageTracksOptions) {
     videoTiles.find((tile) => tile.isLocal && tile.source !== "screen_share") ?? null,
   );
 
-  return {
-    videoTiles,
-    screenShareTiles,
-    hasScreenShare,
-    primaryInstructorVideo,
-    selfVideo,
+  const stage = $state({
+    videoTiles: [] as StageTrackTile[],
+    screenShareTiles: [] as StageTrackTile[],
+    hasScreenShare: false,
+    primaryInstructorVideo: null as StageTrackTile | null,
+    selfVideo: null as StageTrackTile | null,
     tileSort: stageTileSort,
-  };
+  });
+
+  $effect(() => {
+    stage.videoTiles = videoTiles;
+    stage.screenShareTiles = screenShareTiles;
+    stage.hasScreenShare = hasScreenShare;
+    stage.primaryInstructorVideo = primaryInstructorVideo;
+    stage.selfVideo = selfVideo;
+  });
+
+  return stage;
 }
 
 /** Mount a stage tile without destroying its element (hook owns lifecycle). */

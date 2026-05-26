@@ -361,8 +361,9 @@
   }
 
   .type-badge--group {
-    border-color: var(--secondary);
-    color: var(--secondary);
+    border-color: color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
+    color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated));
   }
 
   .type-badge--one-on-one {
@@ -578,7 +579,7 @@
 
   .details-section {
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     padding: var(--space-4);
     display: flex;
     flex-direction: column;

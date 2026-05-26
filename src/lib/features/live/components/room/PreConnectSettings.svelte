@@ -470,10 +470,9 @@
     display: grid;
     align-content: start;
     gap: var(--space-4);
-    border: var(--glass-border);
-    background: var(--glass-bg);
+    border: 1px solid var(--line-light);
+    background: transparent;
     padding: var(--space-4);
-    backdrop-filter: var(--glass-blur);
     direction: rtl;
   }
 
@@ -540,7 +539,8 @@
 
   .preset-btn--active {
     background: var(--surface);
-    border-color: var(--secondary);
+    border-color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated));
   }
 
   .preset-btn__title {
@@ -560,7 +560,7 @@
     padding: var(--space-2) 0;
     border: 0;
     background: transparent;
-    color: var(--secondary);
+    color: var(--secondary-cool);
     font: inherit;
     font-size: var(--step--1);
     font-weight: 700;

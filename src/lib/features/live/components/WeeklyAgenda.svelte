@@ -388,7 +388,7 @@
     pointer: availabilityPaintMode,
     nowIndicator: true,
     customScrollbars: true,
-    selectBackgroundColor: "var(--secondary)",
+    selectBackgroundColor: "var(--secondary-cool)",
     longPressDelay: isCoarsePointer ? 450 : 600,
 
     headerToolbar: {
@@ -662,12 +662,12 @@
   }
 
   :global(.weekly-agenda-container .ec-highlight) {
-    outline: 2px solid var(--secondary);
+    outline: 2px solid var(--secondary-cool);
     outline-offset: -1px;
   }
 
   :global(.weekly-agenda-container .ec-selecting .ec-day) {
-    outline: 2px dashed var(--secondary);
+    outline: 2px dashed var(--secondary-cool);
     outline-offset: -1px;
   }
 

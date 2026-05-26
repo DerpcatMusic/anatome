@@ -8,7 +8,9 @@
     children: import("svelte").Snippet;
   } = $props();
 
-  const isFullbleed = $derived(page.url.pathname === "/i/live");
+  const isFullbleed = $derived(
+    page.url.pathname === "/i/live" || page.url.pathname === "/u/library",
+  );
 </script>
 
 <div class="app-layout">

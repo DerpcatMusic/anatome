@@ -10,7 +10,8 @@ Warm, trustworthy, anatomically precise — **not** flashy fitness marketing. Vo
 
 ## Aesthetic Direction
 
-- **Landing palette (scoped to `.landing`):** vibrant coral, peach, honey, blush — warm and inviting; app chrome uses global tokens.
+- **Landing palette (scoped to `.landing`):** vibrant coral, peach, honey, blush — warm and inviting.
+- **App chrome (`tokens.css`):** vibrant pink primary, soft blush secondary; cool blue (`--secondary-cool`) for live/video only. Surface stack: `--paper` (canvas) → `--surface` (inset) → `--elevated` (cards).
 - **Anti-patterns:** dual warm+cool gradients on one surface, emoji clutter, MacroFlow jargon in headlines, generic AI loading copy, bounce/elastic motion on marketing UI.
 - Light + dark theme; RTL-first layout.
 - Typography: Secular One display, Assistant body, Gveret Levin sparingly for personal letter moments.

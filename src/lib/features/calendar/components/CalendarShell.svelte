@@ -244,7 +244,6 @@
 </script>
 
 <PageShell
-  kicker={t.calendar.kicker()}
   title={t.calendar.title()}
   {loading}
   error={errorMessage}
@@ -287,8 +286,6 @@
   {/snippet}
 
   <div class="calendar-shell">
-    <p class="calendar-shell__lead">{t.calendar.description()}</p>
-
     {#if showOneOnOneRequest && pendingRequests.length > 0}
       <div class="one-on-one-pending" role="region" aria-labelledby="one-on-one-pending-heading">
         <div class="one-on-one-pending__banner">
@@ -371,7 +368,7 @@
     min-height: 36px;
     padding: var(--space-1) var(--space-3);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     font: inherit;
     font-weight: 800;
     font-size: var(--step--1);
@@ -419,9 +416,9 @@
 
   .one-on-one-pending {
     border: var(--border);
-    border-inline-start: 3px solid var(--secondary);
+    border-inline-start: 3px solid var(--primary);
     border-radius: 4px;
-    background: var(--white);
+    background: var(--elevated);
     overflow: hidden;
   }
 
@@ -430,12 +427,12 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    background: color-mix(in oklch, var(--secondary) 8%, var(--surface));
+    background: var(--accent-soft);
     border-bottom: 1px solid var(--line-light);
   }
 
   .one-on-one-pending__icon {
-    color: var(--secondary);
+    color: var(--primary);
     font-size: 1.25rem;
   }
 

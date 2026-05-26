@@ -1,5 +1,1 @@
-<script>
-  import VideosShell from "$features/videos/components/VideosShell.svelte";
-</script>
-
-<VideosShell />
+<!-- Redirect handled in +page.ts → /u/library -->

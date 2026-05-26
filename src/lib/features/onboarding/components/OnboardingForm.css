@@ -49,7 +49,7 @@
 
 /* ─── Left panel: form + white ─── */
 .panel--form {
-  background: var(--white);
+  background: var(--elevated);
 }
 
 .panel--form .panel__inner {
@@ -165,7 +165,7 @@
 
 .success-mark {
   font-size: var(--step-4);
-  color: var(--secondary);
+  color: var(--primary);
   line-height: 1;
 }
 

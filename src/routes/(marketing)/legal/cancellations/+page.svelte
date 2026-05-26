@@ -4,6 +4,9 @@
 </svelte:head>
 
 <main class="legal-page">
+  <nav class="legal-nav" aria-label="ניווט">
+    <a href="/">חזרה לדף הבית</a>
+  </nav>
   <article>
     <p class="eyebrow">מסמך טיוטה לעו"ד</p>
     <h1>מדיניות ביטולים והחזרים</h1>
@@ -35,7 +38,3 @@
     </section>
   </article>
 </main>
-
-<style>
-  @import "../legal.css";
-</style>

@@ -61,28 +61,30 @@
     { question: t.landing.faq.q7(), answer: t.landing.faq.a7() },
   ]);
 
-  const howToSteps = [
+  const howToSteps = $derived([
     { position: 1, name: t.landing.schema.step1Name(), text: t.landing.schema.step1Text() },
     { position: 2, name: t.landing.schema.step2Name(), text: t.landing.schema.step2Text() },
     { position: 3, name: t.landing.schema.step3Name(), text: t.landing.schema.step3Text() },
-  ];
+  ]);
 
-  const jsonLd = schemaGraph(
-    websiteSchema(),
-    organizationSchema(),
-    localBusinessSchema(),
-    offerCatalogSchema(),
-    courseSchema(),
-    faqPageSchema(faqItems),
-    howToSchema(t.landing.schema.howToTitle(), t.landing.schema.howToDescription(), howToSteps),
-    medicalWebPageSchema(t.landing.seo.pageTitle(), SITE.description, pageUrl, today),
-    personSchema(
-      INSTRUCTOR.name,
-      INSTRUCTOR.story,
-      t.landing.instructor.subtitle(),
-      t.landing.schema.instructorMentor()
+  const jsonLd = $derived(
+    schemaGraph(
+      websiteSchema(),
+      organizationSchema(),
+      localBusinessSchema(),
+      offerCatalogSchema(),
+      courseSchema(),
+      faqPageSchema(faqItems),
+      howToSchema(t.landing.schema.howToTitle(), t.landing.schema.howToDescription(), howToSteps),
+      medicalWebPageSchema(t.landing.seo.pageTitle(), SITE.description, pageUrl, today),
+      personSchema(
+        INSTRUCTOR.name,
+        INSTRUCTOR.story,
+        t.landing.instructor.subtitle(),
+        t.landing.schema.instructorMentor(),
+      ),
+      breadcrumbSchema([{ name: t.landing.seo.breadcrumbHome(), url: SITE.domain }]),
     ),
-    breadcrumbSchema([{ name: t.landing.seo.breadcrumbHome(), url: SITE.domain }])
   );
 </script>
 
@@ -123,13 +125,15 @@
       <div class="l-shell cta l-in">
         <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
         <p class="cta__lead">{t.landing.cta.subheadline()}</p>
-        <Button.Root
-          class="hb-button hb-button--brand hb-button--pill"
-          type="button"
-          onclick={openAuthOverlay}
-        >
-          {t.landing.cta.button()}
-        </Button.Root>
+        <div class="l-actions l-actions--center">
+          <Button.Root
+            class="hb-button hb-button--brand"
+            type="button"
+            onclick={openAuthOverlay}
+          >
+            {t.landing.cta.button()}
+          </Button.Root>
+        </div>
         <p class="cta__note">{t.landing.cta.note()}</p>
       </div>
     </section>

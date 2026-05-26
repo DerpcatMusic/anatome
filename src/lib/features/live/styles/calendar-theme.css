@@ -133,7 +133,7 @@
   background: var(--ec-bg-color);
 }
 
-/* ── Events: group = sky (--secondary), 1:1 + availability = crimson (--primary) ── */
+/* ── Events: group = cool live blue (--secondary-cool), 1:1 + availability = pink (--primary) ── */
 .ec-event {
   border-radius: 3px;
   border: 1px solid transparent;
@@ -167,9 +167,9 @@
 
 .ec-event.ec-event-type--group_live {
   z-index: 3;
-  background: var(--secondary);
-  border-inline-start-color: var(--secondary);
-  border-color: var(--secondary);
+  background: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
+  border-inline-start-color: var(--secondary-cool);
+  border-color: color-mix(in oklch, var(--secondary-cool) 40%, var(--line-light));
   color: var(--ink);
 }
 
@@ -352,9 +352,9 @@
   z-index: 1000;
   user-select: none;
   opacity: 1;
-  border-inline-start-color: var(--secondary);
-  background: var(--secondary);
-  border-color: var(--secondary);
+  border-inline-start-color: var(--secondary-cool);
+  background: color-mix(in oklch, var(--secondary-cool) 28%, var(--surface));
+  border-color: color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
   color: var(--ink);
   border-radius: 3px;
   overflow: visible;
@@ -366,7 +366,7 @@
 }
 
 .ec-event.ec-preview.ec-quick-create-preview {
-  outline: 2px solid var(--secondary);
+  outline: 2px solid var(--secondary-cool);
   outline-offset: -1px;
 }
 
@@ -388,7 +388,7 @@
 .ec-event.ec-preview.ec-quick-create-preview:hover .ec-event-resizer,
 .ec-event.ec-preview.ec-quick-create-preview.ec-resizing .ec-event-resizer {
   opacity: 1;
-  background: var(--secondary);
+  background: var(--secondary-cool);
 }
 
 .ec-event.ec-preview.ec-quick-create-preview:active {

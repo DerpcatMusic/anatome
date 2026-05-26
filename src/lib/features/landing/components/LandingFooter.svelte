@@ -21,7 +21,10 @@
       <a href="/legal/health">הצהרת בריאות</a>
     </nav>
 
-    <a class="landing-footer__email" href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
+    <div class="landing-footer__contact">
+      <span class="landing-footer__contact-label">יצירת קשר</span>
+      <a class="landing-footer__email" href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
+    </div>
   </div>
 
   <div class="l-shell landing-footer__meta">

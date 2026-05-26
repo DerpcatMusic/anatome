@@ -33,10 +33,9 @@
       <Dialog.Title class="redeem-dialog__title">לפתוח את השיעור?</Dialog.Title>
       <Dialog.Description class="redeem-dialog__desc">
         {#if video}
-          פעולה זו תשתמש בקרדיט Macroflow אחד עבור «{video.title}» ({durationLabel(video.durationSeconds)}).
-          לאחר הפתיחה השיעור נשאר שלך לצמיתות.
+          קרדיט אחד עבור «{video.title}» ({durationLabel(video.durationSeconds)}). השיעור נשאר שלך.
         {:else}
-          פעולה זו תשתמש בקרדיט Macroflow אחד. לאחר הפתיחה השיעור נשאר שלך לצמיתות.
+          קרדיט אחד. השיעור נשאר שלך.
         {/if}
       </Dialog.Description>
 
@@ -46,7 +45,7 @@
       </div>
 
       {#if !canRedeem}
-        <p class="redeem-dialog__warn">אין מספיק קרדיטים לפתיחת שיעור חדש.</p>
+        <p class="redeem-dialog__warn">אין מספיק קרדיטים.</p>
       {/if}
 
       <div class="redeem-dialog__actions">

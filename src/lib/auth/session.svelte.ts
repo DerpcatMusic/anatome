@@ -75,6 +75,31 @@ let state = $state<AuthState>({
 
 const expiredSessionMessage = "החיבור פג. אפשר להיכנס מחדש עם קוד חד־פעמי.";
 const authNetworkTimeoutMs = 7000;
+const RETURN_TO_KEY = "anatome:returnTo";
+
+const RETURN_TO_ALLOW = ["/library", "/u/library", "/watch"] as const;
+
+function isAllowedReturnTo(path: string): boolean {
+  if (!path.startsWith("/") || path.startsWith("//")) return false;
+  if (path.includes("://")) return false;
+  return RETURN_TO_ALLOW.some(
+    (allowed) => path === allowed || path.startsWith(`${allowed}?`),
+  );
+}
+
+/** Remember where to land after sign-in (browse / watch intent). */
+export function setReturnTo(path: string) {
+  if (typeof window === "undefined" || !isAllowedReturnTo(path)) return;
+  sessionStorage.setItem(RETURN_TO_KEY, path);
+}
+
+export function consumeReturnTo(): string | null {
+  if (typeof window === "undefined") return null;
+  const stored = sessionStorage.getItem(RETURN_TO_KEY);
+  sessionStorage.removeItem(RETURN_TO_KEY);
+  if (stored === null || !isAllowedReturnTo(stored)) return null;
+  return stored;
+}
 
 async function withTimeout<T>(promise: Promise<T>, message: string) {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -376,6 +401,13 @@ export async function completeSignIn() {
   }
 
   setCachedRole(session.role);
+
+  const returnTo = consumeReturnTo();
+  if (returnTo !== null) {
+    window.location.assign(returnTo);
+    return;
+  }
+
   window.location.assign(dashboardPathForRole(session.role, session.needsOnboarding));
 }
 

@@ -1,11 +1,63 @@
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { isLiveSidebarEligible } from "../lib/liveSidebar";
+import type { Doc } from "../_generated/dataModel";
+
+// #region agent log
+function agentLog(
+  hypothesisId: string,
+  location: string,
+  message: string,
+  data: Record<string, unknown>,
+) {
+  void fetch("http://127.0.0.1:7635/ingest/0058f30b-7dc0-4748-98aa-19722c5574a5", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "dcdf18" },
+    body: JSON.stringify({
+      sessionId: "dcdf18",
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+}
+// #endregion
+
+function toNextLivePayload(liveClass: Doc<"liveClasses">, branch: string, now: number) {
+  const eligible = isLiveSidebarEligible(liveClass, now);
+  const payload = {
+    classId: liveClass._id,
+    title: liveClass.title,
+    status: liveClass.status,
+    startsAt: liveClass.startsAt,
+    joinOpensAt: liveClass.joinOpensAt,
+    joinClosesAt: liveClass.joinClosesAt,
+    type: liveClass.type,
+  };
+  // #region agent log
+  agentLog("H1", "convex/live/next.ts:toNextLivePayload", "sidebar candidate", {
+    branch,
+    now,
+    eligible,
+    classId: liveClass._id.toString(),
+    status: liveClass.status,
+    startsAt: liveClass.startsAt,
+    joinOpensAt: liveClass.joinOpensAt,
+    joinClosesAt: liveClass.joinClosesAt,
+  });
+  // #endregion
+  return eligible ? payload : null;
+}
 
 export const get = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
+
+    const now = Date.now();
 
     const profiles = await ctx.db
       .query("appProfiles")
@@ -20,29 +72,22 @@ export const get = query({
           q.eq("instructorUserId", userId).eq("status", "live"),
         )
         .order("asc")
-        .take(1);
-      if (live[0] !== undefined) {
-        return {
-          classId: live[0]._id,
-          title: live[0].title,
-          status: live[0].status,
-          startsAt: live[0].startsAt,
-        };
+        .take(10);
+      for (const row of live) {
+        const hit = toNextLivePayload(row, "instructor-live", now);
+        if (hit) return hit;
       }
+
       const scheduled = await ctx.db
         .query("liveClasses")
         .withIndex("by_instructorUserId_and_status_and_startsAt", (q) =>
           q.eq("instructorUserId", userId).eq("status", "scheduled"),
         )
         .order("asc")
-        .take(1);
-      if (scheduled[0] !== undefined) {
-        return {
-          classId: scheduled[0]._id,
-          title: scheduled[0].title,
-          status: scheduled[0].status,
-          startsAt: scheduled[0].startsAt,
-        };
+        .take(30);
+      for (const row of scheduled) {
+        const hit = toNextLivePayload(row, "instructor-scheduled", now);
+        if (hit) return hit;
       }
     }
 
@@ -62,16 +107,16 @@ export const get = query({
         continue;
       const liveClass = liveClasses[i];
       if (liveClass === null) continue;
-      if (liveClass.status === "ended" || liveClass.status === "cancelled")
-        continue;
-      return {
-        classId: liveClass._id,
-        title: liveClass.title,
-        status: liveClass.status,
-        startsAt: liveClass.startsAt,
-      };
+      const hit = toNextLivePayload(liveClass, "customer-reservation", now);
+      if (hit) return hit;
     }
 
+    // #region agent log
+    agentLog("H5", "convex/live/next.ts:done", "no eligible next live", {
+      userId: userId.toString(),
+      role: profile?.role ?? null,
+    });
+    // #endregion
     return null;
   },
 });

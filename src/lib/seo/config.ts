@@ -38,8 +38,11 @@ export const SITE = {
   dir: "rtl" as const,
   themeColor: "#faf8f3",
   ogImage: "/og-image.webp",
-  /** Full-bleed hero video — add `static/media/hero-yuval.mp4` (see static/media/README.md) */
-  heroVideo: "/media/hero-yuval.mp4",
+  /**
+   * Full-bleed hero video — set when `static/media/hero-yuval.mp4` exists (see static/media/README.md).
+   * Leave null in dev to avoid 404 until the asset is added.
+   */
+  heroVideo: null as string | null,
   heroPoster: "/og-image.webp",
   twitterHandle: "@anatomepilates",
   founded: "2024",

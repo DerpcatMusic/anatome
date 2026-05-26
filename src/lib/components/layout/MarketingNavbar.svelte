@@ -32,6 +32,8 @@
 		</a>
 
 		<div class="navbar__actions">
+			<a class="navbar__link" href="/library">{t.nav.library()}</a>
+
 			<Button.Root
 				class="hb-button hb-button--icon navbar__theme"
 				type="button"
@@ -43,7 +45,7 @@
 			</Button.Root>
 
 			<Button.Root
-				class="hb-button hb-button--brand hb-button--pill navbar__cta"
+				class="hb-button hb-button--brand navbar__cta"
 				type="button"
 				onclick={openAuth}
 			>
@@ -60,17 +62,17 @@
 		z-index: 50;
 		height: 56px;
 		direction: rtl;
-		background: color-mix(in oklch, var(--paper) 88%, transparent);
+		background: var(--glass-bg);
 		border-bottom: 1px solid transparent;
-		backdrop-filter: blur(14px);
-		-webkit-backdrop-filter: blur(14px);
+		backdrop-filter: var(--glass-blur);
+		-webkit-backdrop-filter: var(--glass-blur);
 		transition:
-			background 0.2s ease,
-			border-color 0.2s ease;
+			background var(--duration-base) ease,
+			border-color var(--duration-base) ease;
 	}
 
 	.navbar--scrolled {
-		background: color-mix(in oklch, var(--paper) 94%, transparent);
+		background: var(--glass-strong-bg);
 		border-bottom-color: var(--line-light);
 	}
 
@@ -100,6 +102,24 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
+	}
+
+	.navbar__link {
+		font-size: var(--step--1);
+		font-weight: 700;
+		color: var(--ink);
+		text-decoration: none;
+		padding: 0.35rem 0.5rem;
+		border-radius: var(--radius-sm, 4px);
+	}
+
+	.navbar__link:hover {
+		color: var(--primary);
+	}
+
+	.navbar__link:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 3px;
 	}
 
 	.navbar :global(.navbar__theme) {

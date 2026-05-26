@@ -29,12 +29,12 @@
 }
 
 .agenda-card--list:hover:not(.agenda-card--disabled) {
-  background: color-mix(in oklch, var(--surface) 55%, transparent);
+  background: var(--accent-soft);
 }
 
 .agenda-card--list.agenda-card--group,
 .agenda-card--list.agenda-card--pane-group {
-  border-inline-start-color: color-mix(in oklch, var(--secondary) 55%, transparent);
+  border-inline-start-color: color-mix(in oklch, var(--secondary-cool) 55%, transparent);
 }
 
 .agenda-card--list.agenda-card--private,
@@ -105,30 +105,22 @@
 }
 
 .agenda-card--group:not(.agenda-card--list) {
-  border-inline-start: 3px solid var(--secondary);
+  border-inline-start: 3px solid var(--secondary-cool);
   background: linear-gradient(
     to inline-end,
-    color-mix(in oklch, var(--secondary) 5%, var(--white)),
-    var(--white) 38%
+    color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated)),
+    var(--elevated) 38%
   );
 }
 
 .agenda-card--private:not(.agenda-card--list) {
   border-inline-start: 3px solid var(--primary);
-  background: linear-gradient(
-    to inline-end,
-    color-mix(in oklch, var(--primary) 4%, var(--white)),
-    var(--white) 38%
-  );
+  background: linear-gradient(to inline-end, var(--accent-soft), var(--elevated) 38%);
 }
 
 .agenda-card--request-day:not(.agenda-card--list) {
   border-inline-start: 3px solid var(--primary);
-  background: linear-gradient(
-    to inline-end,
-    color-mix(in oklch, var(--primary) 6%, var(--surface)),
-    var(--white) 40%
-  );
+  background: linear-gradient(to inline-end, var(--accent-soft), var(--elevated) 40%);
 }
 
 .agenda-card--disabled {
@@ -273,8 +265,8 @@
 }
 
 .agenda-status-badge--live {
-  background: color-mix(in oklch, var(--secondary) 12%, var(--surface));
-  color: var(--secondary);
+  background: color-mix(in oklch, var(--secondary-cool) 12%, var(--surface));
+  color: var(--secondary-cool);
 }
 
 .agenda-status-badge--live-private {

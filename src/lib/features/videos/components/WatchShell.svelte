@@ -8,6 +8,7 @@
   import Notice from "$components/ui/Notice.svelte";
   import MuxPlayer from "$components/video/MuxPlayer.svelte";
   import { useConvexClient } from "convex-svelte";
+  import "../videos-feature.css";
 
   const auth = initAuth();
 
@@ -43,29 +44,29 @@
 </script>
 
 {#if auth.isLoading}
-  <div class="state-card">
+  <div class="videos-state-card">
     <div class="skeleton skeleton--large"></div>
     <div class="skeleton"></div>
   </div>
 {:else if !auth.isAuthenticated}
-  <div class="state-card">
-    <p class="eyebrow">חשבון נעול</p>
+  <div class="videos-state-card">
+    <p class="videos-eyebrow">חשבון נעול</p>
     <h2>צריך להתחבר כדי לצפות בווידאו</h2>
     <a class="button-link" href="/">כניסה</a>
   </div>
 {:else if !videoId}
-  <div class="state-card">
+  <div class="videos-state-card">
     <Notice tone="danger">לא צוין מזהה וידאו</Notice>
-    <a class="button-link" href="/u/videos">חזרה לספרייה</a>
+    <a class="button-link" href="/u/library">חזרה לספרייה</a>
   </div>
 {:else if playbackResource.error}
-  <div class="state-card">
+  <div class="videos-state-card">
     <Notice tone="danger">{playbackResource.error?.message ?? "שגיאה בטעינת הווידאו"}</Notice>
-    <a class="button-link" href="/u/videos">חזרה לספרייה</a>
+    <a class="button-link" href="/u/library">חזרה לספרייה</a>
   </div>
 {:else if playbackData}
   <div class="watch-header">
-    <p class="eyebrow">AnatoMe Video</p>
+    <p class="videos-eyebrow videos-eyebrow--video">AnatoMe Video</p>
     <h1>{playbackData.video.title}</h1>
   </div>
 
@@ -106,7 +107,7 @@
     <p class="desc">{playbackData.video.description}</p>
   </div>
 {:else}
-  <div class="state-card">
+  <div class="videos-state-card">
     <div class="skeleton skeleton--large"></div>
     <div class="skeleton"></div>
   </div>
@@ -119,24 +120,13 @@
     margin: var(--space-2) 0 0;
   }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin: 0;
-  }
-
-  .state-card,
   .meta-card,
   .player-placeholder {
     display: grid;
     gap: var(--space-4);
     padding: var(--space-5);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
   }
 
   .player-placeholder {

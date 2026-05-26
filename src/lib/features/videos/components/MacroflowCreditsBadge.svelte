@@ -21,8 +21,8 @@
     gap: var(--space-3);
     padding: var(--space-2) var(--space-4);
     border: var(--border);
-    background: linear-gradient(135deg, var(--white) 0%, var(--surface) 100%);
-    box-shadow: var(--shadow-sm), inset 0 0 0 2px color-mix(in oklch, var(--secondary) 25%, transparent);
+    background: linear-gradient(135deg, var(--elevated) 0%, var(--surface) 100%);
+    box-shadow: var(--shadow-sm), inset 0 0 0 2px color-mix(in oklch, var(--secondary-cool) 22%, transparent);
     border-radius: 999px;
     min-width: 0;
   }
@@ -33,8 +33,8 @@
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: var(--secondary);
-    color: var(--white);
+    background: var(--secondary-cool);
+    color: var(--on-primary);
     font-size: 0.65rem;
     flex-shrink: 0;
   }

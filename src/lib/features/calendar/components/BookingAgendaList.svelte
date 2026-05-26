@@ -63,10 +63,7 @@
 </script>
 
 {#if isEmpty}
-  <div class="booking-agenda__empty">
-    <p class="booking-agenda__empty-kicker">{t.calendar.empty.upcomingKicker()}</p>
-    <p class="booking-agenda__empty-hint">{t.calendar.empty.upcomingText()}</p>
-  </div>
+  <p class="booking-agenda__empty">{t.calendar.empty.upcomingText()}</p>
 {:else if split}
   <div class="booking-agenda booking-agenda--split">
     <AgendaPane
@@ -160,29 +157,14 @@
   }
 
   .booking-agenda__empty {
-    display: grid;
-    gap: var(--space-3);
-    padding: var(--space-7) var(--space-5);
-    text-align: center;
-    background: var(--white);
+    margin: 0;
+    padding: var(--space-4);
     border: var(--border);
-    border-radius: 12px;
-  }
-
-  .booking-agenda__empty-kicker {
-    margin: 0;
-    font-size: var(--step-0);
-    font-weight: 800;
-    color: var(--ink);
-  }
-
-  .booking-agenda__empty-hint {
-    margin: 0;
-    font-size: var(--step--1);
-    line-height: 1.5;
+    background: var(--elevated);
+    text-align: center;
     color: var(--muted);
-    max-width: 40ch;
-    margin-inline: auto;
+    line-height: 1.5;
+    font-size: var(--step--1);
   }
 
   .booking-agenda__footer {

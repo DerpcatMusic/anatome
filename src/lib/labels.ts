@@ -65,3 +65,15 @@ export function durationLabel(seconds: number | undefined | null): string {
   if (seconds === undefined || seconds === null || seconds <= 0) return "—";
   return `${Math.round(seconds / 60)} דקות`;
 }
+
+/** Instructor-facing labels for video access models (not internal Macroflow/Microflow jargon). */
+export const videoAccessLabels = {
+  macroflow: "רכישה חד-פעמית",
+  microflow: "מנוי בלבד",
+} as const;
+
+export type VideoAccessKind = keyof typeof videoAccessLabels;
+
+export function videoAccessLabel(kind: VideoAccessKind): string {
+  return videoAccessLabels[kind];
+}

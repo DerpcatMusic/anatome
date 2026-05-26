@@ -1,10 +1,7 @@
 <script lang="ts">
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
-  import { ScrollArea } from "bits-ui";
-  import Notice from "$components/ui/Notice.svelte";
   import VideoCard from "./VideoCard.svelte";
-  import "./VideoList.css";
 
   type AccessKind = "macroflow" | "microflow";
 
@@ -32,23 +29,18 @@
     onDelete: (videoId: Id<"videos">) => void;
   }
 
-  let {
-    library = null,
-    actionId = null,
-    onEdit,
-    onPublish,
-    onDelete,
-  }: Props = $props();
+  let { library = null, actionId = null, onEdit, onPublish, onDelete }: Props = $props();
 
   let searchQuery = $state("");
-  let selectedAccessFilter = $state<"all" | "macroflow" | "microflow">("all");
+  let selectedAccessFilter = $state<"all" | AccessKind>("all");
 
-  // Filtering helpers
   function filterVideos(list: Video[]) {
+    const q = searchQuery.trim().toLowerCase();
     return list.filter((video) => {
       const matchesSearch =
-        video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        video.description.toLowerCase().includes(searchQuery.toLowerCase());
+        q.length === 0 ||
+        video.title.toLowerCase().includes(q) ||
+        video.description.toLowerCase().includes(q);
       const matchesAccess = selectedAccessFilter === "all" || video.accessKind === selectedAccessFilter;
       return matchesSearch && matchesAccess;
     });
@@ -59,133 +51,117 @@
 
   const totalPublishedCount = $derived(library?.published.length ?? 0);
   const totalDraftsCount = $derived(library?.drafts.length ?? 0);
+  const hasVideos = $derived(totalPublishedCount + totalDraftsCount > 0);
+  const hasFilteredResults = $derived(filteredPublished.length + filteredDrafts.length > 0);
+
+  const accessFilters = [
+    { id: "all" as const, label: "הכל", ariaLabel: "כל מודלי הגישה" },
+    { id: "macroflow" as const, label: "בקרדיט", ariaLabel: "רכישה חד-פעמית בקרדיט" },
+    { id: "microflow" as const, label: "מנוי", ariaLabel: "מנוי בלבד" },
+  ];
 </script>
 
-<div class="video-library-list">
-  <!-- Search & Filter Controls -->
-  <div class="filter-controls-row">
-    <div class="search-input-wrapper">
-      <span class="material-symbols-rounded search-icon">search</span>
-      <input
-        type="text"
-        bind:value={searchQuery}
-        placeholder="חיפוש שיעורים לפי כותרת או תיאור..."
-        class="search-input"
-      />
-      {#if searchQuery}
-        <button type="button" class="clear-search-button" onclick={() => searchQuery = ""} aria-label="נקה חיפוש">
-          <span class="material-symbols-rounded">close</span>
-        </button>
-      {/if}
-    </div>
-
-    <div class="access-filter-chips">
+<div class="library-toolbar">
+  <div class="library-search">
+    <span class="material-symbols-rounded library-search__icon" aria-hidden="true">search</span>
+    <input
+      type="search"
+      class="library-search__input"
+      bind:value={searchQuery}
+      placeholder="חיפוש לפי כותרת או תיאור…"
+      autocomplete="off"
+    />
+    {#if searchQuery}
       <button
         type="button"
-        class="filter-chip"
-        class:active={selectedAccessFilter === "all"}
-        onclick={() => selectedAccessFilter = "all"}
+        class="library-search__clear"
+        onclick={() => (searchQuery = "")}
+        aria-label="ניקוי חיפוש"
       >
-        הכל
+        <span class="material-symbols-rounded">close</span>
       </button>
-      <button
-        type="button"
-        class="filter-chip macro"
-        class:active={selectedAccessFilter === "macroflow"}
-        onclick={() => selectedAccessFilter = "macroflow"}
-      >
-        Macroflow
-      </button>
-      <button
-        type="button"
-        class="filter-chip micro"
-        class:active={selectedAccessFilter === "microflow"}
-        onclick={() => selectedAccessFilter = "microflow"}
-      >
-        Microflow
-      </button>
-    </div>
+    {/if}
   </div>
 
-  {#if !library}
-    <div class="skeleton-grid">
-      <div class="skeleton-card"></div>
-      <div class="skeleton-card"></div>
-      <div class="skeleton-card"></div>
-    </div>
-  {:else}
-    <ScrollArea.Root class="hb-scroll-area library-scroll-container">
-  <ScrollArea.Viewport class="hb-scroll-area__viewport">
-    <div class="sections-stack">
-        <!-- Drafts Section -->
-        {#if filteredDrafts.length > 0}
-          <section class="library-group">
-            <div class="group-header">
-              <span class="material-symbols-rounded group-icon draft">edit_document</span>
-              <h2 class="group-title">שיעורים בטיוטה ({filteredDrafts.length})</h2>
-              {#if totalDraftsCount !== filteredDrafts.length}
-                <span class="filtered-badge">מסונן</span>
-              {/if}
-            </div>
-
-            <div class="video-grid">
-              {#each filteredDrafts as video (video._id)}
-                <VideoCard
-                  {video}
-                  {actionId}
-                  {onEdit}
-                  {onPublish}
-                  {onDelete}
-                />
-              {/each}
-            </div>
-          </section>
-        {/if}
-
-        <!-- Published Section -->
-        {#if filteredPublished.length > 0}
-          <section class="library-group">
-            <div class="group-header">
-              <span class="material-symbols-rounded group-icon published">check_circle</span>
-              <h2 class="group-title">שיעורים פעילים בספרייה ({filteredPublished.length})</h2>
-              {#if totalPublishedCount !== filteredPublished.length}
-                <span class="filtered-badge">מסונן</span>
-              {/if}
-            </div>
-
-            <div class="video-grid">
-              {#each filteredPublished as video (video._id)}
-                <VideoCard
-                  {video}
-                  {actionId}
-                  {onEdit}
-                  {onPublish}
-                  {onDelete}
-                />
-              {/each}
-            </div>
-          </section>
-        {/if}
-
-        {#if totalPublishedCount === 0 && totalDraftsCount === 0}
-          <div class="empty-state-notice">
-            <span class="material-symbols-rounded empty-icon">video_library</span>
-            <h3>אין עדיין שיעורים בספרייה</h3>
-            <p>העלי את השיעור הראשון שלך באמצעות כרטיסיית "העלאה חדשה" למעלה.</p>
-          </div>
-        {:else if filteredPublished.length === 0 && filteredDrafts.length === 0}
-          <div class="empty-state-notice">
-            <span class="material-symbols-rounded empty-icon">search_off</span>
-            <h3>לא נמצאו תוצאות</h3>
-            <p>נסי לשנות את מונח החיפוש או פילטר מודל הגישה.</p>
-          </div>
-        {/if}
-      </div>
-  </ScrollArea.Viewport>
-  <ScrollArea.Scrollbar class="hb-scroll-area__bar" orientation="vertical">
-    <ScrollArea.Thumb class="hb-scroll-area__thumb" />
-  </ScrollArea.Scrollbar>
-</ScrollArea.Root>
-  {/if}
+  <div class="access-segment" role="group" aria-label="סינון לפי מודל גישה">
+    {#each accessFilters as filter}
+      <button
+        type="button"
+        class="access-segment__btn"
+        class:is-active={selectedAccessFilter === filter.id}
+        data-kind={filter.id === "all" ? undefined : filter.id}
+        aria-label={filter.ariaLabel}
+        onclick={() => (selectedAccessFilter = filter.id)}
+      >
+        {filter.label}
+      </button>
+    {/each}
+  </div>
 </div>
 
+{#if !library}
+  <div class="skeleton-grid" aria-busy="true" aria-label="טוען שיעורים">
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+{:else if !hasVideos}
+  <div class="library-empty">
+    <span class="material-symbols-rounded library-empty__icon" aria-hidden="true">video_library</span>
+    <h3 class="library-empty__title">עדיין אין שיעורים</h3>
+    <p class="library-empty__text">
+      לחצי על «העלאת שיעור» למעלה כדי להוסיף את הראשון. אחרי העיבוד הוא יופיע כאן.
+    </p>
+  </div>
+{:else if !hasFilteredResults}
+  <div class="library-empty">
+    <span class="material-symbols-rounded library-empty__icon" aria-hidden="true">search_off</span>
+    <h3 class="library-empty__title">אין תוצאות</h3>
+    <p class="library-empty__text">נסי מילה אחרת או שנוי את סינון מודל הגישה.</p>
+  </div>
+{:else}
+  <div class="library-sections">
+    {#if filteredDrafts.length > 0}
+      <section class="library-group" aria-labelledby="drafts-heading">
+        <header class="library-group__head">
+          <span class="material-symbols-rounded library-group__icon library-group__icon--draft" aria-hidden="true"
+            >edit_document</span
+          >
+          <h2 id="drafts-heading" class="library-group__title">
+            טיוטות ({filteredDrafts.length})
+          </h2>
+          {#if totalDraftsCount !== filteredDrafts.length}
+            <span class="library-group__filter-note">מסונן</span>
+          {/if}
+        </header>
+        <div class="video-grid">
+          {#each filteredDrafts as video (video._id)}
+            <VideoCard {video} {actionId} {onEdit} {onPublish} {onDelete} />
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    {#if filteredPublished.length > 0}
+      <section class="library-group" aria-labelledby="published-heading">
+        <header class="library-group__head">
+          <span
+            class="material-symbols-rounded library-group__icon library-group__icon--published"
+            aria-hidden="true">check_circle</span
+          >
+          <h2 id="published-heading" class="library-group__title">
+            בספרייה ({filteredPublished.length})
+          </h2>
+          {#if totalPublishedCount !== filteredPublished.length}
+            <span class="library-group__filter-note">מסונן</span>
+          {/if}
+        </header>
+        <div class="video-grid">
+          {#each filteredPublished as video (video._id)}
+            <VideoCard {video} {actionId} {onEdit} {onPublish} {onDelete} />
+          {/each}
+        </div>
+      </section>
+    {/if}
+  </div>
+{/if}

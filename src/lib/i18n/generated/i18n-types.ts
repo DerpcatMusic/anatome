@@ -48,6 +48,10 @@ type RootTranslation = {
 		 * ה​ת​א​מ​ה​ ​א​י​ש​י​ת
 		 */
 		onboarding: string
+		/**
+		 * ס​פ​ר​י​י​ת​ ​ש​י​ע​ו​ר​י​ם
+		 */
+		library: string
 	}
 	route: {
 		/**
@@ -1087,6 +1091,45 @@ type RootTranslation = {
 			 * א​י​ן​ ​ע​ד​י​י​ן​ ​ש​י​ע​ו​ר​י​ם​ ​פ​ע​י​ל​י​ם​.​ ​ב​ר​ג​ע​ ​ש​ת​ר​ש​מ​י​ ​ל​מ​נ​ו​י​ ​א​ו​ ​ת​ש​ת​מ​ש​י​ ​ב​ק​ר​ד​י​ט​,​ ​ה​כ​ל​ ​י​ו​פ​י​ע​ ​כ​א​ן​.
 			 */
 			customer: string
+		}
+		retry: string
+		viewAllLives: string
+		livesKicker: string
+		liveStatus: {
+			live: string
+			scheduled: string
+			oneOnOne: string
+		}
+		member: {
+			greeting: string
+			greetingNamed: RequiredParams<'name'>
+			welcomeBody: string
+			continueKicker: string
+			continueCta: string
+			browseLibrary: string
+			browseLives: string
+			latestVideos: string
+			latestVideosHint: string
+			latestVideosEmpty: string
+			upcomingLives: string
+		}
+		instructor: {
+			uploadKicker: string
+			uploadTitle: string
+			uploadHint: string
+			uploadOpen: string
+			uploadClose: string
+			manageVideos: string
+			upcomingKicker: string
+			upcomingTitle: string
+			upcomingEmpty: string
+			openStudio: string
+			createKicker: string
+			createTitle: string
+			createHint: string
+			createCta: string
+			createModalTitle: string
+			createError: string
 		}
 	}
 	calendar: {
@@ -2155,6 +2198,124 @@ type RootTranslation = {
 			upload: string
 		}
 	}
+	catalog: {
+		/**
+		 * A​n​a​t​o​M​e
+		 */
+		kicker: string
+		/**
+		 * ס​פ​ר​י​י​ה
+		 */
+		title: string
+		leadGuest: string
+		leadSignedIn: string
+		/**
+		 * ט​ו​ע​נ​י​ם​…
+		 */
+		loading: string
+		/**
+		 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ט​ע​ו​ן​ ​א​ת​ ​ה​ס​פ​ר​י​י​ה​.
+		 */
+		error: string
+		/**
+		 * ל​נ​ס​ו​ת​ ​ש​ו​ב
+		 */
+		retry: string
+		/**
+		 * כ​ד​י​ ​ל​צ​פ​ו​ת​ ​צ​ר​י​ך​ ​ל​ה​ת​ח​ב​ר
+		 */
+		authGateTitle: string
+		/**
+		 * ה​ת​ח​ב​ר​י
+		 */
+		authCta: string
+		/**
+		 * M​a​c​r​o​f​l​o​w
+		 */
+		macroEyebrow: string
+		/**
+		 * M​a​c​r​o​f​l​o​w
+		 */
+		macroTitle: string
+		macroDescGuest: string
+		/**
+		 * פ​ת​ח​ת​ ​{​{​c​o​u​n​t​}​}​ ​ש​י​ע​ו​ר​י​ם
+		 */
+		macroDescSignedIn: string
+		macroRowTitle: string
+		macroRowContinue: string
+		/**
+		 * א​י​ן​ ​ש​י​ע​ו​ר​י​ם​ ​ע​ד​י​י​ן
+		 */
+		macroEmpty: string
+		microDivider: string
+		/**
+		 * ה​ת​ח​ב​ר​י
+		 */
+		unlockHint: string
+		/**
+		 * ל​פ​ת​י​ח​ה
+		 */
+		unlockHintMember: string
+		/**
+		 * נ​י​ו​ו​ט
+		 */
+		railNav: string
+		/**
+		 * M​i​c​r​o​f​l​o​w
+		 */
+		microEyebrow: string
+		/**
+		 * M​i​c​r​o​f​l​o​w
+		 */
+		microTitle: string
+		microDescGuest: string
+		microDescSignedIn: string
+		/**
+		 * א​י​ן​ ​ש​י​ע​ו​ר​י​ם​ ​ב​ק​ט​ג​ו​ר​י​ה
+		 */
+		microCategoryEmpty: string
+		/**
+		 * א​י​ן​ ​ק​ט​ג​ו​ר​י​ו​ת
+		 */
+		microSectionsEmpty: string
+		/**
+		 * א​ח​ר​י​ ​ה​ת​ח​ב​ר​ו​ת
+		 */
+		statusGuestMacro: string
+		/**
+		 * ע​ם​ ​מ​נ​ו​י
+		 */
+		statusGuestMicro: string
+		/**
+		 * ש​ל​ך
+		 */
+		statusOwned: string
+		/**
+		 * פ​ת​ו​ח
+		 */
+		statusOpen: string
+		/**
+		 * ק​ר​ד​י​ט
+		 */
+		statusLockedMacro: string
+		/**
+		 * מ​נ​ו​י
+		 */
+		statusLockedMicro: string
+		/**
+		 * ק​ר​ד​י​ט​י​ם​ ​י​ת​ו​ו​ס​פ​ו​ ​ע​ם​ ​ח​י​ד​ו​ש​ ​ה​מ​נ​ו​י
+		 */
+		creditsNotice: string
+		/**
+		 * ק​ר​ד​י​ט​י​ם
+		 */
+		creditsShort: string
+		/**
+		 * א​ז​ו​ר​ ​א​י​ש​י
+		 */
+		dashboardLink: string
+	}
 	misc: {
 		/**
 		 * ס​ג​י​ר​ה
@@ -2216,6 +2377,10 @@ export type TranslationFunctions = {
 		 * התאמה אישית
 		 */
 		onboarding: () => LocalizedString
+		/**
+		 * ספריית שיעורים
+		 */
+		library: () => LocalizedString
 	}
 	route: {
 		/**
@@ -3253,6 +3418,54 @@ export type TranslationFunctions = {
 			 * אין עדיין שיעורים פעילים. ברגע שתרשמי למנוי או תשתמשי בקרדיט, הכל יופיע כאן.
 			 */
 			customer: () => LocalizedString
+		}
+		/**
+		 * נסי שוב
+		 */
+		retry: () => LocalizedString
+		/**
+		 * כל הלייבים
+		 */
+		viewAllLives: () => LocalizedString
+		/**
+		 * לייב
+		 */
+		livesKicker: () => LocalizedString
+		liveStatus: {
+			live: () => LocalizedString
+			scheduled: () => LocalizedString
+			oneOnOne: () => LocalizedString
+		}
+		member: {
+			greeting: () => LocalizedString
+			greetingNamed: (arg: { name: string }) => LocalizedString
+			welcomeBody: () => LocalizedString
+			continueKicker: () => LocalizedString
+			continueCta: () => LocalizedString
+			browseLibrary: () => LocalizedString
+			browseLives: () => LocalizedString
+			latestVideos: () => LocalizedString
+			latestVideosHint: () => LocalizedString
+			latestVideosEmpty: () => LocalizedString
+			upcomingLives: () => LocalizedString
+		}
+		instructor: {
+			uploadKicker: () => LocalizedString
+			uploadTitle: () => LocalizedString
+			uploadHint: () => LocalizedString
+			uploadOpen: () => LocalizedString
+			uploadClose: () => LocalizedString
+			manageVideos: () => LocalizedString
+			upcomingKicker: () => LocalizedString
+			upcomingTitle: () => LocalizedString
+			upcomingEmpty: () => LocalizedString
+			openStudio: () => LocalizedString
+			createKicker: () => LocalizedString
+			createTitle: () => LocalizedString
+			createHint: () => LocalizedString
+			createCta: () => LocalizedString
+			createModalTitle: () => LocalizedString
+			createError: () => LocalizedString
 		}
 	}
 	calendar: {
@@ -4308,6 +4521,124 @@ export type TranslationFunctions = {
 			 */
 			upload: () => LocalizedString
 		}
+	}
+	catalog: {
+		/**
+		 * AnatoMe
+		 */
+		kicker: () => LocalizedString
+		/**
+		 * ספרייה
+		 */
+		title: () => LocalizedString
+		leadGuest: () => LocalizedString
+		leadSignedIn: () => LocalizedString
+		/**
+		 * טוענים…
+		 */
+		loading: () => LocalizedString
+		/**
+		 * לא הצלחנו לטעון את הספרייה.
+		 */
+		error: () => LocalizedString
+		/**
+		 * לנסות שוב
+		 */
+		retry: () => LocalizedString
+		/**
+		 * כדי לצפות צריך להתחבר
+		 */
+		authGateTitle: () => LocalizedString
+		/**
+		 * התחברי
+		 */
+		authCta: () => LocalizedString
+		/**
+		 * Macroflow
+		 */
+		macroEyebrow: () => LocalizedString
+		/**
+		 * Macroflow
+		 */
+		macroTitle: () => LocalizedString
+		macroDescGuest: () => LocalizedString
+		/**
+		 * פתחת {{count}} שיעורים
+		 */
+		macroDescSignedIn: (arg0: number | string | boolean) => LocalizedString
+		macroRowTitle: () => LocalizedString
+		macroRowContinue: () => LocalizedString
+		/**
+		 * אין שיעורים עדיין
+		 */
+		macroEmpty: () => LocalizedString
+		microDivider: () => LocalizedString
+		/**
+		 * התחברי
+		 */
+		unlockHint: () => LocalizedString
+		/**
+		 * לפתיחה
+		 */
+		unlockHintMember: () => LocalizedString
+		/**
+		 * ניווט
+		 */
+		railNav: () => LocalizedString
+		/**
+		 * Microflow
+		 */
+		microEyebrow: () => LocalizedString
+		/**
+		 * Microflow
+		 */
+		microTitle: () => LocalizedString
+		microDescGuest: () => LocalizedString
+		microDescSignedIn: () => LocalizedString
+		/**
+		 * אין שיעורים בקטגוריה
+		 */
+		microCategoryEmpty: () => LocalizedString
+		/**
+		 * אין קטגוריות
+		 */
+		microSectionsEmpty: () => LocalizedString
+		/**
+		 * אחרי התחברות
+		 */
+		statusGuestMacro: () => LocalizedString
+		/**
+		 * עם מנוי
+		 */
+		statusGuestMicro: () => LocalizedString
+		/**
+		 * שלך
+		 */
+		statusOwned: () => LocalizedString
+		/**
+		 * פתוח
+		 */
+		statusOpen: () => LocalizedString
+		/**
+		 * קרדיט
+		 */
+		statusLockedMacro: () => LocalizedString
+		/**
+		 * מנוי
+		 */
+		statusLockedMicro: () => LocalizedString
+		/**
+		 * קרדיטים יתווספו עם חידוש המנוי
+		 */
+		creditsNotice: () => LocalizedString
+		/**
+		 * קרדיטים
+		 */
+		creditsShort: () => LocalizedString
+		/**
+		 * אזור אישי
+		 */
+		dashboardLink: () => LocalizedString
 	}
 	misc: {
 		/**

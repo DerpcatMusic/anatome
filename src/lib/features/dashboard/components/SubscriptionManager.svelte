@@ -114,7 +114,7 @@
 <section class="subscription-panel" aria-labelledby="subscription-title">
   <div class="subscription-panel__header">
     <div>
-      <p class="subscription-panel__kicker">מנוי וקרדיטים</p>
+      <p class="subscription-panel__kicker">מנוי</p>
       <div class="subscription-panel__title-row">
         <h2 id="subscription-title">{subscriptionPlan?.nameHe ?? "אין מנוי פעיל"}</h2>
         {#if subscriptionPlan}
@@ -137,24 +137,22 @@
   {#if subscription && renewalDate}
     <p class="subscription-panel__meta">
       {#if pendingSubscriptionPlan}
-        המסלול הנוכחי נשאר פעיל עד {renewalDate}, ואז יתחדש במסלול {pendingSubscriptionPlan.nameHe}.
+        פעיל עד {renewalDate}, אחר כך {pendingSubscriptionPlan.nameHe}.
       {:else}
-        {subscription.cancelAtPeriodEnd ? "הגישה תישאר פעילה עד" : "התקופה הנוכחית מסתיימת ב"}
+        {subscription.cancelAtPeriodEnd ? "פעיל עד" : "מסתיים ב"}
         {renewalDate}
       {/if}
     </p>
   {:else if SUBSCRIPTIONS_ENABLED}
-    <p class="subscription-panel__meta">אפשר להפעיל מסלול עכשיו. חיוב יחובר בהמשך דרך ספק ישראלי.</p>
+    <p class="subscription-panel__meta">הפעלת מסלול — חיוב יחובר בהמשך.</p>
   {:else}
-    <p class="subscription-panel__meta">
-      שינוי מסלול אינו זמין כרגע באתר. לעדכון מנוי, פנו לצוות AnatoMe.
-    </p>
+    <p class="subscription-panel__meta">שינוי מסלול דרך צוות AnatoMe.</p>
   {/if}
 
   <div class="credit-strip" aria-label="קרדיטים זמינים">
     <div class="credit-tile">
       <span class="credit-tile__value">{vodAvailable}</span>
-      <span class="credit-tile__label">Macroflow</span>
+      <span class="credit-tile__label">מוקלט</span>
     </div>
     <div class="credit-tile">
       <span class="credit-tile__value">{liveAvailable}</span>
@@ -205,10 +203,10 @@
 <style>
   .subscription-panel {
     display: grid;
-    gap: var(--space-5);
-    padding: var(--space-6);
+    gap: var(--space-4);
+    padding: var(--space-4);
     border: var(--border);
-    background: linear-gradient(135deg, var(--white), var(--white));
+    background: var(--elevated);
     min-width: 0;
   }
 
@@ -265,8 +263,8 @@
   }
 
   .subscription-badge[data-tone="warning"] {
-    background: var(--surface);
-    color: var(--secondary);
+    background: color-mix(in oklch, var(--warning) 14%, var(--elevated));
+    color: var(--ink-secondary);
     border-color: transparent;
   }
 
@@ -284,7 +282,7 @@
   .credit-tile {
     min-width: 0;
     border: var(--border);
-    background: var(--white);
+    background: var(--paper);
     display: grid;
     gap: var(--space-1);
     padding: var(--space-4);

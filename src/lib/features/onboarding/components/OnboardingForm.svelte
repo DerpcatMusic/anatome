@@ -129,7 +129,9 @@
       <div class="panel__inner">
         <div class="question">
           <h1>{currentStep.title}</h1>
-          <p>{currentStep.subtitle}</p>
+          {#if currentStep.subtitle}
+            <p>{currentStep.subtitle}</p>
+          {/if}
         </div>
       </div>
     </div>

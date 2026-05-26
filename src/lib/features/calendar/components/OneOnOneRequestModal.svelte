@@ -174,17 +174,16 @@
     <Dialog.Content class="hb-dialog-content one-on-one-modal" aria-label="בקשת שיעור 1:1">
       <Dialog.Title class="one-on-one-modal__title">בקשת שיעור 1:1</Dialog.Title>
       <Dialog.Description class="one-on-one-modal__desc">
-        בחרי תאריך ושעת התחלה מדויקת בתוך חלון הזמינות. משך השיעור {RULES.ONE_ON_ONE_DURATION_MINUTES} דקות.
-        המדריכה מאשרת לפני פתיחת החדר.
+        תאריך ושעה בחלון הזמינות · {RULES.ONE_ON_ONE_DURATION_MINUTES} דקות · אישור המדריכה.
       </Dialog.Description>
 
       {#if !hasCredits}
         <p class="one-on-one-modal__blocked" role="status">
-          אין קרדיט 1:1 זמין כרגע. לא ניתן לשלוח בקשה חדשה.
+          אין קרדיט 1:1.
         </p>
       {:else if dayGroups.length === 0}
         <p class="one-on-one-modal__blocked" role="status">
-          אין חלונות פנויים בטווח הזה. נסי שוב מאוחר יותר או עברי לתצוגת לוח שבוע.
+          אין חלונות פנויים. נסי מאוחר יותר.
         </p>
       {:else}
         <div class="one-on-one-modal__picker">
@@ -333,7 +332,7 @@
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     font: inherit;
     font-size: var(--step--1);
     font-weight: 700;
@@ -351,7 +350,7 @@
     padding: var(--space-3) var(--space-4);
     border: var(--border);
     border-inline-start: 3px solid var(--primary);
-    background: color-mix(in oklch, var(--primary) 6%, var(--white));
+    background: var(--accent-soft);
     border-radius: 4px;
   }
 

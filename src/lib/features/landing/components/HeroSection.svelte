@@ -21,14 +21,14 @@
 
     <div class="l-actions l-in l-in--2">
       <Button.Root
-        class="hb-button hb-button--brand hb-button--pill"
+        class="hb-button hb-button--brand"
         type="button"
         onclick={openAuthOverlay}
       >
         {t.landing.hero.ctaPrimary()}
       </Button.Root>
       <Button.Root
-        class="hb-button hb-button--paper hb-button--pill"
+        class="hb-button hb-button--paper"
         href="#about"
       >
         {t.landing.hero.ctaSecondary()}

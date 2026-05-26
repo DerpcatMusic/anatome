@@ -212,6 +212,19 @@
           ? "שמירה"
           : "לתזמן לייב",
   );
+
+  const showDismissButton = $derived(Boolean(onCancel) && !isPopover);
+
+  const footerColumnCount = $derived.by(() => {
+    if (confirmCancel) return 2;
+    if (isEdit && editStatus === "live") {
+      return onDelete ? 2 : 1;
+    }
+    const hasCancelClass = isEdit && onDelete && editStatus === "scheduled";
+    if (hasCancelClass) return 2;
+    if (showDismissButton) return 2;
+    return 1;
+  });
 </script>
 
 <form
@@ -223,13 +236,22 @@
   {#if isEnded}
     <div class="live-composer__ended">
       <p class="live-composer__ended-title">{title}</p>
-      <p class="live-composer__ended-hint">שיעור שהסתיים — לצפייה בלבד</p>
+      <p class="live-composer__ended-hint">הסתיים — צפייה בלבד</p>
     </div>
-    <div class="live-composer__footer">
-      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => onCancel?.()}>
-        סגירה
-      </Button.Root>
-    </div>
+    {#if !isPopover}
+      <div
+        class="live-composer__footer"
+        class:live-composer__footer--cols-1={true}
+      >
+        <Button.Root
+          class="hb-button hb-button--ink live-composer__footer-action"
+          type="button"
+          onclick={() => onCancel?.()}
+        >
+          סגירה
+        </Button.Root>
+      </div>
+    {/if}
   {:else}
     {#snippet composerBody()}
       {#if mode === "quick"}
@@ -241,7 +263,7 @@
         bind:this={titleInput}
         required
         maxlength="120"
-        placeholder="כותרת השיעור"
+        placeholder="שם השיעור לייב"
         disabled={pending}
         aria-label="כותרת השיעור"
       />
@@ -252,26 +274,28 @@
           <DatePicker label="" bind:value={dateValue} disabled={pending} />
           <span class="quick-date-chip__label">{formattedDate}</span>
         </div>
-        <input
-          type="time"
-          class="hb-input quick-time-input"
-          bind:value={startTime}
-          step="60"
-          disabled={pending}
-          aria-label="שעת התחלה"
-          onchange={handleWhenChange}
-        />
-        <span class="quick-time-sep" aria-hidden="true">–</span>
-        <input
-          type="time"
-          class="hb-input quick-time-input"
-          bind:value={endTime}
-          step="60"
-          disabled={pending}
-          aria-label="שעת סיום"
-          onchange={handleWhenChange}
-        />
-        <span class="quick-duration-hint">{durationLabel}</span>
+        <div class="quick-time-range">
+          <input
+            type="time"
+            class="hb-input quick-time-input"
+            bind:value={startTime}
+            step="60"
+            disabled={pending}
+            aria-label="שעת התחלה"
+            onchange={handleWhenChange}
+          />
+          <span class="quick-time-sep" aria-hidden="true">–</span>
+          <input
+            type="time"
+            class="hb-input quick-time-input"
+            bind:value={endTime}
+            step="60"
+            disabled={pending}
+            aria-label="שעת סיום"
+            onchange={handleWhenChange}
+          />
+        </div>
+        <span class="quick-duration-hint" aria-label="משך השיעור">{durationLabel}</span>
       </div>
 
       <!-- Row 3: Type -->
@@ -303,7 +327,9 @@
       {/if}
 
       <!-- Row 4: Equipment -->
-      <EquipmentPicker compact bind:selected={requiredEquipment} disabled={pending} />
+      <div class="live-composer__equipment">
+        <EquipmentPicker compact bind:selected={requiredEquipment} disabled={pending} />
+      </div>
 
       <!-- Row 5: Capacity (group only) -->
       {#if lockedType === "group_live"}
@@ -330,7 +356,7 @@
           disabled={pending}
           onclick={() => (showDescription = true)}
         >
-          הוספת תיאור
+          + תיאור לתלמידות
         </Button.Root>
       {:else}
         <textarea
@@ -340,9 +366,9 @@
           bind:this={descEl}
           maxlength="500"
           rows="2"
-          placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."
+          placeholder="קצב, מיקוד, ציוד…"
           disabled={pending}
-          aria-label="תיאור השיעור"
+          aria-label="תיאור לתלמידות"
         ></textarea>
       {/if}
     {:else}
@@ -460,7 +486,7 @@
             bind:this={descEl}
             maxlength="500"
             rows="2"
-            placeholder="פרטים על קצב השיעור, מיקוד גופני או דגשים..."
+            placeholder="קצב, מיקוד, דגשים…"
             disabled={pending}
           ></textarea>
         {/if}
@@ -485,55 +511,44 @@
       </div>
     {/if}
 
-    <div class="live-composer__footer">
+    <div
+      class="live-composer__footer"
+      class:live-composer__footer--popover={isPopover}
+      class:live-composer__footer--cols-1={footerColumnCount === 1}
+      class:live-composer__footer--cols-2={footerColumnCount === 2}
+    >
       {#if confirmCancel}
-        <p class="live-composer__confirm-text" role="status">לבטל את השיעור? הרשמות יזוכו בקרדיט.</p>
+        <p class="live-composer__confirm-text" role="status">
+          לבטל את השיעור? ההרשמות יזוכו בקרדיט.
+        </p>
         <Button.Root
-          class="hb-button hb-button--danger"
-          type="button"
-          disabled={pending}
-          onclick={confirmDelete}
-        >
-          {pending ? "מבטלת..." : "ביטול שיעור"}
-        </Button.Root>
-        <Button.Root
-          class="hb-button hb-button--ghost"
+          class="hb-button hb-button--ghost hb-button--md live-composer__footer-action"
           type="button"
           disabled={pending}
           onclick={dismissDeleteConfirm}
         >
-          חזרה
+          חזרה לעריכה
+        </Button.Root>
+        <Button.Root
+          class="hb-button hb-button--danger hb-button--md live-composer__footer-action"
+          type="button"
+          disabled={pending}
+          onclick={confirmDelete}
+        >
+          {pending ? "מבטלת..." : "כן, לבטל"}
         </Button.Root>
       {:else if isEdit && editStatus === "live"}
         <Button.Root
-          class="hb-button hb-button--ink"
+          class="hb-button hb-button--ink hb-button--md live-composer__footer-action"
           type="button"
           disabled={pending}
           onclick={() => onEndLive?.()}
         >
           לסיים שידור
         </Button.Root>
-        {#if onCancel}
+        {#if onDelete}
           <Button.Root
-            class="hb-button hb-button--ghost"
-            type="button"
-            disabled={pending}
-            onclick={onCancel}
-          >
-            סגירה
-          </Button.Root>
-        {/if}
-      {:else}
-        <Button.Root
-          class="hb-button hb-button--ink"
-          type="submit"
-          disabled={pending || !canSubmit}
-        >
-          {submitLabel}
-        </Button.Root>
-        {#if isEdit && onDelete && editStatus === "scheduled"}
-          <Button.Root
-            class="hb-button hb-button--danger"
+            class="hb-button hb-button--danger hb-button--md live-composer__footer-action"
             type="button"
             disabled={pending}
             onclick={requestDelete}
@@ -541,14 +556,32 @@
             ביטול שיעור
           </Button.Root>
         {/if}
-        {#if onCancel}
+      {:else}
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--md live-composer__footer-action"
+          type="submit"
+          disabled={pending || !canSubmit}
+        >
+          {submitLabel}
+        </Button.Root>
+        {#if isEdit && onDelete && editStatus === "scheduled"}
           <Button.Root
-            class="hb-button hb-button--ghost"
+            class="hb-button hb-button--danger hb-button--md live-composer__footer-action"
+            type="button"
+            disabled={pending}
+            onclick={requestDelete}
+          >
+            ביטול שיעור
+          </Button.Root>
+        {/if}
+        {#if showDismissButton}
+          <Button.Root
+            class="hb-button hb-button--ghost live-composer__footer-action"
             type="button"
             disabled={pending}
             onclick={onCancel}
           >
-            {isPopover ? "סגירה" : "ביטול"}
+            ביטול
           </Button.Root>
         {/if}
       {/if}
@@ -570,20 +603,34 @@
 
   .live-composer--popover {
     max-height: min(calc(100vh - 24px), 720px);
-    padding: var(--space-4);
+    padding: 0;
     gap: 0;
   }
 
   .live-composer__scroll {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: min(calc(100vh - 180px), 480px);
-    margin-inline: calc(-1 * var(--space-1));
-    padding-inline: var(--space-1);
+    max-height: min(calc(100vh - 200px), 520px);
+    padding: 0;
   }
 
   .live-composer__scroll :global(.hb-scroll-area) {
     height: 100%;
+  }
+
+  .live-composer__scroll :global(.hb-scroll-area__viewport) {
+    scrollbar-gutter: stable;
+  }
+
+  .live-composer__scroll :global(.hb-scroll-area__bar) {
+    width: 6px;
+    padding: 2px;
+    background: transparent;
+  }
+
+  .live-composer__scroll :global(.hb-scroll-area__thumb) {
+    background: var(--line-light);
+    border-radius: 999px;
   }
 
   .live-composer__body {
@@ -598,16 +645,19 @@
   }
 
   .live-composer--popover .live-composer__body {
-    gap: var(--space-3);
-    padding-bottom: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    text-align: right;
+    align-items: stretch;
+    box-sizing: border-box;
   }
 
   .live-composer__footer {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: var(--space-2);
-    justify-content: flex-end;
-    align-items: center;
+    align-items: stretch;
     flex-shrink: 0;
     padding-top: var(--space-3);
     margin-top: var(--space-2);
@@ -615,31 +665,70 @@
     background: inherit;
   }
 
-  .live-composer--popover .live-composer__footer {
-    gap: var(--space-3);
-    padding-top: var(--space-4);
-    margin-top: var(--space-3);
+  .live-composer__footer--cols-1 {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
   }
 
-  .live-composer--popover .quick-when-row,
-  .live-composer--popover .quick-capacity-row {
-    gap: var(--space-3);
+  .live-composer__footer--cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-2);
+  }
+
+  .live-composer__footer--popover.live-composer__footer--cols-1
+    :global(.live-composer__footer-action:only-of-type),
+  .live-composer__footer--popover.live-composer__footer--cols-1
+    :global(.live-composer__footer-action) {
+    grid-column: 1 / -1;
+  }
+
+  .live-composer__footer--popover {
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5) var(--space-5);
+    margin-top: 0;
+    justify-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .live-composer__footer--popover :global(.live-composer__footer-action) {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    min-height: 48px;
+    margin: 0;
+    padding-inline: var(--space-4);
+    font-size: var(--step--1);
+    box-sizing: border-box;
+    justify-content: center;
+    align-self: stretch;
+  }
+
+  .live-composer__footer:not(.live-composer__footer--popover) {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    justify-content: end;
+  }
+
+  .live-composer__footer:not(.live-composer__footer--popover) :global(.live-composer__footer-action) {
+    width: auto;
   }
 
   .live-composer--popover :global(.hb-input:focus),
   .live-composer--popover :global(.hb-textarea:focus) {
     box-shadow: none;
-    outline: 2px solid var(--secondary);
+    outline: 2px solid var(--secondary-cool);
     outline-offset: 0;
   }
 
   .live-composer__confirm-text {
-    flex: 1 1 100%;
-    margin: 0;
+    grid-column: 1 / -1;
+    margin: 0 0 var(--space-1);
     font-size: var(--step--1);
     font-weight: 700;
     color: var(--danger);
-    line-height: 1.4;
+    line-height: 1.45;
+    text-align: center;
   }
 
   .live-composer__ended {
@@ -675,19 +764,23 @@
 
   .live-composer--popover .live-composer__title-input {
     min-height: 44px;
-    padding-block: var(--space-2);
+    padding-block: var(--space-1) var(--space-3);
+    margin-bottom: var(--space-1);
     font-weight: 800;
     font-size: var(--step-0);
-    line-height: 1.3;
+    line-height: 1.35;
     border: none;
     border-bottom: 2px solid var(--line-light);
     border-radius: 0;
     padding-inline: 0;
     background: transparent;
+    text-align: right;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .live-composer--popover .live-composer__title-input:focus {
-    border-bottom-color: var(--secondary);
+    border-bottom-color: var(--secondary-cool);
     outline: none;
     box-shadow: none;
   }
@@ -695,7 +788,8 @@
   .quick-type-badge {
     display: inline-flex;
     align-items: center;
-    align-self: flex-start;
+    justify-content: center;
+    justify-self: end;
     min-height: 28px;
     padding: 0 var(--space-3);
     border-radius: 999px;
@@ -706,23 +800,25 @@
   }
 
   .quick-type-badge--group {
-    border-color: var(--secondary);
-    color: var(--secondary);
-    background: var(--surface);
+    border-color: color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
+    color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--secondary-cool) 14%, var(--paper));
   }
 
   .quick-type-badge--one-on-one {
-    border-color: var(--primary);
+    border-color: color-mix(in oklch, var(--primary) 55%, var(--line-light));
     color: var(--primary);
-    background: var(--surface);
+    background: color-mix(in oklch, var(--primary) 12%, var(--paper));
   }
 
   :global(.composer-desc-toggle) {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    justify-self: stretch;
+    width: 100%;
     padding-inline: 0;
     min-height: 32px;
     font-weight: 700;
-    color: var(--muted);
+    color: var(--secondary-cool);
   }
 
   .composer-desc--quick {
@@ -731,10 +827,31 @@
   }
 
   .quick-when-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(3.25rem, auto);
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .quick-time-range {
+    display: grid;
+    grid-template-columns: minmax(4.25rem, 1fr) auto minmax(4.25rem, 1fr);
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .live-composer--popover .quick-when-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface);
+    border-radius: 8px;
+    border: none;
+    direction: rtl;
   }
 
   .quick-date-chip {
@@ -742,11 +859,17 @@
     align-items: center;
     gap: var(--space-1);
     min-height: 32px;
-    padding: 0 var(--space-2);
-    background: var(--surface);
-    border: 1px solid var(--line-light);
-    border-radius: 4px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     position: relative;
+  }
+
+  .live-composer--popover .quick-date-chip {
+    flex: 1 1 100%;
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--line-light);
   }
 
   .quick-date-chip :global(.hb-date-picker) {
@@ -783,6 +906,29 @@
     font-weight: 700;
   }
 
+  .live-composer--popover .quick-time-range {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1 1 auto;
+  }
+
+  .live-composer--popover .quick-time-input {
+    width: auto;
+    min-width: 4.75rem;
+    flex: 1 1 0;
+    border: none;
+    background: transparent;
+    padding: var(--space-1);
+    box-shadow: none;
+  }
+
+  .live-composer--popover .quick-time-input:focus {
+    outline: none;
+    background: color-mix(in oklch, var(--paper) 70%, transparent);
+    border-radius: 4px;
+  }
+
   .quick-time-sep {
     color: var(--muted);
     font-weight: 700;
@@ -790,17 +936,40 @@
   }
 
   .quick-duration-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0;
     font-family: var(--font-mono);
     font-size: var(--step--2);
     font-weight: 700;
     color: var(--muted);
     white-space: nowrap;
+    background: transparent;
+    border: none;
+    justify-self: end;
+  }
+
+  .live-composer--popover .quick-duration-hint {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+  }
+
+  .live-composer--popover .quick-duration-hint::before {
+    content: "·";
+    margin-inline-end: var(--space-2);
+    color: var(--line);
   }
 
   .quick-capacity-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(4rem, 5rem);
     align-items: center;
+    justify-content: end;
+    justify-items: end;
     gap: var(--space-2);
+    width: 100%;
   }
 
   .quick-capacity-row__label {
@@ -820,15 +989,85 @@
   }
 
   :global(.live-type-toggle--quick) {
-    display: inline-flex;
-    gap: var(--space-1);
-    width: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    width: 100%;
   }
 
   :global(.live-type-toggle--quick .live-type-toggle__item) {
-    min-height: 30px;
+    min-height: 36px;
     padding: var(--space-1) var(--space-3);
-    font-size: var(--step--2);
+    font-size: var(--step--1);
+    width: 100%;
+  }
+
+  .live-composer--popover :global(.live-type-toggle--quick) {
+    gap: var(--space-1);
+    padding: var(--space-1);
+    background: var(--surface);
+    border-radius: 8px;
+    border: none;
+  }
+
+  .live-composer--popover :global(.live-type-toggle--quick .live-type-toggle__item) {
+    min-height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+  }
+
+  .live-composer--popover :global(.live-type-toggle--quick .live-type-toggle__item[data-state="on"]) {
+    background: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .live-composer--popover
+    :global(.live-type-toggle--quick .live-type-toggle__item[data-state="on"][data-value="one_on_one"]) {
+    background: color-mix(in oklch, var(--primary) 18%, var(--paper));
+    color: var(--primary);
+  }
+
+  .live-composer--popover .live-composer__equipment :global(.equipment-grid--compact) {
+    gap: var(--space-2);
+  }
+
+  .live-composer--popover .live-composer__equipment :global(.equipment-grid--compact .hb-choice) {
+    min-height: 52px;
+    padding: var(--space-2) var(--space-1);
+    border: none;
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .live-composer--popover
+    .live-composer__equipment
+    :global(.equipment-grid--compact .hb-choice[data-state="checked"]) {
+    background: color-mix(in oklch, var(--secondary-cool) 18%, var(--paper));
+    color: var(--ink);
+    outline: 2px solid color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
+    outline-offset: -2px;
+  }
+
+  .live-composer--popover .live-composer__equipment :global(.equipment-grid--compact .hb-choice:hover:not([data-disabled])) {
+    background: color-mix(in oklch, var(--surface) 80%, var(--paper));
+    border-color: transparent;
+  }
+
+  .live-composer--popover .composer-desc--quick,
+  .live-composer--popover .composer-desc {
+    border-color: var(--line-light);
+    background: var(--surface);
+    border-radius: 8px;
+    min-height: 4.5rem;
+  }
+
+  .live-composer--popover .quick-capacity-input {
+    border: none;
+    background: var(--surface);
+    border-radius: 6px;
   }
 
   .form-field {
@@ -883,7 +1122,7 @@
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
     color: var(--ink);
     font: inherit;
     font-weight: 800;
@@ -898,8 +1137,8 @@
   }
 
   :global(.live-type-toggle__item[data-state="on"]) {
-    background: var(--secondary);
-    border-color: var(--ink);
+    background: color-mix(in oklch, var(--secondary-cool) 22%, var(--elevated));
+    border-color: var(--secondary-cool);
   }
 
   :global(.live-type-toggle__item[data-state="on"][data-value="one_on_one"]) {
@@ -909,7 +1148,7 @@
 
   :global(.live-type-toggle__item:hover) {
     background: var(--surface);
-    border-color: var(--secondary);
+    border-color: color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
   }
 
   :global(.live-type-toggle__item .material-symbols-rounded) {

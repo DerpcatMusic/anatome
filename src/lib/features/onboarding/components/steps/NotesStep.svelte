@@ -33,12 +33,13 @@
     font: inherit;
     font-size: var(--step-0);
     line-height: 1.6;
-    background: var(--white);
+    background: var(--paper);
   }
 
   .notes-wrap textarea:focus {
     outline: none;
-    border-color: var(--secondary);
+    border-color: var(--primary);
+    box-shadow: var(--focus-ring);
   }
 
   .char-count {

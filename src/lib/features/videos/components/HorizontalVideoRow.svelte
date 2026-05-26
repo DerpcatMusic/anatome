@@ -19,6 +19,13 @@
     videos = [],
     emptyMessage = "אין שיעורים להצגה כרגע.",
     pendingId = null,
+    statusLabelFor,
+    useLockGlyph = false,
+    teaserLocked = false,
+    unlockHint,
+    hideStatus = false,
+    hideHeader = false,
+    carousel = true,
     onSelect,
   }: {
     title: string;
@@ -26,29 +33,44 @@
     videos?: RowVideo[];
     emptyMessage?: string;
     pendingId?: string | null;
+    statusLabelFor?: (video: RowVideo) => string;
+    useLockGlyph?: boolean;
+    teaserLocked?: boolean;
+    unlockHint?: string;
+    hideStatus?: boolean;
+    /** Hide row title bar (catalog carousels). */
+    hideHeader?: boolean;
+    /** Horizontal carousel track (YouTube-style). */
+    carousel?: boolean;
     onSelect: (video: RowVideo) => void;
   } = $props();
+
+  const showHeader = $derived(
+    !hideHeader && (title.length > 0 || subtitle),
+  );
 
   const rowVideos = $derived(Array.isArray(videos) ? videos : []);
 </script>
 
-<section class="video-row">
-  <header class="video-row__head">
-    <div>
-      <h3 class="video-row__title">{title}</h3>
-      {#if subtitle}
-        <p class="video-row__subtitle">{subtitle}</p>
-      {/if}
-    </div>
-    <span class="video-row__count">{rowVideos.length}</span>
-  </header>
+<section class="video-row" class:video-row--carousel={carousel}>
+  {#if showHeader}
+    <header class="video-row__head">
+      <div>
+        <h3 class="video-row__title">{title}</h3>
+        {#if subtitle}
+          <p class="video-row__subtitle">{subtitle}</p>
+        {/if}
+      </div>
+      <span class="video-row__count">{rowVideos.length}</span>
+    </header>
+  {/if}
 
   {#if rowVideos.length === 0}
     <Notice tone="neutral">{emptyMessage}</Notice>
   {:else}
-    <div class="video-row__track" role="list">
+    <div class="video-row__track" class:video-row__track--carousel={carousel} role="list">
       {#each rowVideos as video (video._id)}
-        <div role="listitem">
+        <div class="video-row__item" role="listitem">
           <VideoCard
             title={video.title}
             durationSeconds={video.durationSeconds}
@@ -56,6 +78,11 @@
             locked={video.locked}
             owned={video.owned}
             accessKind={video.accessKind}
+            statusLabel={statusLabelFor?.(video)}
+            {useLockGlyph}
+            teaserLocked={teaserLocked && video.locked}
+            {unlockHint}
+            {hideStatus}
             pending={pendingId === video._id}
             onclick={() => onSelect(video)}
           />
@@ -105,15 +132,35 @@
   .video-row__track {
     display: flex;
     gap: var(--space-4);
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    padding-block: var(--space-2) var(--space-3);
-    padding-inline: var(--space-1);
-    scrollbar-width: none;
+    min-width: 0;
   }
 
-  .video-row__track::-webkit-scrollbar {
-    display: none;
+  .video-row__track--carousel {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-block: var(--space-2) var(--space-4);
+    padding-inline: var(--space-1) var(--space-6);
+    margin-inline: calc(-1 * var(--space-1));
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--ink) 25%, transparent) transparent;
+  }
+
+  .video-row__track--carousel::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .video-row__track--carousel::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--ink) 30%, transparent);
+    border-radius: 999px;
+  }
+
+  .video-row__item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .video-row--carousel .video-row__head {
+    padding-inline: var(--space-1);
   }
 </style>

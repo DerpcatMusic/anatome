@@ -35,7 +35,7 @@
     flex-direction: column;
     gap: var(--space-3);
     border: var(--border);
-    background: linear-gradient(135deg, var(--white), var(--white));
+    background: var(--elevated);
     padding: var(--space-6);
     text-decoration: none;
     color: var(--ink);
@@ -48,7 +48,7 @@
   }
 
   .action-card:hover {
-    background: var(--surface);
+    background: var(--accent-soft);
     transform: translate(-3px, -3px);
     box-shadow: 4px 4px 0 var(--ink);
     border-radius: 8px;
@@ -57,7 +57,7 @@
   .action-card__num {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--secondary);
+    color: var(--primary);
     font-weight: 700;
   }
 

@@ -54,8 +54,8 @@
   let availabilityError = $state("");
   let availabilitySaveTimer: ReturnType<typeof setTimeout> | undefined;
 
-  let title = $state("פילאטיס לייב - נשימה, כוח ותנועה");
-  let description = $state("שיעור דו־כיווני קטן עם תיקונים אישיים. הכיני מרחב שקט, מצלמה פתוחה וציוד מתאים.");
+  let title = $state("פילאטיס לייב");
+  let description = $state("שיעור קטן עם תיקונים.");
   let liveType = $state<"group_live" | "one_on_one">("group_live");
   let startsAtLocal = $state(defaultStartsAtLocal());
   let durationMinutes = $state(50);
@@ -109,9 +109,9 @@
   }
 
   function resetCreateForm() {
-    title = "פילאטיס לייב - נשימה, כוח ותנועה";
+    title = "פילאטיס לייב";
     description =
-      "שיעור דו־כיווני קטן עם תיקונים אישיים. הכיני מרחב שקט, מצלמה פתוחה וציוד מתאים.";
+      "שיעור קטן עם תיקונים.";
     liveType = "group_live";
     capacity = 12;
     joinOpensMinutesBefore = 15;
@@ -544,7 +544,7 @@
     min-height: 40px;
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--line-light);
-    background: var(--white);
+    background: var(--elevated);
     color: var(--ink);
     font: inherit;
     font-weight: 700;
@@ -560,12 +560,11 @@
 
   :global(.studio-bar-btn:hover:not([data-state="on"])) {
     background: var(--surface);
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 1px var(--secondary);
+    border-color: var(--line);
   }
 
   :global(.studio-bar-btn:focus-visible) {
-    outline: 2px solid var(--secondary);
+    outline: 2px solid var(--secondary-cool);
     outline-offset: 2px;
   }
 
@@ -592,16 +591,24 @@
     box-shadow: 0 0 0 1px var(--primary);
   }
 
-  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]),
-  :global(.studio-bar-btn--availability[data-state="on"]) {
-    background: var(--secondary);
-    border-color: var(--secondary);
+  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]) {
+    background: color-mix(in oklch, var(--secondary-cool) 18%, var(--elevated));
+    border-color: var(--secondary-cool);
     color: var(--ink);
   }
 
-  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]:hover),
+  :global(.studio-bar-btn[data-state="on"][data-value="group_live"]:hover) {
+    box-shadow: 0 0 0 1px var(--secondary-cool);
+  }
+
+  :global(.studio-bar-btn--availability[data-state="on"]) {
+    background: color-mix(in oklch, var(--secondary-cool) 14%, var(--elevated));
+    border-color: var(--secondary-cool);
+    color: var(--ink);
+  }
+
   :global(.studio-bar-btn--availability[data-state="on"]:hover) {
-    box-shadow: 0 0 0 1px var(--secondary);
+    box-shadow: 0 0 0 1px var(--secondary-cool);
   }
 
   :global(.studio-filter .studio-bar-btn[data-state="on"][data-value="all"]) {

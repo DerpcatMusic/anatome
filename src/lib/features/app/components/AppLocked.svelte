@@ -33,7 +33,7 @@
     width: 100%;
     padding: var(--space-7) var(--space-6);
     border: var(--border);
-    background: var(--white);
+    background: var(--elevated);
   }
 
   .kicker {

@@ -19,13 +19,13 @@ body {
 }
 
 ::selection {
-  background: var(--secondary);
+  background: var(--accent-soft);
   color: var(--ink);
 }
 
 [data-theme="dark"] ::selection {
-  background: var(--secondary);
-  color: var(--paper);
+  background: var(--accent-soft);
+  color: var(--ink);
 }
 
 a {
@@ -103,7 +103,11 @@ h3 {
   margin-top: var(--space-7);
 }
 
-/* ─── Buttons ─── */
+/* ─── Buttons (legacy) ───
+ * Deprecated: no markup uses `.button` — use `.hb-button` from ui.css.
+ * Safe to remove after landing hero audit confirms no dependency.
+ * Media query below still targets `.button` for old homepage markup.
+ */
 .button {
   display: inline-flex;
   min-height: 52px;
@@ -111,7 +115,7 @@ h3 {
   justify-content: center;
   border: var(--border);
   padding-inline: var(--space-6);
-  background: var(--white);
+  background: var(--elevated);
   color: var(--ink);
   font-weight: 700;
   font-size: var(--step-0);
@@ -127,7 +131,7 @@ h3 {
 
 .button:hover {
   background: var(--surface);
-  border-color: var(--secondary);
+  border-color: var(--primary);
   border-radius: 26px;
 }
 
@@ -161,8 +165,9 @@ h3 {
 }
 
 .button--secondary:hover {
-  background: var(--secondary);
-  color: var(--white);
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
 }
 
 .button:disabled {

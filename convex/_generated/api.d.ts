@@ -24,6 +24,7 @@ import type * as lib_featureFlags from "../lib/featureFlags.js";
 import type * as lib_instructorProfile from "../lib/instructorProfile.js";
 import type * as lib_live from "../lib/live.js";
 import type * as lib_liveJoin from "../lib/liveJoin.js";
+import type * as lib_liveSidebar from "../lib/liveSidebar.js";
 import type * as lib_livekitEnv from "../lib/livekitEnv.js";
 import type * as lib_oneOnOne from "../lib/oneOnOne.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
@@ -111,6 +112,7 @@ declare const fullApi: ApiFromModules<{
   "lib/instructorProfile": typeof lib_instructorProfile;
   "lib/live": typeof lib_live;
   "lib/liveJoin": typeof lib_liveJoin;
+  "lib/liveSidebar": typeof lib_liveSidebar;
   "lib/livekitEnv": typeof lib_livekitEnv;
   "lib/oneOnOne": typeof lib_oneOnOne;
   "lib/rateLimit": typeof lib_rateLimit;
