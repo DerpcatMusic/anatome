@@ -1,0 +1,53 @@
+Loading svelte-check in workspace: /home/derpcat/projects/homebody
+Getting Svelte diagnostics...
+
+/home/derpcat/projects/homebody/src/lib/features/credits/CreditCostTooltip.svelte:27:18
+Error: Cannot invoke an object which is possibly 'undefined'. (ts)
+      {#snippet child({ props })}
+        {@render child({ props })}
+      {/snippet}
+
+/home/derpcat/projects/homebody/src/lib/features/dashboard/components/InstructorQuickUpload.svelte:79:3
+Warn: Unused CSS selector ".instructor-upload__hint"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .instructor-upload__hint {
+    margin: 0;
+
+/home/derpcat/projects/homebody/src/lib/features/app/components/AppShell.svelte:98:3
+Warn: Unused CSS selector ".locked__kicker"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .locked__kicker {
+    font-family: var(--font-mono);
+
+/home/derpcat/projects/homebody/src/lib/features/app/components/AppShell.svelte:35:26
+Error: Type '"customer" | "instructor" | "admin" | null' is not assignable to type '"customer" | "instructor" | "admin"'.
+  Type 'null' is not assignable to type '"customer" | "instructor" | "admin"'. (ts)
+{:else if showDashboardSkeleton}
+  <DashboardLoadingShell role={knownRole} />
+{:else if !auth.isAuthenticated}
+
+/home/derpcat/projects/homebody/src/lib/features/auth/components/AuthPanel.svelte:25:22
+Warn: This reference only captures the initial value of `initialEmail`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+  let method = $state<Method | null>(null);
+  let email = $state(initialEmail?.trim().toLowerCase() ?? "");
+  let code = $state("");
+
+/home/derpcat/projects/homebody/src/lib/features/calendar/components/CalendarShell.svelte:419:3
+Warn: Unused CSS selector ".calendar-shell__lead"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .calendar-shell__lead {
+    margin: 0;
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/PreConnectOverlay.svelte:24:19
+Error: Type 'boolean | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'. (ts)
+  const deviceLists = createLiveKitDeviceLists({
+    active: () => showSetup,
+    // After preview getUserMedia succeeds — avoids duplicate permission prompts (components-core guidance).
+
+====================================
+svelte-check found 3 errors and 4 warnings in 6 files

@@ -68,11 +68,13 @@ async function ensureRoomExists(
     .take(1);
   let room: Doc<"liveRooms"> | null = rooms[0] ?? null;
 
+  const canonicalRoomName = roomNameForClass(liveClass._id);
+
   if (room === null) {
     const newRoom = {
       liveClassId: liveClass._id,
       provider: "livekit" as const,
-      roomName: roomNameForClass(liveClass._id),
+      roomName: canonicalRoomName,
       status: "active" as const,
       startedAt: now,
       updatedAt: now,
@@ -82,6 +84,9 @@ async function ensureRoomExists(
       isInstructor ? { ...newRoom, startedByUserId: userId } : newRoom,
     );
     room = await ctx.db.get(roomId);
+  } else if (room.roomName !== canonicalRoomName) {
+    await ctx.db.patch(room._id, { roomName: canonicalRoomName, updatedAt: now });
+    room = { ...room, roomName: canonicalRoomName };
   }
 
   if (room === null) throw new Error("Room creation failed");

@@ -1,14 +1,10 @@
 import type { Room, TrackPublishDefaults } from "livekit-client";
-import { useDebounce } from "runed";
 import { LiveRoomUi } from "./live-room-ui.svelte";
 import {
   accessStateFromError,
   getMediaErrorMessage,
   i18n,
   participantIdentity,
-  participantIsLocal,
-  participantName,
-  publicationId,
   trackSource,
 } from "./live-room-shared";
 import type {
@@ -20,7 +16,6 @@ import type {
   MediaDevice,
   MediaSource,
   MediaTile,
-  ParticipantItem,
   PerTrackStat,
   PreConnectStep,
   StreamStats,
@@ -32,7 +27,6 @@ import type {
 /** Preview, devices, track tiles, publish profile, and local media controls. */
 export class LiveRoomMedia extends LiveRoomUi {
   mediaTiles = $state<MediaTile[]>([]);
-  participants = $state<ParticipantItem[]>([]);
   micEnabled = $state(false);
   cameraEnabled = $state(false);
   screenShareEnabled = $state(false);
@@ -47,7 +41,6 @@ export class LiveRoomMedia extends LiveRoomUi {
     audioTracks: 0,
   });
   trackStats = $state<PerTrackStat[]>([]);
-  activeSpeakerIdentity = $state<string | null>(null);
   connectionQuality = $state<ConnectionQualityLevel>("unknown");
   networkWarning = $state("");
   audioLevel = $state(0);
@@ -77,7 +70,6 @@ export class LiveRoomMedia extends LiveRoomUi {
   protected instructorMicBeforeDrop = false;
   protected previousStats = new Map<string, { timestamp: number; bytes: number }>();
   protected statsTimer: number | null = null;
-  protected debouncedRefreshParticipants = useDebounce(() => this._refreshParticipants(), 80);
 
   private audioInterval: number | null = null;
   private audioContext: AudioContext | null = null;
@@ -85,8 +77,6 @@ export class LiveRoomMedia extends LiveRoomUi {
   /** Set by {@link LiveRoomConnection}. */
   protected _room: Room | null = null;
   declare readonly isInstructorRoom: boolean;
-  declare readonly videoTiles: MediaTile[];
-  declare readonly audioTiles: MediaTile[];
   declare connectionState: import("./types").ConnectionState;
 
   tileSort = (a: MediaTile, b: MediaTile): number => {
@@ -95,12 +85,6 @@ export class LiveRoomMedia extends LiveRoomUi {
     if (a.isLocal !== b.isLocal) return Number(a.isLocal) - Number(b.isLocal);
     return a.name.localeCompare(b.name);
   };
-
-  private upsertTile(tile: MediaTile) {
-    const existing = this.mediaTiles.find((item) => item.id === tile.id);
-    if (existing) existing.element.remove();
-    this.mediaTiles = [...this.mediaTiles.filter((item) => item.id !== tile.id), tile];
-  }
 
   private detachTrack(track: unknown) {
     const value = track as { detach?: () => HTMLElement[] };
@@ -113,11 +97,7 @@ export class LiveRoomMedia extends LiveRoomUi {
     this.mediaTiles = this.mediaTiles.filter((tile) => !predicate(tile));
   }
 
-  protected removeTileByPublication(participant: unknown, publication: unknown, track: unknown) {
-    const identity = participantIdentity(participant);
-    const source = trackSource(publication);
-    const id = `${identity}_${source}_${publicationId(publication, track, "track")}`;
-    this.removeTiles((tile) => tile.id === id || (tile.identity === identity && tile.source === source));
+  protected removeTileByPublication(_participant: unknown, _publication: unknown, track: unknown) {
     this.detachTrack(track);
   }
 
@@ -126,37 +106,13 @@ export class LiveRoomMedia extends LiveRoomUi {
     this.mediaTiles = [];
   }
 
+  /** Track elements are mounted by `createLiveKitRoomTracks` (components-core). */
   protected addTrackTile(
-    track: unknown,
-    publication: unknown,
-    participant: unknown,
-    prefix: "local" | "remote"
-  ) {
-    const value = track as { attach?: () => HTMLElement };
-    if (typeof value.attach !== "function") return;
-    const identity = participantIdentity(participant);
-    const source = trackSource(publication);
-    const tileId = `${identity}_${source}_${publicationId(publication, track, prefix)}`;
-    this.detachTrack(track);
-    const element = value.attach();
-    const kind = element instanceof HTMLAudioElement ? "audio" : "video";
-    const isLocal = participantIsLocal(participant);
-    if (kind === "video") {
-      element.setAttribute("playsinline", "true");
-      element.setAttribute("data-source", source);
-      (element as HTMLMediaElement).muted = isLocal;
-    }
-    this.upsertTile({
-      id: tileId,
-      identity,
-      name: participantName(participant),
-      element,
-      kind,
-      source,
-      isLocal,
-      isInstructor: this.isInstructorIdentity(identity),
-    });
-  }
+    _track: unknown,
+    _publication: unknown,
+    _participant: unknown,
+    _prefix: "local" | "remote",
+  ) {}
 
   protected shouldSubscribeToPublication(participant: unknown) {
     if (this.isInstructorRoom) return true;
@@ -179,66 +135,6 @@ export class LiveRoomMedia extends LiveRoomUi {
     if (shouldSubscribe && pub.kind === "video" && typeof pub.setVideoQuality === "function") {
       pub.setVideoQuality(this.targetQualityForPublication(participant));
     }
-  }
-
-  refreshParticipants() {
-    this.debouncedRefreshParticipants();
-  }
-
-  protected _refreshParticipants() {
-    if (this._room === null) return;
-    const local = this._room.localParticipant;
-    const next: ParticipantItem[] = [
-      {
-        identity: local.identity,
-        name: local.name || local.identity,
-        isInstructor: this.isInstructorIdentity(local.identity),
-        isLocal: true,
-        isSpeaking: Boolean(local.isSpeaking),
-        hasCamera: Boolean(
-          [...local.trackPublications.values()].some(
-            (p: unknown) =>
-              trackSource(p) === "camera" && (p as { track?: unknown }).track
-          )
-        ),
-        hasMic: Boolean(
-          [...local.trackPublications.values()].some(
-            (p: unknown) =>
-              trackSource(p) === "microphone" && (p as { track?: unknown }).track
-          )
-        ),
-      },
-    ];
-    this._room.remoteParticipants.forEach((participant) => {
-      const value = participant as {
-        identity: string;
-        name?: string;
-        isSpeaking?: boolean;
-        trackPublications?: Map<string, unknown>;
-      };
-      next.push({
-        identity: value.identity,
-        name: value.name || value.identity,
-        isInstructor: this.isInstructorIdentity(value.identity),
-        isLocal: false,
-        isSpeaking: Boolean(value.isSpeaking),
-        hasCamera: Boolean(
-          [...(value.trackPublications?.values() ?? [])].some(
-            (p: unknown) =>
-              trackSource(p) === "camera" && (p as { track?: unknown }).track
-          )
-        ),
-        hasMic: Boolean(
-          [...(value.trackPublications?.values() ?? [])].some(
-            (p: unknown) =>
-              trackSource(p) === "microphone" && (p as { track?: unknown }).track
-          )
-        ),
-      });
-    });
-    this.participants = next.sort(
-      (a, b) => Number(b.isInstructor) - Number(a.isInstructor) || a.name.localeCompare(b.name)
-    );
   }
 
   private async collectTrackStats(
@@ -365,8 +261,8 @@ export class LiveRoomMedia extends LiveRoomUi {
       width: primaryVideo?.width ?? null,
       height: primaryVideo?.height ?? null,
       fps: primaryVideo?.fps ?? null,
-      videoTracks: this.videoTiles.length,
-      audioTracks: this.audioTiles.length,
+      videoTracks: results.filter((r) => r.kind === "video").length,
+      audioTracks: results.filter((r) => r.kind === "audio").length,
     };
   }
 
@@ -453,14 +349,28 @@ export class LiveRoomMedia extends LiveRoomUi {
     await this.switchPreviewDevice();
   }
 
-  private async enumerateDevices() {
+  /** Sync lists from `createLiveKitDeviceLists` (components-core observers). */
+  syncDeviceLists(video: MediaDevice[], audio: MediaDevice[]) {
+    this.videoDevices = video;
+    this.audioDevices = audio;
+    if (this.selectedVideoDevice === "" && video[0]) {
+      this.selectedVideoDevice = video[0].deviceId;
+    }
+    if (this.selectedAudioDevice === "" && audio[0]) {
+      this.selectedAudioDevice = audio[0].deviceId;
+    }
+  }
+
+  private async enumerateDevicesFallback() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    this.videoDevices = devices
-      .filter((d) => d.kind === "videoinput")
-      .map((d) => ({ deviceId: d.deviceId, label: d.label || i18n.t.live.preConnect.cameraLabel() }));
-    this.audioDevices = devices
-      .filter((d) => d.kind === "audioinput")
-      .map((d) => ({ deviceId: d.deviceId, label: d.label || i18n.t.live.preConnect.micLabel() }));
+    this.syncDeviceLists(
+      devices
+        .filter((d) => d.kind === "videoinput")
+        .map((d) => ({ deviceId: d.deviceId, label: d.label || i18n.t.live.preConnect.cameraLabel() })),
+      devices
+        .filter((d) => d.kind === "audioinput")
+        .map((d) => ({ deviceId: d.deviceId, label: d.label || i18n.t.live.preConnect.micLabel() })),
+    );
   }
 
   private buildPreviewStream(videoTrack?: MediaStreamTrack, audioTrack?: MediaStreamTrack) {
@@ -532,7 +442,9 @@ export class LiveRoomMedia extends LiveRoomUi {
     }
 
     this.buildPreviewStream(videoTrack, audioTrack);
-    await this.enumerateDevices();
+    if (this.videoDevices.length === 0 && this.audioDevices.length === 0) {
+      await this.enumerateDevicesFallback();
+    }
     return messages;
   }
 

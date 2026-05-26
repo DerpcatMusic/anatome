@@ -9,6 +9,7 @@
   import PreConnectPreview from "./PreConnectPreview.svelte";
   import PreConnectSettings from "./PreConnectSettings.svelte";
   import PreConnectState from "./PreConnectState.svelte";
+  import { createLiveKitDeviceLists } from "$lib/features/live/livekit-devices.svelte";
 
   let { room }: { room: LiveRoom } = $props();
   const { t } = useI18n();
@@ -18,6 +19,17 @@
   const isPrep = $derived(room.status === "prep");
   const isReady = $derived(room.status === "ready" && room.joinInfo && room.connectionState === "idle");
   const showSetup = $derived(isPrep || isReady);
+
+  const deviceLists = createLiveKitDeviceLists({
+    active: () => showSetup,
+    // After preview getUserMedia succeeds — avoids duplicate permission prompts (components-core guidance).
+    requestPermissions: () => room.preConnectStep === "preview",
+  });
+
+  $effect(() => {
+    if (!showSetup) return;
+    room.syncDeviceLists(deviceLists.videoDevices, deviceLists.audioDevices);
+  });
 
   // Auto-start preview when entering the setup state
   $effect(() => {

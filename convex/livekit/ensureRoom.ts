@@ -27,7 +27,23 @@ export async function ensureLiveKitRoom(
   const existing = await roomClient.listRooms([roomName]);
 
   if (existing.length > 0) {
-    if (existing[0]?.metadata !== serializedMetadata) {
+    const liveRoom = existing[0];
+    if (liveRoom?.metadata) {
+      try {
+        const parsed = JSON.parse(liveRoom.metadata) as { liveClassId?: string };
+        if (
+          parsed.liveClassId !== undefined &&
+          parsed.liveClassId !== join.liveClassId
+        ) {
+          throw new Error("LiveKit room name is bound to a different class");
+        }
+      } catch (reason: unknown) {
+        if (reason instanceof Error && reason.message.includes("different class")) {
+          throw reason;
+        }
+      }
+    }
+    if (liveRoom?.metadata !== serializedMetadata) {
       await roomClient.updateRoomMetadata(roomName, serializedMetadata);
     }
     return;

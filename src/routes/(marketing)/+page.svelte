@@ -41,10 +41,21 @@
     heroActive = active;
   }));
 
+  let landingRoot = $state<HTMLElement | undefined>(undefined);
+
+  $effect(() => {
+    if (!browser || !landingRoot) return;
+    let cleanup: (() => void) | undefined;
+    void import("$lib/features/landing/lib/landing-scroll").then(({ initLandingScroll }) => {
+      cleanup = initLandingScroll(landingRoot!);
+    });
+    return () => cleanup?.();
+  });
+
   const INSTRUCTOR = $derived({
     name: t.landing.instructor.name(),
-    years: "10",
     story: t.landing.instructor.storyClosing(),
+    subtitle: t.landing.instructor.subtitle(),
   });
 
   function openSignupAuth() {
@@ -88,7 +99,7 @@
       personSchema(
         INSTRUCTOR.name,
         INSTRUCTOR.story,
-        t.landing.instructor.subtitle(),
+        INSTRUCTOR.subtitle,
         t.landing.schema.instructorMentor(),
       ),
       breadcrumbSchema([{ name: t.landing.seo.breadcrumbHome(), url: SITE.domain }]),
@@ -107,7 +118,7 @@
   preloadImage={SITE.heroPoster}
 />
 
-<div class="landing-page">
+<div class="landing-page" bind:this={landingRoot}>
   <div class="l-hero-fixed" class:l-hero-fixed--inactive={!heroActive}>
     <HeroBackground />
     {#if browser}

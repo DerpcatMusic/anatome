@@ -269,6 +269,12 @@ export function getAccessToken() {
   return tokenStore.current;
 }
 
+/** True when Convex should run HTTP refresh instead of reusing the cached JWT. */
+export function shouldForceRefreshAccessToken(): boolean {
+  const cached = tokenStore.current;
+  return cached === null || isTokenExpiredOrNearExpiry(cached);
+}
+
 function isTokenExpiredOrNearExpiry(token: string, leewaySeconds = 120): boolean {
   try {
     const payload = JSON.parse(globalThis.atob(token.split(".")[1]));
@@ -341,6 +347,7 @@ export function handleAuthChange(isAuthenticated: boolean) {
     convexWsAuthReported = true;
     convexWsAuthEstablished = false;
     syncQueryAuthReady();
+    markConvexWsAuthSettled();
     return;
   }
 
@@ -375,7 +382,11 @@ async function nudgeConvexWsAuthIfStalled() {
     return;
   }
   convexAuthNudged = true;
-  await getAccessTokenForConvex({ forceRefreshToken: true });
+  const needsRefresh = shouldForceRefreshAccessToken();
+  await getAccessTokenForConvex({ forceRefreshToken: needsRefresh });
+  if (!needsRefresh) {
+    markConvexWsAuthSettled();
+  }
 }
 
 export function wireConvexAuth(client: {

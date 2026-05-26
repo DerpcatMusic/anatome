@@ -29,33 +29,6 @@ export class LiveRoom extends LiveRoomConnection {
     return role === "instructor" || role === "admin";
   });
 
-  readonly videoTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "video"));
-  readonly audioTiles = $derived(this.mediaTiles.filter((tile) => tile.kind === "audio"));
-  readonly screenShareTiles = $derived(
-    this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share"),
-  );
-  readonly hasScreenShare = $derived(this.screenShareTiles.length > 0);
-  readonly instructorVideos = $derived(
-    this.mediaTiles
-      .filter((tile) => tile.kind === "video" && tile.isInstructor && tile.source !== "screen_share")
-      .sort(this.tileSort),
-  );
-  readonly studentVideos = $derived(
-    this.mediaTiles.filter((tile) => tile.kind === "video" && !tile.isInstructor).sort(this.tileSort),
-  );
-  readonly primaryInstructorVideo = $derived.by(() => {
-    const screenShares = this.mediaTiles.filter((t) => t.kind === "video" && t.source === "screen_share");
-    if (screenShares.length > 0) return screenShares[0];
-    const instructors = this.mediaTiles
-      .filter((t) => t.kind === "video" && t.isInstructor && t.source !== "screen_share")
-      .sort(this.tileSort);
-    return instructors.find((t) => !t.isLocal) ?? instructors[0] ?? null;
-  });
-  readonly selfVideo = $derived(
-    this.mediaTiles.find(
-      (tile) => tile.kind === "video" && tile.isLocal && tile.source !== "screen_share",
-    ) ?? null,
-  );
   readonly connectionLabel = $derived(
     this.connectionState === "connected"
       ? i18n.t.live.room.connected()
@@ -83,13 +56,6 @@ export class LiveRoom extends LiveRoomConnection {
       ? "—"
       : `${this.streamStats.packetLoss.toFixed(1)}%`,
   );
-  readonly gridCols = $derived(() => {
-    const count = this.videoTiles.length;
-    if (count <= 1) return 1;
-    if (count <= 4) return 2;
-    if (count <= 9) return 3;
-    return 4;
-  });
   readonly hasPreviewCamera = $derived(Boolean(this.previewStream?.getVideoTracks().length));
   readonly hasPreviewMic = $derived(Boolean(this.previewStream?.getAudioTracks().length));
   readonly joinExpiryLabel = $derived.by(() => {

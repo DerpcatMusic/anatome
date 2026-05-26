@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { isLiveSidebarEligible } from "../lib/liveSidebar";
+import { isLiveSidebarEligible, pickBestSidebarLiveClass } from "../lib/liveSidebar";
 import { viewerCanAccessLiveClass } from "../lib/equipment";
 import type { Doc } from "../_generated/dataModel";
 
@@ -50,6 +50,8 @@ export const get = query({
     const profile = profiles[0] ?? null;
 
     if (profile?.role === "instructor" || profile?.role === "admin") {
+      const ownClasses: Doc<"liveClasses">[] = [];
+
       const live = await ctx.db
         .query("liveClasses")
         .withIndex("by_instructorUserId_and_status_and_startsAt", (q) =>
@@ -57,10 +59,7 @@ export const get = query({
         )
         .order("asc")
         .take(10);
-      for (const row of live) {
-        const hit = toNextLivePayload(row, now);
-        if (hit) return hit;
-      }
+      ownClasses.push(...live);
 
       const scheduled = await ctx.db
         .query("liveClasses")
@@ -69,10 +68,11 @@ export const get = query({
         )
         .order("asc")
         .take(30);
-      for (const row of scheduled) {
-        const hit = toNextLivePayload(row, now);
-        if (hit) return hit;
-      }
+      ownClasses.push(...scheduled);
+
+      const best = pickBestSidebarLiveClass(ownClasses, now);
+      if (best === null) return null;
+      return toNextLivePayload(best, now);
     }
 
     const memberProfiles = await ctx.db
@@ -87,25 +87,22 @@ export const get = query({
       .order("desc")
       .take(50);
 
-    const liveClasses = await Promise.all(
-      reservations.map((r) => ctx.db.get(r.liveClassId)),
-    );
+    const memberCandidates: Doc<"liveClasses">[] = [];
 
-    for (let i = 0; i < reservations.length; i++) {
-      const reservation = reservations[i];
-      if (reservation.status !== "reserved" && reservation.status !== "joined")
-        continue;
-      const liveClass = liveClasses[i];
-      if (liveClass === null) continue;
-      if (
-        !viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)
-      ) {
+    for (const reservation of reservations) {
+      if (reservation.status !== "reserved" && reservation.status !== "joined") {
         continue;
       }
-      const hit = toNextLivePayload(liveClass, now);
-      if (hit) return hit;
+      const liveClass = await ctx.db.get(reservation.liveClassId);
+      if (liveClass === null) continue;
+      if (!viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)) {
+        continue;
+      }
+      memberCandidates.push(liveClass);
     }
 
-    return null;
+    const best = pickBestSidebarLiveClass(memberCandidates, now);
+    if (best === null) return null;
+    return toNextLivePayload(best, now);
   },
 });

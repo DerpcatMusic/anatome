@@ -1,7 +1,9 @@
 import { isInLiveJoinWindow, type LiveJoinWindowClass } from "./liveJoin";
+import type { Doc } from "../_generated/dataModel";
 
 type SidebarLiveClass = Pick<LiveJoinWindowClass, "joinOpensAt" | "joinClosesAt"> & {
   status: string;
+  startsAt?: number;
 };
 
 /** Sidebar LIVE / room entry only when join window is open or class is actively live. */
@@ -18,4 +20,22 @@ export function isLiveSidebarEligible(liveClass: SidebarLiveClass, now: number):
     return isInLiveJoinWindow(liveClass, now);
   }
   return false;
+}
+
+type NextLivePick = Pick<
+  Doc<"liveClasses">,
+  "_id" | "title" | "status" | "startsAt" | "joinOpensAt" | "joinClosesAt" | "type"
+>;
+
+/** Prefer actively live classes, then soonest start among eligible sidebar targets. */
+export function pickBestSidebarLiveClass<T extends NextLivePick>(candidates: T[], now: number): T | null {
+  const eligible = candidates.filter((row) => isLiveSidebarEligible(row, now));
+  if (eligible.length === 0) return null;
+  eligible.sort((a, b) => {
+    const aLive = a.status === "live" ? 1 : 0;
+    const bLive = b.status === "live" ? 1 : 0;
+    if (aLive !== bLive) return bLive - aLive;
+    return (a.startsAt ?? 0) - (b.startsAt ?? 0);
+  });
+  return eligible[0] ?? null;
 }

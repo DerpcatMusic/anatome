@@ -5,7 +5,13 @@
 
   import { tick } from "svelte";
 
-  let { room }: { room: LiveRoom } = $props();
+  let {
+    room,
+    participantCount = 0,
+  }: {
+    room: LiveRoom;
+    participantCount?: number;
+  } = $props();
   const { t } = useI18n();
 
   $effect(() => {
@@ -33,7 +39,7 @@
     <dl class="lr-quality__headline">
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.participants()}</dt>
-          <dd class="lr-quality__value">{room.participants.length}</dd>
+          <dd class="lr-quality__value">{participantCount}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.video()}</dt>

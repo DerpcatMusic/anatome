@@ -230,6 +230,10 @@ export const create = mutation({
 
     if (args.startsAt <= now - MS.FIVE_MINUTES) throw new Error("ניתן לתזמן שיעור רק לעתיד");
 
+    if (await hasLiveClassConflict(ctx, userId, args.startsAt, endsAt)) {
+      throw new Error("החלון חופף לשיעור אחר בלוח");
+    }
+
     const liveClassId = await ctx.db.insert("liveClasses", {
       title: args.title.trim(),
       description: args.description.trim(),

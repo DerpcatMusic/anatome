@@ -11,6 +11,7 @@
 
     <nav class="landing-footer__nav" aria-label="קישורים">
       <a href="/">דף הבית</a>
+      <a href="/concept">רעיון Spine</a>
       <a href="/legal/terms">תנאי שימוש</a>
       <a href="/legal/privacy">פרטיות</a>
       <a href="/legal/cancellations">ביטולים</a>

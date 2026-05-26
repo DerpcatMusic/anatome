@@ -6,8 +6,9 @@
   import { useConvexClient, useQuery } from "convex-svelte";
   import { useEventListener } from "runed";
   import { LiveRoom } from "$lib/features/live/room.svelte";
-  import { createLiveKitStageTracks } from "$lib/features/live/livekit-tracks.svelte";
-  import { mountMedia } from "$lib/features/live/types";
+  import { createLiveKitRoomTracks } from "$lib/features/live/livekit-room-tracks.svelte";
+  import { createLiveKitParticipants } from "$lib/features/live/livekit-participants.svelte";
+  import LiveAudioSink from "./LiveAudioSink.svelte";
   import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import PreConnectOverlay from "./PreConnectOverlay.svelte";
@@ -23,10 +24,15 @@
 
   const client = useConvexClient();
   const room = new LiveRoom(client);
-  const stageTracks = createLiveKitStageTracks({
+  const lkTracks = createLiveKitRoomTracks({
     getRoom: () => room.liveKitRoom,
     isInstructorIdentity: (identity) => room.isInstructorIdentity(identity),
   });
+  const lkParticipants = createLiveKitParticipants({
+    getRoom: () => room.liveKitRoom,
+    isInstructorIdentity: (identity) => room.isInstructorIdentity(identity),
+  });
+  const sidebarParticipants = $derived(lkParticipants.participants);
   const { t } = useI18n();
 
   const liveClassId = $derived(page.url.searchParams.get("classId") as Id<"liveClasses"> | null);
@@ -105,13 +111,13 @@
       <div class="lr-room__viewport">
         <VideoStage
           isInstructorRoom={room.isInstructorRoom}
-          videoTiles={stageTracks.videoTiles}
-          screenShareTiles={stageTracks.screenShareTiles}
-          hasScreenShare={stageTracks.hasScreenShare}
-          activeSpeakerIdentity={room.activeSpeakerIdentity}
-          tileSort={stageTracks.tileSort}
-          primaryInstructorVideo={stageTracks.primaryInstructorVideo}
-          selfVideo={stageTracks.selfVideo}
+          videoTiles={lkTracks.videoTiles}
+          screenShareTiles={lkTracks.screenShareTiles}
+          hasScreenShare={lkTracks.hasScreenShare}
+          activeSpeakerIdentity={lkTracks.activeSpeakerIdentity}
+          tileSort={lkTracks.tileSort}
+          primaryInstructorVideo={lkTracks.primaryInstructorVideo}
+          selfVideo={lkTracks.selfVideo}
           classTitle={room.joinInfo?.classTitle ?? ""}
           instructorName={room.joinInfo?.instructorName ?? ""}
         />
@@ -125,7 +131,7 @@
             showConnectionWarning={room.showConnectionWarning}
             joinExpiryLabel={room.joinExpiryLabel}
             classTitle={room.joinInfo?.classTitle ?? ""}
-            participantCount={room.participants.length}
+            participantCount={sidebarParticipants.length}
             isInstructorRoom={room.isInstructorRoom}
             showQualityPanel={room.showQualityPanel}
             showParticipants={room.showParticipants}
@@ -141,7 +147,7 @@
 
         <ParticipantSidebar
           open={room.showParticipants}
-          participants={room.participants}
+          participants={sidebarParticipants}
           onClose={() => (room.showParticipants = false)}
         />
         <RoomChat
@@ -187,13 +193,9 @@
         {/if}
 
         <ControlBar {room} />
-        <QualityPanel {room} />
+        <QualityPanel {room} participantCount={sidebarParticipants.length} />
 
-        <div class="lr-audio-sink" aria-hidden="true">
-          {#each room.audioTiles as tile (tile.id)}
-            <div use:mountMedia={tile.element}></div>
-          {/each}
-        </div>
+        <LiveAudioSink tiles={lkTracks.audioTiles} />
       </div>
     </div>
   </Tooltip.Provider>

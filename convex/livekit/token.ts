@@ -12,6 +12,7 @@ import {
   type PrepareJoinResult,
 } from "../live/joinContract";
 import { liveKitParticipantIdentity } from "../live/joinPolicy";
+import { assertRoomNameForClass } from "../lib/live";
 import { buildLiveKitVideoGrant } from "./grants";
 import { ensureLiveKitRoom } from "./ensureRoom";
 
@@ -31,6 +32,11 @@ export const issueJoin = action({
       liveClassId: args.liveClassId,
     });
 
+    assertRoomNameForClass(args.liveClassId, join.roomName);
+    if (join.liveClassId !== args.liveClassId) {
+      throw new Error("Live join class mismatch");
+    }
+
     await ensureLiveKitRoom(apiKey, apiSecret, wsUrl, join);
 
     const token = new AccessToken(apiKey, apiSecret, {
@@ -44,6 +50,7 @@ export const issueJoin = action({
       wsUrl,
       token: await token.toJwt(),
       roomName: join.roomName,
+      liveClassId: join.liveClassId,
       participantRole: join.participantRole,
       joinClosesAt: join.joinClosesAt,
       classTitle: join.classTitle,

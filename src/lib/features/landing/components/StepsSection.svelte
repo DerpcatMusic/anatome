@@ -10,7 +10,9 @@
       <h2 class="section-title">{t.landing.steps.headline()}</h2>
     </header>
 
-    <ol class="steps">
+    <div class="steps__timeline">
+      <div class="steps__progress" aria-hidden="true"></div>
+      <ol class="steps">
       <li class="step l-in l-in--1">
         <span class="step__index" aria-hidden="true">1</span>
         <div>
@@ -32,6 +34,7 @@
           <p>{t.landing.steps.step3Desc()}</p>
         </div>
       </li>
-    </ol>
+      </ol>
+    </div>
   </div>
 </section>

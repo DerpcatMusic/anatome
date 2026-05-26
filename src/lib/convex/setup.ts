@@ -1,11 +1,11 @@
 import { setupConvex } from 'convex-svelte';
 import { normalizeConvexDeploymentUrl } from './deployment-url';
 
-let convexInitialized = false;
-
-/** Idempotent — breakout layouts (live room) also call this outside (app)/+layout. */
+/**
+ * Registers ConvexClient in Svelte context for this layout subtree.
+ * Must run again when entering a layout that resets the tree (e.g. live-room `@` breakout),
+ * so this is not a process-wide singleton — each mounting layout may call it.
+ */
 export function initConvex(deploymentUrl: string): void {
-	if (convexInitialized) return;
-	convexInitialized = true;
 	setupConvex(normalizeConvexDeploymentUrl(deploymentUrl));
 }

@@ -11,6 +11,7 @@
   import type { CreditPool } from "$lib/features/credits/types";
   import type { TypeFilter } from "../lib/agenda";
   import InstructorAvatar from "./InstructorAvatar.svelte";
+  import RsvpSeatIndicators from "./RsvpSeatIndicators.svelte";
   import "../styles/cal-time.css";
   import "../styles/agenda-card.css";
 
@@ -142,9 +143,10 @@
             {#if !isPrivate}
               <span class="agenda-card__meta-sep" aria-hidden="true">·</span>
             {/if}
-            <span class="agenda-card__meta-strong">
-              {item.seatsRemaining}/{item.liveClass.capacity}
-            </span>
+            <RsvpSeatIndicators
+              capacity={item.liveClass.capacity}
+              seatsTaken={item.seatsTaken}
+            />
           {/if}
           {#if status && !showStatusBadge}
             <span class="agenda-card__meta-sep" aria-hidden="true">·</span>

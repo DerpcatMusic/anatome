@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { consumeCredits, type LiveCreditPool } from "../credits/lib";
+import { liveClassIdFromRoomName } from "../lib/live";
 import {
   findActiveReservation,
   getAppProfile,
@@ -24,6 +25,11 @@ export const handleWebhook = internalMutation({
     const room = rooms[0] ?? null;
 
     if (room === null) return { authorized: false };
+
+    const parsedClassId = liveClassIdFromRoomName(args.roomName);
+    if (parsedClassId !== null && parsedClassId !== room.liveClassId) {
+      return { authorized: false };
+    }
 
     const liveClass = await ctx.db.get(room.liveClassId);
     if (liveClass === null) return { authorized: false };

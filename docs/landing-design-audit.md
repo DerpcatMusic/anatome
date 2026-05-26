@@ -20,10 +20,22 @@ Removed: `--landing-*`, `--accent-bright`, separate marketing hues.
 ## Layout (May 2026)
 
 - Section padding: `--l-section-y: clamp(2.5rem, 6vw, 4rem)`
-- Hero spacer: `min(72vh, 640px)` (was full viewport dead scroll)
-- Steps: numbered timeline with `--secondary` border (not 3 identical cards)
+- Hero spacer: full viewport (`100svh`) with fixed hero; panels scroll over
+- About: credential cards + instructor narrative (no years stat badge)
+- Experience: full-width bento mosaic (4 tiles, portrait/landscape mix); GSAP assemble + pinned focus on desktop (`≥56rem`)
+- Steps: numbered timeline with scrubbed progress line (desktop)
 - Pillars: semantic left borders (`--secondary` / `--primary` / `--accent`)
 - Mesh: blob colors from computed `--primary`, `--secondary`, `--accent`
+
+## Scroll motion (May 2026)
+
+- **Library:** `gsap` + `ScrollTrigger`, lazy-loaded from [`landing-scroll.ts`](../src/lib/features/landing/lib/landing-scroll.ts)
+- **Hero:** media/scrim fade on scroll-out
+- **About:** photo Y-parallax (`data-landing-about-photo`)
+- **Experience:** bento tile stagger-in, pin + active tile focus (`data-landing-experience`, `data-experience-bento-cell`)
+- **Steps:** progress line `scaleY` scrub; step highlight class
+- **Pricing:** one-shot featured glow (`.pricing__featured--glow`)
+- **Reduced motion:** all pin/scrub disabled; Experience uses `.experience-scroll__fallback` stack
 
 ## Buttons
 

@@ -13,6 +13,7 @@ const config = {
 		prerender: {
 			entries: [
 				'/',
+				'/concept',
 				'/sitemap.xml',
 				'/robots.txt',
 				'/legal/terms',

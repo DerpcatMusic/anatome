@@ -38,7 +38,7 @@
   </div>
 
   <div class="hero__scroll" aria-hidden="true">
-    <span class="hero__scroll-label">Flow</span>
+    <span class="hero__scroll-label">{t.landing.hero.scrollHint()}</span>
     <span class="hero__scroll-line"></span>
   </div>
 </section>

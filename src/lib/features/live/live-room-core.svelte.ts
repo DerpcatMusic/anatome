@@ -17,6 +17,7 @@ export class LiveRoomCore {
     wsUrl: string;
     token: string;
     roomName: string;
+    liveClassId: Id<"liveClasses">;
     participantRole: ParticipantRole;
     joinClosesAt: number;
     classTitle: string;

@@ -12,6 +12,7 @@
 		getCachedRole,
 		setCachedRole,
 		getAccessTokenForConvex,
+		shouldForceRefreshAccessToken,
 		AUTH_QUERY_READY_CAP_MS,
 	} from "$lib/auth/session.svelte";
 	import {
@@ -94,7 +95,9 @@
 				untrack(() => {
 					appContext.isLoading = false;
 				});
-				void getAccessTokenForConvex({ forceRefreshToken: true });
+				void getAccessTokenForConvex({
+					forceRefreshToken: shouldForceRefreshAccessToken(),
+				});
 			}
 		}, AUTH_QUERY_READY_CAP_MS);
 

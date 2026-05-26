@@ -10,6 +10,7 @@ import {
   trackSource,
 } from "./live-room-shared";
 import { hasLiveClassIdParam, parseLiveClassId } from "$lib/convex/ids";
+import { assertIssueJoinMatchesClass } from "$lib/live/join-guard";
 import { LiveRoomMedia } from "./livekit-media.svelte";
 import type { ConnectionState } from "./types";
 
@@ -222,6 +223,7 @@ export class LiveRoomConnection extends LiveRoomMedia {
     if (liveClassId === null || !this.inRoom) return;
     try {
       const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
+      assertIssueJoinMatchesClass(liveClassId, joinInfo);
       this.joinInfo = joinInfo;
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.startTokenRefreshTimer();
@@ -339,6 +341,7 @@ export class LiveRoomConnection extends LiveRoomMedia {
 
       this.stopWaitingPoll();
       const joinInfo = await this.client.action(api.livekit.token.issueJoin, { liveClassId });
+      assertIssueJoinMatchesClass(liveClassId, joinInfo);
       this.joinInfo = joinInfo;
       this.startExpiryTimer(joinInfo.joinClosesAt);
       if (access.isInstructor && access.status === "scheduled") {
@@ -420,16 +423,10 @@ export class LiveRoomConnection extends LiveRoomMedia {
     }
   }
 
-  protected attachParticipantListeners(
-    participant: unknown,
-    participantEvent: { IsSpeakingChanged: unknown }
-  ) {
+  protected attachParticipantListeners(participant: unknown) {
     const value = participant as {
-      identity?: string;
-      on?: (event: unknown, handler: () => void) => void;
       trackPublications?: Map<string, unknown>;
     };
-    value.on?.(participantEvent.IsSpeakingChanged, () => this.refreshParticipants());
     value.trackPublications?.forEach((publication) => {
       this.subscribeIfAllowed(publication, participant);
       const track = (publication as { track?: unknown }).track;
@@ -443,7 +440,6 @@ export class LiveRoomConnection extends LiveRoomMedia {
       const {
         Room,
         RoomEvent,
-        ParticipantEvent,
         VideoPreset,
         AudioPresets,
       } = await import("livekit-client");
@@ -498,7 +494,6 @@ export class LiveRoomConnection extends LiveRoomMedia {
           this.connectionState = "connected";
           this.needsManualReconnect = false;
           this.networkWarning = "";
-          this.refreshParticipants();
           void this.refreshConnectionHealth();
           void this.restoreInstructorMicIfNeeded();
         })
@@ -506,21 +501,12 @@ export class LiveRoomConnection extends LiveRoomMedia {
           this.handleDisconnected(reason);
         })
         .on(RoomEvent.ParticipantConnected, (participant: unknown) => {
-          this.attachParticipantListeners(participant, ParticipantEvent);
-          this.refreshParticipants();
+          this.attachParticipantListeners(participant);
         })
         .on(RoomEvent.ParticipantDisconnected, (participant: unknown) => {
           this.removeTiles(
             (tile) => tile.identity === participantIdentity(participant)
           );
-          this.refreshParticipants();
-        })
-        .on(RoomEvent.ActiveSpeakersChanged, (speakers: unknown[]) => {
-          this.activeSpeakerIdentity =
-            (speakers as Array<{ identity?: string; isSpeaking?: boolean }>).find(
-              (s) => s.isSpeaking
-            )?.identity ?? null;
-          this.refreshParticipants();
         })
         .on(RoomEvent.LocalTrackPublished, (publication: unknown, participant: unknown) => {
           this.addTrackTile(
@@ -613,11 +599,10 @@ export class LiveRoomConnection extends LiveRoomMedia {
       }
       this.connectionState = "connected";
       this.updateConnectionQualityFromRoom();
-      this.refreshParticipants();
       this.startStatsTimer();
       this.startTokenRefreshTimer();
       lkRoom.remoteParticipants.forEach((participant) =>
-        this.attachParticipantListeners(participant, ParticipantEvent)
+        this.attachParticipantListeners(participant)
       );
     } catch (reason) {
       this.connectionState = "disconnected";

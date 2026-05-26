@@ -2,21 +2,37 @@
   import { Button } from "bits-ui";
   import { api } from "$convex/_generated/api";
   import Dashboard from "$features/dashboard/components/Dashboard.svelte";
+  import DashboardLoadingShell from "$features/dashboard/components/DashboardLoadingShell.svelte";
+  import { getAppContext } from "$features/app/context/appContext";
   import { signOut } from "$lib/auth/session.svelte";
 
   import { useQuery } from "convex-svelte";
-  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery, getCachedRole } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   const auth = initAuth();
+  const appContext = getAppContext();
   const { t } = useI18n();
   const query = useQuery(api.users.dashboard.get, () => canRunAuthenticatedQuery() ? {} : "skip");
+
+  const knownRole = $derived(
+    (appContext.role ?? getCachedRole()) as "customer" | "instructor" | "admin" | null,
+  );
+  const waitingForAuth = $derived(auth.isAuthenticated && !canRunAuthenticatedQuery());
+  const dashboardPending = $derived(
+    auth.isAuthenticated &&
+      canRunAuthenticatedQuery() &&
+      (query.isLoading || (query.data === undefined && !query.error)),
+  );
+  const showDashboardSkeleton = $derived(dashboardPending && knownRole !== null);
 </script>
 
-{#if query.isLoading || (auth.isAuthenticated && !canRunAuthenticatedQuery()) || (auth.isAuthenticated && query.data === undefined && !query.error)}
+{#if waitingForAuth || (dashboardPending && knownRole === null)}
   <div class="app-frame">
     <p>{t.app.loading()}</p>
   </div>
+{:else if showDashboardSkeleton && knownRole}
+  <DashboardLoadingShell role={knownRole} />
 {:else if !auth.isAuthenticated}
   <div class="app-frame">
     <div class="locked">

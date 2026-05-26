@@ -44,6 +44,7 @@ export const issueJoinResultValidator = v.object({
   wsUrl: v.string(),
   token: v.string(),
   roomName: v.string(),
+  liveClassId: v.id("liveClasses"),
   participantRole: liveParticipantRoleValidator,
   joinClosesAt: v.number(),
   classTitle: v.string(),

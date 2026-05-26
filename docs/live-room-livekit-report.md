@@ -54,7 +54,7 @@
 |------|--------|
 | **Monolith** | `room.svelte.ts` mixes LK wiring, Convex, chat, stats, pre-connect, tiles, reconnect |
 | **UI** | Custom `lr-*` + `hb-button` parallel to app design system; easy to drift |
-| **Tracks/tiles** | Manual `mediaTiles` + `mountMedia` action vs component-library track hooks |
+| **Tracks/tiles** | ~~Manual `mediaTiles`~~ → `createLiveKitRoomTracks` (`@livekit/components-core`) + `lr-*` tiles |
 | **Pre-connect** | Custom `PreConnectOverlay` vs standard `PreJoin` flow |
 | **Duplication** | Meet/components solve: grid, focus layout, device menu, control bar |
 
@@ -150,9 +150,9 @@ From [LiveKit video conferencing](https://livekit.com/use-cases/video-conferenci
    - `live-room-ui.svelte.ts` — panels, chat draft, modals
    - Keep `LiveRoom` as thin façade
 
-2. **Adopt `@livekit/components-core` hooks** (via livekit-svelte or direct port)
-   - Replace manual `mediaTiles` refresh with `useTracks` / participant hooks
-   - Replace custom device lists with `MediaDeviceMenu` pattern
+2. **`@livekit/components-core`**
+   - Done: `createLiveKitRoomTracks`, `createLiveKitDeviceLists`, `createLiveKitParticipants`, styled `ParticipantVideoTile` / `LiveAudioSink`
+   - Next (optional): `setupDeviceSelector` when switching devices in-room
 
 3. **Pre-connect**
    - Align `PreConnectOverlay` with `PreJoin` API (preview tracks, single submit → `issueJoin` → connect)
