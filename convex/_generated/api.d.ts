@@ -18,6 +18,7 @@ import type * as email_resendEvents from "../email/resendEvents.js";
 import type * as http from "../http.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_constants from "../lib/constants.js";
+import type * as lib_displayName from "../lib/displayName.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_equipment from "../lib/equipment.js";
 import type * as lib_featureFlags from "../lib/featureFlags.js";
@@ -108,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/authz": typeof lib_authz;
   "lib/constants": typeof lib_constants;
+  "lib/displayName": typeof lib_displayName;
   "lib/email": typeof lib_email;
   "lib/equipment": typeof lib_equipment;
   "lib/featureFlags": typeof lib_featureFlags;

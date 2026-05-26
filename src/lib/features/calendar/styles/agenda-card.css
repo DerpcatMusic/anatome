@@ -222,6 +222,22 @@
   font-weight: 600;
 }
 
+.agenda-card__equipment-hint {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.45;
+  color: var(--foreground-muted);
+  font-weight: 600;
+}
+
+.agenda-card__equipment-link {
+  margin-inline-start: 0.35em;
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .agenda-card__action {
   flex-shrink: 0;
   display: flex;

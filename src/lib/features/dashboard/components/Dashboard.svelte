@@ -5,6 +5,7 @@
   import { useI18n } from "$lib/i18n/runes.svelte";
   import LiveAlert from "./LiveAlert.svelte";
   import MemberDashboardHome from "./MemberDashboardHome.svelte";
+  import MemberLatestVideosRail from "./MemberLatestVideosRail.svelte";
   import InstructorDashboardHome from "./InstructorDashboardHome.svelte";
   import ProfileSummary from "./ProfileSummary.svelte";
   import SubscriptionManager from "./SubscriptionManager.svelte";
@@ -50,19 +51,21 @@
     {#if isStaff}
       <InstructorDashboardHome {appProfile} />
     {:else}
-      <div class="dashboard-home__grid dashboard-home__grid--member">
-        <MemberDashboardHome {memberName} />
-        <aside class="dashboard-shell__aside">
-          <SubscriptionManager
-            subscription={subscription ?? null}
-            subscriptionPlan={subscriptionPlan ?? null}
-            pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
-            wallet={wallet ?? null}
-          />
-          {#if profile}
-            <ProfileSummary isStaff={false} {profile} showEditLink />
-          {/if}
-        </aside>
+      <div class="dashboard-shell--member">
+        <div class="dashboard-home__grid dashboard-home__grid--member">
+          <MemberDashboardHome {memberName} wallet={wallet ?? null} />
+          <aside class="dashboard-shell__aside">
+            <SubscriptionManager
+              subscription={subscription ?? null}
+              subscriptionPlan={subscriptionPlan ?? null}
+              pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
+            />
+            {#if profile}
+              <ProfileSummary isStaff={false} {profile} showEditLink />
+            {/if}
+          </aside>
+        </div>
+        <MemberLatestVideosRail />
       </div>
     {/if}
   </div>
@@ -80,6 +83,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .dashboard-shell--member {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
     min-width: 0;
   }
 

@@ -45,6 +45,13 @@ export type TranslationKey =
   | "auth.loading"
   | "onboarding.step"
   | "onboarding.stepCount"
+  | "onboarding.name.title"
+  | "onboarding.name.subtitle"
+  | "onboarding.name.firstNameLabel"
+  | "onboarding.name.lastNameLabel"
+  | "onboarding.name.firstNamePlaceholder"
+  | "onboarding.name.lastNamePlaceholder"
+  | "onboarding.name.emptyWarning"
   | "onboarding.experience.title"
   | "onboarding.experience.subtitle"
   | "onboarding.experience.new.title"
@@ -63,6 +70,7 @@ export type TranslationKey =
   | "onboarding.notes.subtitle"
   | "onboarding.notes.placeholder"
   | "onboarding.summary.title"
+  | "onboarding.summary.name"
   | "onboarding.summary.experience"
   | "onboarding.summary.equipment"
   | "onboarding.summary.goals"
@@ -153,7 +161,14 @@ export const dictionary: Dictionary = {
     "auth.loggedIn.cta": "לאזור האישי",
     "auth.loading": "בודקים חשבון...",
     "onboarding.step": "שלב",
-    "onboarding.stepCount": "מתוך 6",
+    "onboarding.stepCount": "מתוך 7",
+    "onboarding.name.title": "איך לקרוא לך?",
+    "onboarding.name.subtitle": "שם פרטי ושם משפחה — כך נוכל לפנות אלייך באופן אישי.",
+    "onboarding.name.firstNameLabel": "שם פרטי",
+    "onboarding.name.lastNameLabel": "שם משפחה",
+    "onboarding.name.firstNamePlaceholder": "שם",
+    "onboarding.name.lastNamePlaceholder": "שם משפחה",
+    "onboarding.name.emptyWarning": "מלאי שם פרטי ושם משפחה.",
     "onboarding.experience.title": "כמה ניסיון יש לך?",
     "onboarding.experience.subtitle": "",
     "onboarding.experience.new.title": "חדשה לגמרי",
@@ -172,6 +187,7 @@ export const dictionary: Dictionary = {
     "onboarding.notes.subtitle": "",
     "onboarding.notes.placeholder": "כאבים, מגבלות, העדפות…",
     "onboarding.summary.title": "סיכום ההתאמה",
+    "onboarding.summary.name": "שם",
     "onboarding.summary.experience": "ניסיון",
     "onboarding.summary.equipment": "ציוד",
     "onboarding.summary.goals": "מטרות",

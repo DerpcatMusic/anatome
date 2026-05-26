@@ -1,6 +1,6 @@
 import type { MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
-import { missingRequiredEquipment } from "../lib/equipment";
+import { viewerCanAccessLiveClass } from "../lib/equipment";
 import { assertInLiveJoinWindow } from "../lib/liveJoin";
 
 import type { LiveParticipantRole } from "./joinContract";
@@ -89,9 +89,7 @@ export async function checkMemberRequirements({
     .take(1);
   const memberProfile = memberProfiles[0] ?? null;
   if (memberProfile === null) throw new Error("נדרש פרופיל אישי");
-  if (
-    missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment).length > 0
-  ) {
+  if (!viewerCanAccessLiveClass(memberProfile.equipment, liveClass.requiredEquipment)) {
     throw new Error("חסר ציוד נדרש");
   }
 }

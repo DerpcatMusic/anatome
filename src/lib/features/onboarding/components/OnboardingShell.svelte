@@ -75,7 +75,12 @@
       <Notice tone="danger">{error}</Notice>
     </div></div>
   {:else}
-    <div class="onboarding-page__child"><OnboardingForm redirectTo="/u/dashboard" /></div>
+    <div class="onboarding-page__child">
+      <OnboardingForm
+        redirectTo="/u/dashboard"
+        initialDisplayName={dashboardQuery.data?.appProfile?.displayName}
+      />
+    </div>
   {/if}
 </section>
 

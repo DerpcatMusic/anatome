@@ -6,7 +6,10 @@ import {
   availableOneOnOneCredits,
   getCreditAccess,
 } from "../credits/lib";
-import { missingRequiredEquipment } from "../lib/equipment";
+import {
+  missingRequiredEquipment,
+  viewerCanAccessLiveClass,
+} from "../lib/equipment";
 import { LIMITS } from "../lib/constants";
 import { isInLiveJoinWindow } from "../lib/liveJoin";
 import { loadInstructorProfiles } from "../lib/instructorProfile";
@@ -27,7 +30,22 @@ export const listUpcoming = query({
       .order("asc")
       .take(LIMITS.CALENDAR_UPCOMING);
 
-    return [...live, ...scheduled].sort((a, b) => a.startsAt - b.startsAt).slice(0, 50);
+    const classes = [...live, ...scheduled]
+      .sort((a, b) => a.startsAt - b.startsAt)
+      .slice(0, 50);
+
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return classes;
+
+    const memberProfiles = await ctx.db
+      .query("memberProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(1);
+    const memberEquipment = memberProfiles[0]?.equipment ?? [];
+
+    return classes.filter((liveClass) =>
+      viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment),
+    );
   },
 });
 
@@ -102,8 +120,13 @@ export const listRange = query({
             ? availableLiveCredits(wallet)
             : availableOneOnOneCredits(wallet);
       const viewerReservationStatus = viewerReservation?.status ?? null;
+      const memberEquipment = memberProfile?.equipment ?? [];
       const viewerMissingEquipment = missingRequiredEquipment(
-        memberProfile?.equipment ?? [],
+        memberEquipment,
+        liveClass.requiredEquipment,
+      );
+      const hasEquipmentAccess = viewerCanAccessLiveClass(
+        memberEquipment,
         liveClass.requiredEquipment,
       );
 
@@ -113,6 +136,13 @@ export const listRange = query({
         viewerReservationStatus !== "cancelled" &&
         viewerReservationStatus !== "refunded" &&
         viewerReservationStatus !== "no_show";
+
+      const isCustomerViewer =
+        userId !== null &&
+        (appProfile?.role === "customer" || appProfile?.role === undefined);
+      if (isCustomerViewer && !hasEquipmentAccess && !hasValidReservation) {
+        continue;
+      }
       const inJoinWindow = isInLiveJoinWindow(liveClass, now);
       const canWalkIn =
         userId !== null &&
@@ -145,6 +175,7 @@ export const listRange = query({
           (liveClass.type === "group_live" || liveClass.type === "one_on_one") &&
           liveClass.status === "live" &&
           inJoinWindow &&
+          hasEquipmentAccess &&
           (hasValidReservation || canWalkIn),
         viewerIsWalkIn: !hasValidReservation && canWalkIn,
         viewerAvailableCredits: available,

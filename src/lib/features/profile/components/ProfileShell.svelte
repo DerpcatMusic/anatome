@@ -365,7 +365,6 @@
         subscription={dashboard?.subscription ?? null}
         subscriptionPlan={dashboard?.subscriptionPlan ?? null}
         pendingSubscriptionPlan={dashboard?.pendingSubscriptionPlan ?? null}
-        wallet={dashboard?.wallet ?? null}
       />
     {:else}
       <div class="profile-toolbar">
@@ -377,7 +376,12 @@
           חזרה לתצוגה
         </Button.Root>
       </div>
-      <OnboardingForm mode="edit" initialProfile={profile} onSaved={onMemberProfileSaved} />
+      <OnboardingForm
+        mode="edit"
+        initialProfile={profile}
+        initialDisplayName={dashboardResource.current?.appProfile?.displayName}
+        onSaved={onMemberProfileSaved}
+      />
     {/if}
   </PageShell>
 {:else}

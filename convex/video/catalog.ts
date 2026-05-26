@@ -19,6 +19,7 @@ const catalogVideoValidator = v.object({
   owned: v.boolean(),
   accessible: v.boolean(),
   locked: v.boolean(),
+  createdAt: v.number(),
 });
 
 const catalogCategoryValidator = v.object({
@@ -37,6 +38,7 @@ export type CatalogVideoRow = {
   owned: boolean;
   accessible: boolean;
   locked: boolean;
+  createdAt: number;
 };
 
 const DESCRIPTION_PREVIEW_MAX = 480;
@@ -69,6 +71,7 @@ function toCatalogRow(
     owned,
     accessible,
     locked: !accessible,
+    createdAt: video.createdAt,
   };
 }
 
@@ -81,7 +84,7 @@ async function loadPublishedCatalog(ctx: QueryCtx) {
 
   const videos = await ctx.db
     .query("videos")
-    .withIndex("by_status", (q) => q.eq("status", "published"))
+    .withIndex("by_status_and_createdAt", (q) => q.eq("status", "published"))
     .order("desc")
     .take(200);
 

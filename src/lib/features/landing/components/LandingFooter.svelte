@@ -6,11 +6,8 @@
 </script>
 
 <footer class="landing-footer">
-  <div class="l-shell landing-footer__grid">
-    <div class="landing-footer__brand">
-      <span class="landing-footer__logo">{t.site.name()}</span>
-      <p class="landing-footer__tagline">{t.site.tagline()}</p>
-    </div>
+  <div class="l-shell landing-footer__inner">
+    <span class="landing-footer__logo">{t.site.name()}</span>
 
     <nav class="landing-footer__nav" aria-label="קישורים">
       <a href="/">דף הבית</a>
@@ -21,13 +18,6 @@
       <a href="/legal/health">הצהרת בריאות</a>
     </nav>
 
-    <div class="landing-footer__contact">
-      <span class="landing-footer__contact-label l-eyebrow">יצירת קשר</span>
-      <a class="landing-footer__email" href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
-    </div>
-  </div>
-
-  <div class="l-shell landing-footer__meta">
-    <span>© {year} {t.site.name()}</span>
+    <span class="landing-footer__meta">© {year}</span>
   </div>
 </footer>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
@@ -92,14 +92,14 @@
     if (profileQuery.isLoading) return;
     const profile = profileQuery.data;
     if (profile === null || profile === undefined) {
-      window.location.assign("/calendar");
+      window.location.assign("/");
       return;
     }
     if (profile.role !== "admin" && profile.role !== "instructor") {
-      window.location.assign("/calendar");
+      window.location.assign("/u/calendar");
       return;
     }
-    setCachedRole(profile.role);
+    untrack(() => setCachedRole(profile.role));
   });
 
   function defaultStartsAtLocal() {

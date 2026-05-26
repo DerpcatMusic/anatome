@@ -5,6 +5,7 @@
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
+  import { closeAuthOverlay } from "$lib/auth/open-overlay";
   import EmailStep from "./EmailStep.svelte";
   import CodeStep from "./CodeStep.svelte";
   import LoggedInState from "./LoggedInState.svelte";
@@ -12,15 +13,44 @@
   type Method = "code" | "link";
   type Step = "email" | "verify";
 
+  interface Props {
+    initialEmail?: string;
+    autoSendCode?: boolean;
+  }
+
+  let { initialEmail, autoSendCode = false }: Props = $props();
+
   let step = $state<Step>("email");
   let method = $state<Method | null>(null);
-  let email = $state("");
+  let email = $state(initialEmail?.trim().toLowerCase() ?? "");
   let code = $state("");
   let status = $state("");
   let pending = $state(false);
   const auth = initAuth();
   const client = useConvexClient();
   const { t } = useI18n();
+
+  let autoSendStarted = $state(false);
+
+  $effect(() => {
+    const prefill = initialEmail?.trim().toLowerCase();
+    if (prefill) email = prefill;
+  });
+
+  $effect(() => {
+    if (
+      !autoSendCode ||
+      autoSendStarted ||
+      auth.isLoading ||
+      auth.isAuthenticated ||
+      step !== "email" ||
+      !email.trim()
+    ) {
+      return;
+    }
+    autoSendStarted = true;
+    void sendCode();
+  });
 
   async function sendCode() {
     if (!email.trim()) {
@@ -91,7 +121,7 @@
   }
 
   function closeModal() {
-    window.dispatchEvent(new CustomEvent("anatome:auth-close"));
+    closeAuthOverlay();
   }
 
   function switchToCode() {

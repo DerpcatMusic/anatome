@@ -1,7 +1,25 @@
+import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { isLiveSidebarEligible } from "../lib/liveSidebar";
+import { viewerCanAccessLiveClass } from "../lib/equipment";
 import type { Doc } from "../_generated/dataModel";
+
+const nextLivePayloadValidator = v.object({
+  classId: v.id("liveClasses"),
+  title: v.string(),
+  status: v.union(
+    v.literal("draft"),
+    v.literal("scheduled"),
+    v.literal("live"),
+    v.literal("ended"),
+    v.literal("cancelled"),
+  ),
+  startsAt: v.number(),
+  joinOpensAt: v.number(),
+  joinClosesAt: v.number(),
+  type: v.union(v.literal("group_live"), v.literal("one_on_one")),
+});
 
 function toNextLivePayload(liveClass: Doc<"liveClasses">, now: number) {
   if (!isLiveSidebarEligible(liveClass, now)) return null;
@@ -18,6 +36,7 @@ function toNextLivePayload(liveClass: Doc<"liveClasses">, now: number) {
 
 export const get = query({
   args: {},
+  returns: v.union(v.null(), nextLivePayloadValidator),
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
@@ -56,6 +75,12 @@ export const get = query({
       }
     }
 
+    const memberProfiles = await ctx.db
+      .query("memberProfiles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(1);
+    const memberEquipment = memberProfiles[0]?.equipment ?? [];
+
     const reservations = await ctx.db
       .query("liveReservations")
       .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
@@ -72,6 +97,11 @@ export const get = query({
         continue;
       const liveClass = liveClasses[i];
       if (liveClass === null) continue;
+      if (
+        !viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)
+      ) {
+        continue;
+      }
       const hit = toNextLivePayload(liveClass, now);
       if (hit) return hit;
     }

@@ -9,9 +9,11 @@
 
 	interface Props {
 		open: boolean;
+		initialEmail?: string;
+		autoSendCode?: boolean;
 	}
 
-	let { open = $bindable() }: Props = $props();
+	let { open = $bindable(), initialEmail, autoSendCode = false }: Props = $props();
 
 		initConvex(PUBLIC_CONVEX_CLIENT_URL);
 
@@ -25,7 +27,7 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="auth-overlay" />
 		<Dialog.Content class="auth-card" aria-label="כניסה והרשמה">
-			<AuthPanel />
+			<AuthPanel {initialEmail} {autoSendCode} />
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>

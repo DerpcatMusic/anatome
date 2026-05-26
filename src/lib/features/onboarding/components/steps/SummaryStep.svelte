@@ -12,8 +12,11 @@
     isHealthDeclarationComplete,
     type HealthDeclarationAnswers,
   } from "$lib/features/onboarding/health-declaration";
+  import { buildDisplayName } from "$lib/features/onboarding/display-name";
 
   let {
+    firstName,
+    lastName,
     experience,
     equipment,
     goals,
@@ -23,6 +26,8 @@
     healthDeclarationAccepted,
     healthInfoConsent,
   }: {
+    firstName: string;
+    lastName: string;
     experience: "new" | "some" | "steady";
     equipment: string[];
     goals: string[];
@@ -34,6 +39,8 @@
   } = $props();
 
   const { t } = useI18n();
+
+  const fullName = $derived(buildDisplayName(firstName, lastName));
 
   const pathologySummary = $derived(
     pathologies.length > 0
@@ -57,6 +64,10 @@
 <div class="summary-box">
   <p class="summary-box__title">{t.onboarding.summary.boxTitle()}</p>
 
+  <div class="summary-box__row">
+    <span>{t.onboarding.summary.name()}</span>
+    <span>{fullName}</span>
+  </div>
   <div class="summary-box__row">
     <span>{t.onboarding.summary.experience()}</span>
     <span>{experienceLabel(experience)}</span>

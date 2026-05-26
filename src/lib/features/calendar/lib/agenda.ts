@@ -93,13 +93,6 @@ export function filterAgendaEntries(
 
 const ACTIVE_RESERVATION = new Set(["reserved", "joined"]);
 
-function isInJoinWindow(
-  liveClass: { joinOpensAt: number; joinClosesAt: number },
-  now: number,
-): boolean {
-  return now >= liveClass.joinOpensAt && now <= liveClass.joinClosesAt;
-}
-
 function isUpcomingAvailableClass(item: CalendarClass, now: number): boolean {
   const lc = item.liveClass;
   if (lc.status === "cancelled" || lc.status === "draft" || lc.status === "ended") {
@@ -113,7 +106,6 @@ function isUpcomingAvailableClass(item: CalendarClass, now: number): boolean {
 
   if (item.viewerCanReserve || item.viewerCanJoin) return true;
   if (hasReservation) return true;
-  if (lc.status === "live" && isInJoinWindow(lc, now)) return true;
 
   return false;
 }

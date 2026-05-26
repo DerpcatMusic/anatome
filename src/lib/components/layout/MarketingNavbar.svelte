@@ -2,31 +2,34 @@
 	import { browser } from '$app/environment';
 	import { Button } from 'bits-ui';
 	import { theme } from '$features/app/theme.svelte';
+	import { dashboardPathFromCachedRole } from '$lib/auth/post-sign-in';
+	import { openAuthOverlay } from '$lib/auth/open-overlay';
+	import { getCachedRole, initAuth } from '$lib/auth/session.svelte';
 	import { useI18n } from '$lib/i18n/runes';
 
 	const { t } = useI18n();
+	const auth = initAuth();
+	const dashboardHref = $derived(dashboardPathFromCachedRole(getCachedRole()));
 
 	let scrolled = $state(false);
+
+	const SCROLL_PILL_THRESHOLD = 32;
 
 	$effect(() => {
 		if (!browser) return;
 
 		const onScroll = () => {
-			scrolled = window.scrollY > 12;
+			scrolled = window.scrollY > SCROLL_PILL_THRESHOLD;
 		};
 
 		onScroll();
 		window.addEventListener('scroll', onScroll, { passive: true });
 		return () => window.removeEventListener('scroll', onScroll);
 	});
-
-	function openAuth() {
-		window.dispatchEvent(new CustomEvent('anatome:auth-open'));
-	}
 </script>
 
 <nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
-	<div class="navbar__inner">
+	<div class="navbar__shell">
 		<a class="navbar__brand" href="/">
 			<span class="navbar__logo">{t.site.name()}</span>
 		</a>
@@ -44,67 +47,107 @@
 				<span class="navbar__theme-icon" aria-hidden="true">{theme.isDark ? '☀' : '☽'}</span>
 			</Button.Root>
 
-			<Button.Root
-				class="hb-button hb-button--brand navbar__cta"
-				type="button"
-				onclick={openAuth}
-			>
-				{t.nav.login()}
-			</Button.Root>
+			{#if auth.isAuthenticated}
+				<Button.Root
+					class="hb-button hb-button--brand navbar__cta"
+					type="button"
+					onclick={() => {
+						window.location.assign(dashboardHref);
+					}}
+				>
+					{t.nav.dashboard()}
+				</Button.Root>
+			{:else}
+				<Button.Root
+					class="hb-button hb-button--brand navbar__cta"
+					type="button"
+					onclick={() => openAuthOverlay()}
+				>
+					{t.nav.login()}
+				</Button.Root>
+			{/if}
 		</div>
 	</div>
 </nav>
 
 <style>
+	/* Positioning hook only — all visuals live on __shell so it can morph as one surface */
 	.navbar {
 		position: fixed;
-		inset-inline: 0;
-		top: 0;
+		inset: 0 0 auto;
 		z-index: 50;
-		height: 56px;
+		pointer-events: none;
 		direction: rtl;
-		background: var(--glass-bg);
-		border-bottom: var(--glass-border);
-		backdrop-filter: var(--glass-blur);
-		-webkit-backdrop-filter: var(--glass-blur);
-		transition:
-			background var(--duration-base) ease,
-			border-color var(--duration-base) ease,
-			box-shadow var(--duration-base) ease;
 	}
 
-	.navbar--scrolled {
-		background: var(--glass-strong-bg);
-		border-bottom-color: var(--border-color);
-		box-shadow: var(--shadow-ambient);
-	}
+	.navbar__shell {
+		--navbar-ease: cubic-bezier(0.22, 1, 0.36, 1);
+		--navbar-duration: 0.5s;
 
-	.navbar__inner {
+		pointer-events: auto;
+		position: fixed;
+		z-index: 50;
+		top: 0;
+		left: 0;
+		right: 0;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-4);
-		height: 100%;
-		max-width: var(--l-max, 90rem);
-		margin-inline: auto;
-		padding: 0 clamp(1.25rem, 5vw, 5rem);
+		gap: var(--space-3);
+		min-height: 56px;
+		padding-inline: clamp(1.25rem, 5vw, 5rem);
+		background: var(--glass-bg);
+		backdrop-filter: var(--glass-blur);
+		-webkit-backdrop-filter: var(--glass-blur);
+		border: 1px solid transparent;
+		border-bottom-color: color-mix(in oklch, var(--border-color) 55%, transparent);
+		border-radius: 0;
+		box-shadow: none;
+		transition:
+			top var(--navbar-duration) var(--navbar-ease),
+			left var(--navbar-duration) var(--navbar-ease),
+			right var(--navbar-duration) var(--navbar-ease),
+			border-radius var(--navbar-duration) var(--navbar-ease),
+			padding-inline var(--navbar-duration) var(--navbar-ease),
+			min-height var(--navbar-duration) var(--navbar-ease),
+			background var(--navbar-duration) ease,
+			border-color var(--navbar-duration) ease,
+			box-shadow var(--navbar-duration) var(--navbar-ease);
+	}
+
+	.navbar--scrolled .navbar__shell {
+		top: var(--space-2);
+		left: max(1rem, calc(50% - 19rem));
+		right: max(1rem, calc(50% - 19rem));
+		min-height: 48px;
+		padding-inline: clamp(0.75rem, 3vw, 1.25rem);
+		border-radius: var(--radius-pill);
+		border-color: color-mix(in oklch, var(--border-color) 75%, transparent);
+		background: color-mix(in oklch, var(--glass-strong-bg) 92%, var(--paper) 8%);
+		box-shadow:
+			0 1px 2px color-mix(in oklch, var(--ink) 5%, transparent),
+			0 6px 16px -4px color-mix(in oklch, var(--ink) 10%, transparent),
+			0 18px 40px -12px color-mix(in oklch, var(--ink) 16%, transparent);
 	}
 
 	.navbar__brand {
 		text-decoration: none;
 		color: var(--ink);
+		flex-shrink: 0;
 	}
 
 	.navbar__logo {
 		font-family: var(--font-display);
 		font-weight: 400;
 		font-size: var(--step-1);
+		white-space: nowrap;
 	}
 
 	.navbar__actions {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		gap: var(--space-2);
+		min-width: 0;
 	}
 
 	.navbar__link {
@@ -114,6 +157,7 @@
 		text-decoration: none;
 		padding: 0.35rem 0.5rem;
 		border-radius: var(--radius-sm, 4px);
+		white-space: nowrap;
 	}
 
 	.navbar__link:hover {
@@ -131,6 +175,7 @@
 		min-height: 36px;
 		padding: 0;
 		border-radius: 50%;
+		flex-shrink: 0;
 	}
 
 	.navbar__theme-icon {
@@ -139,9 +184,23 @@
 	}
 
 	.navbar :global(.navbar__cta) {
-		min-height: 40px;
-		padding-inline: var(--space-5);
+		min-height: 38px;
+		padding-inline: var(--space-4);
 		font-weight: 800;
+		font-size: var(--step--1);
 		border-radius: var(--radius-pill);
+		flex-shrink: 0;
+	}
+
+	@media (max-width: 22rem) {
+		.navbar__link {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.navbar__shell {
+			transition: none;
+		}
 	}
 </style>

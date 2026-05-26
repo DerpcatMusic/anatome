@@ -10,6 +10,7 @@ import {
   pathologiesListValidator,
 } from "../lib/validators";
 import { RULES } from "../lib/constants";
+import { buildDisplayName, normalizeNamePart } from "../lib/displayName";
 
 function hasSensitiveHealthData(args: {
   pathologies: string[];
@@ -32,6 +33,8 @@ function hasSensitiveHealthData(args: {
 
 export const complete = mutation({
   args: {
+    firstName: v.string(),
+    lastName: v.string(),
     equipment: equipmentListValidator,
     experience: experienceValidator,
     goals: goalsValidator,
@@ -45,7 +48,11 @@ export const complete = mutation({
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Authentication required");
 
-    await getOrCreateAppProfile(ctx, userId);
+    const appProfile = await getOrCreateAppProfile(ctx, userId);
+
+    const firstName = normalizeNamePart(args.firstName, "First name");
+    const lastName = normalizeNamePart(args.lastName, "Last name");
+    const displayName = buildDisplayName(firstName, lastName);
 
     const now = Date.now();
     const existingRows = await ctx.db
@@ -84,6 +91,11 @@ export const complete = mutation({
         : existing?.healthInfoConsentAcceptedAt,
       updatedAt: now,
     };
+
+    await ctx.db.patch(appProfile._id, {
+      displayName,
+      updatedAt: now,
+    });
 
     if (existing !== null) {
       await ctx.db.patch(existing._id, profilePatch);

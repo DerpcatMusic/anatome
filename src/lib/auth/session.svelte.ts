@@ -62,10 +62,15 @@ const roleStore = new PersistedState<string | null>(roleKey, null, {
 // Module-level refresh deduplication — survives component re-mounts within one page session.
 let refreshPromise: Promise<string | null> | null = null;
 let convexAuthWired = false;
+let convexAuthNudged = false;
+/** Convex reported WS auth via setAuth onChange(true) — wait for token fetches to finish. */
+let convexWsAuthReported = false;
 /** Ignore transient WS `onChange(false)` until Convex has authenticated once. */
 let convexWsAuthEstablished = false;
 /** In-flight WS token refresh — pause authenticated queries until done. */
 let pendingAuthRefresh = 0;
+/** Stop infinite app-shell loading when WS auth never settles. */
+export const AUTH_QUERY_READY_CAP_MS = 6000;
 /** WS has a valid token and no refresh in progress; safe for useQuery subscriptions. */
 let queryAuthReady = $state(false);
 
@@ -74,6 +79,20 @@ function syncQueryAuthReady() {
     state.isAuthenticated && convexWsAuthEstablished && pendingAuthRefresh === 0;
   if (queryAuthReady === next) return;
   queryAuthReady = next;
+}
+
+/** After Convex onChange(true) and all in-flight token fetches complete. */
+function markConvexWsAuthSettled() {
+  if (
+    !convexWsAuthReported ||
+    pendingAuthRefresh > 0 ||
+    !state.isAuthenticated ||
+    tokenStore.current === null
+  ) {
+    return;
+  }
+  convexWsAuthEstablished = true;
+  syncQueryAuthReady();
 }
 
 const refreshLockKey = `${namespace}:refresh-lock`;
@@ -134,6 +153,7 @@ export function storeTokens(tokens: Tokens | null) {
   refreshTokenStore.current = tokens?.refreshToken ?? null;
   if (tokens === null) {
     roleStore.current = null;
+    convexWsAuthReported = false;
     convexWsAuthEstablished = false;
     pendingAuthRefresh = 0;
     queryAuthReady = false;
@@ -259,7 +279,7 @@ function isTokenExpiredOrNearExpiry(token: string, leewaySeconds = 120): boolean
   }
 }
 
-function hasPersistedSession(): boolean {
+export function hasPersistedSession(): boolean {
   return tokenStore.current !== null || refreshTokenStore.current !== null;
 }
 
@@ -283,11 +303,21 @@ export async function getAccessTokenForConvex(
     return tokenStore.current;
   }
 
+  const cached = tokenStore.current;
+  if (cached !== null && !isTokenExpiredOrNearExpiry(cached)) {
+    markConvexWsAuthSettled();
+    return cached;
+  }
+
   const tokenBeforeLock = tokenStore.current;
   pendingAuthRefresh += 1;
   syncQueryAuthReady();
   try {
     return await withRefreshLock(async () => {
+      const current = tokenStore.current;
+      if (current !== null && !isTokenExpiredOrNearExpiry(current)) {
+        return current;
+      }
       if (tokenStore.current !== tokenBeforeLock) {
         return tokenStore.current;
       }
@@ -295,7 +325,7 @@ export async function getAccessTokenForConvex(
     });
   } finally {
     pendingAuthRefresh = Math.max(0, pendingAuthRefresh - 1);
-    syncQueryAuthReady();
+    markConvexWsAuthSettled();
   }
 }
 
@@ -306,14 +336,19 @@ export async function getAccessTokenForConvex(
  */
 export function handleAuthChange(isAuthenticated: boolean) {
   if (isAuthenticated) {
-    convexWsAuthEstablished = true;
+    // onChange(true) fires before Convex's post-confirm refetchToken(); do not
+    // enable useQuery until getAccessTokenForConvex finishes (pendingAuthRefresh === 0).
+    convexWsAuthReported = true;
+    convexWsAuthEstablished = false;
     syncQueryAuthReady();
     return;
   }
 
   queryAuthReady = false;
+  convexWsAuthEstablished = false;
+  syncQueryAuthReady();
 
-  if (!convexWsAuthEstablished || !hasPersistedSession()) {
+  if (!convexWsAuthReported || !hasPersistedSession()) {
     return;
   }
 
@@ -335,13 +370,26 @@ async function verifyPersistedSessionOrClear() {
  * Avoid calling from reactive effects — each setAuth() resets Convex auth
  * state and retriggers refreshSession on the backend.
  */
+async function nudgeConvexWsAuthIfStalled() {
+  if (convexAuthNudged || !hasPersistedSession() || canRunAuthenticatedQuery()) {
+    return;
+  }
+  convexAuthNudged = true;
+  await getAccessTokenForConvex({ forceRefreshToken: true });
+}
+
 export function wireConvexAuth(client: {
   setAuth: (
     fetchToken: (args: { forceRefreshToken: boolean }) => Promise<string | null>,
     onChange: (isAuthenticated: boolean) => void
   ) => void;
 }) {
-  if (typeof window === "undefined" || convexAuthWired || !hasPersistedSession()) {
+  if (typeof window === "undefined" || !hasPersistedSession()) {
+    return;
+  }
+
+  if (convexAuthWired) {
+    void nudgeConvexWsAuthIfStalled();
     return;
   }
 

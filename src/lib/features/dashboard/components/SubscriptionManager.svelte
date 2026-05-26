@@ -7,25 +7,19 @@
   import { SUBSCRIPTIONS_ENABLED } from "$lib/features/subscriptions/featureFlags";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
   import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
-  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
-  import { walletBalances } from "$lib/features/credits/balances";
-  import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<DashboardData["subscriptionPlan"]>;
   type Subscription = NonNullable<DashboardData["subscription"]>;
-  type Wallet = NonNullable<DashboardData["wallet"]>;
 
   let {
     subscription,
     subscriptionPlan,
     pendingSubscriptionPlan,
-    wallet,
   }: {
     subscription?: Subscription | null;
     subscriptionPlan?: Plan | null;
     pendingSubscriptionPlan?: Plan | null;
-    wallet?: Wallet | null;
   } = $props();
 
   const client = useConvexClient();
@@ -39,11 +33,11 @@
   const renewalDate = $derived(
     subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null,
   );
-  const creditBalances = $derived(walletBalances(wallet));
+  const hasPaidPlan = $derived(Boolean(subscription && subscriptionPlan));
 
   function statusLabel(row?: Subscription | null) {
-    if (!row) return "לא פעיל";
-    if (row.cancelAtPeriodEnd) return "מבוטל בסוף התקופה";
+    if (!row) return "FREE";
+    if (row.cancelAtPeriodEnd) return "מסתיים בקרוב";
     if (pendingSubscriptionPlan) return "שינוי מתוזמן";
     if (row.status === "trialing") return "ניסיון";
     if (row.status === "active") return "פעיל";
@@ -114,22 +108,25 @@
 
 <section class="subscription-panel" aria-labelledby="subscription-title">
   <div class="subscription-panel__header">
-    <div>
+    <div class="subscription-panel__identity">
       <p class="subscription-panel__kicker">מנוי</p>
       <div class="subscription-panel__title-row">
-        <h2 id="subscription-title">{subscriptionPlan?.nameHe ?? "אין מנוי פעיל"}</h2>
         {#if subscriptionPlan}
+          <h2 id="subscription-title">{subscriptionPlan.nameHe}</h2>
           <PlanBadge planName={subscriptionPlan.nameHe} planSlug={subscriptionPlan.slug} />
+        {:else}
+          <h2 id="subscription-title">גישה חינמית</h2>
         {/if}
       </div>
     </div>
     <span
       class="subscription-badge"
+      class:subscription-badge--free={!hasPaidPlan}
       data-tone={subscription?.cancelAtPeriodEnd || pendingSubscriptionPlan
         ? "warning"
         : subscription
           ? "success"
-          : "muted"}
+          : "free"}
     >
       {statusLabel(subscription)}
     </span>
@@ -138,26 +135,20 @@
   {#if subscription && renewalDate}
     <p class="subscription-panel__meta">
       {#if pendingSubscriptionPlan}
-        פעיל עד {renewalDate}, אחר כך {pendingSubscriptionPlan.nameHe}.
+        פעיל עד {renewalDate}, ואז עוברים ל־{pendingSubscriptionPlan.nameHe}.
+      {:else if subscription.cancelAtPeriodEnd}
+        המנוי פעיל עד {renewalDate}.
       {:else}
-        {subscription.cancelAtPeriodEnd ? "פעיל עד" : "מסתיים ב"}
-        {renewalDate}
+        חידוש ב־{renewalDate}.
       {/if}
     </p>
   {:else if SUBSCRIPTIONS_ENABLED}
-    <p class="subscription-panel__meta">הפעלת מסלול — חיוב יחובר בהמשך.</p>
+    <p class="subscription-panel__meta">
+      אין מנוי בתשלום — אפשר לבחור מסלול ולהתחיל כשמוכנות.
+    </p>
   {:else}
-    <p class="subscription-panel__meta">שינוי מסלול דרך צוות AnatoMe.</p>
+    <p class="subscription-panel__meta">לשינוי מסלול — צרו קשר עם צוות AnatoMe.</p>
   {/if}
-
-  <WalletCreditStrip
-    balances={creditBalances}
-    pools={poolsForSidebar()}
-    size="md"
-    layout="stack"
-    variant="pill"
-    class="subscription-panel__credits"
-  />
 
   {#if SUBSCRIPTIONS_ENABLED}
     {#if plansQuery.error}
@@ -169,7 +160,9 @@
         <Button.Root
           class="hb-button hb-button--ink hb-button--sm"
           type="button"
-          onclick={() => { planModalOpen = true; }}
+          onclick={() => {
+            planModalOpen = true;
+          }}
         >
           {subscription ? "שינוי מסלול" : "בחירת מסלול"}
         </Button.Root>
@@ -213,6 +206,10 @@
     min-width: 0;
   }
 
+  .subscription-panel__identity {
+    min-width: 0;
+  }
+
   .subscription-panel__kicker {
     margin: 0 0 var(--space-2);
     font-family: var(--font-mono);
@@ -245,14 +242,23 @@
     flex: 0 0 auto;
     padding: var(--space-1) var(--space-3);
     border: var(--border);
+    border-radius: 999px;
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     white-space: nowrap;
   }
 
-  .subscription-badge[data-tone="success"] {
+  .subscription-badge--free,
+  .subscription-badge[data-tone="free"] {
     background: var(--surface);
+    color: var(--foreground-muted);
+    border-color: var(--line-light);
+  }
+
+  .subscription-badge[data-tone="success"] {
+    background: color-mix(in oklch, var(--success) 12%, var(--elevated));
     color: var(--success);
     border-color: transparent;
   }
@@ -261,18 +267,6 @@
     background: color-mix(in oklch, var(--warning) 14%, var(--elevated));
     color: var(--ink-secondary);
     border-color: transparent;
-  }
-
-  .subscription-badge[data-tone="muted"] {
-    background: var(--surface);
-    color: var(--foreground-muted);
-  }
-
-  .subscription-panel :global(.subscription-panel__credits) {
-    align-items: stretch;
-    max-width: 12rem;
-    gap: var(--space-2);
-    padding: var(--space-2) 0;
   }
 
   .subscription-panel__cta {
@@ -285,6 +279,5 @@
       align-items: stretch;
       flex-direction: column;
     }
-
   }
 </style>

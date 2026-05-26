@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { horizontalWheelScroll } from "$lib/actions/horizontal-wheel-scroll";
   import Notice from "$components/ui/Notice.svelte";
   import VideoCard from "./VideoCard.svelte";
 
@@ -25,7 +26,9 @@
     unlockHint,
     hideStatus = false,
     hideHeader = false,
+    eyebrow,
     carousel = true,
+    horizontalWheel = true,
     vodCreditBalance = null,
     onSelect,
   }: {
@@ -41,20 +44,27 @@
     hideStatus?: boolean;
     /** Hide row title bar (catalog carousels). */
     hideHeader?: boolean;
+    /** Small mono label above the track when hideHeader is true. */
+    eyebrow?: string;
     /** Horizontal carousel track (YouTube-style). */
     carousel?: boolean;
+    /** Vertical wheel scrolls the track horizontally. */
+    horizontalWheel?: boolean;
     vodCreditBalance?: number | null;
     onSelect: (video: RowVideo) => void;
   } = $props();
 
-  const showHeader = $derived(
-    !hideHeader && (title.length > 0 || subtitle),
-  );
+  const showHeader = $derived(!hideHeader && (title.length > 0 || subtitle));
+  const showEyebrow = $derived(Boolean(eyebrow?.trim()) && hideHeader);
 
   const rowVideos = $derived(Array.isArray(videos) ? videos : []);
 </script>
 
 <section class="video-row" class:video-row--carousel={carousel}>
+  {#if showEyebrow}
+    <p class="video-row__eyebrow">{eyebrow}</p>
+  {/if}
+
   {#if showHeader}
     <header class="video-row__head">
       <div>
@@ -70,7 +80,12 @@
   {#if rowVideos.length === 0}
     <Notice tone="neutral">{emptyMessage}</Notice>
   {:else}
-    <div class="video-row__track" class:video-row__track--carousel={carousel} role="list">
+    <div
+      class="video-row__track"
+      class:video-row__track--carousel={carousel}
+      role="list"
+      use:horizontalWheelScroll={carousel && horizontalWheel}
+    >
       {#each rowVideos as video (video._id)}
         <div class="video-row__item" role="listitem">
           <VideoCard
@@ -100,6 +115,17 @@
     display: grid;
     gap: var(--space-4);
     min-width: 0;
+  }
+
+  .video-row__eyebrow {
+    margin: 0;
+    padding-inline: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--foreground-muted);
   }
 
   .video-row__head {
@@ -161,6 +187,14 @@
   .video-row__item {
     flex: 0 0 auto;
     scroll-snap-align: start;
+  }
+
+  .video-row--carousel .video-row__item {
+    width: min(280px, 72vw);
+  }
+
+  .video-row--carousel .video-row__item :global(.library-video-card) {
+    width: 100%;
   }
 
   .video-row--carousel .video-row__head {

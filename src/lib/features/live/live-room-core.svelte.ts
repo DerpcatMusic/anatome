@@ -1,5 +1,6 @@
 import type { ConvexClient } from "convex/browser";
 import type { Id } from "$convex/_generated/dataModel";
+import { parseLiveClassId } from "$lib/convex/ids";
 import { initAuth } from "$lib/auth/session.svelte";
 import type { LiveClassType, ParticipantRole, RoomStatus } from "./types";
 import { isInstructorIdentity } from "./live-room-shared";
@@ -31,15 +32,16 @@ export class LiveRoomCore {
     minutesUntilOpen: number | null;
     minutesUntilClose: number | null;
     isInstructor: boolean;
+    equipmentBlocked: boolean;
   } | null>(null);
 
   constructor(client: ConvexClient) {
     this.client = client;
   }
 
-  getClassId() {
-    const classId = new URLSearchParams(window.location.search).get("classId");
-    return classId as Id<"liveClasses"> | null;
+  getClassId(): Id<"liveClasses"> | null {
+    const raw = new URLSearchParams(window.location.search).get("classId");
+    return parseLiveClassId(raw);
   }
 
   isInstructorIdentity(identity: string) {

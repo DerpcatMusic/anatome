@@ -226,7 +226,7 @@
   {/if}
 {:else if room.auth.isLoading || room.status === "checking"}
   <PreConnectOverlay {room} />
-{:else if room.status === "locked" || room.status === "missing" || room.status === "waiting" || room.status === "prep" || room.status === "error"}
+{:else if room.status === "locked" || room.status === "missing" || room.status === "invalidClass" || room.status === "equipment" || room.status === "waiting" || room.status === "prep" || room.status === "error"}
   <PreConnectOverlay {room} />
 {:else if room.status === "ready" && room.joinInfo && room.connectionState === "idle"}
   <PreConnectOverlay {room} />

@@ -21,14 +21,11 @@
   ]);
 </script>
 
-<section id="about" class="l-panel l-section section--about" aria-label="על יובל">
+<section id="about" class="l-panel section--about" aria-label="על יובל">
   <div class="l-shell about">
-    <header class="about__header l-in">
-      <h2 class="section-title">{t.landing.instructor.sectionHeadline()}</h2>
-    </header>
-
-    <div class="about__copy l-in l-in--1">
-      <h3 class="about__title">{t.landing.instructor.name()}</h3>
+    <div class="about__copy l-in">
+      <h2 class="about__greeting">{t.landing.instructor.sectionHeadline()}</h2>
+      <p class="about__role">{t.landing.instructor.subtitle()}</p>
       <p class="about__p">{t.landing.instructor.storyPart1()}</p>
       <p class="about__p">{t.landing.instructor.storyPart2()}</p>
 
@@ -39,7 +36,6 @@
       </ul>
 
       <p class="about__p about__p--emphasis">{instructor.story}</p>
-      <p class="about__martha">{t.landing.instructor.subtitle()}</p>
     </div>
 
     <figure class="about__figure l-in l-in--1">

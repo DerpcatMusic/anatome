@@ -6,7 +6,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import { equipmentListValidator } from "../lib/validators";
-import { missingRequiredEquipment } from "../lib/equipment";
+import { viewerCanAccessLiveClass } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 
 const STUDIO_CALENDAR_PAST_MS = 14 * MS.DAY;
@@ -105,6 +105,7 @@ export const getJoinAccess = query({
       minutesUntilOpen: v.union(v.number(), v.null()),
       minutesUntilClose: v.union(v.number(), v.null()),
       isInstructor: v.boolean(),
+      equipmentBlocked: v.boolean(),
     }),
   ),
   handler: async (ctx, args) => {
@@ -127,18 +128,45 @@ export const getJoinAccess = query({
       (profile.role === "admin" ||
         (profile.role === "instructor" && liveClass.instructorUserId === userId));
 
-    if (!isInstructor && liveClass.type === "one_on_one") {
-      const reservations = await ctx.db
-        .query("liveReservations")
-        .withIndex("by_liveClassId_and_userId", (q) =>
-          q.eq("liveClassId", args.liveClassId).eq("userId", userId),
-        )
-        .take(10);
-      const reservation =
-        reservations.find((row) => row.status === "joined") ??
-        reservations.find((row) => row.status === "reserved") ??
-        null;
-      if (reservation === null) return null;
+    if (!isInstructor) {
+      const memberProfiles = await ctx.db
+        .query("memberProfiles")
+        .withIndex("by_userId", (q) => q.eq("userId", userId))
+        .take(1);
+      const memberProfile = memberProfiles[0] ?? null;
+      if (memberProfile === null) return null;
+      const equipmentBlocked = !viewerCanAccessLiveClass(
+        memberProfile.equipment,
+        liveClass.requiredEquipment,
+      );
+      if (equipmentBlocked) {
+        const now = Date.now();
+        return {
+          joinOpensAt: liveClass.joinOpensAt,
+          joinClosesAt: liveClass.joinClosesAt,
+          startsAt: liveClass.startsAt,
+          status: liveClass.status,
+          canEnter: false,
+          minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
+          minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
+          isInstructor: false,
+          equipmentBlocked: true,
+        };
+      }
+
+      if (liveClass.type === "one_on_one") {
+        const reservations = await ctx.db
+          .query("liveReservations")
+          .withIndex("by_liveClassId_and_userId", (q) =>
+            q.eq("liveClassId", args.liveClassId).eq("userId", userId),
+          )
+          .take(10);
+        const reservation =
+          reservations.find((row) => row.status === "joined") ??
+          reservations.find((row) => row.status === "reserved") ??
+          null;
+        if (reservation === null) return null;
+      }
     }
 
     const now = Date.now();
@@ -159,6 +187,7 @@ export const getJoinAccess = query({
       minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
       minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
       isInstructor,
+      equipmentBlocked: false,
     };
   },
 });

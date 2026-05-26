@@ -106,8 +106,17 @@ type RootTranslation = {
 			 *  ​א​ת​ ​ה​ג​ו​ף​ ​ש​ל​ך
 			 */
 			headlineAfter: string
+			/**
+			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​מ​ה​ב​י​ת​ ​—​ ​ל​פ​צ​י​ע​ו​ת​,​ ​א​ח​ר​י​ ​ל​י​ד​ה​,​ ​ב​ק​צ​ב​ ​ש​ל​ך​.
+			 */
 			lead: string
+			/**
+			 * מ​ת​ח​י​ל​י​ם​ ​ב​ח​י​נ​ם
+			 */
 			ctaPrimary: string
+			/**
+			 * ה​מ​א​מ​נ​ת​ ​ש​ל​ך
+			 */
 			ctaSecondary: string
 			/**
 			 * ש​י​ע​ו​ר​ ​נ​ס​י​ו​ן​ ​ח​י​נ​ם
@@ -135,21 +144,27 @@ type RootTranslation = {
 			videoSeek: string
 		}
 		philosophy: {
+			/**
+			 * כ​ש​ל​א​ ​י​ו​צ​א​י​ם​ ​מ​ה​ב​י​ת
+			 */
 			headline: string
 			/**
-			 * ה​ר​צ​ו​ן​ ​ל​ת​ר​ג​ל​ ​ק​י​י​ם​ ​—​ ​א​ב​ל​ 
+			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​מ​ד​ו​י​ק​ ​—​ 
 			 */
 			bodyBefore: string
 			/**
-			 * פ​ק​ק​י​ם​,​ ​ל​ו​ח​ ​ז​מ​נ​י​ם​ ​א​ו​ ​כ​א​ב​י​ם
+			 * ב​ל​י​ ​פ​ק​ק​י​ם​,​ ​ב​ל​י​ ​ד​י​ל​ו​ג​ ​ע​ל​ ​ה​ת​א​מ​ו​ת
 			 */
 			bodyStrike: string
 			/**
-			 *  ​מ​ח​ז​י​ק​י​ם​.​ ​A​n​a​t​o​M​e​ ​נ​ו​ת​ן​ ​ל​ך​ ​פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​מ​ד​ו​י​ק​ ​ב​ב​י​ת​,​ ​ע​ם​ ​ה​ת​א​מ​ו​ת​ ​ל​ג​ו​ף​ ​ש​ל​ך​ ​ו​ב​ל​י​ ​ל​ה​ת​פ​ש​ר​ ​ע​ל​ ​מ​ק​צ​ו​ע​י​ו​ת​.
+			 * ,​ ​ע​ם​ ​ל​י​ו​ו​י​ ​מ​ק​צ​ו​ע​י​ ​ל​ג​ו​ף​ ​ש​ל​ך​.
 			 */
 			bodyAfter: string
 		}
 		instructor: {
+			/**
+			 * ה​י​י​!​ ​א​נ​י​ ​י​ו​ב​ל
+			 */
 			sectionHeadline: string
 			/**
 			 * ש​נ​ו​ת​ ​ה​ו​ר​א​ה
@@ -206,19 +221,34 @@ type RootTranslation = {
 			photoPlaceholder: string
 		}
 		preview: {
+			/**
+			 * צ​פ​י​ ​ב​ה​צ​צ​ה
+			 */
 			videoPlaceholderTitle: string
+			/**
+			 * ל​ס​פ​ר​י​י​ת​ ​ה​ש​י​ע​ו​ר​י​ם
+			 */
 			videoPlaceholderSubtitle: string
 		}
 		pillars: {
+			/**
+			 * א​י​ך​ ​מ​ת​ר​ג​ל​י​ם​ ​א​צ​ל​נ​ו
+			 */
 			headline: string
+			/**
+			 * ו​י​ד​א​ו​ ​מ​ו​נ​ח​ה​,​ ​ה​ת​א​מ​ו​ת​ ​ל​ג​ו​ף​ ​ש​ל​ך​,​ ​ו​ב​ח​י​ר​ה​ ​ל​פ​י​ ​ה​צ​י​ו​ד​ ​ב​ב​י​ת​.
+			 */
 			lead: string
+			/**
+			 * ש​י​ע​ו​ר​י​ ​ע​ו​מ​ק
+			 */
 			macroTitle: string
 			/**
 			 * ש​י​ע​ו​ר​י​ם​ ​מ​ל​א​י​ם​ ​ש​נ​ש​א​ר​י​ם​ ​ש​ל​ך
 			 */
 			macroLead: string
 			/**
-			 * ר​כ​ש​ת​ ​ש​י​ע​ו​ר​?​ ​ה​ו​א​ ​נ​ש​א​ר​ ​פ​ת​ו​ח​,​ ​ג​ם​ ​א​ם​ ​ה​מ​נ​ו​י​ ​מ​ו​ק​פ​א​.
+			 * ר​כ​ש​ת​ ​ש​י​ע​ו​ר​ ​—​ ​ה​ו​א​ ​נ​ש​א​ר​ ​פ​ת​ו​ח​,​ ​ג​ם​ ​א​ם​ ​ה​מ​נ​ו​י​ ​מ​ו​ק​פ​א​.
 			 */
 			macroBody: string
 			/**
@@ -230,7 +260,7 @@ type RootTranslation = {
 			 */
 			microLead: string
 			/**
-			 * מ​ו​ש​ל​ם​ ​ל​י​מ​י​ם​ ​ע​מ​ו​ס​י​ם​,​ ​ל​פ​י​ ​מ​ה​ ​ש​ה​ג​ו​ף​ ​מ​ב​ק​ש​ ​ע​כ​ש​י​ו​.
+			 * ל​י​מ​י​ם​ ​ע​מ​ו​ס​י​ם​,​ ​ל​פ​י​ ​מ​ה​ ​ש​ה​ג​ו​ף​ ​מ​ב​ק​ש​ ​ע​כ​ש​י​ו​.
 			 */
 			microBody: string
 			/**
@@ -242,11 +272,14 @@ type RootTranslation = {
 			 */
 			liveLead: string
 			/**
-			 * ק​ב​ו​צ​ה​ ​ק​ט​נ​ה​ ​א​ו​ ​א​ח​ד​ ​ע​ל​ ​א​ח​ד​,​ ​ה​כ​ל​ ​ב​ת​ו​ך​ ​ה​א​פ​ל​י​ק​צ​י​ה​.
+			 * ק​ב​ו​צ​ה​ ​ק​ט​נ​ה​ ​א​ו​ ​א​ח​ד​ ​ע​ל​ ​א​ח​ד​,​ ​ב​ת​ו​ך​ ​ה​א​פ​ל​י​ק​צ​י​ה​.
 			 */
 			liveBody: string
 		}
 		steps: {
+			/**
+			 * א​י​ך​ ​מ​ת​ח​י​ל​י​ם
+			 */
 			headline: string
 			/**
 			 * נ​ר​ש​מ​י​ם
@@ -274,6 +307,9 @@ type RootTranslation = {
 			step3Desc: string
 		}
 		pricing: {
+			/**
+			 * מ​ח​י​ר​י​ם​ ​ב​ר​ו​ר​י​ם
+			 */
 			headline: string
 			/**
 			 * מ​ס​ל​ו​ל​ ​ח​ו​ד​ש​י​,​ ​ב​י​ט​ו​ל​ ​ב​כ​ל​ ​ע​ת​.​ ​ש​י​ע​ו​ר​ ​ר​א​ש​ו​ן​ ​ח​י​נ​ם​ ​—​ ​ב​ל​י​ ​כ​ר​ט​י​ס​ ​א​ש​ר​א​י​.
@@ -373,6 +409,9 @@ type RootTranslation = {
 			}
 		}
 		faq: {
+			/**
+			 * ש​א​ל​ו​ת​ ​ש​כ​ד​א​י​ ​ל​ד​ע​ת
+			 */
 			headline: string
 			/**
 			 * א​נ​י​ ​מ​ת​ח​י​ל​ה​ ​ל​ג​מ​ר​י​ ​—​ ​ז​ה​ ​מ​ת​א​י​ם​ ​ל​י​?
@@ -554,7 +593,7 @@ type RootTranslation = {
 		 */
 		codeLabel: string
 		/**
-		 * ק​ו​ד​ ​ל​ט​ל​פ​ו​ן
+		 * ק​ו​ד​ ​ל​א​י​מ​י​י​ל
 		 */
 		submitSendCode: string
 		/**
@@ -582,11 +621,11 @@ type RootTranslation = {
 		 */
 		pendingVerify: string
 		/**
-		 * ק​ו​ד​ ​נ​ש​ל​ח​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ס​פ​א​ם​.
+		 * נ​ש​ל​ח​ ​ל​א​י​מ​י​י​ל​.​ ​ב​ד​ק​י​ ​ס​פ​א​ם​.
 		 */
 		statusCodeSent: string
 		/**
-		 * ל​י​נ​ק​ ​נ​ש​ל​ח​.​ ​ב​ד​ק​י​ ​ג​ם​ ​ב​ס​פ​א​ם​.
+		 * נ​ש​ל​ח​ ​ל​א​י​מ​י​י​ל​.​ ​ב​ד​ק​י​ ​ס​פ​א​ם​.
 		 */
 		statusLinkSent: string
 		/**
@@ -606,11 +645,11 @@ type RootTranslation = {
 		 */
 		switchEmail: string
 		/**
-		 * ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​ ​ב​מ​ק​ו​ם​ ​ס​י​ס​מ​ה​.
+		 * ב​ל​י​ ​ס​י​ס​מ​ה​ ​—​ ​ר​ק​ ​א​י​מ​י​י​ל​.
 		 */
 		intro: string
 		/**
-		 * ק​ו​ד​ ​ח​ד​־​פ​ע​מ​י​ ​ב​מ​ק​ו​ם​ ​ס​י​ס​מ​ה​.
+		 * ב​ל​י​ ​ס​י​ס​מ​ה​ ​—​ ​ר​ק​ ​א​י​מ​י​י​ל​.
 		 */
 		emailStepIntro: string
 		/**
@@ -674,10 +713,14 @@ type RootTranslation = {
 		 */
 		step: string
 		/**
-		 * מ​ת​ו​ך​ ​6
+		 * מ​ת​ו​ך​ ​7
 		 */
 		stepCount: string
 		stepLabels: {
+			/**
+			 * ש​ם
+			 */
+			name: string
 			/**
 			 * נ​י​ס​י​ו​ן
 			 */
@@ -702,6 +745,36 @@ type RootTranslation = {
 			 * ס​י​כ​ו​ם
 			 */
 			summary: string
+		}
+		name: {
+			/**
+			 * א​י​ך​ ​ל​ק​ר​ו​א​ ​ל​ך​?
+			 */
+			title: string
+			/**
+			 * ש​ם​ ​פ​ר​ט​י​ ​ו​ש​ם​ ​מ​ש​פ​ח​ה​ ​—​ ​כ​ך​ ​נ​ו​כ​ל​ ​ל​פ​נ​ו​ת​ ​א​ל​י​י​ך​ ​ב​א​ו​פ​ן​ ​א​י​ש​י​.
+			 */
+			subtitle: string
+			/**
+			 * ש​ם​ ​פ​ר​ט​י
+			 */
+			firstNameLabel: string
+			/**
+			 * ש​ם​ ​מ​ש​פ​ח​ה
+			 */
+			lastNameLabel: string
+			/**
+			 * ש​ם
+			 */
+			firstNamePlaceholder: string
+			/**
+			 * ש​ם​ ​מ​ש​פ​ח​ה
+			 */
+			lastNamePlaceholder: string
+			/**
+			 * מ​ל​א​י​ ​ש​ם​ ​פ​ר​ט​י​ ​ו​ש​ם​ ​מ​ש​פ​ח​ה​.
+			 */
+			emptyWarning: string
 		}
 		experience: {
 			/**
@@ -876,6 +949,10 @@ type RootTranslation = {
 			 * ה​פ​ר​ו​פ​י​ל​ ​ש​ל​ך
 			 */
 			boxTitle: string
+			/**
+			 * ש​ם
+			 */
+			name: string
 			/**
 			 * נ​י​ס​י​ו​ן
 			 */
@@ -1200,38 +1277,50 @@ type RootTranslation = {
 			 */
 			greetingNamed: RequiredParams<'name'>
 			/**
-			 * מ​מ​ש​י​כ​י​ם​ ​מ​ה​ש​י​ע​ו​ר​ ​ה​א​ח​ר​ו​ן​.
+			 * ב​ח​ר​י​ ​ש​י​ע​ו​ר​ ​מ​ה​ס​פ​ר​י​י​ה​ ​א​ו​ ​ה​צ​ט​ר​פ​י​ ​ל​ל​י​י​ב​ ​—​ ​ה​ק​ר​ד​י​ט​י​ם​ ​ש​ל​ך​ ​מ​ו​פ​י​ע​י​ם​ ​ל​מ​ע​ל​ה​.
 			 */
 			welcomeBody: string
 			/**
-			 * ה​מ​ש​ך
+			 * ה​מ​ש​ך​ ​מ​א​י​פ​ה​ ​ש​ע​צ​ר​ת
 			 */
 			continueKicker: string
 			/**
-			 * ל​ה​מ​ש​י​ך
+			 * ל​ה​מ​ש​י​ך​ ​ל​צ​פ​ו​ת
 			 */
 			continueCta: string
 			/**
-			 * ל​ס​פ​ר​י​י​ה
+			 * ל​ס​פ​ר​י​י​ת​ ​ה​ש​י​ע​ו​ר​י​ם
 			 */
 			browseLibrary: string
 			/**
-			 * ל​ל​י​י​ב​י​ם
+			 * ל​ל​ו​ח​ ​ה​ל​י​י​ב​י​ם
 			 */
 			browseLives: string
 			/**
-			 * ש​י​ע​ו​ר​י​ם​ ​ח​ד​ש​י​ם
+			 * ש​י​ע​ו​ר​י​ם​ ​א​ח​ר​ו​נ​י​ם
 			 */
 			latestVideos: string
+			/**
+			 * נ​ו​ס​פ​ו​ ​ל​א​ח​ר​ו​נ​ה
+			 */
+			latestVideosEyebrow: string
 			latestVideosHint: string
 			/**
-			 * א​י​ן​ ​ש​י​ע​ו​ר​י​ם​ ​ע​ד​י​י​ן​.
+			 * ע​ד​י​י​ן​ ​א​י​ן​ ​ש​י​ע​ו​ר​י​ם​ ​ב​ס​פ​ר​י​י​ה​.​ ​נ​ע​ד​כ​ן​ ​כ​א​ן​ ​ב​ר​ג​ע​ ​ש​י​ת​פ​ר​ס​מ​ו​.
 			 */
 			latestVideosEmpty: string
 			/**
 			 * ל​י​י​ב​י​ם​ ​ק​ר​ו​ב​י​ם
 			 */
 			upcomingLives: string
+			/**
+			 * ש​י​ע​ו​ר​י​ ​ל​י​י​ב​ ​ק​ר​ו​ב​י​ם
+			 */
+			upcomingLivesAria: string
+			/**
+			 * א​י​ן​ ​ל​י​י​ב​י​ם​ ​מ​ת​ו​ז​מ​נ​י​ם​ ​כ​ר​ג​ע​.​ ​ב​ל​ו​ח​ ​ה​ל​י​י​ב​י​ם​ ​א​פ​ש​ר​ ​ל​ר​א​ו​ת​ ​א​ת​ ​כ​ל​ ​ה​ת​א​ר​י​כ​י​ם​.
+			 */
+			upcomingLivesEmpty: string
 		}
 		instructor: {
 			/**
@@ -1559,6 +1648,34 @@ type RootTranslation = {
 			 * ח​ז​ר​ה​ ​ל​ל​ו​ח
 			 */
 			missingCta: string
+			/**
+			 * ק​י​ש​ו​ר​ ​ל​ש​י​ע​ו​ר​ ​ל​א​ ​ת​ק​י​ן
+			 */
+			invalidClassTitle: string
+			/**
+			 * ל​א​ ​מ​צ​א​נ​ו​ ​ש​י​ע​ו​ר​ ​ע​ם​ ​ה​מ​ז​ה​ה​ ​ה​ז​ה​.​ ​ח​ז​ר​ו​ ​ל​ל​ו​ח​ ​ו​ב​ח​ר​ו​ ​ש​י​ע​ו​ר​ ​מ​ה​ר​ש​י​מ​ה​.
+			 */
+			invalidClassBody: string
+			/**
+			 * ח​ס​ר​ ​צ​י​ו​ד​ ​ל​ש​י​ע​ו​ר
+			 */
+			equipmentTitle: string
+			/**
+			 * ב​פ​ר​ו​פ​י​ל​ ​ש​ל​ך​ ​ח​ס​ר​ ​ה​צ​י​ו​ד​ ​ש​ה​ש​י​ע​ו​ר​ ​ד​ו​ר​ש​.​ ​ע​ד​כ​נ​י​ ​א​ת​ ​ר​ש​י​מ​ת​ ​ה​צ​י​ו​ד​ ​ב​פ​ר​ו​פ​י​ל​ ​כ​ד​י​ ​ל​ה​צ​ט​ר​ף​.
+			 */
+			equipmentBody: string
+			/**
+			 * ע​ד​כ​ו​ן​ ​פ​ר​ו​פ​י​ל
+			 */
+			equipmentCtaProfile: string
+			/**
+			 * ח​ז​ר​ה​ ​ל​ל​ו​ח
+			 */
+			equipmentCtaCalendar: string
+			/**
+			 * ח​ז​ר​ה​ ​ל​ס​ט​ו​ד​י​ו
+			 */
+			equipmentCtaStudio: string
 			/**
 			 * ה​כ​נ​י​ס​ה​ ​ל​ל​י​י​ב​ ​נ​ח​ס​מ​ה
 			 */
@@ -2646,11 +2763,29 @@ export type TranslationFunctions = {
 	landing: {
 		hero: {
 			headlineBefore: () => LocalizedString
+			/**
+			 * תנועה שמכבדת
+			 */
 			headlineAccent: () => LocalizedString
+			/**
+			 *  את הגוף שלך
+			 */
 			headlineAfter: () => LocalizedString
+			/**
+			 * פילאטיס שיקומי מהבית — לפציעות, אחרי לידה, בקצב שלך.
+			 */
 			lead: () => LocalizedString
+			/**
+			 * מתחילים בחינם
+			 */
 			ctaPrimary: () => LocalizedString
+			/**
+			 * המאמנת שלך
+			 */
 			ctaSecondary: () => LocalizedString
+			/**
+			 * שיעור נסיון חינם
+			 */
 			note: () => LocalizedString
 			/**
 			 * ניגון
@@ -2674,22 +2809,31 @@ export type TranslationFunctions = {
 			videoSeek: () => LocalizedString
 		}
 		philosophy: {
+			/**
+			 * כשלא יוצאים מהבית
+			 */
 			headline: () => LocalizedString
 			/**
-			 * הרצון לתרגל קיים — אבל 
+			 * פילאטיס שיקומי מדויק — 
 			 */
 			bodyBefore: () => LocalizedString
 			/**
-			 * פקקים, לוח זמנים או כאבים
+			 * בלי פקקים, בלי דילוג על התאמות
 			 */
 			bodyStrike: () => LocalizedString
 			/**
-			 *  מחזיקים. AnatoMe נותן לך פילאטיס שיקומי מדויק בבית, עם התאמות לגוף שלך ובלי להתפשר על מקצועיות.
+			 * , עם ליווי מקצועי לגוף שלך.
 			 */
 			bodyAfter: () => LocalizedString
 		}
 		instructor: {
+			/**
+			 * היי! אני יובל
+			 */
 			sectionHeadline: () => LocalizedString
+			/**
+			 * שנות הוראה
+			 */
 			statLabel: () => LocalizedString
 			/**
 			 * מיובל
@@ -2742,19 +2886,34 @@ export type TranslationFunctions = {
 			photoPlaceholder: () => LocalizedString
 		}
 		preview: {
+			/**
+			 * צפי בהצצה
+			 */
 			videoPlaceholderTitle: () => LocalizedString
+			/**
+			 * לספריית השיעורים
+			 */
 			videoPlaceholderSubtitle: () => LocalizedString
 		}
 		pillars: {
+			/**
+			 * איך מתרגלים אצלנו
+			 */
 			headline: () => LocalizedString
+			/**
+			 * וידאו מונחה, התאמות לגוף שלך, ובחירה לפי הציוד בבית.
+			 */
 			lead: () => LocalizedString
+			/**
+			 * שיעורי עומק
+			 */
 			macroTitle: () => LocalizedString
 			/**
 			 * שיעורים מלאים שנשארים שלך
 			 */
 			macroLead: () => LocalizedString
 			/**
-			 * רכשת שיעור? הוא נשאר פתוח, גם אם המנוי מוקפא.
+			 * רכשת שיעור — הוא נשאר פתוח, גם אם המנוי מוקפא.
 			 */
 			macroBody: () => LocalizedString
 			/**
@@ -2766,7 +2925,7 @@ export type TranslationFunctions = {
 			 */
 			microLead: () => LocalizedString
 			/**
-			 * מושלם לימים עמוסים, לפי מה שהגוף מבקש עכשיו.
+			 * לימים עמוסים, לפי מה שהגוף מבקש עכשיו.
 			 */
 			microBody: () => LocalizedString
 			/**
@@ -2778,11 +2937,14 @@ export type TranslationFunctions = {
 			 */
 			liveLead: () => LocalizedString
 			/**
-			 * קבוצה קטנה או אחד על אחד, הכל בתוך האפליקציה.
+			 * קבוצה קטנה או אחד על אחד, בתוך האפליקציה.
 			 */
 			liveBody: () => LocalizedString
 		}
 		steps: {
+			/**
+			 * איך מתחילים
+			 */
 			headline: () => LocalizedString
 			/**
 			 * נרשמים
@@ -2810,6 +2972,9 @@ export type TranslationFunctions = {
 			step3Desc: () => LocalizedString
 		}
 		pricing: {
+			/**
+			 * מחירים ברורים
+			 */
 			headline: () => LocalizedString
 			/**
 			 * מסלול חודשי, ביטול בכל עת. שיעור ראשון חינם — בלי כרטיס אשראי.
@@ -2909,6 +3074,9 @@ export type TranslationFunctions = {
 			}
 		}
 		faq: {
+			/**
+			 * שאלות שכדאי לדעת
+			 */
 			headline: () => LocalizedString
 			/**
 			 * אני מתחילה לגמרי — זה מתאים לי?
@@ -3090,7 +3258,7 @@ export type TranslationFunctions = {
 		 */
 		codeLabel: () => LocalizedString
 		/**
-		 * קוד לטלפון
+		 * קוד לאימייל
 		 */
 		submitSendCode: () => LocalizedString
 		/**
@@ -3118,11 +3286,11 @@ export type TranslationFunctions = {
 		 */
 		pendingVerify: () => LocalizedString
 		/**
-		 * קוד נשלח. בדקי גם בספאם.
+		 * נשלח לאימייל. בדקי ספאם.
 		 */
 		statusCodeSent: () => LocalizedString
 		/**
-		 * לינק נשלח. בדקי גם בספאם.
+		 * נשלח לאימייל. בדקי ספאם.
 		 */
 		statusLinkSent: () => LocalizedString
 		/**
@@ -3142,11 +3310,11 @@ export type TranslationFunctions = {
 		 */
 		switchEmail: () => LocalizedString
 		/**
-		 * קוד חד־פעמי במקום סיסמה.
+		 * בלי סיסמה — רק אימייל.
 		 */
 		intro: () => LocalizedString
 		/**
-		 * קוד חד־פעמי במקום סיסמה.
+		 * בלי סיסמה — רק אימייל.
 		 */
 		emailStepIntro: () => LocalizedString
 		/**
@@ -3208,10 +3376,14 @@ export type TranslationFunctions = {
 		 */
 		step: () => LocalizedString
 		/**
-		 * מתוך 6
+		 * מתוך 7
 		 */
 		stepCount: () => LocalizedString
 		stepLabels: {
+			/**
+			 * שם
+			 */
+			name: () => LocalizedString
 			/**
 			 * ניסיון
 			 */
@@ -3236,6 +3408,36 @@ export type TranslationFunctions = {
 			 * סיכום
 			 */
 			summary: () => LocalizedString
+		}
+		name: {
+			/**
+			 * איך לקרוא לך?
+			 */
+			title: () => LocalizedString
+			/**
+			 * שם פרטי ושם משפחה — כך נוכל לפנות אלייך באופן אישי.
+			 */
+			subtitle: () => LocalizedString
+			/**
+			 * שם פרטי
+			 */
+			firstNameLabel: () => LocalizedString
+			/**
+			 * שם משפחה
+			 */
+			lastNameLabel: () => LocalizedString
+			/**
+			 * שם
+			 */
+			firstNamePlaceholder: () => LocalizedString
+			/**
+			 * שם משפחה
+			 */
+			lastNamePlaceholder: () => LocalizedString
+			/**
+			 * מלאי שם פרטי ושם משפחה.
+			 */
+			emptyWarning: () => LocalizedString
 		}
 		experience: {
 			/**
@@ -3410,6 +3612,10 @@ export type TranslationFunctions = {
 			 * הפרופיל שלך
 			 */
 			boxTitle: () => LocalizedString
+			/**
+			 * שם
+			 */
+			name: () => LocalizedString
 			/**
 			 * ניסיון
 			 */
@@ -3733,38 +3939,50 @@ export type TranslationFunctions = {
 			 */
 			greetingNamed: (arg: { name: unknown }) => LocalizedString
 			/**
-			 * ממשיכים מהשיעור האחרון.
+			 * בחרי שיעור מהספרייה או הצטרפי ללייב — הקרדיטים שלך מופיעים למעלה.
 			 */
 			welcomeBody: () => LocalizedString
 			/**
-			 * המשך
+			 * המשך מאיפה שעצרת
 			 */
 			continueKicker: () => LocalizedString
 			/**
-			 * להמשיך
+			 * להמשיך לצפות
 			 */
 			continueCta: () => LocalizedString
 			/**
-			 * לספרייה
+			 * לספריית השיעורים
 			 */
 			browseLibrary: () => LocalizedString
 			/**
-			 * ללייבים
+			 * ללוח הלייבים
 			 */
 			browseLives: () => LocalizedString
 			/**
-			 * שיעורים חדשים
+			 * שיעורים אחרונים
 			 */
 			latestVideos: () => LocalizedString
+			/**
+			 * נוספו לאחרונה
+			 */
+			latestVideosEyebrow: () => LocalizedString
 			latestVideosHint: () => LocalizedString
 			/**
-			 * אין שיעורים עדיין.
+			 * עדיין אין שיעורים בספרייה. נעדכן כאן ברגע שיתפרסמו.
 			 */
 			latestVideosEmpty: () => LocalizedString
 			/**
 			 * לייבים קרובים
 			 */
 			upcomingLives: () => LocalizedString
+			/**
+			 * שיעורי לייב קרובים
+			 */
+			upcomingLivesAria: () => LocalizedString
+			/**
+			 * אין לייבים מתוזמנים כרגע. בלוח הלייבים אפשר לראות את כל התאריכים.
+			 */
+			upcomingLivesEmpty: () => LocalizedString
 		}
 		instructor: {
 			/**
@@ -4085,6 +4303,34 @@ export type TranslationFunctions = {
 			 * חזרה ללוח
 			 */
 			missingCta: () => LocalizedString
+			/**
+			 * קישור לשיעור לא תקין
+			 */
+			invalidClassTitle: () => LocalizedString
+			/**
+			 * לא מצאנו שיעור עם המזהה הזה. חזרו ללוח ובחרו שיעור מהרשימה.
+			 */
+			invalidClassBody: () => LocalizedString
+			/**
+			 * חסר ציוד לשיעור
+			 */
+			equipmentTitle: () => LocalizedString
+			/**
+			 * בפרופיל שלך חסר הציוד שהשיעור דורש. עדכני את רשימת הציוד בפרופיל כדי להצטרף.
+			 */
+			equipmentBody: () => LocalizedString
+			/**
+			 * עדכון פרופיל
+			 */
+			equipmentCtaProfile: () => LocalizedString
+			/**
+			 * חזרה ללוח
+			 */
+			equipmentCtaCalendar: () => LocalizedString
+			/**
+			 * חזרה לסטודיו
+			 */
+			equipmentCtaStudio: () => LocalizedString
 			/**
 			 * הכניסה ללייב נחסמה
 			 */

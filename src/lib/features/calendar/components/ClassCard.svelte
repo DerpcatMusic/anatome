@@ -4,7 +4,8 @@
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { liveRoomHref } from "$lib/i18n/context";
+  import { liveRoomHref, routePath } from "$lib/i18n/context";
+  import { equipmentLabel } from "$lib/labels";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
   import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
   import type { CreditPool } from "$lib/features/credits/types";
@@ -42,7 +43,12 @@
   });
 
   function statusInfo(item: CalendarClass) {
-    if (item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined") {
+    const hasReservation =
+      item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined";
+    if (hasReservation && item.viewerMissingEquipment.length > 0 && !item.viewerCanJoin) {
+      return { label: t.calendar.status.missingEquipmentShort(), emphasis: true, live: false };
+    }
+    if (hasReservation) {
       return { label: t.calendar.status.reserved(), emphasis: true, live: false };
     }
     if (item.liveClass.status === "live") {
@@ -71,6 +77,13 @@
   const status = $derived(statusInfo(item));
   const rsvp = $derived(rsvpText(item, nowMs));
   const showStatusBadge = $derived(status !== null && (status.emphasis || status.live));
+  const equipmentJoinHint = $derived(
+    item.viewerMissingEquipment.length > 0 && !item.viewerCanJoin
+      ? t.calendar.class.missingEquipment({
+          items: item.viewerMissingEquipment.map(equipmentLabel).join(", "),
+        })
+      : null,
+  );
 
   const isPrivate = $derived(item.liveClass.type === "one_on_one");
   const lacksCredits = $derived(item.viewerAvailableCredits < item.liveClass.creditCost);
@@ -142,6 +155,12 @@
 
       {#if rsvp}
         <p class="agenda-card__rsvp agenda-card__rsvp--urgent">{rsvp}</p>
+      {/if}
+      {#if equipmentJoinHint}
+        <p class="agenda-card__equipment-hint">
+          {equipmentJoinHint}
+          <a class="agenda-card__equipment-link" href={routePath("uProfile")}>{t.live.preConnect.equipmentCtaProfile()}</a>
+        </p>
       {/if}
     </div>
 

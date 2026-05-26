@@ -66,12 +66,18 @@
   .entry-state h2 {
     font-size: var(--step-2);
     line-height: 1.05;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .entry-state p {
     color: var(--foreground-muted);
     font-size: var(--step-0);
     font-weight: 750;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .entry-state__spinner {

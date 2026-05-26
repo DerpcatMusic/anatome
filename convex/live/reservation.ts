@@ -12,7 +12,7 @@ import {
   type LiveCreditPool,
 } from "../credits/lib";
 import { reserveClassSeat, releaseClassSeats } from "./capacity";
-import { missingRequiredEquipment } from "../lib/equipment";
+import { viewerCanAccessLiveClass } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { createReminderEventsForReservation } from "../liveReminders/create";
@@ -73,10 +73,7 @@ export const reserve = mutation({
       .take(1);
     const memberProfile = memberProfiles[0] ?? null;
     if (memberProfile === null) throw new Error("נדרש פרופיל אישי");
-    if (
-      missingRequiredEquipment(memberProfile.equipment, liveClass.requiredEquipment)
-        .length > 0
-    ) {
+    if (!viewerCanAccessLiveClass(memberProfile.equipment, liveClass.requiredEquipment)) {
       throw new Error("חסר ציוד נדרש");
     }
 

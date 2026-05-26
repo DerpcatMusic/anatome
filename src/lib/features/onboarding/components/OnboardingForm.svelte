@@ -26,15 +26,19 @@
   import NotesStep from "./steps/NotesStep.svelte";
   import HealthDeclarationStep from "./steps/HealthDeclarationStep.svelte";
   import SummaryStep from "./steps/SummaryStep.svelte";
+  import NameStep from "./steps/NameStep.svelte";
+  import { displayNameForOnboardingPrefill } from "$lib/features/onboarding/display-name";
   import "./OnboardingForm.css";
 
   let {
     redirectTo,
     initialProfile,
+    initialDisplayName,
     mode = "onboarding",
     onSaved,
   }: {
     redirectTo?: string;
+    initialDisplayName?: string | null;
     mode?: "onboarding" | "edit";
     onSaved?: () => void;
     initialProfile?: {
@@ -51,6 +55,7 @@
   const client = useConvexClient();
 
   const steps = [
+    { id: "name" as const, title: t.onboarding.name.title(), subtitle: t.onboarding.name.subtitle() },
     { id: "experience" as const, title: t.onboarding.experience.title(), subtitle: t.onboarding.experience.subtitle() },
     { id: "equipment" as const, title: t.onboarding.equipment.title(), subtitle: t.onboarding.equipment.subtitle() },
     { id: "goals" as const, title: t.onboarding.goals.title(), subtitle: t.onboarding.goals.subtitle() },
@@ -60,6 +65,9 @@
   ] as const;
 
   let stepIndex = $state(0);
+  let firstName = $state("");
+  let lastName = $state("");
+  let nameWarning = $state(false);
   let equipment = $state<Equipment[]>(["mat"]);
   let goals = $state<Goal[]>(["pelvic_floor_rehab"]);
   let experience = $state<"new" | "some" | "steady">("some");
@@ -96,6 +104,11 @@
   }
 
   $effect(() => {
+    const prefilled = displayNameForOnboardingPrefill(initialDisplayName);
+    firstName = prefilled.firstName;
+    lastName = prefilled.lastName;
+    nameWarning = false;
+
     equipment = initialProfile?.equipment
       ?.map((item) => normalizeEquipmentId(item))
       .filter((item): item is Equipment => item !== null) ?? ["mat"];
@@ -138,21 +151,30 @@
       hasHealthDeclarationYes(healthDeclarationAnswers),
   );
 
+  const nameComplete = $derived(firstName.trim().length > 0 && lastName.trim().length > 0);
+
   const canProceed = $derived(
-    currentStep.id === "equipment"
-      ? equipment.length > 0
-      : currentStep.id === "goals"
-        ? goals.length > 0
-        : currentStep.id === "health-declaration"
-          ? isHealthDeclarationComplete(healthDeclarationAnswers) &&
-            healthDeclarationAccepted &&
-            (!needsHealthConsent || healthInfoConsent)
-          : true,
+    currentStep.id === "name"
+      ? nameComplete
+      : currentStep.id === "equipment"
+        ? equipment.length > 0
+        : currentStep.id === "goals"
+          ? goals.length > 0
+          : currentStep.id === "health-declaration"
+            ? isHealthDeclarationComplete(healthDeclarationAnswers) &&
+              healthDeclarationAccepted &&
+              (!needsHealthConsent || healthInfoConsent)
+            : true,
   );
 
   function next() {
+    if (currentStep.id === "name" && !nameComplete) {
+      nameWarning = true;
+      return;
+    }
     if (!canProceed) return;
     error = "";
+    nameWarning = false;
     if (!isLast) stepIndex++;
   }
 
@@ -162,6 +184,11 @@
   }
 
   async function submit() {
+    if (!nameComplete) {
+      nameWarning = true;
+      stepIndex = 0;
+      return;
+    }
     pending = true;
     error = "";
     try {
@@ -171,6 +198,8 @@
       }
 
       await client.mutation(api.users.onboarding.complete, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         equipment,
         experience,
         goals,
@@ -224,7 +253,9 @@
         {/if}
 
         <div class="form-body">
-          {#if currentStep.id === "experience"}
+          {#if currentStep.id === "name"}
+            <NameStep bind:firstName bind:lastName showWarning={nameWarning} />
+          {:else if currentStep.id === "experience"}
             <ExperienceStep bind:experience />
           {:else if currentStep.id === "equipment"}
             <EquipmentStep bind:equipment />
@@ -241,6 +272,8 @@
             />
           {:else if currentStep.id === "summary"}
             <SummaryStep
+              {firstName}
+              {lastName}
               {experience}
               {equipment}
               {goals}
@@ -265,7 +298,7 @@
           {/if}
 
           {#if isLast}
-            <Button.Root class="hb-button hb-button--ink" type="button" disabled={pending || !canProceed} onclick={submit}>
+            <Button.Root class="hb-button hb-button--ink" type="button" disabled={pending || !canProceed || !nameComplete} onclick={submit}>
               {pending ? t.onboarding.nav.submitPending() : mode === "edit" ? t.onboarding.nav.submitEdit() : t.onboarding.nav.submit()}
             </Button.Root>
           {:else}

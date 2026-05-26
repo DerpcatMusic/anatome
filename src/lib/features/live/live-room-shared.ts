@@ -49,6 +49,11 @@ export function isInstructorIdentity(identity: string) {
   return identity.startsWith("instructor_") || identity.startsWith("admin_");
 }
 
+/** Convex join/token paths throw this when profile equipment does not match the class. */
+export function isEquipmentJoinError(message: string): boolean {
+  return message.includes("חסר ציוד");
+}
+
 export function disconnectMessage(reason: number | undefined): string | null {
   if (reason === undefined) return null;
   if (reason === LK_DISCONNECT.DUPLICATE_IDENTITY) return i18n.t.live.room.disconnectDuplicate();

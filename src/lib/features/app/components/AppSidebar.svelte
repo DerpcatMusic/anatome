@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { page } from "$app/state";
   import { api } from "$convex/_generated/api";
   import { initAuth, signOut, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
@@ -42,13 +43,23 @@
     ],
   };
 
-  const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    canRunAuthenticatedQuery() ? {} : "skip"
-  );
-  const profile = $derived(profileQuery.data ?? null);
+  const profile = $derived(ctx.viewer);
+
+  let subscriptionReady = $state(false);
+  onMount(() => {
+    const enable = () => {
+      subscriptionReady = true;
+    };
+    if (typeof requestIdleCallback === "function") {
+      const id = requestIdleCallback(enable, { timeout: 400 });
+      return () => cancelIdleCallback(id);
+    }
+    const id = requestAnimationFrame(enable);
+    return () => cancelAnimationFrame(id);
+  });
 
   const subscriptionQuery = useQuery(api.subscriptions.customer.getMine, () =>
-    canRunAuthenticatedQuery() && !isInstructorPrefix ? {} : "skip",
+    canRunAuthenticatedQuery() && subscriptionReady && !isInstructorPrefix ? {} : "skip",
   );
   const currentPlan = $derived(subscriptionQuery.data?.plan ?? null);
   const creditBalances = $derived(walletBalances(subscriptionQuery.data?.wallet ?? null));
@@ -64,16 +75,8 @@
 
   const nextLiveQuery = useQuery(api.live.next.get, () => canRunAuthenticatedQuery() ? {} : "skip");
   const nextLive = $derived(nextLiveQuery.data ?? null);
-  const showLiveTab = $derived.by(() => {
-    if (!nextLive) return false;
-    if (nextLive.status === "ended" || nextLive.status === "cancelled") return false;
-    if (nextLive.status === "live") return true;
-    const opens = nextLive.joinOpensAt;
-    const closes = nextLive.joinClosesAt;
-    if (typeof opens !== "number" || typeof closes !== "number") return false;
-    const now = Date.now();
-    return now >= opens && now <= closes;
-  });
+  /** Server filters eligibility (RSVP + equipment + join window). */
+  const showLiveTab = $derived(nextLive !== null);
 
   const baseNav = $derived(navMap[prefix] ?? navMap["/u"]);
   const navItems = $derived(showLiveTab

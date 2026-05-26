@@ -5,9 +5,11 @@ import {
   disconnectMessage,
   getMediaErrorMessage,
   i18n,
+  isEquipmentJoinError,
   participantIdentity,
   trackSource,
 } from "./live-room-shared";
+import { hasLiveClassIdParam, parseLiveClassId } from "$lib/convex/ids";
 import { LiveRoomMedia } from "./livekit-media.svelte";
 import type { ConnectionState } from "./types";
 
@@ -292,6 +294,12 @@ export class LiveRoomConnection extends LiveRoomMedia {
       this.status = "locked";
       return;
     }
+    const rawClassId = new URLSearchParams(window.location.search).get("classId");
+    if (hasLiveClassIdParam(rawClassId) && parseLiveClassId(rawClassId) === null) {
+      this.status = "invalidClass";
+      this.error = "";
+      return;
+    }
     const liveClassId = this.getClassId();
     if (liveClassId === null) {
       this.status = "missing";
@@ -307,6 +315,12 @@ export class LiveRoomConnection extends LiveRoomMedia {
         return;
       }
       this.joinAccess = access;
+
+      if (access.equipmentBlocked) {
+        this.error = "";
+        this.status = "equipment";
+        return;
+      }
 
       if (!access.canEnter) {
         if (access.minutesUntilOpen !== null) {
@@ -356,6 +370,11 @@ export class LiveRoomConnection extends LiveRoomMedia {
           return;
         }
       }
+      if (isEquipmentJoinError(message)) {
+        this.error = "";
+        this.status = "equipment";
+        return;
+      }
       this.error = this.auth.error || message || i18n.t.live.room.tokenError();
       this.status = "error";
     }
@@ -386,6 +405,12 @@ export class LiveRoomConnection extends LiveRoomMedia {
         return;
       }
       this.joinAccess = access;
+      if (access.equipmentBlocked) {
+        this.stopWaitingPoll();
+        this.error = "";
+        this.status = "equipment";
+        return;
+      }
       if (access.canEnter) {
         this.stopWaitingPoll();
         await this.loadToken();

@@ -31,6 +31,8 @@ export const RULES = {
   MAX_PENDING_ONE_ON_ONE_REQUESTS: 5,
   /** Max onboarding notes length */
   MAX_ONBOARDING_NOTES_LENGTH: 600,
+  /** Max characters per given / family name */
+  MAX_NAME_PART_LENGTH: 60,
   /** Fixed duration for private 1:1 lessons (minutes) */
   ONE_ON_ONE_DURATION_MINUTES: 45,
   /** Gap between bookable 1:1 slots generated from availability rules (minutes) */

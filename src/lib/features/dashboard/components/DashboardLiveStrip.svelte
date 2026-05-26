@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { horizontalWheelScroll } from "$lib/actions/horizontal-wheel-scroll";
   import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { liveRoomHref, routePath } from "$lib/i18n/context";
@@ -15,22 +16,18 @@
   };
 
   let {
-    title,
     lives = [],
     loading = false,
     error = null,
-    emptyKicker,
     emptyText,
     viewAllHref = routePath("uCalendar"),
     viewAllLabel,
     onRetry,
     manageHref,
   }: {
-    title: string;
     lives?: DashboardLiveItem[];
     loading?: boolean;
     error?: string | null;
-    emptyKicker: string;
     emptyText: string;
     viewAllHref?: string;
     viewAllLabel?: string;
@@ -54,16 +51,13 @@
   }
 </script>
 
-<section class="dashboard-panel dashboard-panel--cool live-strip" aria-labelledby="live-strip-title">
-  <header class="dashboard-panel__head">
-    <h3 id="live-strip-title" class="dashboard-panel__title live-strip__title-only">{title}</h3>
-    <div class="dashboard-panel__actions">
-      {#if manageHref}
-        <a class="dashboard-link" href={manageHref}>{t.dashboard.instructor.openStudio()}</a>
-      {/if}
-      <a class="dashboard-link" href={viewAllHref}>{allLabel}</a>
-    </div>
-  </header>
+<section class="live-strip" aria-label={t.dashboard.member.upcomingLivesAria()}>
+  <div class="live-strip__toolbar">
+    {#if manageHref}
+      <a class="dashboard-link" href={manageHref}>{t.dashboard.instructor.openStudio()}</a>
+    {/if}
+    <a class="dashboard-link live-strip__all" href={viewAllHref}>{allLabel}</a>
+  </div>
 
   {#if loading}
     <div class="dashboard-skeleton" aria-busy="true">
@@ -78,9 +72,9 @@
       </Button.Root>
     {/if}
   {:else if lives.length === 0}
-    <p class="live-strip__empty-text">{emptyText || emptyKicker}</p>
+    <p class="live-strip__empty-text">{emptyText}</p>
   {:else}
-    <ul class="live-strip__list" role="list">
+    <ul class="live-strip__list" role="list" use:horizontalWheelScroll={true}>
       {#each lives as item (item._id)}
         <li>
           <a class="live-strip__item" href={itemHref(item)}>
@@ -101,8 +95,17 @@
     min-width: 0;
   }
 
-  .live-strip__title-only {
-    margin: 0;
+  .live-strip__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block-end: var(--space-2);
+    min-height: 1.5rem;
+  }
+
+  .live-strip__all {
+    margin-inline-start: auto;
   }
 
   .live-strip__list {
@@ -112,9 +115,11 @@
     display: flex;
     gap: var(--space-3);
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scroll-snap-type: x proximity;
     padding-block-end: var(--space-1);
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 
   .live-strip__item {
@@ -124,7 +129,7 @@
     max-width: 280px;
     padding: var(--space-3);
     border: var(--border);
-    background: var(--paper);
+    background: var(--elevated);
     text-decoration: none;
     color: inherit;
     scroll-snap-align: start;
@@ -132,7 +137,12 @@
   }
 
   .live-strip__item:hover {
-    background: color-mix(in oklch, var(--accent) 10%, var(--paper));
+    background: color-mix(in oklch, var(--accent) 10%, var(--elevated));
+  }
+
+  .live-strip__item:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 
   .live-strip__status {
@@ -162,8 +172,11 @@
 
   .live-strip__empty-text {
     margin: 0;
+    padding: var(--space-4);
+    border: 1px dashed var(--line-light);
+    background: color-mix(in oklch, var(--surface) 60%, transparent);
     color: var(--foreground-muted);
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
   .live-strip__error {

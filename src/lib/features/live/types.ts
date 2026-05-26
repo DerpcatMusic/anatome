@@ -1,5 +1,14 @@
 export type ParticipantRole = "instructor" | "customer" | "admin";
-export type RoomStatus = "checking" | "locked" | "missing" | "waiting" | "prep" | "ready" | "error";
+export type RoomStatus =
+  | "checking"
+  | "locked"
+  | "missing"
+  | "invalidClass"
+  | "equipment"
+  | "waiting"
+  | "prep"
+  | "ready"
+  | "error";
 export type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected";
 export type ConnectionQualityLevel = "excellent" | "good" | "poor" | "lost" | "unknown";
 export type LiveClassType = "group_live" | "one_on_one";

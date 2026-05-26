@@ -13,9 +13,8 @@
   let { room }: { room: LiveRoom } = $props();
   const { t } = useI18n();
 
-  const backHref = $derived(
-    room.isInstructorRoom ? "/i/live" : "/u/calendar"
-  );
+  const backHref = $derived(room.isInstructorRoom ? "/i/live" : "/u/calendar");
+  const profileHref = $derived(room.isInstructorRoom ? "/i/profile" : "/u/profile");
   const isPrep = $derived(room.status === "prep");
   const isReady = $derived(room.status === "ready" && room.joinInfo && room.connectionState === "idle");
   const showSetup = $derived(isPrep || isReady);
@@ -45,7 +44,24 @@
     <PreConnectState
       title={t.live.preConnect.missingTitle()}
       actionLabel={t.live.preConnect.missingCta()}
-      actionHref="/u/calendar"
+      actionHref={backHref}
+    />
+  {:else if room.status === "invalidClass"}
+    <PreConnectState
+      title={t.live.preConnect.invalidClassTitle()}
+      message={t.live.preConnect.invalidClassBody()}
+      actionLabel={t.live.preConnect.missingCta()}
+      actionHref={backHref}
+    />
+  {:else if room.status === "equipment"}
+    <PreConnectState
+      title={t.live.preConnect.equipmentTitle()}
+      message={t.live.preConnect.equipmentBody()}
+      tone="caution"
+      actionLabel={room.isInstructorRoom ? t.live.preConnect.equipmentCtaStudio() : t.live.preConnect.equipmentCtaProfile()}
+      actionHref={room.isInstructorRoom ? backHref : profileHref}
+      secondaryLabel={room.isInstructorRoom ? t.live.preConnect.equipmentCtaProfile() : t.live.preConnect.equipmentCtaCalendar()}
+      secondaryHref={room.isInstructorRoom ? profileHref : backHref}
     />
   {:else if room.status === "waiting"}
     <PreConnectState
@@ -64,7 +80,7 @@
       actionLabel={t.live.preConnect.retry()}
       onAction={() => room.loadToken()}
       secondaryLabel={t.live.preConnect.backCalendar()}
-      secondaryHref="/u/calendar"
+      secondaryHref={backHref}
     />
   {:else if showSetup}
     <div class="entry-stack">

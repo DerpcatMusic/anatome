@@ -3,23 +3,26 @@
   import { api } from "$convex/_generated/api";
   import { Button } from "bits-ui";
   import { useQuery } from "convex-svelte";
-  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { watchHref, routePath } from "$lib/i18n/context";
+  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
+  import { walletBalances, type WalletLike } from "$lib/features/credits/balances";
+  import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
   import { formatProgressLabel } from "../lib/format";
   import "../dashboard.css";
 
   type ContinueItem = NonNullable<
     FunctionReturnType<typeof api.video.playback.getContinueWatching>
   >;
-
   let {
     displayName,
+    wallet = null,
   }: {
     displayName?: string | null;
+    wallet?: WalletLike | null;
   } = $props();
 
-  const auth = initAuth();
   const { t } = useI18n();
   const progressQuery = useQuery(api.video.playback.getContinueWatching, () =>
     canRunAuthenticatedQuery() ? {} : "skip",
@@ -28,16 +31,20 @@
   const item = $derived(progressQuery.data ?? null);
   const loading = $derived(progressQuery.isLoading);
   const error = $derived(progressQuery.error?.message ?? null);
+  const creditBalances = $derived(walletBalances(wallet));
+
+  const friendlyName = $derived.by(() => {
+    const raw = displayName?.trim();
+    if (!raw || raw.includes("@")) return null;
+    const first = raw.split(/\s+/)[0];
+    return first || null;
+  });
 
   const greeting = $derived(
-    displayName?.trim()
-      ? t.dashboard.member.greetingNamed({ name: displayName.trim() })
+    friendlyName
+      ? t.dashboard.member.greetingNamed({ name: friendlyName })
       : t.dashboard.member.greeting(),
   );
-
-  function progressPercent(row: ContinueItem): number {
-    return Math.max(4, Math.min(100, Math.round(row.percentWatched)));
-  }
 </script>
 
 <section class="continue-hero" aria-labelledby="continue-hero-title">
@@ -72,8 +79,14 @@
         <p class="continue-hero__meta">
           {formatProgressLabel(item.currentTimeSeconds, item.durationSeconds)}
         </p>
-        <div class="continue-hero__progress" role="progressbar" aria-valuenow={progressPercent(item)} aria-valuemin="0" aria-valuemax="100">
-          <span style:width="{progressPercent(item)}%"></span>
+        <div
+          class="continue-hero__progress"
+          role="progressbar"
+          aria-valuenow={Math.max(4, Math.min(100, Math.round(item.percentWatched)))}
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <span style:width="{Math.max(4, Math.min(100, Math.round(item.percentWatched)))}%"></span>
         </div>
         <span class="continue-hero__cta hb-button hb-button--ink hb-button--sm">
           {t.dashboard.member.continueCta()}
@@ -82,8 +95,20 @@
     </a>
   {:else}
     <div class="continue-hero__welcome dashboard-panel">
-      <h2 id="continue-hero-title" class="continue-hero__welcome-title">{greeting}</h2>
-      <p class="continue-hero__welcome-text">{t.dashboard.member.welcomeBody()}</p>
+      <div class="continue-hero__welcome-head">
+        <div class="continue-hero__welcome-copy">
+          <h2 id="continue-hero-title" class="continue-hero__welcome-title">{greeting}</h2>
+          <p class="continue-hero__welcome-text">{t.dashboard.member.welcomeBody()}</p>
+        </div>
+        <WalletCreditStrip
+          balances={creditBalances}
+          pools={poolsForSidebar()}
+          size="sm"
+          layout="row"
+          variant="loose"
+          class="continue-hero__credits"
+        />
+      </div>
       <div class="continue-hero__welcome-actions">
         <Button.Root
           class="hb-button hb-button--ink hb-button--md"
@@ -207,6 +232,24 @@
     border-inline-start: 3px solid var(--primary);
   }
 
+  .continue-hero__welcome-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .continue-hero__welcome-copy {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  .continue-hero :global(.continue-hero__credits) {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+  }
+
   .continue-hero__eyebrow {
     margin: 0;
     font-family: var(--font-mono);
@@ -217,7 +260,7 @@
   }
 
   .continue-hero__welcome-title {
-    margin: var(--space-2) 0 0;
+    margin: 0;
     font-size: clamp(var(--step-2), 3vw, var(--step-3));
     line-height: 1.15;
   }
@@ -252,6 +295,11 @@
 
     .continue-hero__media {
       aspect-ratio: 16 / 9;
+    }
+
+    .continue-hero :global(.continue-hero__credits) {
+      width: 100%;
+      justify-content: flex-start;
     }
   }
 </style>

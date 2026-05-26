@@ -28,12 +28,14 @@
     FAQSection,
   } from "$lib/features/landing/components";
   import { useI18n } from "$lib/i18n/runes";
+  import { openAuthOverlay } from "$lib/auth/open-overlay";
   import { Button } from "bits-ui";
   import { browser } from "$app/environment";
 
   const { t } = useI18n();
 
   let heroActive = $state(true);
+  let ctaEmail = $state("");
 
   $effect(() => createHeroScrollActive((active) => {
     heroActive = active;
@@ -45,8 +47,13 @@
     story: t.landing.instructor.storyClosing(),
   });
 
-  function openAuthOverlay() {
-    window.dispatchEvent(new CustomEvent("anatome:auth-open"));
+  function openSignupAuth() {
+    const email = ctaEmail.trim().toLowerCase();
+    if (!email) {
+      openAuthOverlay();
+      return;
+    }
+    openAuthOverlay({ email, autoSendCode: true });
   }
 
   const pageUrl = SITE.domain;
@@ -110,7 +117,7 @@
         </div>
       {/await}
     {/if}
-    <HeroSection {openAuthOverlay} />
+    <HeroSection openAuthOverlay={() => openAuthOverlay()} />
   </div>
 
   <main class="landing l-scroll-cover" id="main-content">
@@ -120,7 +127,7 @@
     <PhilosophySection />
     <StepsSection />
     <ExperienceSection />
-    <PricingSection {openAuthOverlay} />
+    <PricingSection openAuthOverlay={() => openAuthOverlay()} />
     <FAQSection items={faqItems} />
 
     <section class="l-panel l-section section--cta" aria-label="התחילי עכשיו">
@@ -134,7 +141,7 @@
             class="cta-panel__form"
             onsubmit={(e) => {
               e.preventDefault();
-              openAuthOverlay();
+              openSignupAuth();
             }}
           >
             <label class="visually-hidden" for="landing-cta-email">{t.auth.emailLabel()}</label>
@@ -144,6 +151,8 @@
               type="email"
               name="email"
               autocomplete="email"
+              required
+              bind:value={ctaEmail}
               placeholder={t.auth.emailLabel()}
             />
             <Button.Root
