@@ -8,7 +8,7 @@
   import type { Id } from "$convex/_generated/dataModel";
   import type { Equipment } from "$lib/labels";
   import { TextareaAutosize } from "runed";
-  import { parseDateTimeLocal } from "$lib/datetime/local";
+  import { formatAppDate, formatAppTime, parseDateTimeLocal } from "$lib/datetime/local";
 
   type LiveClass = {
     _id: Id<"liveClasses">;
@@ -54,19 +54,6 @@
   const isPopover = $derived(variant === "popover");
   let showDescription = $state(false);
 
-  function formatLocalDate(ts: number) {
-    const d = new Date(ts);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
-
-  function formatLocalTime(ts: number) {
-    const d = new Date(ts);
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  }
-
   const shortDateFormatter = new Intl.DateTimeFormat("he-IL", {
     weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Jerusalem",
   });
@@ -91,14 +78,14 @@
     previousClassId = classId;
     editTitle = liveClass.title;
     editDescription = liveClass.description || "";
-    editStartTime = formatLocalTime(liveClass.startsAt);
-    editEndTime = formatLocalTime(liveClass.endsAt);
+    editStartTime = formatAppTime(liveClass.startsAt);
+    editEndTime = formatAppTime(liveClass.endsAt);
     editJoinOpens = liveClass.joinOpensMinutesBefore ?? 15;
     editCapacity = liveClass.capacity;
     editEquipment = [...liveClass.requiredEquipment];
     showDescription = isPopover ? Boolean(liveClass.description?.trim()) : true;
     try {
-      editDateValue = parseDate(formatLocalDate(liveClass.startsAt));
+      editDateValue = parseDate(formatAppDate(liveClass.startsAt));
     } catch {
       editDateValue = undefined;
     }
@@ -152,7 +139,7 @@
       <div class="detail-row">
         <span class="detail-label">מועד השידור:</span>
         <span class="detail-value">
-          {formatLocalDate(liveClass.startsAt)} בשעה {formatLocalTime(liveClass.startsAt)}
+          {formatAppDate(liveClass.startsAt)} בשעה {formatAppTime(liveClass.startsAt)}
         </span>
       </div>
       <div class="detail-row">

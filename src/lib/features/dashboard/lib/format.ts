@@ -1,22 +1,26 @@
+import { LOCAL_TIMEZONE, startOfLocalDay } from "$lib/datetime/local";
+
+const startOfAppDay = startOfLocalDay;
+
 const liveWhenFormatter = new Intl.DateTimeFormat("he-IL", {
   weekday: "short",
   day: "numeric",
   month: "short",
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: LOCAL_TIMEZONE,
 });
 
 const liveTimeFormatter = new Intl.DateTimeFormat("he-IL", {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: LOCAL_TIMEZONE,
 });
 
 export function formatLiveStartsAt(startsAt: number, now = Date.now()): string {
-  const dayStart = new Date(now);
-  dayStart.setHours(0, 0, 0, 0);
-  const targetDay = new Date(startsAt);
-  targetDay.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((targetDay.getTime() - dayStart.getTime()) / 86_400_000);
+  const dayStart = startOfAppDay(now);
+  const targetDay = startOfAppDay(startsAt);
+  const diffDays = Math.round((targetDay - dayStart) / 86_400_000);
 
   if (diffDays === 0) return `היום · ${liveTimeFormatter.format(startsAt)}`;
   if (diffDays === 1) return `מחר · ${liveTimeFormatter.format(startsAt)}`;

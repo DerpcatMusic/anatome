@@ -1,3 +1,5 @@
+import { wallMinutesFromCalendarDate } from "$lib/datetime/local";
+
 /** Viewport rect for anchoring quick-create popovers to calendar selections. */
 export type SelectionAnchor = {
   top: number;
@@ -97,7 +99,7 @@ export function anchorFromCalendarSelection(
 
   if (dayEl instanceof HTMLElement) {
     const colRect = dayEl.getBoundingClientRect();
-    const startMin = start.getHours() * 60 + start.getMinutes();
+    const startMin = wallMinutesFromCalendarDate(start);
     const top = colRect.top + (startMin / CALENDAR_SLOT_DURATION_MIN) * CALENDAR_SLOT_HEIGHT_PX;
     const height = Math.max(
       (durationMin / CALENDAR_SLOT_DURATION_MIN) * CALENDAR_SLOT_HEIGHT_PX,
@@ -113,7 +115,7 @@ export function anchorFromCalendarSelection(
 
   const bodyRect =
     container.querySelector(".ec-body")?.getBoundingClientRect() ?? container.getBoundingClientRect();
-  const startMin = start.getHours() * 60 + start.getMinutes();
+  const startMin = wallMinutesFromCalendarDate(start);
   const top = bodyRect.top + (startMin / CALENDAR_SLOT_DURATION_MIN) * CALENDAR_SLOT_HEIGHT_PX;
   const height = Math.max(
     (durationMin / CALENDAR_SLOT_DURATION_MIN) * CALENDAR_SLOT_HEIGHT_PX,

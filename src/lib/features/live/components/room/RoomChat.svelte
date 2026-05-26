@@ -67,7 +67,7 @@
           <article class="lr-chat-message" class:lr-chat-message--local={message.isLocal}>
             <div class="lr-chat-message__meta">
               <span>{message.name}</span>
-              <time>{new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit" }).format(new Date(message.createdAt))}</time>
+              <time>{new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" }).format(new Date(message.createdAt))}</time>
             </div>
             <p class="lr-chat-message__text">{message.text}</p>
           </article>

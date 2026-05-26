@@ -61,7 +61,8 @@ const roleStore = new PersistedState<string | null>(roleKey, null, {
 
 // Module-level refresh deduplication — survives component re-mounts within one page session.
 let refreshPromise: Promise<string | null> | null = null;
-let convexAuthWired = false;
+const convexAuthWiredClients = new WeakSet<object>();
+let activeConvexAuthClient: object | null = null;
 let convexAuthNudged = false;
 /** Convex reported WS auth via setAuth onChange(true) — wait for token fetches to finish. */
 let convexWsAuthReported = false;
@@ -79,6 +80,14 @@ function syncQueryAuthReady() {
     state.isAuthenticated && convexWsAuthEstablished && pendingAuthRefresh === 0;
   if (queryAuthReady === next) return;
   queryAuthReady = next;
+}
+
+function resetConvexWsAuthState() {
+  convexAuthNudged = false;
+  convexWsAuthReported = false;
+  convexWsAuthEstablished = false;
+  pendingAuthRefresh = 0;
+  queryAuthReady = false;
 }
 
 /** After Convex onChange(true) and all in-flight token fetches complete. */
@@ -153,10 +162,7 @@ export function storeTokens(tokens: Tokens | null) {
   refreshTokenStore.current = tokens?.refreshToken ?? null;
   if (tokens === null) {
     roleStore.current = null;
-    convexWsAuthReported = false;
-    convexWsAuthEstablished = false;
-    pendingAuthRefresh = 0;
-    queryAuthReady = false;
+    resetConvexWsAuthState();
   }
   syncAuthState();
   state.isLoading = false;
@@ -399,12 +405,17 @@ export function wireConvexAuth(client: {
     return;
   }
 
-  if (convexAuthWired) {
+  if (activeConvexAuthClient !== client) {
+    activeConvexAuthClient = client;
+    resetConvexWsAuthState();
+  }
+
+  if (convexAuthWiredClients.has(client)) {
     void nudgeConvexWsAuthIfStalled();
     return;
   }
 
-  convexAuthWired = true;
+  convexAuthWiredClients.add(client);
   client.setAuth(
     (args) => getAccessTokenForConvex(args),
     (isAuthenticated) => handleAuthChange(isAuthenticated)

@@ -13,9 +13,41 @@ import {
 } from "../credits/lib";
 import { reserveClassSeat, releaseClassSeats } from "./capacity";
 import { viewerCanAccessLiveClass } from "../lib/equipment";
+import { overlaps } from "../lib/oneOnOne";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { createReminderEventsForReservation } from "../liveReminders/create";
+
+async function hasOverlappingMemberReservation(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  startsAt: number,
+  endsAt: number,
+  excludeLiveClassId?: Id<"liveClasses">,
+): Promise<boolean> {
+  const reservations = await ctx.db
+    .query("liveReservations")
+    .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
+    .order("desc")
+    .take(50);
+
+  for (const reservation of reservations) {
+    if (reservation.status !== "reserved" && reservation.status !== "joined") {
+      continue;
+    }
+    if (excludeLiveClassId !== undefined && reservation.liveClassId === excludeLiveClassId) {
+      continue;
+    }
+    const other = await ctx.db.get(reservation.liveClassId);
+    if (other === null || other.status === "cancelled" || other.status === "ended") {
+      continue;
+    }
+    if (overlaps(startsAt, endsAt, other.startsAt, other.endsAt)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 async function findReservationForUser(
   ctx: MutationCtx,
@@ -95,6 +127,18 @@ export const reserve = mutation({
         : availableOneOnOneCredits(wallet);
     if (available < liveClass.creditCost) {
       throw new Error("אין מספיק נקודות");
+    }
+
+    if (
+      await hasOverlappingMemberReservation(
+        ctx,
+        userId,
+        liveClass.startsAt,
+        liveClass.endsAt,
+        args.liveClassId,
+      )
+    ) {
+      throw new Error("כבר יש לך הרשמה לשיעור חי בזמן הזה");
     }
 
     const now = Date.now();

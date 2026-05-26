@@ -5,8 +5,6 @@ export function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const DESKTOP_MQ = "(min-width: 56rem)";
-
 /** Registers ScrollTrigger chapters for the marketing landing. No-op when reduced motion. */
 export function initLandingScroll(root: HTMLElement): () => void {
   if (prefersReducedMotion()) return () => {};
@@ -81,73 +79,76 @@ function initExperienceBento(root: HTMLElement) {
   const experience = root.querySelector<HTMLElement>("[data-landing-experience]");
   const track = experience?.querySelector<HTMLElement>(".experience-bento__track");
   const pin = experience?.querySelector<HTMLElement>(".experience-bento__pin");
-  const cells = experience?.querySelectorAll<HTMLElement>("[data-experience-bento-cell]");
   const frames = experience?.querySelectorAll<HTMLElement>("[data-experience-bento-frame]");
 
-  if (!experience || !track || !pin || !cells?.length) return;
+  if (!experience || !track || !pin || !frames?.length) return;
 
   const rotations = [-2.25, 1.75, -1.5, 2];
-  const setActiveCell = (index: number) => {
-    cells.forEach((cell, i) => {
-      const active = i === index;
-      cell.classList.toggle("is-active", active);
-      cell.setAttribute("aria-selected", active ? "true" : "false");
-      cell.tabIndex = active ? 0 : -1;
+  const step = 1 / frames.length;
+
+  const hideAll = () => {
+    frames.forEach((frame, i) => {
+      gsap.set(frame, {
+        autoAlpha: 0,
+        rotate: rotations[i % rotations.length],
+        scale: 0.92,
+        y: 28,
+        visibility: "hidden",
+      });
     });
   };
 
-  gsap.set(frames, {
-    rotate: (i) => rotations[i % rotations.length],
-    scale: 0.94,
-    opacity: 0,
-  });
-
-  gsap.to(frames, {
-    rotate: 0,
-    scale: 1,
-    opacity: 1,
-    duration: 0.85,
-    stagger: 0.12,
-    ease: "power3.out",
-    scrollTrigger: {
-      trigger: experience,
-      start: "top 78%",
-      toggleActions: "play none none reverse",
-    },
-  });
-
   if (!window.matchMedia(DESKTOP_MQ).matches) {
-    setActiveCell(0);
+    experience.removeAttribute("data-bento-pinned");
+    gsap.set(frames, { clearProps: "all" });
     return;
   }
 
-  gsap.timeline({
+  experience.setAttribute("data-bento-pinned", "");
+  hideAll();
+
+  const tl = gsap.timeline({
     scrollTrigger: {
       trigger: track,
-      start: "top 12%",
+      start: "top top",
       end: "bottom bottom",
       pin,
       pinSpacing: true,
-      scrub: 0.75,
+      scrub: 0.65,
+      anticipatePin: 1,
       snap: {
         snapTo: (value: number) => {
-          const step = 1 / Math.max(cells.length - 1, 1);
+          const step = 1 / Math.max(frames.length - 1, 1);
           return Math.round(value / step) * step;
         },
-        duration: { min: 0.12, max: 0.3 },
-        delay: 0.04,
-      },
-      onUpdate(self) {
-        const index = Math.min(
-          cells.length - 1,
-          Math.round(self.progress * (cells.length - 1)),
-        );
-        setActiveCell(index);
+        duration: { min: 0.12, max: 0.28 },
+        delay: 0.03,
       },
     },
   });
 
-  setActiveCell(0);
+  frames.forEach((frame, i) => {
+    tl.fromTo(
+      frame,
+      {
+        autoAlpha: 0,
+        rotate: rotations[i % rotations.length],
+        scale: 0.92,
+        y: 28,
+        visibility: "hidden",
+      },
+      {
+        autoAlpha: 1,
+        rotate: 0,
+        scale: 1,
+        y: 0,
+        visibility: "visible",
+        duration: step * 0.85,
+        ease: "power3.out",
+      },
+      i * step,
+    );
+  });
 }
 
 function initStepsTimeline(root: HTMLElement) {

@@ -7,6 +7,7 @@
 
   import { theme } from "$features/app/theme.svelte";
   import type { CalendarClass, DayAvailability } from "../lib/agenda";
+  import { formatAppScrollTime, formatAppTime, toCalendarEventDate } from "$lib/datetime/local";
   import { formatWallMinutes, wallMinutesFromTimestamp } from "../lib/one-on-one-time";
 
   type CalendarView = "week" | "month";
@@ -63,7 +64,7 @@
         if (cancelled) return;
         requestAnimationFrame(() => {
           if (cancelled) return;
-          weekScrollTime = `${String(new Date().getHours()).padStart(2, "0")}:00:00`;
+          weekScrollTime = formatAppScrollTime();
         });
       });
     });
@@ -81,13 +82,6 @@
       .replace(/'/g, "&#039;");
   }
 
-  function formatLocalTime(ts: number) {
-    const d = new Date(ts);
-    const h = String(d.getHours()).padStart(2, "0");
-    const m = String(d.getMinutes()).padStart(2, "0");
-    return `${h}:${m}`;
-  }
-
   function buildEvents(): CalendarEventInput[] {
     const events: CalendarEventInput[] = [];
 
@@ -103,8 +97,8 @@
         events.push({
           id: item.liveClass._id,
           title: item.liveClass.title,
-          start: new Date(item.liveClass.startsAt),
-          end: new Date(item.liveClass.endsAt),
+          start: toCalendarEventDate(item.liveClass.startsAt),
+          end: toCalendarEventDate(item.liveClass.endsAt),
           classNames: [
             `ec-event-status--${item.liveClass.status}`,
             `ec-event-type--${item.liveClass.type}`,
@@ -121,8 +115,8 @@
         events.push({
           id: `window-${window.dayStart}-${window.instructorUserId}`,
           title: `1:1 זמין · ${range}`,
-          start: new Date(window.windowStartsAt),
-          end: new Date(window.windowEndsAt),
+          start: toCalendarEventDate(window.windowStartsAt),
+          end: toCalendarEventDate(window.windowEndsAt),
           classNames: ["ec-event-type--one_on_one", "ec-event-type--availability-window"],
           extendedProps: { kind: "window", dayStart: window.dayStart, window },
         });
@@ -199,7 +193,7 @@
     }) {
       const item = info.event.extendedProps?.item;
       if (item) {
-        const formattedTime = `${formatLocalTime(item.liveClass.startsAt)} – ${formatLocalTime(item.liveClass.endsAt)}`;
+        const formattedTime = `${formatAppTime(item.liveClass.startsAt)} – ${formatAppTime(item.liveClass.endsAt)}`;
         return {
           html: `
             <div class="calendar-class-event-body status-${item.liveClass.status}" title="${escapeHtml(item.liveClass.title)} · ${formattedTime}">

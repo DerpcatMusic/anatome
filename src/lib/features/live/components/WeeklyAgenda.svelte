@@ -8,7 +8,14 @@
   import type { Id } from "$convex/_generated/dataModel";
   import type { FunctionReturnType } from "convex/server";
   import type { Equipment } from "$lib/labels";
-  import { formatEventCalendarWallTime, toDateTimeLocalString } from "$lib/datetime/local";
+  import {
+    formatAppScrollTime,
+    formatAppTime,
+    formatEventCalendarWallTime,
+    fromCalendarEventDate,
+    toCalendarEventDate,
+    toDateTimeLocalString,
+  } from "$lib/datetime/local";
   import { theme } from "$features/app/theme.svelte";
   import type { SelectionAnchor } from "$features/live/types/selection-anchor";
   import {
@@ -124,13 +131,6 @@
     typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
   );
 
-  function formatLocalTime(ts: number) {
-    const d = new Date(ts);
-    const h = String(d.getHours()).padStart(2, "0");
-    const m = String(d.getMinutes()).padStart(2, "0");
-    return `${h}:${m}`;
-  }
-
   function escapeHtml(str: string): string {
     return str
       .replace(/&/g, "&amp;")
@@ -201,12 +201,14 @@
   }
 
   function emitSelectSlot(start: Date, end: Date, jsEvent?: MouseEvent) {
-    if (start.getTime() < Date.now() - 5 * 60 * 1000) {
+    const startMs = fromCalendarEventDate(start);
+    const endMs = fromCalendarEventDate(end);
+    if (startMs < Date.now() - 5 * 60 * 1000) {
       clearCalendarSelection();
       return;
     }
-    const durationMinutes = Math.max(15, Math.round((end.getTime() - start.getTime()) / 60000));
-    const startsAtLocal = toDateTimeLocalString(start);
+    const durationMinutes = Math.max(15, Math.round((endMs - startMs) / 60000));
+    const startsAtLocal = toDateTimeLocalString(startMs);
     const container = document.querySelector(".weekly-agenda-container") as HTMLElement | null;
     const anchor = resolveSelectAnchor(container, start, end, jsEvent);
     onSelectSlot(startsAtLocal, durationMinutes, anchor);
@@ -217,7 +219,7 @@
   }
 
   function emitPreviewChange(start: Date, end: Date) {
-    onCreatePreviewChange?.(start.getTime(), end.getTime());
+    onCreatePreviewChange?.(fromCalendarEventDate(start), fromCalendarEventDate(end));
   }
 
   async function rescheduleFromDrag(
@@ -261,8 +263,8 @@
         .map((c) => ({
           id: c._id,
           title: c.title,
-          start: new Date(c.startsAt),
-          end: new Date(c.endsAt),
+          start: toCalendarEventDate(c.startsAt),
+          end: toCalendarEventDate(c.endsAt),
           editable: !paintMode && c.status === "scheduled",
           startEditable: !paintMode && c.status === "scheduled",
           durationEditable: !paintMode && c.status === "scheduled",
@@ -274,8 +276,8 @@
             {
               id: QUICK_CREATE_PREVIEW_ID,
               title: "שיעור חדש",
-              start: new Date(createPreview.startsAt),
-              end: new Date(createPreview.endsAt),
+              start: toCalendarEventDate(createPreview.startsAt),
+              end: toCalendarEventDate(createPreview.endsAt),
               display: "preview",
               editable: true,
               startEditable: true,
@@ -374,7 +376,7 @@
     slotMaxTime: "24:00:00",
     flexibleSlotTimeLimits: true,
 
-    scrollTime: `${String(new Date().getHours()).padStart(2, "0")}:00:00`,
+    scrollTime: formatAppScrollTime(),
 
     selectable: true,
     unselectAuto: true,
@@ -531,7 +533,7 @@
         15,
         Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60000),
       );
-      void rescheduleFromDrag(liveClass, info.event.start.getTime(), durationMinutes).catch(() => {
+      void rescheduleFromDrag(liveClass, fromCalendarEventDate(info.event.start), durationMinutes).catch(() => {
         info.revert();
       });
     },
@@ -558,7 +560,7 @@
         15,
         Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60000),
       );
-      void rescheduleFromDrag(liveClass, info.event.start.getTime(), durationMinutes).catch(() => {
+      void rescheduleFromDrag(liveClass, fromCalendarEventDate(info.event.start), durationMinutes).catch(() => {
         info.revert();
       });
     },
@@ -602,7 +604,7 @@
         return { html: "" };
       }
 
-      const formattedTime = `${formatLocalTime(c.startsAt)} \u2013 ${formatLocalTime(c.endsAt)}`;
+      const formattedTime = `${formatAppTime(c.startsAt)} \u2013 ${formatAppTime(c.endsAt)}`;
 
       return {
         html: `
