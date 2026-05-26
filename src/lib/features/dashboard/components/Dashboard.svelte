@@ -2,7 +2,6 @@
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
   import PageShell from "$features/app/components/PageShell.svelte";
-  import { setCachedRole } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import LiveAlert from "./LiveAlert.svelte";
   import MemberDashboardHome from "./MemberDashboardHome.svelte";
@@ -36,10 +35,6 @@
   } = $props();
 
   const isStaff = $derived(role === "instructor" || role === "admin");
-
-  $effect(() => {
-    if (role) setCachedRole(role);
-  });
 
   const { t } = useI18n();
 

@@ -13,6 +13,7 @@
 	} from "$lib/auth/session.svelte";
 	import { setAppContext } from "$features/app/context/appContext";
 	import AppLayout from "$features/app/components/AppLayout.svelte";
+	import { untrack } from 'svelte';
 	import { useThemeMedia } from '$features/app/themeMedia.svelte';
 
 	let { children } = $props();
@@ -38,14 +39,23 @@
 	});
 	setAppContext(appContext);
 
+	// Sync app shell context from Convex profile — untrack cache reads/writes so
+	// setCachedRole does not re-subscribe this effect to PersistedState (infinite loop).
 	$effect(() => {
 		const role = profileQuery.data?.role;
-		if (role) setCachedRole(role);
-		appContext.role = (role ?? getCachedRole()) as typeof appContext.role;
-		const cachedRole = getCachedRole();
-		appContext.isLoading =
-			(auth.isAuthenticated && !canRunAuthenticatedQuery()) ||
-			(profileQuery.isLoading && cachedRole === null);
+		const profileLoading = profileQuery.isLoading;
+		const authed = auth.isAuthenticated;
+		const authReady = canRunAuthenticatedQuery();
+
+		untrack(() => {
+			if (role) setCachedRole(role);
+			const cachedRole = getCachedRole();
+			const nextRole = (role ?? cachedRole) as typeof appContext.role;
+			if (appContext.role !== nextRole) appContext.role = nextRole;
+			const nextLoading =
+				(authed && !authReady) || (profileLoading && cachedRole === null);
+			if (appContext.isLoading !== nextLoading) appContext.isLoading = nextLoading;
+		});
 	});
 </script>
 

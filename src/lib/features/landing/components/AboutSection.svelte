@@ -24,9 +24,7 @@
 <section id="about" class="l-panel l-section section--about" aria-label="על יובל">
   <div class="l-shell about">
     <header class="about__header l-in">
-      <p class="l-eyebrow">{t.landing.instructor.tag()}</p>
       <h2 class="section-title">{t.landing.instructor.sectionHeadline()}</h2>
-      <p class="section-lead">{t.landing.instructor.sectionLead()}</p>
     </header>
 
     <div class="about__copy l-in l-in--1">
@@ -58,7 +56,7 @@
       </div>
       <figcaption class="about__stat">
         <span class="about__stat-value">{instructor.years}+</span>
-        <span class="about__stat-label">{t.landing.instructor.tag()}</span>
+        <span class="about__stat-label">{t.landing.instructor.statLabel()}</span>
       </figcaption>
     </figure>
   </div>

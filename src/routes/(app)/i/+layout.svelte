@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { getAppContext } from "$features/app/context/appContext";
 
@@ -7,9 +8,9 @@
   const ctx = getAppContext();
 
   $effect(() => {
-    if (!ctx.isLoading && ctx.role === "customer") {
-      void goto("/u/dashboard", { replaceState: true });
-    }
+    if (ctx.isLoading) return;
+    if (ctx.role !== "customer" || !page.url.pathname.startsWith("/i")) return;
+    void goto("/u/dashboard", { replaceState: true });
   });
 </script>
 

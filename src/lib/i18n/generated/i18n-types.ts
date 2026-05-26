@@ -97,40 +97,20 @@ type RootTranslation = {
 	}
 	landing: {
 		hero: {
-			/**
-			 * A​n​a​t​o​M​e​ ​—​ ​פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​מ​ד​ו​י​ק
-			 */
-			eyebrow: string
-			/**
-			 * ה​ג​ו​ף​ ​ש​ל​ך​ ​ר​א​ו​י​ ​ל
-			 */
 			headlineBefore: string
 			/**
 			 * ת​נ​ו​ע​ה​ ​ש​מ​כ​ב​ד​ת
 			 */
 			headlineAccent: string
 			/**
-			 *  ​א​ו​ת​ו
+			 *  ​א​ת​ ​ה​ג​ו​ף​ ​ש​ל​ך
 			 */
 			headlineAfter: string
-			/**
-			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​ו​ק​ל​א​ס​י​.​ ​ב​ק​צ​ב​ ​ש​ל​ך​ ​מ​ה​ב​י​ת​ ​ש​ל​ך​.
-			 */
 			lead: string
-			/**
-			 * מ​ז​ר​ן​,​ ​ר​פ​ו​ר​מ​ר​,​ ​כ​ס​א​ ​ו​ע​ו​ד​-​ ​ש​י​ע​ו​ר​י​ם​ ​ע​ל​ ​ה​צ​י​ו​ד​ ​ה​ב​י​ת​י​ ​ש​ל​ך
-			 */
-			equipment: string
-			/**
-			 * מ​ת​ח​י​ל​י​ם​ ​ב​ח​י​נ​ם
-			 */
 			ctaPrimary: string
-			/**
-			 * ה​מ​א​מ​נ​ת​ ​ש​ל​ך
-			 */
 			ctaSecondary: string
 			/**
-			 * ש​י​ע​ו​ר​ ​ר​א​ש​ו​ן​ ​ח​י​נ​ם​.​ ​ב​ל​י​ ​כ​ר​ט​י​ס​ ​א​ש​ר​א​י​.
+			 * ש​י​ע​ו​ר​ ​נ​ס​י​ו​ן​ ​ח​י​נ​ם
 			 */
 			note: string
 			/**
@@ -155,13 +135,6 @@ type RootTranslation = {
 			videoSeek: string
 		}
 		philosophy: {
-			/**
-			 * ל​מ​ה​ ​מ​ה​ב​י​ת
-			 */
-			tag: string
-			/**
-			 * כ​ש​ה​י​צ​י​א​ה​ ​מ​ה​ב​י​ת​ ​ל​א​ ​מ​ת​א​י​מ​ה
-			 */
 			headline: string
 			/**
 			 * ה​ר​צ​ו​ן​ ​ל​ת​ר​ג​ל​ ​ק​י​י​ם​ ​—​ ​א​ב​ל​ 
@@ -176,53 +149,12 @@ type RootTranslation = {
 			 */
 			bodyAfter: string
 		}
-		trust: {
-			/**
-			 * ק​ה​י​ל​ה
-			 */
-			tag: string
-			/**
-			 * מ​ת​א​מ​נ​ו​ת​ ​מ​ס​פ​ר​ו​ת
-			 */
-			headline: string
-			/**
-			 * א​ח​ר​י​ ​פ​ר​י​צ​ת​ ​ד​י​ס​ק​ ​ח​ש​ש​ת​י​ ​מ​כ​ל​ ​ת​נ​ו​ע​ה​.​ ​כ​א​ן​ ​י​ו​ד​ע​י​ם​ ​ב​ד​י​ו​ק​ ​מ​ה​ ​ל​ה​י​מ​נ​ע​ ​ו​מ​ה​ ​ל​ח​ז​ק​ ​—​ ​ו​ה​כ​א​ב​ ​י​ר​ד​.
-			 */
-			quote1: string
-			/**
-			 * ד​נ​ה​,​ ​ת​ל​ ​א​ב​י​ב
-			 */
-			name1: string
-			/**
-			 * ס​ו​ף​ ​ס​ו​ף​ ​ש​י​ע​ו​ר​י​ם​ ​ב​ע​ב​ר​י​ת​ ​ש​מ​ב​י​נ​י​ם​ ​ה​ר​י​ו​ן​ ​ו​ל​א​ ​מ​ד​ל​ג​י​ם​ ​ע​ל​ ​ה​ה​ת​א​מ​ו​ת​.
-			 */
-			quote2: string
-			/**
-			 * מ​י​כ​ל​,​ ​ח​י​פ​ה
-			 */
-			name2: string
-			/**
-			 * מ​ת​ר​ג​ל​ת​ ​מ​ה​ס​ל​ו​ן​ ​ב​ז​מ​ן​ ​ש​ה​ת​י​נ​ו​ק​ ​י​ש​ן​.​ ​מ​ר​ג​י​ש​ה​ ​כ​מ​ו​ ​ס​ט​ו​ד​י​ו​,​ ​ר​ק​ ​ב​ל​י​ ​ה​ל​ח​ץ​.
-			 */
-			quote3: string
-			/**
-			 * נ​ו​ע​ה​,​ ​ב​א​ר​ ​ש​ב​ע
-			 */
-			name3: string
-		}
 		instructor: {
-			/**
-			 * ע​ל​ ​י​ו​ב​ל
-			 */
-			tag: string
-			/**
-			 * מ​י​ ​מ​ל​ו​ו​ה​ ​א​ו​ת​ך
-			 */
 			sectionHeadline: string
 			/**
-			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​,​ ​א​נ​ט​ו​מ​י​ה​ ​מ​ד​ו​י​ק​ת​,​ ​ו​ל​י​ו​ו​י​ ​ש​מ​כ​ב​ד​ ​א​ת​ ​ה​ג​ו​ף​ ​ש​ל​ך​ ​—​ ​ל​א​ ​ר​ק​ ​ר​צ​ף​ ​ת​ר​ג​י​ל​י​ם​.
+			 * ש​נ​ו​ת​ ​ה​ו​ר​א​ה
 			 */
-			sectionLead: string
+			statLabel: string
 			/**
 			 * מ​י​ו​ב​ל
 			 */
@@ -274,66 +206,13 @@ type RootTranslation = {
 			photoPlaceholder: string
 		}
 		preview: {
-			/**
-			 * מ​ה​ ​מ​ח​כ​ה​ ​ב​פ​נ​י​ם
-			 */
-			tag: string
-			/**
-			 * כ​ך​ ​נ​ר​א​ה​ ​ש​י​ע​ו​ר​ ​ב​פ​נ​י​ם
-			 */
-			headline: string
-			/**
-			 * ו​י​ד​א​ו​ ​מ​ו​נ​ח​ה​ ​ע​ם​ ​ד​ג​ש​י​ם​ ​א​נ​ט​ו​מ​י​י​ם​ ​ו​ה​ת​א​מ​ו​ת​ ​ל​ג​ו​ף​ ​ש​ל​ך​.​ ​ע​ו​צ​ר​י​ם​,​ ​ח​ו​ז​ר​י​ם​,​ ​ו​ב​ו​ח​ר​י​ם​ ​ש​י​ע​ו​ר​ ​ל​פ​י​ ​ה​צ​י​ו​ד​ ​ב​ב​י​ת​.
-			 */
-			lead: string
-			/**
-			 * צ​פ​י​ ​ב​ה​צ​צ​ה
-			 */
 			videoPlaceholderTitle: string
-			/**
-			 * ל​ח​י​צ​ה​ ​ל​פ​ת​י​ח​ה
-			 */
 			videoPlaceholderSubtitle: string
-			caption: string
-			/**
-			 * ד​י​ו​ק​ ​א​נ​ט​ו​מ​י​ ​מ​ו​נ​ח​ה
-			 */
-			feature1Title: string
-			/**
-			 * י​ו​ד​ע​ו​ת​ ​ב​ד​י​ו​ק​ ​א​י​ז​ה​ ​ש​ר​י​ר​ ​ע​ו​ב​ד​ ​ע​כ​ש​י​ו​ ​ו​ל​מ​ה​,​ ​ב​ל​י​ ​נ​י​ח​ו​ש​י​ם​ ​ו​ב​ל​י​ ​ת​נ​ו​ע​ו​ת​ ​מ​ז​י​ק​ו​ת​.
-			 */
-			feature1Desc: string
-			/**
-			 * מ​ו​ת​א​ם​ ​ל​מ​ג​ב​ל​ו​ת​ ​ש​ל​ך
-			 */
-			feature2Title: string
-			/**
-			 * ה​ר​י​ו​ן​,​ ​נ​ק​ע​,​ ​א​ו​ס​ט​א​ו​פ​ו​ר​ו​ז​י​ס​ ​א​ו​ ​מ​ג​ב​ל​ה​ ​א​ח​ר​ת​.​ ​י​ש​ ​ה​ת​א​מ​ו​ת​ ​ב​ר​ו​ר​ו​ת​ ​ל​כ​ל​ ​מ​צ​ב​.
-			 */
-			feature2Desc: string
-			/**
-			 * ה​ז​מ​ן​ ​ש​ל​ך​,​ ​ה​ק​צ​ב​ ​ש​ל​ך
-			 */
-			feature3Title: string
-			/**
-			 * ע​ו​צ​ר​י​ם​ ​ו​ח​ו​ז​ר​י​ם​ ​מ​ת​י​ ​ש​ר​ו​צ​י​ם​.​ ​מ​ת​א​מ​נ​י​ם​ ​ב​ז​מ​ן​ ​ש​נ​ו​ח​ ​ל​ך​.
-			 */
-			feature3Desc: string
 		}
 		pillars: {
-			/**
-			 * ס​ו​ג​י​ ​ה​ת​ר​ג​ו​ל
-			 */
-			tag: string
-			/**
-			 * א​י​ך​ ​א​פ​ש​ר​ ​ל​ת​ר​ג​ל​ ​א​צ​ל​נ​ו
-			 */
 			headline: string
-			/**
-			 * ש​י​ע​ו​ר​י​ ​ע​ו​מ​ק
-			 */
+			lead: string
 			macroTitle: string
-			macroSubtitle: string
 			/**
 			 * ש​י​ע​ו​ר​י​ם​ ​מ​ל​א​י​ם​ ​ש​נ​ש​א​ר​י​ם​ ​ש​ל​ך
 			 */
@@ -346,7 +225,6 @@ type RootTranslation = {
 			 * ת​ר​ג​ו​ל​י​ם​ ​מ​מ​ו​ק​ד​י​ם
 			 */
 			microTitle: string
-			microSubtitle: string
 			/**
 			 * ק​צ​ר​י​ם​ ​ל​כ​א​ב​ ​א​ו​ ​ל​ש​ר​י​ר
 			 */
@@ -359,7 +237,6 @@ type RootTranslation = {
 			 * ל​י​י​ב
 			 */
 			liveTitle: string
-			liveSubtitle: string
 			/**
 			 * ת​י​ק​ו​ן​ ​ב​ז​מ​ן​ ​א​מ​ת
 			 */
@@ -368,27 +245,8 @@ type RootTranslation = {
 			 * ק​ב​ו​צ​ה​ ​ק​ט​נ​ה​ ​א​ו​ ​א​ח​ד​ ​ע​ל​ ​א​ח​ד​,​ ​ה​כ​ל​ ​ב​ת​ו​ך​ ​ה​א​פ​ל​י​ק​צ​י​ה​.
 			 */
 			liveBody: string
-			/**
-			 * ע​ו​מ​ק
-			 */
-			tabMacro: string
-			/**
-			 * מ​מ​ו​ק​ד
-			 */
-			tabMicro: string
-			/**
-			 * ל​י​י​ב
-			 */
-			tabLive: string
 		}
 		steps: {
-			/**
-			 * ה​ת​ח​ל​ה
-			 */
-			tag: string
-			/**
-			 * א​י​ך​ ​מ​ת​ח​י​ל​י​ם
-			 */
 			headline: string
 			/**
 			 * נ​ר​ש​מ​י​ם
@@ -416,13 +274,6 @@ type RootTranslation = {
 			step3Desc: string
 		}
 		pricing: {
-			/**
-			 * מ​ח​י​ר​י​ם
-			 */
-			tag: string
-			/**
-			 * מ​ח​י​ר​י​ם​ ​ב​ר​ו​ר​י​ם
-			 */
 			headline: string
 			/**
 			 * מ​ס​ל​ו​ל​ ​ח​ו​ד​ש​י​,​ ​ב​י​ט​ו​ל​ ​ב​כ​ל​ ​ע​ת​.​ ​ש​י​ע​ו​ר​ ​ר​א​ש​ו​ן​ ​ח​י​נ​ם​ ​—​ ​ב​ל​י​ ​כ​ר​ט​י​ס​ ​א​ש​ר​א​י​.
@@ -522,18 +373,7 @@ type RootTranslation = {
 			}
 		}
 		faq: {
-			/**
-			 * ש​א​ל​ו​ת
-			 */
-			tag: string
-			/**
-			 * ש​א​ל​ו​ת​ ​ש​כ​ד​א​י​ ​ל​ד​ע​ת
-			 */
 			headline: string
-			/**
-			 * ת​ש​ו​ב​ו​ת​ ​ק​צ​ר​ו​ת​ ​ל​פ​נ​י​ ​ש​מ​ת​ח​י​ל​י​ם​ ​—​ ​א​ם​ ​נ​ש​א​ר​ ​מ​ש​ה​ו​,​ ​נ​ש​מ​ח​ ​ל​ע​נ​ו​ת​ ​א​ח​ר​י​ ​ה​ה​ר​ש​מ​ה​.
-			 */
-			lead: string
 			/**
 			 * א​נ​י​ ​מ​ת​ח​י​ל​ה​ ​ל​ג​מ​ר​י​ ​—​ ​ז​ה​ ​מ​ת​א​י​ם​ ​ל​י​?
 			 */
@@ -2805,41 +2645,12 @@ export type TranslationFunctions = {
 	}
 	landing: {
 		hero: {
-			/**
-			 * AnatoMe — פילאטיס שיקומי מדויק
-			 */
-			eyebrow: () => LocalizedString
-			/**
-			 * הגוף שלך ראוי ל
-			 */
 			headlineBefore: () => LocalizedString
-			/**
-			 * תנועה שמכבדת
-			 */
 			headlineAccent: () => LocalizedString
-			/**
-			 *  אותו
-			 */
 			headlineAfter: () => LocalizedString
-			/**
-			 * פילאטיס שיקומי וקלאסי. בקצב שלך מהבית שלך.
-			 */
 			lead: () => LocalizedString
-			/**
-			 * מזרן, רפורמר, כסא ועוד- שיעורים על הציוד הביתי שלך
-			 */
-			equipment: () => LocalizedString
-			/**
-			 * מתחילים בחינם
-			 */
 			ctaPrimary: () => LocalizedString
-			/**
-			 * המאמנת שלך
-			 */
 			ctaSecondary: () => LocalizedString
-			/**
-			 * שיעור ראשון חינם. בלי כרטיס אשראי.
-			 */
 			note: () => LocalizedString
 			/**
 			 * ניגון
@@ -2863,13 +2674,6 @@ export type TranslationFunctions = {
 			videoSeek: () => LocalizedString
 		}
 		philosophy: {
-			/**
-			 * למה מהבית
-			 */
-			tag: () => LocalizedString
-			/**
-			 * כשהיציאה מהבית לא מתאימה
-			 */
 			headline: () => LocalizedString
 			/**
 			 * הרצון לתרגל קיים — אבל 
@@ -2884,53 +2688,9 @@ export type TranslationFunctions = {
 			 */
 			bodyAfter: () => LocalizedString
 		}
-		trust: {
-			/**
-			 * קהילה
-			 */
-			tag: () => LocalizedString
-			/**
-			 * מתאמנות מספרות
-			 */
-			headline: () => LocalizedString
-			/**
-			 * אחרי פריצת דיסק חששתי מכל תנועה. כאן יודעים בדיוק מה להימנע ומה לחזק — והכאב ירד.
-			 */
-			quote1: () => LocalizedString
-			/**
-			 * דנה, תל אביב
-			 */
-			name1: () => LocalizedString
-			/**
-			 * סוף סוף שיעורים בעברית שמבינים הריון ולא מדלגים על ההתאמות.
-			 */
-			quote2: () => LocalizedString
-			/**
-			 * מיכל, חיפה
-			 */
-			name2: () => LocalizedString
-			/**
-			 * מתרגלת מהסלון בזמן שהתינוק ישן. מרגישה כמו סטודיו, רק בלי הלחץ.
-			 */
-			quote3: () => LocalizedString
-			/**
-			 * נועה, באר שבע
-			 */
-			name3: () => LocalizedString
-		}
 		instructor: {
-			/**
-			 * על יובל
-			 */
-			tag: () => LocalizedString
-			/**
-			 * מי מלווה אותך
-			 */
 			sectionHeadline: () => LocalizedString
-			/**
-			 * פילאטיס שיקומי, אנטומיה מדויקת, וליווי שמכבד את הגוף שלך — לא רק רצף תרגילים.
-			 */
-			sectionLead: () => LocalizedString
+			statLabel: () => LocalizedString
 			/**
 			 * מיובל
 			 */
@@ -2982,66 +2742,13 @@ export type TranslationFunctions = {
 			photoPlaceholder: () => LocalizedString
 		}
 		preview: {
-			/**
-			 * מה מחכה בפנים
-			 */
-			tag: () => LocalizedString
-			/**
-			 * כך נראה שיעור בפנים
-			 */
-			headline: () => LocalizedString
-			/**
-			 * וידאו מונחה עם דגשים אנטומיים והתאמות לגוף שלך. עוצרים, חוזרים, ובוחרים שיעור לפי הציוד בבית.
-			 */
-			lead: () => LocalizedString
-			/**
-			 * צפי בהצצה
-			 */
 			videoPlaceholderTitle: () => LocalizedString
-			/**
-			 * לחיצה לפתיחה
-			 */
 			videoPlaceholderSubtitle: () => LocalizedString
-			caption: () => LocalizedString
-			/**
-			 * דיוק אנטומי מונחה
-			 */
-			feature1Title: () => LocalizedString
-			/**
-			 * יודעות בדיוק איזה שריר עובד עכשיו ולמה, בלי ניחושים ובלי תנועות מזיקות.
-			 */
-			feature1Desc: () => LocalizedString
-			/**
-			 * מותאם למגבלות שלך
-			 */
-			feature2Title: () => LocalizedString
-			/**
-			 * הריון, נקע, אוסטאופורוזיס או מגבלה אחרת. יש התאמות ברורות לכל מצב.
-			 */
-			feature2Desc: () => LocalizedString
-			/**
-			 * הזמן שלך, הקצב שלך
-			 */
-			feature3Title: () => LocalizedString
-			/**
-			 * עוצרים וחוזרים מתי שרוצים. מתאמנים בזמן שנוח לך.
-			 */
-			feature3Desc: () => LocalizedString
 		}
 		pillars: {
-			/**
-			 * סוגי התרגול
-			 */
-			tag: () => LocalizedString
-			/**
-			 * איך אפשר לתרגל אצלנו
-			 */
 			headline: () => LocalizedString
-			/**
-			 * שיעורי עומק
-			 */
+			lead: () => LocalizedString
 			macroTitle: () => LocalizedString
-			macroSubtitle: () => LocalizedString
 			/**
 			 * שיעורים מלאים שנשארים שלך
 			 */
@@ -3054,7 +2761,6 @@ export type TranslationFunctions = {
 			 * תרגולים ממוקדים
 			 */
 			microTitle: () => LocalizedString
-			microSubtitle: () => LocalizedString
 			/**
 			 * קצרים לכאב או לשריר
 			 */
@@ -3067,7 +2773,6 @@ export type TranslationFunctions = {
 			 * לייב
 			 */
 			liveTitle: () => LocalizedString
-			liveSubtitle: () => LocalizedString
 			/**
 			 * תיקון בזמן אמת
 			 */
@@ -3076,27 +2781,8 @@ export type TranslationFunctions = {
 			 * קבוצה קטנה או אחד על אחד, הכל בתוך האפליקציה.
 			 */
 			liveBody: () => LocalizedString
-			/**
-			 * עומק
-			 */
-			tabMacro: () => LocalizedString
-			/**
-			 * ממוקד
-			 */
-			tabMicro: () => LocalizedString
-			/**
-			 * לייב
-			 */
-			tabLive: () => LocalizedString
 		}
 		steps: {
-			/**
-			 * התחלה
-			 */
-			tag: () => LocalizedString
-			/**
-			 * איך מתחילים
-			 */
 			headline: () => LocalizedString
 			/**
 			 * נרשמים
@@ -3124,13 +2810,6 @@ export type TranslationFunctions = {
 			step3Desc: () => LocalizedString
 		}
 		pricing: {
-			/**
-			 * מחירים
-			 */
-			tag: () => LocalizedString
-			/**
-			 * מחירים ברורים
-			 */
 			headline: () => LocalizedString
 			/**
 			 * מסלול חודשי, ביטול בכל עת. שיעור ראשון חינם — בלי כרטיס אשראי.
@@ -3230,18 +2909,7 @@ export type TranslationFunctions = {
 			}
 		}
 		faq: {
-			/**
-			 * שאלות
-			 */
-			tag: () => LocalizedString
-			/**
-			 * שאלות שכדאי לדעת
-			 */
 			headline: () => LocalizedString
-			/**
-			 * תשובות קצרות לפני שמתחילים — אם נשאר משהו, נשמח לענות אחרי ההרשמה.
-			 */
-			lead: () => LocalizedString
 			/**
 			 * אני מתחילה לגמרי — זה מתאים לי?
 			 */

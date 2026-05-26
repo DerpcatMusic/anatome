@@ -1,5 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { PUBLIC_CONVEX_CLIENT_URL } from "$env/static/public";
   import { api } from "$convex/_generated/api";
@@ -14,6 +15,7 @@
     getCachedRole,
     setCachedRole,
   } from "$lib/auth/session.svelte";
+  import { untrack } from "svelte";
   import { useThemeMedia } from "$features/app/themeMedia.svelte";
 
   let { children } = $props();
@@ -39,8 +41,14 @@
     if (!browser || auth.isLoading) return;
     if (!auth.isAuthenticated) return;
     if (!canRunAuthenticatedQuery()) return;
-    if (profileQuery.data?.role) setCachedRole(profileQuery.data.role);
     if (profileQuery.isLoading && role === null) return;
+    if (!page.url.pathname.startsWith("/library")) return;
+
+    untrack(() => {
+      const profileRole = profileQuery.data?.role;
+      if (profileRole) setCachedRole(profileRole);
+    });
+
     if (isStaff) {
       void goto("/i/videos", { replaceState: true });
       return;

@@ -7,7 +7,6 @@
 <section class="l-panel l-section section--steps" aria-label="איך מתחילים">
   <div class="l-shell">
     <header class="steps__header l-in">
-      <p class="l-eyebrow">{t.landing.steps.tag()}</p>
       <h2 class="section-title">{t.landing.steps.headline()}</h2>
     </header>
 

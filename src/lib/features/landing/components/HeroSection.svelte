@@ -13,12 +13,10 @@
 
 <section class="hero" aria-label="ראשי">
   <div class="l-shell hero__inner">
-    <p class="l-eyebrow l-in">{t.landing.hero.eyebrow()}</p>
     <h1 class="hero__title l-in">
       {t.landing.hero.headlineBefore()}<span class="hero__accent">{t.landing.hero.headlineAccent()}</span>{t.landing.hero.headlineAfter()}
     </h1>
     <p class="hero__lead l-in l-in--1">{t.landing.hero.lead()}</p>
-    <p class="hero__equipment l-in l-in--1">{t.landing.hero.equipment()}</p>
 
     <div class="l-actions l-in l-in--2">
       <Button.Root

@@ -18,7 +18,6 @@
 
 <section class="l-panel l-section section--pricing" aria-label="מחירים">
   <div class="l-shell">
-    <p class="l-eyebrow l-in">{t.landing.pricing.tag()}</p>
     <h2 class="section-title l-in">{t.landing.pricing.headline()}</h2>
     <p class="section-lead l-in">{t.landing.pricing.lead()}</p>
 

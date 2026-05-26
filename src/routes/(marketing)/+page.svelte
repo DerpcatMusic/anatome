@@ -22,7 +22,6 @@
     HeroSection,
     AboutSection,
     PhilosophySection,
-    TrustStripSection,
     ExperienceSection,
     StepsSection,
     PricingSection,
@@ -119,7 +118,6 @@
 
     <AboutSection instructor={INSTRUCTOR} />
     <PhilosophySection />
-    <TrustStripSection />
     <StepsSection />
     <ExperienceSection />
     <PricingSection {openAuthOverlay} />

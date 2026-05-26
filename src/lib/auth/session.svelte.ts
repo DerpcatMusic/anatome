@@ -145,6 +145,7 @@ export function storeTokens(tokens: Tokens | null) {
 }
 
 export function setCachedRole(role: string | null) {
+  if (roleStore.current === role) return;
   roleStore.current = role;
 }
 

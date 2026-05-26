@@ -245,14 +245,9 @@ html[data-theme="dark"] .hero-bg__scrim {
   background: var(--muted);
 }
 
-.l-panel.section--trust,
 .l-panel.section--experience,
 .l-panel.section--faq {
   background: var(--paper);
-}
-
-.l-panel.section--trust {
-  border-block: 1px solid var(--line-light);
 }
 
 .l-section {
@@ -288,20 +283,14 @@ html[data-theme="dark"] .hero-bg__scrim {
   max-width: 52ch;
 }
 
-.pillars-intro {
+.experience-intro {
   text-align: center;
-  margin-bottom: var(--space-7);
+  margin-bottom: var(--space-6);
 }
 
-.pillars-intro .l-eyebrow {
+.experience-intro .section-title {
   margin-inline: auto;
-}
-
-.experience-preview-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.35rem, 3vw, 1.75rem);
-  line-height: 1.2;
-  margin: 0 0 var(--space-4);
+  max-width: 22ch;
 }
 
 /* Motion */
@@ -407,9 +396,10 @@ html[data-theme="dark"] .hero-bg__scrim {
 }
 
 .hero__accent {
-  color: color-mix(in oklch, var(--secondary) 38%, var(--hero-type));
+  color: var(--hero-type);
   font-style: italic;
   font-weight: 700;
+  text-shadow: 0 1px 24px color-mix(in oklch, var(--background) 55%, transparent);
 }
 
 .hero__lead {
@@ -418,15 +408,6 @@ html[data-theme="dark"] .hero-bg__scrim {
   color: var(--hero-type-soft);
   max-width: 44ch;
   font-weight: 500;
-}
-
-.hero__equipment {
-  margin-top: var(--space-4);
-  font-size: var(--step-0);
-  font-weight: 700;
-  color: var(--hero-type-soft);
-  max-width: 46ch;
-  line-height: 1.55;
 }
 
 .hero__note {
@@ -506,61 +487,6 @@ html[data-theme="dark"] .hero-bg__scrim {
   text-decoration: underline;
   text-decoration-color: color-mix(in oklch, var(--secondary) 55%, transparent);
   text-underline-offset: 0.2em;
-}
-
-/* Trust — horizontal scroll quotes */
-.trust-strip {
-  display: flex;
-  gap: var(--space-4);
-  margin-block-start: var(--space-6);
-  padding-block-end: var(--space-2);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.trust-card {
-  flex: 0 0 min(88%, 22rem);
-  scroll-snap-align: start;
-  margin: 0;
-  padding: var(--space-5);
-  background: var(--card);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-ambient);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.trust-card__quote {
-  margin: 0;
-}
-
-.trust-card__quote p {
-  font-size: var(--step-0);
-  line-height: 1.7;
-  color: var(--ink);
-}
-
-.trust-card__name {
-  font-size: var(--step--1);
-  font-weight: 600;
-  color: var(--secondary);
-}
-
-@media (min-width: 48rem) {
-  .trust-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-
-  .trust-card {
-    flex: unset;
-  }
 }
 
 /* About */
@@ -831,59 +757,6 @@ html[data-theme="dark"] .hero-bg__scrim {
   opacity: 0.9;
 }
 
-.sessions-scroll {
-  margin-block: var(--space-6) var(--space-7);
-  margin-inline: calc(-1 * var(--l-pad-x));
-  padding-inline: var(--l-pad-x);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-}
-
-.sessions-scroll__track {
-  display: flex;
-  gap: var(--space-4);
-  width: max-content;
-  padding-inline-end: var(--l-pad-x);
-}
-
-.session-card {
-  flex: 0 0 min(18rem, 78vw);
-  border-radius: 2.5rem;
-  overflow: hidden;
-  background: var(--card);
-  box-shadow: var(--shadow-ambient);
-}
-
-.session-card__visual {
-  aspect-ratio: 4/3;
-  background: var(--muted);
-  overflow: hidden;
-}
-
-.session-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-.session-card__copy {
-  padding: var(--space-5);
-}
-
-.session-card__copy h3 {
-  font-size: var(--step-0);
-  margin-bottom: var(--space-2);
-}
-
-.session-card__copy p {
-  font-size: var(--step--1);
-  color: var(--foreground-muted);
-  line-height: 1.55;
-}
-
 .pillars {
   display: grid;
   gap: var(--space-4);
@@ -991,6 +864,7 @@ html[data-theme="dark"] .hero-bg__scrim {
   display: block;
 }
 
+.pillar h3,
 .pillar h4 {
   font-size: var(--step-1);
   margin-bottom: var(--space-2);

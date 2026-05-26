@@ -4,39 +4,14 @@
   import PillarIcon from "./icons/PillarIcon.svelte";
 
   const { t } = useI18n();
-
-  const sessions = $derived([
-    {
-      title: t.landing.preview.feature1Title(),
-      desc: t.landing.preview.feature1Desc(),
-      image: LANDING_IMAGES.sessions.anatomy,
-      alt: t.landing.images.sessionAnatomyAlt(),
-    },
-    {
-      title: t.landing.preview.feature2Title(),
-      desc: t.landing.preview.feature2Desc(),
-      image: LANDING_IMAGES.sessions.adaptive,
-      alt: t.landing.images.sessionAdaptiveAlt(),
-    },
-    {
-      title: t.landing.preview.feature3Title(),
-      desc: t.landing.preview.feature3Desc(),
-      image: LANDING_IMAGES.sessions.pace,
-      alt: t.landing.images.sessionPaceAlt(),
-    },
-  ]);
 </script>
 
-<section id="experience" class="l-panel l-section section--experience" aria-label="מה מחכה בפנים">
+<section id="experience" class="l-panel l-section section--experience" aria-label="איך מתרגלים">
   <div class="l-shell">
-    <header class="pillars-intro l-in">
-      <p class="l-eyebrow">{t.landing.pillars.tag()}</p>
+    <header class="experience-intro l-in">
       <h2 class="section-title section-title--center">{t.landing.pillars.headline()}</h2>
+      <p class="section-lead section-lead--center">{t.landing.pillars.lead()}</p>
     </header>
-
-    <p class="l-eyebrow l-in">{t.landing.preview.tag()}</p>
-    <h3 class="experience-preview-title l-in">{t.landing.preview.headline()}</h3>
-    <p class="section-lead l-in">{t.landing.preview.lead()}</p>
 
     <a
       href="/library"
@@ -58,36 +33,12 @@
       <span class="video-card__sub">{t.landing.preview.videoPlaceholderSubtitle()}</span>
     </a>
 
-    <div class="sessions-scroll l-in l-in--1" aria-label={t.landing.preview.headline()}>
-      <div class="sessions-scroll__track">
-        {#each sessions as session (session.title)}
-          <article class="session-card">
-            <div class="session-card__visual">
-              <img
-                class="session-card__img"
-                src={session.image.src}
-                alt={session.alt}
-                width={session.image.width}
-                height={session.image.height}
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <div class="session-card__copy">
-              <h3>{session.title}</h3>
-              <p>{session.desc}</p>
-            </div>
-          </article>
-        {/each}
-      </div>
-    </div>
-
     <div class="pillars bento">
       <article class="pillar pillar--macro l-in l-in--1">
         <span class="pillar__icon-wrap" aria-hidden="true">
           <PillarIcon variant="macro" />
         </span>
-        <h4>{t.landing.pillars.macroTitle()}</h4>
+        <h3>{t.landing.pillars.macroTitle()}</h3>
         <p class="pillar__lead">{t.landing.pillars.macroLead()}</p>
         <p class="pillar__body">{t.landing.pillars.macroBody()}</p>
       </article>
@@ -97,7 +48,7 @@
           <span class="pillar__icon-wrap" aria-hidden="true">
             <PillarIcon variant="micro" />
           </span>
-          <h4>{t.landing.pillars.microTitle()}</h4>
+          <h3>{t.landing.pillars.microTitle()}</h3>
           <p class="pillar__lead">{t.landing.pillars.microLead()}</p>
           <p class="pillar__body">{t.landing.pillars.microBody()}</p>
         </div>
@@ -130,7 +81,7 @@
           <span class="pillar__icon-wrap pillar__icon-wrap--on-dark" aria-hidden="true">
             <PillarIcon variant="live" />
           </span>
-          <h4>{t.landing.pillars.liveTitle()}</h4>
+          <h3>{t.landing.pillars.liveTitle()}</h3>
           <p class="pillar__lead">{t.landing.pillars.liveLead()}</p>
           <p class="pillar__body">{t.landing.pillars.liveBody()}</p>
         </div>
