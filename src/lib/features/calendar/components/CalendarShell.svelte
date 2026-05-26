@@ -416,14 +416,6 @@
     gap: var(--space-5);
   }
 
-  .calendar-shell__lead {
-    margin: 0;
-    font-size: var(--step--1);
-    line-height: 1.5;
-    color: color-mix(in oklch, var(--ink) 72%, var(--foreground-muted));
-    max-width: 58ch;
-  }
-
   .calendar-shell__agenda {
     min-width: 0;
   }

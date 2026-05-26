@@ -76,13 +76,6 @@
     min-width: 0;
   }
 
-  .instructor-upload__hint {
-    margin: 0;
-    color: var(--foreground-muted);
-    line-height: 1.5;
-    max-width: 48ch;
-  }
-
   .instructor-upload__error {
     margin: 0 0 var(--space-3);
     color: var(--danger);

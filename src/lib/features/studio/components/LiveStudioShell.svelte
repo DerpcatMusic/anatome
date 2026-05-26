@@ -105,7 +105,7 @@
   function defaultStartsAtLocal() {
     const date = new Date(Date.now() + 60 * 60 * 1000);
     date.setMinutes(0, 0, 0);
-    return toDateTimeLocalString(date);
+    return toDateTimeLocalString(date.getTime());
   }
 
   function resetCreateForm() {
@@ -122,7 +122,7 @@
     title = liveClass.title;
     description = liveClass.description ?? "";
     liveType = liveClass.type;
-    startsAtLocal = toDateTimeLocalString(new Date(liveClass.startsAt));
+    startsAtLocal = toDateTimeLocalString(liveClass.startsAt);
     durationMinutes = Math.max(
       15,
       Math.round((liveClass.endsAt - liveClass.startsAt) / 60000),
@@ -336,7 +336,7 @@
   }
 
   function handleCreatePreviewChange(startsAt: number, endsAt: number) {
-    startsAtLocal = toDateTimeLocalString(new Date(startsAt));
+    startsAtLocal = toDateTimeLocalString(startsAt);
     durationMinutes = Math.max(15, Math.round((endsAt - startsAt) / 60000));
 
     requestAnimationFrame(() => {

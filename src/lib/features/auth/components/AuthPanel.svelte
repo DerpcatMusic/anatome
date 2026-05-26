@@ -22,7 +22,7 @@
 
   let step = $state<Step>("email");
   let method = $state<Method | null>(null);
-  let email = $state(initialEmail?.trim().toLowerCase() ?? "");
+  let email = $state("");
   let code = $state("");
   let status = $state("");
   let pending = $state(false);

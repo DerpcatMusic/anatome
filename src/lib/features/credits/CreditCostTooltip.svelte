@@ -8,7 +8,7 @@
     balance = 0,
     pool = "vod",
     enabled = true,
-    child,
+    child: triggerChild,
   }: {
     cost?: number;
     balance?: number;
@@ -24,7 +24,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger>
       {#snippet child({ props })}
-        {@render child({ props })}
+        {@render triggerChild({ props })}
       {/snippet}
     </Tooltip.Trigger>
     <Tooltip.Portal>
@@ -34,7 +34,7 @@
     </Tooltip.Portal>
   </Tooltip.Root>
 {:else}
-  {@render child({ props: {} })}
+  {@render triggerChild({ props: {} })}
 {/if}
 
 <style>

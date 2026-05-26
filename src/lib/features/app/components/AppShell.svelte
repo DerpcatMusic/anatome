@@ -95,13 +95,6 @@
     background: var(--elevated);
   }
 
-  .locked__kicker {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--foreground-muted);
-    margin: 0;
-  }
-
   h1 {
     font-size: var(--step-3);
     line-height: 1.1;

@@ -29,7 +29,7 @@
   function defaultStartsAtLocal() {
     const date = new Date(Date.now() + 60 * 60 * 1000);
     date.setMinutes(0, 0, 0);
-    return toDateTimeLocalString(date);
+    return toDateTimeLocalString(date.getTime());
   }
 
   function resetForm() {

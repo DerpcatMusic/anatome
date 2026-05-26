@@ -17,7 +17,9 @@
   const backHref = $derived(room.isInstructorRoom ? "/i/live" : "/u/calendar");
   const profileHref = $derived(room.isInstructorRoom ? "/i/profile" : "/u/profile");
   const isPrep = $derived(room.status === "prep");
-  const isReady = $derived(room.status === "ready" && room.joinInfo && room.connectionState === "idle");
+  const isReady = $derived(
+    room.status === "ready" && room.joinInfo !== null && room.connectionState === "idle",
+  );
   const showSetup = $derived(isPrep || isReady);
 
   const deviceLists = createLiveKitDeviceLists({
