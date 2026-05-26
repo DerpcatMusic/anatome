@@ -5,15 +5,15 @@
   import { signOut } from "$lib/auth/session.svelte";
 
   import { useQuery } from "convex-svelte";
-  import { initAuth } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   const auth = initAuth();
   const { t } = useI18n();
-  const query = useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : "skip");
+  const query = useQuery(api.users.dashboard.get, () => canRunAuthenticatedQuery() ? {} : "skip");
 </script>
 
-{#if query.isLoading || (auth.isAuthenticated && query.data === undefined && !query.error)}
+{#if query.isLoading || (auth.isAuthenticated && !canRunAuthenticatedQuery()) || (auth.isAuthenticated && query.data === undefined && !query.error)}
   <div class="app-frame">
     <p>{t.app.loading()}</p>
   </div>
@@ -86,7 +86,7 @@
   .locked__kicker {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin: 0;
   }
 
@@ -97,7 +97,7 @@
   }
 
   .locked p {
-    color: var(--muted);
+    color: var(--foreground-muted);
     max-width: 40ch;
     margin: 0;
   }

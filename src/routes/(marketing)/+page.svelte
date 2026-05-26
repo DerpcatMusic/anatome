@@ -21,6 +21,8 @@
   import {
     HeroSection,
     AboutSection,
+    PhilosophySection,
+    TrustStripSection,
     ExperienceSection,
     StepsSection,
     PricingSection,
@@ -116,25 +118,45 @@
     <div class="l-hero-spacer" aria-hidden="true"></div>
 
     <AboutSection instructor={INSTRUCTOR} />
+    <PhilosophySection />
+    <TrustStripSection />
     <StepsSection />
     <ExperienceSection />
     <PricingSection {openAuthOverlay} />
     <FAQSection items={faqItems} />
 
     <section class="l-panel l-section section--cta" aria-label="התחילי עכשיו">
-      <div class="l-shell cta l-in">
-        <h2>{t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}</h2>
-        <p class="cta__lead">{t.landing.cta.subheadline()}</p>
-        <div class="l-actions l-actions--center">
-          <Button.Root
-            class="hb-button hb-button--brand"
-            type="button"
-            onclick={openAuthOverlay}
+      <div class="l-shell">
+        <div class="cta-panel l-in">
+          <h2 class="cta-panel__title">
+            {t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}
+          </h2>
+          <p class="cta-panel__lead">{t.landing.cta.subheadline()}</p>
+          <form
+            class="cta-panel__form"
+            onsubmit={(e) => {
+              e.preventDefault();
+              openAuthOverlay();
+            }}
           >
-            {t.landing.cta.button()}
-          </Button.Root>
+            <label class="visually-hidden" for="landing-cta-email">{t.auth.emailLabel()}</label>
+            <input
+              id="landing-cta-email"
+              class="cta-panel__input"
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder={t.auth.emailLabel()}
+            />
+            <Button.Root
+              class="hb-button hb-button--brand hb-button--pill cta-panel__submit"
+              type="submit"
+            >
+              {t.landing.cta.button()}
+            </Button.Root>
+          </form>
+          <p class="cta-panel__note">{t.landing.cta.note()}</p>
         </div>
-        <p class="cta__note">{t.landing.cta.note()}</p>
       </div>
     </section>
   </main>

@@ -1,0 +1,43 @@
+.credit-cost-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.credit-cost-hint__cost {
+  color: var(--credit-hint-cost, var(--primary));
+}
+
+.credit-cost-hint[data-pool="vod"] {
+  --credit-hint-cost: var(--credit-vod-rim);
+}
+
+.credit-cost-hint[data-pool="live"] {
+  --credit-hint-cost: var(--credit-live-rim);
+}
+
+.credit-cost-hint[data-pool="oneOnOne"] {
+  --credit-hint-cost: var(--credit-private-rim);
+}
+
+.credit-cost-hint__sep {
+  opacity: 0.45;
+}
+
+.credit-cost-hint__remain {
+  color: var(--foreground-muted);
+}
+
+.credit-cost-hint--low .credit-cost-hint__remain {
+  color: var(--danger);
+  font-weight: 800;
+}

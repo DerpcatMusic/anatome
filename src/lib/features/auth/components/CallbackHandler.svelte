@@ -53,7 +53,7 @@
   }
   .message {
     font-size: var(--step-1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
   .error {
     font-size: var(--step-0);
@@ -61,6 +61,6 @@
   }
   .sub {
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 </style>

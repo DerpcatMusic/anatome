@@ -488,7 +488,7 @@
   .settings-panel__head span {
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 900;
   }
 
@@ -539,8 +539,8 @@
 
   .preset-btn--active {
     background: var(--surface);
-    border-color: var(--secondary-cool);
-    background: color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated));
+    border-color: var(--accent);
+    background: color-mix(in oklch, var(--accent) 10%, var(--elevated));
   }
 
   .preset-btn__title {
@@ -550,7 +550,7 @@
 
   .preset-btn__desc {
     font-size: var(--step--2);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .advanced-toggle {
@@ -560,7 +560,7 @@
     padding: var(--space-2) 0;
     border: 0;
     background: transparent;
-    color: var(--secondary-cool);
+    color: var(--accent);
     font: inherit;
     font-size: var(--step--1);
     font-weight: 700;

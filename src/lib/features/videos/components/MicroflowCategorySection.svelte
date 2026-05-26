@@ -96,7 +96,7 @@
 
   .microflow-section__desc {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.6;
   }
 
@@ -107,6 +107,6 @@
 
   .microflow-section__empty {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 </style>

@@ -101,7 +101,7 @@
   }
 
   .catalog-rail__item:focus-visible {
-    outline: 2px solid var(--secondary-cool);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
@@ -115,7 +115,7 @@
   .catalog-rail__item--cat {
     font-size: var(--step--1);
     font-weight: 600;
-    color: var(--muted);
+    color: var(--foreground-muted);
     padding-inline-start: var(--space-5);
   }
 

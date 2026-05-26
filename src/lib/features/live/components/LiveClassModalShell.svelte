@@ -7,7 +7,7 @@
     onClose,
     title,
     icon = "edit_calendar",
-    iconColor = "var(--secondary-cool)",
+    iconColor = "var(--accent)",
     children,
     wide = false,
   }: {
@@ -134,7 +134,7 @@
     border: none;
     cursor: pointer;
     padding: var(--space-1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     display: flex;
     align-items: center;
     justify-content: center;

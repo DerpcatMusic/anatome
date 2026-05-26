@@ -57,23 +57,26 @@
 
 <style>
 	.navbar {
-		position: sticky;
+		position: fixed;
+		inset-inline: 0;
 		top: 0;
 		z-index: 50;
 		height: 56px;
 		direction: rtl;
 		background: var(--glass-bg);
-		border-bottom: 1px solid transparent;
+		border-bottom: var(--glass-border);
 		backdrop-filter: var(--glass-blur);
 		-webkit-backdrop-filter: var(--glass-blur);
 		transition:
 			background var(--duration-base) ease,
-			border-color var(--duration-base) ease;
+			border-color var(--duration-base) ease,
+			box-shadow var(--duration-base) ease;
 	}
 
 	.navbar--scrolled {
 		background: var(--glass-strong-bg);
-		border-bottom-color: var(--line-light);
+		border-bottom-color: var(--border-color);
+		box-shadow: var(--shadow-ambient);
 	}
 
 	.navbar__inner {
@@ -82,9 +85,9 @@
 		justify-content: space-between;
 		gap: var(--space-4);
 		height: 100%;
-		max-width: 68rem;
+		max-width: var(--l-max, 90rem);
 		margin-inline: auto;
-		padding: 0 clamp(1.25rem, 5vw, 3.5rem);
+		padding: 0 clamp(1.25rem, 5vw, 5rem);
 	}
 
 	.navbar__brand {
@@ -139,5 +142,6 @@
 		min-height: 40px;
 		padding-inline: var(--space-5);
 		font-weight: 800;
+		border-radius: var(--radius-pill);
 	}
 </style>

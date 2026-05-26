@@ -13,6 +13,7 @@
 
 <section class="hero" aria-label="ראשי">
   <div class="l-shell hero__inner">
+    <p class="l-eyebrow l-in">{t.landing.hero.eyebrow()}</p>
     <h1 class="hero__title l-in">
       {t.landing.hero.headlineBefore()}<span class="hero__accent">{t.landing.hero.headlineAccent()}</span>{t.landing.hero.headlineAfter()}
     </h1>
@@ -21,14 +22,14 @@
 
     <div class="l-actions l-in l-in--2">
       <Button.Root
-        class="hb-button hb-button--brand"
+        class="hb-button hb-button--brand hb-button--pill"
         type="button"
         onclick={openAuthOverlay}
       >
         {t.landing.hero.ctaPrimary()}
       </Button.Root>
       <Button.Root
-        class="hb-button hb-button--paper"
+        class="hb-button hb-button--paper hb-button--pill"
         href="#about"
       >
         {t.landing.hero.ctaSecondary()}
@@ -36,5 +37,10 @@
     </div>
 
     <p class="hero__note l-in l-in--3">{t.landing.hero.note()}</p>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true">
+    <span class="hero__scroll-label">Flow</span>
+    <span class="hero__scroll-line"></span>
   </div>
 </section>

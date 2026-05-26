@@ -27,8 +27,8 @@
   --lr-dock-border: 1px solid oklch(100% 0 0 / 0.1);
   --lr-chip-bg: oklch(100% 0 0 / 0.1);
   --lr-bar-edge: oklch(100% 0 0 / 0.12);
-  --lr-on-tint: color-mix(in oklch, var(--secondary-cool) 28%, oklch(100% 0 0 / 0.08));
-  --lr-on-ring: color-mix(in oklch, var(--secondary-cool) 45%, transparent);
+  --lr-on-tint: color-mix(in oklch, var(--accent) 28%, oklch(100% 0 0 / 0.08));
+  --lr-on-ring: color-mix(in oklch, var(--accent) 45%, transparent);
   --lr-control-off-bg: transparent;
   --lr-header-btn-bg: oklch(100% 0 0 / 0.08);
   --lr-header-btn-hover: oklch(100% 0 0 / 0.14);
@@ -46,15 +46,15 @@
 
 html[data-theme="light"] .lr-room {
   --lr-text: var(--ink);
-  --lr-text-muted: var(--muted);
+  --lr-text-muted: var(--foreground-muted);
   --lr-surface: color-mix(in oklch, var(--paper) 94%, var(--ink));
   --lr-surface-elevated: var(--paper);
   --lr-dock-bg: color-mix(in oklch, var(--surface) 96%, var(--paper));
   --lr-dock-border: 1px solid var(--line-light);
   --lr-chip-bg: color-mix(in oklch, var(--ink) 4%, var(--surface));
   --lr-bar-edge: var(--line-light);
-  --lr-on-tint: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
-  --lr-on-ring: color-mix(in oklch, var(--secondary-cool) 50%, var(--line-light));
+  --lr-on-tint: color-mix(in oklch, var(--accent) 22%, var(--surface));
+  --lr-on-ring: color-mix(in oklch, var(--accent) 50%, var(--line-light));
   --lr-header-btn-bg: color-mix(in oklch, var(--ink) 5%, var(--surface));
   --lr-header-btn-hover: color-mix(in oklch, var(--ink) 8%, var(--surface));
   --lr-border: 1px solid var(--line-light);
@@ -152,7 +152,7 @@ html[data-theme="dark"] .lr-room {
 }
 
 .lr-tile--self {
-  outline: 2px solid var(--secondary-cool);
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
@@ -243,6 +243,30 @@ html[data-theme="dark"] .lr-room {
 
 .lr-header__start {
   flex: 1 1 auto;
+}
+
+.lr-header__credits {
+  flex-shrink: 0;
+}
+
+.lr-header__credits :global(.wallet-credit-strip) {
+  width: 6.25rem;
+}
+
+.lr-header__credits :global(.wallet-credit-strip--pill) {
+  background: oklch(0% 0 0 / 0.42);
+  box-shadow:
+    inset 1px 1px 0 oklch(100% 0 0 / 0.1),
+    2px 4px 10px oklch(0% 0 0 / 0.4);
+}
+
+.lr-header__credits :global(.credit-coin--embedded) {
+  border-top-color: oklch(100% 0 0 / 0.12);
+}
+
+.lr-header__credits :global(.credit-coin__amount) {
+  color: var(--lr-text);
+  text-shadow: 0 1px 2px oklch(0% 0 0 / 0.35);
 }
 
 .lr-header__end {
@@ -519,7 +543,7 @@ html[data-theme="dark"] .lr-room {
   height: 1rem;
   padding: 0 4px;
   border-radius: 999px;
-  background: color-mix(in oklch, var(--secondary-cool) 88%, var(--lr-dock-bg));
+  background: color-mix(in oklch, var(--accent) 88%, var(--lr-dock-bg));
   color: var(--lr-text);
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -688,7 +712,7 @@ html[data-theme="dark"] .lr-room {
 
 .lr-chat__input:focus {
   outline: none;
-  border-color: color-mix(in oklch, var(--secondary-cool) 40%, var(--lr-bar-edge));
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--lr-bar-edge));
 }
 
 .lr-chat__empty {
@@ -702,9 +726,9 @@ html[data-theme="dark"] .lr-room {
 }
 
 .lr-room .lr-chat__form .hb-button--ink {
-  background: color-mix(in oklch, var(--secondary-cool) 75%, var(--lr-chip-bg));
+  background: color-mix(in oklch, var(--accent) 75%, var(--lr-chip-bg));
   color: var(--lr-text);
-  border: 1px solid color-mix(in oklch, var(--secondary-cool) 45%, var(--lr-bar-edge));
+  border: 1px solid color-mix(in oklch, var(--accent) 45%, var(--lr-bar-edge));
 }
 
 /* ── Participants ── */

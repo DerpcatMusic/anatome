@@ -78,7 +78,7 @@
 
   .instructor-upload__hint {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
     max-width: 48ch;
   }

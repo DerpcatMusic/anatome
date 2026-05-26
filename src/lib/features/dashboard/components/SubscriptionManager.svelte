@@ -7,6 +7,9 @@
   import { SUBSCRIPTIONS_ENABLED } from "$lib/features/subscriptions/featureFlags";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
   import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
+  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
+  import { walletBalances } from "$lib/features/credits/balances";
+  import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<DashboardData["subscriptionPlan"]>;
@@ -36,9 +39,7 @@
   const renewalDate = $derived(
     subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null,
   );
-  const vodAvailable = $derived(wallet ? Math.max(0, wallet.vodBalance) : 0);
-  const liveAvailable = $derived(wallet ? Math.max(0, wallet.liveBalance) : 0);
-  const oneOnOneAvailable = $derived(wallet ? Math.max(0, wallet.oneOnOneBalance) : 0);
+  const creditBalances = $derived(walletBalances(wallet));
 
   function statusLabel(row?: Subscription | null) {
     if (!row) return "לא פעיל";
@@ -149,20 +150,14 @@
     <p class="subscription-panel__meta">שינוי מסלול דרך צוות AnatoMe.</p>
   {/if}
 
-  <div class="credit-strip" aria-label="קרדיטים זמינים">
-    <div class="credit-tile">
-      <span class="credit-tile__value">{vodAvailable}</span>
-      <span class="credit-tile__label">מוקלט</span>
-    </div>
-    <div class="credit-tile">
-      <span class="credit-tile__value">{liveAvailable}</span>
-      <span class="credit-tile__label">לייב קבוצתי</span>
-    </div>
-    <div class="credit-tile">
-      <span class="credit-tile__value">{oneOnOneAvailable}</span>
-      <span class="credit-tile__label">1:1 אישי</span>
-    </div>
-  </div>
+  <WalletCreditStrip
+    balances={creditBalances}
+    pools={poolsForSidebar()}
+    size="md"
+    layout="stack"
+    variant="pill"
+    class="subscription-panel__credits"
+  />
 
   {#if SUBSCRIPTIONS_ENABLED}
     {#if plansQuery.error}
@@ -222,7 +217,7 @@
     margin: 0 0 var(--space-2);
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 700;
   }
 
@@ -242,7 +237,7 @@
 
   .subscription-panel__meta {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
   }
 
@@ -270,33 +265,14 @@
 
   .subscription-badge[data-tone="muted"] {
     background: var(--surface);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
-  .credit-strip {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  .credit-tile {
-    min-width: 0;
-    border: var(--border);
-    background: var(--paper);
-    display: grid;
-    gap: var(--space-1);
-    padding: var(--space-4);
-  }
-
-  .credit-tile__value {
-    font-size: var(--step-2);
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .credit-tile__label {
-    color: var(--muted);
-    font-size: var(--step--1);
+  .subscription-panel :global(.subscription-panel__credits) {
+    align-items: stretch;
+    max-width: 12rem;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
   }
 
   .subscription-panel__cta {
@@ -310,8 +286,5 @@
       flex-direction: column;
     }
 
-    .credit-strip {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

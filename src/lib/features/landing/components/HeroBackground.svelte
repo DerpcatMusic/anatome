@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { SITE } from "$lib/seo/config";
+  import { LANDING_IMAGES } from "$lib/features/landing/images";
 
   const hasVideo = Boolean(SITE.heroVideo);
 
@@ -54,11 +55,12 @@
       class="hero-bg__media"
       src={SITE.heroPoster}
       alt=""
-      width="1200"
-      height="630"
+      width={LANDING_IMAGES.hero.width}
+      height={LANDING_IMAGES.hero.height}
       fetchpriority="high"
       decoding="async"
     />
   {/if}
+  <div class="hero-bg__filter" aria-hidden="true"></div>
   <div class="hero-bg__scrim"></div>
 </div>

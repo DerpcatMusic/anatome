@@ -1,0 +1,265 @@
+.wallet-credit-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.wallet-credit-strip--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.wallet-credit-strip--row.wallet-credit-strip--loose {
+  gap: var(--space-3);
+}
+
+.wallet-credit-strip--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.wallet-credit-strip--stack.wallet-credit-strip--loose {
+  gap: var(--space-2);
+}
+
+/* Single neumorphic pill wrapping all credit rows */
+.wallet-credit-strip--pill.wallet-credit-strip--stack {
+  padding: var(--space-2);
+  border-radius: calc(var(--credit-neu-radius) + 4px);
+  background: var(--credit-neu-track);
+  box-shadow: var(--credit-neu-track-shadow);
+  gap: 0;
+  min-width: 6.5rem;
+}
+
+.wallet-credit-strip--pill.wallet-credit-strip--stack:hover {
+  box-shadow: var(--credit-neu-track-shadow-hover);
+}
+
+/* Icon physically left, balance physically right (dir=ltr on strip) */
+.credit-coin {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-2) var(--space-2);
+  margin: 0;
+  border: none;
+  border-radius: var(--credit-neu-radius);
+  background: var(--credit-neu-track);
+  cursor: default;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: var(--credit-neu-track-shadow);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.credit-coin--embedded {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.credit-coin--embedded + .credit-coin--embedded {
+  border-top: 1px solid color-mix(in oklch, var(--line) 12%, transparent);
+}
+
+.credit-coin--embedded:first-child {
+  padding-top: var(--space-1);
+}
+
+.credit-coin--embedded:last-child {
+  padding-bottom: var(--space-1);
+}
+
+/* Sidebar / compact — icon + number only */
+.wallet-credit-strip--minimal {
+  gap: var(--space-1);
+}
+
+.credit-coin--minimal {
+  gap: var(--space-2);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.credit-coin--minimal .credit-coin__disc {
+  width: 1.625rem;
+  height: 1.625rem;
+  --credit-disc-icon-size: 0.875rem;
+  box-shadow: none;
+  border: 1.5px solid color-mix(in oklch, var(--ink) 12%, transparent);
+}
+
+.credit-coin--minimal .credit-coin__disc::before,
+.credit-coin--minimal .credit-coin__disc::after {
+  display: none;
+}
+
+.credit-coin--minimal .credit-coin__amount {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 800;
+}
+
+.credit-coin:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+  border-radius: var(--credit-neu-radius);
+}
+
+.credit-coin__disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--credit-neu-disc-bg);
+  color: var(--credit-disc-icon);
+  border: none;
+  box-shadow: var(--credit-neu-disc-shadow);
+  font-size: var(--credit-disc-icon-size);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.credit-coin__disc::before {
+  content: "";
+  position: absolute;
+  inset: 10% 14% auto 14%;
+  height: 38%;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    oklch(100% 0 0 / 0.55) 0%,
+    oklch(100% 0 0 / 0) 100%
+  );
+  pointer-events: none;
+}
+
+.credit-coin__disc::after {
+  content: "";
+  position: absolute;
+  inset: auto 12% 8% 12%;
+  height: 22%;
+  border-radius: 50%;
+  background: linear-gradient(0deg, oklch(0% 0 0 / 0.12) 0%, oklch(0% 0 0 / 0) 100%);
+  pointer-events: none;
+}
+
+.credit-coin[data-pool="vod"] {
+  --credit-neu-disc-bg: color-mix(in oklch, var(--credit-vod) 72%, var(--paper));
+  --credit-disc-icon: color-mix(in oklch, var(--credit-vod-rim) 88%, var(--ink));
+}
+
+.credit-coin[data-pool="live"] {
+  --credit-neu-disc-bg: color-mix(in oklch, var(--credit-live) 68%, var(--paper));
+  --credit-disc-icon: color-mix(in oklch, var(--credit-live-rim) 85%, var(--ink));
+}
+
+.credit-coin[data-pool="oneOnOne"] {
+  --credit-neu-disc-bg: color-mix(in oklch, var(--credit-private) 70%, var(--paper));
+  --credit-disc-icon: color-mix(in oklch, var(--credit-private-rim) 88%, var(--ink));
+}
+
+.credit-coin--sm .credit-coin__disc {
+  width: 2rem;
+  height: 2rem;
+  --credit-disc-icon-size: 1rem;
+}
+
+.credit-coin--md .credit-coin__disc {
+  width: 2.35rem;
+  height: 2.35rem;
+  --credit-disc-icon-size: 1.1rem;
+}
+
+.credit-coin--sm .credit-coin__amount {
+  font-size: var(--step-0);
+}
+
+.credit-coin--md .credit-coin__amount {
+  font-size: var(--step-1);
+}
+
+.credit-coin__amount {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.25ch;
+  text-align: right;
+}
+
+.credit-coin__amount--zero {
+  color: var(--foreground-muted);
+}
+
+@media (hover: hover) {
+  .credit-coin:not(.credit-coin--embedded):not(.credit-coin--minimal):hover {
+    box-shadow: var(--credit-neu-track-shadow-hover);
+  }
+
+  .credit-coin:not(.credit-coin--minimal):hover .credit-coin__disc {
+    box-shadow: var(--credit-neu-disc-shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  .credit-coin--embedded:hover {
+    background: color-mix(in oklch, var(--ink) 4%, transparent);
+  }
+
+  .credit-coin--minimal:hover .credit-coin__disc {
+    filter: brightness(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credit-coin,
+  .credit-coin__disc,
+  .wallet-credit-strip--pill {
+    transition: none;
+  }
+
+  .credit-coin:hover .credit-coin__disc {
+    transform: none;
+  }
+}
+
+.credit-coin__tooltip {
+  display: grid;
+  gap: 4px;
+  max-width: 16rem;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: var(--step--1);
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: start;
+  white-space: normal;
+  direction: rtl;
+}
+
+.credit-coin__tooltip-title {
+  font-weight: 700;
+}
+
+.credit-coin__tooltip-hint {
+  font-weight: 500;
+  opacity: 0.88;
+}

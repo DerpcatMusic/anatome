@@ -114,7 +114,7 @@
   font-family: var(--font-mono);
   font-weight: 800;
   font-size: var(--step--1);
-  color: var(--muted);
+  color: var(--foreground-muted);
   background: var(--ec-bg-color);
 }
 
@@ -133,7 +133,7 @@
   background: var(--ec-bg-color);
 }
 
-/* ── Events: group = cool live blue (--secondary-cool), 1:1 + availability = pink (--primary) ── */
+/* ── Events: group = cool live blue (--accent), 1:1 + availability = pink (--primary) ── */
 .ec-event {
   border-radius: 3px;
   border: 1px solid transparent;
@@ -167,9 +167,9 @@
 
 .ec-event.ec-event-type--group_live {
   z-index: 3;
-  background: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
-  border-inline-start-color: var(--secondary-cool);
-  border-color: color-mix(in oklch, var(--secondary-cool) 40%, var(--line-light));
+  background: color-mix(in oklch, var(--accent) 22%, var(--surface));
+  border-inline-start-color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--line-light));
   color: var(--ink);
 }
 
@@ -214,7 +214,7 @@
 }
 
 .ec-event-status--ended {
-  border-inline-start-color: var(--muted);
+  border-inline-start-color: var(--foreground-muted);
   border-color: var(--line-light);
   background: var(--line-light);
   opacity: 0.55;
@@ -222,7 +222,7 @@
 
 .ec-event-status--ended .event-title {
   text-decoration: line-through;
-  text-decoration-color: var(--muted);
+  text-decoration-color: var(--foreground-muted);
   text-decoration-thickness: 1px;
 }
 
@@ -352,9 +352,9 @@
   z-index: 1000;
   user-select: none;
   opacity: 1;
-  border-inline-start-color: var(--secondary-cool);
-  background: color-mix(in oklch, var(--secondary-cool) 28%, var(--surface));
-  border-color: color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
+  border-inline-start-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 28%, var(--surface));
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--line-light));
   color: var(--ink);
   border-radius: 3px;
   overflow: visible;
@@ -366,7 +366,7 @@
 }
 
 .ec-event.ec-preview.ec-quick-create-preview {
-  outline: 2px solid var(--secondary-cool);
+  outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
 
@@ -388,7 +388,7 @@
 .ec-event.ec-preview.ec-quick-create-preview:hover .ec-event-resizer,
 .ec-event.ec-preview.ec-quick-create-preview.ec-resizing .ec-event-resizer {
   opacity: 1;
-  background: var(--secondary-cool);
+  background: var(--accent);
 }
 
 .ec-event.ec-preview.ec-quick-create-preview:active {
@@ -425,7 +425,7 @@
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: var(--step--1);
-  color: var(--muted);
+  color: var(--foreground-muted);
   line-height: 1.1;
 }
 

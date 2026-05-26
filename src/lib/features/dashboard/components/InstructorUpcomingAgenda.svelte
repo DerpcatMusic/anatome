@@ -3,7 +3,7 @@
   import { api } from "$convex/_generated/api";
   import { Button } from "bits-ui";
   import { useQuery } from "convex-svelte";
-  import { initAuth } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { liveRoomHref, routePath } from "$lib/i18n/context";
   import { formatLiveStartsAt } from "../lib/format";
@@ -15,7 +15,7 @@
   const auth = initAuth();
   const { t } = useI18n();
   const classesQuery = useQuery(api.live.class.listMine, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
 
   const now = Date.now();
@@ -120,13 +120,13 @@
   }
 
   .instructor-agenda__row:hover {
-    background: color-mix(in oklch, var(--secondary-cool) 8%, var(--paper));
+    background: color-mix(in oklch, var(--accent) 8%, var(--paper));
   }
 
   .instructor-agenda__when {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -143,7 +143,7 @@
     font-size: var(--step--2);
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -154,7 +154,7 @@
   .instructor-agenda__empty,
   .instructor-agenda__error {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
   }
 

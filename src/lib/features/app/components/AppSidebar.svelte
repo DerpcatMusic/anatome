@@ -1,13 +1,16 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { api } from "$convex/_generated/api";
-  import { initAuth, signOut } from "$lib/auth/session.svelte";
+  import { initAuth, signOut, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useQuery } from "convex-svelte";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
   import { getAppContext } from "$features/app/context/appContext";
   import { liveRoomHref } from "$lib/i18n/context";
   import { theme } from "$features/app/theme.svelte";
   import { useI18n } from "$lib/i18n/runes";
+  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
+  import { walletBalances } from "$lib/features/credits/balances";
+  import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
   import "./AppSidebar.css";
 
   const auth = initAuth();
@@ -40,14 +43,16 @@
   };
 
   const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    auth.isAuthenticated ? {} : "skip"
+    canRunAuthenticatedQuery() ? {} : "skip"
   );
   const profile = $derived(profileQuery.data ?? null);
 
   const subscriptionQuery = useQuery(api.subscriptions.customer.getMine, () =>
-    auth.isAuthenticated && !isInstructorPrefix ? {} : "skip",
+    canRunAuthenticatedQuery() && !isInstructorPrefix ? {} : "skip",
   );
   const currentPlan = $derived(subscriptionQuery.data?.plan ?? null);
+  const creditBalances = $derived(walletBalances(subscriptionQuery.data?.wallet ?? null));
+  const showCreditStrip = $derived(auth.isAuthenticated && !isInstructorPrefix);
   const userLabel = $derived.by(() => {
     if (!auth.isAuthenticated) return null;
     const name = profile?.displayName?.trim();
@@ -57,7 +62,7 @@
     return "מחוברת";
   });
 
-  const nextLiveQuery = useQuery(api.live.next.get, () => auth.isAuthenticated ? {} : "skip");
+  const nextLiveQuery = useQuery(api.live.next.get, () => canRunAuthenticatedQuery() ? {} : "skip");
   const nextLive = $derived(nextLiveQuery.data ?? null);
   const showLiveTab = $derived.by(() => {
     if (!nextLive) return false;
@@ -114,6 +119,18 @@
       </a>
     {/each}
   </nav>
+
+  {#if showCreditStrip}
+    <div class="sidebar__credits">
+      <WalletCreditStrip
+        balances={creditBalances}
+        pools={poolsForSidebar()}
+        size="sm"
+        layout="stack"
+        variant="minimal"
+      />
+    </div>
+  {/if}
 
   <footer class="sidebar__footer">
     {#if auth.isAuthenticated}

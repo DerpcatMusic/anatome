@@ -93,7 +93,7 @@
   bind:open={modalOpen}
   title={t.dashboard.instructor.createModalTitle()}
   icon="live_tv"
-  iconColor="var(--secondary-cool)"
+  iconColor="var(--accent)"
   wide
   onClose={closeModal}
 >
@@ -119,8 +119,8 @@
 <style>
   .instructor-create {
     min-width: 0;
-    border-color: color-mix(in oklch, var(--secondary-cool) 22%, var(--line));
-    background: color-mix(in oklch, var(--secondary-cool) 6%, var(--elevated));
+    border-color: color-mix(in oklch, var(--accent) 22%, var(--line));
+    background: color-mix(in oklch, var(--accent) 6%, var(--elevated));
   }
 
   .instructor-create__inner {

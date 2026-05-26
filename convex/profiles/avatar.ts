@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
-import { requireAppProfile, requireUserId } from "../lib/authz";
+import { getOrCreateAppProfile, requireUserId } from "../lib/authz";
 
 const MAX_AVATAR_BYTES = 512 * 1024;
 const ALLOWED_CONTENT_TYPES = new Set(["image/webp", "image/jpeg", "image/png"]);
@@ -20,7 +20,7 @@ export const setFromStorage = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
+    const profile = await getOrCreateAppProfile(ctx, userId);
 
     const metadata = await ctx.db.system.get("_storage", args.storageId);
     if (metadata === null) {
@@ -54,7 +54,7 @@ export const remove = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
+    const profile = await getOrCreateAppProfile(ctx, userId);
     const previousId = profile.avatarStorageId;
     if (!previousId) return null;
 

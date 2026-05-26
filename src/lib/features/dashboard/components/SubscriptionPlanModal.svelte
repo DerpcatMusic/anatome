@@ -143,7 +143,7 @@
 
   :global(.subscription-modal__desc) {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
   }
 
@@ -189,13 +189,13 @@
     flex: 0 0 auto;
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .plan-option__credits {
     display: grid;
     gap: var(--space-1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step--1);
     line-height: 1.45;
   }

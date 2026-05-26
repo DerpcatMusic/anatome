@@ -121,7 +121,7 @@
     font-size: var(--step--1);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 700;
     margin: 0;
   }
@@ -152,7 +152,7 @@
 
   .profile-summary__label {
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .profile-summary__value {
@@ -175,7 +175,7 @@
     font-family: var(--font-mono);
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .compliance-dot {

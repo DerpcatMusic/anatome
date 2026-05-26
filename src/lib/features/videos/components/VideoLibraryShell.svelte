@@ -7,7 +7,6 @@
   import type { FunctionReturnType } from "convex/server";
   import { goto } from "$app/navigation";
   import { useConvexClient } from "convex-svelte";
-  import MacroflowCreditsBadge from "./MacroflowCreditsBadge.svelte";
   import HorizontalVideoRow, { type RowVideo } from "./HorizontalVideoRow.svelte";
   import MicroflowCategorySection, {
     type CategoryGroup,
@@ -127,10 +126,6 @@
 </script>
 
 <PageShell title="ספריית שיעורים">
-  {#snippet headerExtra()}
-    <MacroflowCreditsBadge balance={library.vodCredits} />
-  {/snippet}
-
   <div class="video-library">
 
     {#if actionError}
@@ -149,6 +144,7 @@
         hideHeader
         videos={library.macroflowVideos}
         emptyMessage="אין שיעורים עדיין."
+        vodCreditBalance={library.vodCredits}
         {pendingId}
         onSelect={handleMacroflowSelect}
       />

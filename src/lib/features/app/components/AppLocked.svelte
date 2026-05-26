@@ -39,7 +39,7 @@
   .kicker {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin: 0;
   }
 
@@ -50,7 +50,7 @@
   }
 
   p {
-    color: var(--muted);
+    color: var(--foreground-muted);
     max-width: 40ch;
     margin: 0;
   }

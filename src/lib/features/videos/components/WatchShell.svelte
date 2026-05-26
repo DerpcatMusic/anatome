@@ -144,7 +144,7 @@
   .meta-label {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 700;
   }
 
@@ -153,7 +153,7 @@
   }
 
   .desc {
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.7;
     margin: 0;
   }

@@ -95,7 +95,7 @@
     font-size: var(--step--1);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin: 0;
   }
 
@@ -118,7 +118,7 @@
   }
 
   .description {
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.7;
     max-width: 72ch;
     margin: 0;

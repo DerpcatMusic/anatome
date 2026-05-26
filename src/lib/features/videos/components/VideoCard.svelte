@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
   import { durationLabel } from "$lib/labels";
 
   let {
@@ -14,6 +15,7 @@
     teaserLocked = false,
     unlockHint = "התחברי לפתיחה",
     hideStatus = false,
+    vodCreditBalance = null,
     onclick,
   }: {
     title: string;
@@ -24,12 +26,12 @@
     accessKind?: "macroflow" | "microflow";
     pending?: boolean;
     statusLabel?: string | null;
-    /** CSS lock mark instead of emoji (guest catalog). */
     useLockGlyph?: boolean;
-    /** Gray veil + lock; hint on hover (guest / locked catalog). */
     teaserLocked?: boolean;
     unlockHint?: string;
     hideStatus?: boolean;
+    /** When set, hover shows −1 · נשאר N for redeemable macroflow videos */
+    vodCreditBalance?: number | null;
     onclick?: () => void;
   } = $props();
 
@@ -40,44 +42,66 @@
     }
     return owned ? "שלך" : locked ? "נעול" : "פתוח";
   });
+
+  const showCreditTooltip = $derived(
+    vodCreditBalance !== null &&
+      accessKind === "macroflow" &&
+      locked &&
+      !owned &&
+      !teaserLocked,
+  );
 </script>
 
-<button
-  type="button"
-  class="library-video-card"
-  class:library-video-card--locked={locked}
-  class:library-video-card--owned={owned}
-  class:library-video-card--teaser={teaserLocked}
-  disabled={pending}
-  onclick={onclick}
->
-  <div class="library-video-card__thumb">
-    {#if thumbnailUrl}
-      <img src={thumbnailUrl} alt="" loading="lazy" />
-    {:else}
-      <span class="library-video-card__placeholder">{durationLabel(durationSeconds)}</span>
-    {/if}
-    {#if teaserLocked}
-      <span class="library-video-card__veil" aria-hidden="true"></span>
-      <span class="library-video-card__hint">{unlockHint}</span>
-    {/if}
-    {#if locked}
-      <span
-        class="library-video-card__lock"
-        class:library-video-card__lock--glyph={useLockGlyph || teaserLocked}
-        aria-hidden="true"
-      >{#if useLockGlyph || teaserLocked}<span class="library-video-card__lock-icon"></span>{:else}🔒{/if}</span>
-    {/if}
-    <span class="library-video-card__duration">{durationLabel(durationSeconds)}</span>
-  </div>
+{#snippet cardButton(props: Record<string, unknown>)}
+  <button
+    {...props}
+    type="button"
+    class="library-video-card"
+    class:library-video-card--locked={locked}
+    class:library-video-card--owned={owned}
+    class:library-video-card--teaser={teaserLocked}
+    disabled={pending}
+    {onclick}
+  >
+    <div class="library-video-card__thumb">
+      {#if thumbnailUrl}
+        <img src={thumbnailUrl} alt="" loading="lazy" />
+      {:else}
+        <span class="library-video-card__placeholder">{durationLabel(durationSeconds)}</span>
+      {/if}
+      {#if teaserLocked}
+        <span class="library-video-card__veil" aria-hidden="true"></span>
+        <span class="library-video-card__hint">{unlockHint}</span>
+      {/if}
+      {#if locked}
+        <span
+          class="library-video-card__lock"
+          class:library-video-card__lock--glyph={useLockGlyph || teaserLocked}
+          aria-hidden="true"
+        >{#if useLockGlyph || teaserLocked}<span class="library-video-card__lock-icon"></span>{:else}🔒{/if}</span>
+      {/if}
+      <span class="library-video-card__duration">{durationLabel(durationSeconds)}</span>
+    </div>
 
-  <div class="library-video-card__body">
-    {#if !hideStatus}
-      <span class="library-video-card__status">{statusLabel}</span>
-    {/if}
-    <h4 class="library-video-card__title">{title}</h4>
-  </div>
-</button>
+    <div class="library-video-card__body">
+      {#if !hideStatus}
+        <span class="library-video-card__status">{statusLabel}</span>
+      {/if}
+      <h4 class="library-video-card__title">{title}</h4>
+    </div>
+  </button>
+{/snippet}
+
+<CreditCostTooltip
+  cost={1}
+  balance={vodCreditBalance ?? 0}
+  pool="vod"
+  enabled={showCreditTooltip}
+>
+  {#snippet child({ props })}
+    {@render cardButton(props)}
+  {/snippet}
+</CreditCostTooltip>
 
 <style>
   .library-video-card {
@@ -101,12 +125,12 @@
   }
 
   .library-video-card:focus-visible {
-    outline: 2px solid var(--secondary-cool);
+    outline: 2px solid var(--accent);
     outline-offset: 4px;
   }
 
   .library-video-card--owned .library-video-card__thumb {
-    box-shadow: inset 0 0 0 3px var(--secondary-cool);
+    box-shadow: inset 0 0 0 3px var(--accent);
   }
 
   .library-video-card__thumb {
@@ -182,11 +206,11 @@
     font-size: var(--step--2);
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--secondary-cool);
+    color: var(--accent);
   }
 
   .library-video-card--locked .library-video-card__status {
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .library-video-card__veil {

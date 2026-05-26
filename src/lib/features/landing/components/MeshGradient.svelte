@@ -22,30 +22,60 @@
     alpha: number;
   };
 
-  const HERO_BLOBS_LIGHT: Omit<Blob, "x" | "y">[] = [
-    { vx: 0.06, vy: 0.04, rx: 0.5, ry: 0.34, color: "220, 165, 130", alpha: 0.22 },
-    { vx: -0.05, vy: 0.05, rx: 0.46, ry: 0.38, color: "200, 115, 100", alpha: 0.18 },
-    { vx: 0.04, vy: -0.04, rx: 0.48, ry: 0.32, color: "235, 200, 175", alpha: 0.16 },
-    { vx: -0.03, vy: -0.03, rx: 0.4, ry: 0.36, color: "175, 95, 88", alpha: 0.12 },
-  ];
+  type BlobDef = Omit<Blob, "x" | "y">;
 
-  const HERO_BLOBS_DARK: Omit<Blob, "x" | "y">[] = [
-    { vx: 0.05, vy: 0.04, rx: 0.52, ry: 0.36, color: "55, 58, 68", alpha: 0.2 },
-    { vx: -0.04, vy: 0.05, rx: 0.44, ry: 0.4, color: "48, 52, 62", alpha: 0.16 },
-    { vx: 0.04, vy: -0.04, rx: 0.46, ry: 0.34, color: "62, 48, 52", alpha: 0.12 },
-  ];
+  function cssColorToRgb(css: string, mount: HTMLElement): string {
+    const probe = document.createElement("span");
+    probe.style.color = css;
+    mount.appendChild(probe);
+    const computed = getComputedStyle(probe).color;
+    probe.remove();
+    const m = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return "180, 120, 110";
+    return `${m[1]}, ${m[2]}, ${m[3]}`;
+  }
 
-  const FOOTER_BLOBS_LIGHT: Omit<Blob, "x" | "y">[] = [
-    { vx: 0.04, vy: 0.03, rx: 0.55, ry: 0.42, color: "130, 52, 48", alpha: 0.35 },
-    { vx: -0.05, vy: 0.03, rx: 0.48, ry: 0.38, color: "85, 105, 82", alpha: 0.22 },
-    { vx: 0.03, vy: -0.04, rx: 0.44, ry: 0.4, color: "95, 68, 58", alpha: 0.28 },
-  ];
+  function tokenBlobColors(mount: HTMLElement): { primary: string; secondary: string; accent: string } {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      primary: cssColorToRgb(styles.getPropertyValue("--primary").trim(), mount),
+      secondary: cssColorToRgb(styles.getPropertyValue("--secondary").trim(), mount),
+      accent: cssColorToRgb(styles.getPropertyValue("--accent").trim(), mount),
+    };
+  }
 
-  const FOOTER_BLOBS_DARK: Omit<Blob, "x" | "y">[] = [
-    { vx: 0.04, vy: 0.03, rx: 0.55, ry: 0.42, color: "42, 44, 52", alpha: 0.28 },
-    { vx: -0.04, vy: 0.03, rx: 0.48, ry: 0.38, color: "38, 42, 48", alpha: 0.2 },
-    { vx: 0.03, vy: -0.04, rx: 0.44, ry: 0.4, color: "32, 34, 40", alpha: 0.24 },
-  ];
+  function heroBlobDefs(dark: boolean): BlobDef[] {
+    if (dark) {
+      return [
+        { vx: 0.05, vy: 0.04, rx: 0.52, ry: 0.36, color: "55, 58, 68", alpha: 0.2 },
+        { vx: -0.04, vy: 0.05, rx: 0.44, ry: 0.4, color: "48, 52, 62", alpha: 0.16 },
+        { vx: 0.04, vy: -0.04, rx: 0.46, ry: 0.34, color: "62, 48, 52", alpha: 0.12 },
+      ];
+    }
+    const { primary, secondary, accent } = tokenBlobColors(document.documentElement);
+    return [
+      { vx: 0.06, vy: 0.04, rx: 0.5, ry: 0.34, color: secondary, alpha: 0.22 },
+      { vx: -0.05, vy: 0.05, rx: 0.46, ry: 0.38, color: primary, alpha: 0.16 },
+      { vx: 0.04, vy: -0.04, rx: 0.48, ry: 0.32, color: accent, alpha: 0.14 },
+      { vx: -0.03, vy: -0.03, rx: 0.4, ry: 0.36, color: secondary, alpha: 0.1 },
+    ];
+  }
+
+  function footerBlobDefs(dark: boolean): BlobDef[] {
+    if (dark) {
+      return [
+        { vx: 0.04, vy: 0.03, rx: 0.55, ry: 0.42, color: "42, 44, 52", alpha: 0.28 },
+        { vx: -0.04, vy: 0.03, rx: 0.48, ry: 0.38, color: "38, 42, 48", alpha: 0.2 },
+        { vx: 0.03, vy: -0.04, rx: 0.44, ry: 0.4, color: "32, 34, 40", alpha: 0.24 },
+      ];
+    }
+    const { primary, secondary, accent } = tokenBlobColors(document.documentElement);
+    return [
+      { vx: 0.04, vy: 0.03, rx: 0.55, ry: 0.42, color: primary, alpha: 0.2 },
+      { vx: -0.05, vy: 0.03, rx: 0.48, ry: 0.38, color: accent, alpha: 0.16 },
+      { vx: 0.03, vy: -0.04, rx: 0.44, ry: 0.4, color: secondary, alpha: 0.18 },
+    ];
+  }
 
   function readDark(): boolean {
     if (!browser) return false;
@@ -94,8 +124,8 @@
 
     const blobDefs = () => {
       const dark = isDark;
-      if (variant === "footer") return dark ? FOOTER_BLOBS_DARK : FOOTER_BLOBS_LIGHT;
-      return dark ? HERO_BLOBS_DARK : HERO_BLOBS_LIGHT;
+      if (variant === "footer") return footerBlobDefs(dark);
+      return heroBlobDefs(dark);
     };
 
     const seed = () => {
@@ -182,6 +212,7 @@
       off.width = ow;
       off.height = oh;
 
+      seed();
       draw(0);
     };
 

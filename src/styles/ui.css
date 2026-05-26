@@ -79,24 +79,31 @@
 }
 
 .hb-button--brand {
-  background: var(--accent-bright, var(--primary));
-  color: var(--on-primary);
-  border-color: var(--accent-bright, var(--primary));
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-primary-button);
 }
 
 .hb-button--brand:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-primary);
+  background: color-mix(in oklch, var(--primary) 92%, var(--secondary));
+  border-color: color-mix(in oklch, var(--primary) 92%, var(--secondary));
+  color: var(--primary-foreground);
+  border-radius: var(--radius-pill);
 }
 
 .hb-button--brand:active {
   background: var(--primary);
   filter: brightness(0.96);
+  box-shadow: none;
 }
 
 .hb-button--pill {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
+}
+
+.hb-button--pill:hover {
+  border-radius: var(--radius-pill);
 }
 
 .hb-button--paper {
@@ -116,7 +123,7 @@
 
 .hb-button--ghost {
   background: transparent;
-  color: var(--muted);
+  color: var(--foreground-muted);
   border-color: var(--line-light);
 }
 
@@ -282,33 +289,33 @@
 }
 
 .hb-button--control-on {
-  background: var(--lr-control-on-bg, color-mix(in oklch, var(--secondary-cool) 28%, transparent));
+  background: var(--lr-control-on-bg, color-mix(in oklch, var(--accent) 28%, transparent));
   color: var(--ink);
-  border-color: var(--secondary-cool);
+  border-color: var(--accent);
 }
 
 .hb-button--control-on:hover:not(:disabled) {
-  background: var(--lr-control-on-bg, color-mix(in oklch, var(--secondary-cool) 28%, transparent));
-  border-color: var(--secondary-cool);
+  background: var(--lr-control-on-bg, color-mix(in oklch, var(--accent) 28%, transparent));
+  border-color: var(--accent);
   filter: brightness(1.03);
 }
 
 .hb-button--control-off {
   background: var(--lr-control-off-bg, transparent);
-  color: var(--muted);
+  color: var(--foreground-muted);
   border-color: var(--line-light);
 }
 
 .hb-button--control-active {
-  background: var(--lr-control-active-bg, color-mix(in oklch, var(--secondary-cool) 32%, transparent));
+  background: var(--lr-control-active-bg, color-mix(in oklch, var(--accent) 32%, transparent));
   color: var(--ink);
-  border-color: var(--secondary-cool);
+  border-color: var(--accent);
 }
 
 .hb-button--control-participants-on {
-  background: var(--lr-control-active-bg, color-mix(in oklch, var(--secondary-cool) 32%, transparent));
+  background: var(--lr-control-active-bg, color-mix(in oklch, var(--accent) 32%, transparent));
   color: var(--ink);
-  border-color: var(--secondary-cool);
+  border-color: var(--accent);
 }
 
 /* Split mic/camera control (~70% toggle + ~30% device menu) */
@@ -326,13 +333,13 @@
 }
 
 .hb-media-split:hover {
-  border-color: var(--secondary-cool);
+  border-color: var(--accent);
   border-radius: 22px;
 }
 
 .hb-media-split--on {
-  background: var(--lr-control-on-bg, color-mix(in oklch, var(--secondary-cool) 28%, transparent));
-  border-color: var(--secondary-cool);
+  background: var(--lr-control-on-bg, color-mix(in oklch, var(--accent) 28%, transparent));
+  border-color: var(--accent);
 }
 
 .hb-media-split--busy {
@@ -536,7 +543,7 @@
 }
 
 .hb-field__label {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 900;
@@ -726,7 +733,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   align-items: center;
   gap: var(--space-2);
   min-height: 34px;
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-size: var(--step--1);
   font-weight: 850;
 }
@@ -847,7 +854,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-choice__description {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-size: var(--step--1);
   font-weight: 650;
   line-height: 1.45;
@@ -882,7 +889,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-meter__label {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 900;
@@ -1050,7 +1057,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-dialog-description {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-size: var(--step-0);
   margin: 0 0 var(--space-4);
 }
@@ -1073,7 +1080,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-slider__label {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 900;
@@ -1303,7 +1310,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-date-picker__label {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 900;
@@ -1427,7 +1434,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 800;
-  color: var(--muted);
+  color: var(--foreground-muted);
   text-transform: uppercase;
 }
 
@@ -1503,7 +1510,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-time-field__label {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 900;
@@ -1553,7 +1560,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-time-field__segment.literal {
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-weight: 500;
   padding-inline: 1px;
 }

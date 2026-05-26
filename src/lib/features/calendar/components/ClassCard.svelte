@@ -6,6 +6,8 @@
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { liveRoomHref } from "$lib/i18n/context";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
+  import type { CreditPool } from "$lib/features/credits/types";
   import type { TypeFilter } from "../lib/agenda";
   import InstructorAvatar from "./InstructorAvatar.svelte";
   import "../styles/cal-time.css";
@@ -74,6 +76,13 @@
   const lacksCredits = $derived(item.viewerAvailableCredits < item.liveClass.creditCost);
   const isPrivateCreditBlocked = $derived(isPrivate && lacksCredits);
   const showSeats = $derived(item.liveClass.capacity > 1);
+  const creditPool = $derived<CreditPool>(isPrivate ? "oneOnOne" : "live");
+  const showCreditTooltip = $derived(
+    item.liveClass.creditCost > 0 &&
+      (item.viewerCanReserve || item.viewerCanJoin) &&
+      item.viewerReservationStatus !== "reserved" &&
+      item.viewerReservationStatus !== "joined",
+  );
 </script>
 
 <article
@@ -138,12 +147,24 @@
 
     <div class="agenda-card__action">
       {#if item.viewerCanJoin}
-        <Button.Root
-          class="hb-button hb-button--sm hb-button--{item.liveClass.type === 'one_on_one' ? 'primary' : 'secondary'}"
-          href={liveRoomHref(item.liveClass._id)}
+        <CreditCostTooltip
+          cost={item.liveClass.creditCost}
+          balance={item.viewerAvailableCredits}
+          pool={creditPool}
+          enabled={showCreditTooltip}
         >
-          {item.viewerIsWalkIn ? t.calendar.class.joinWalkIn() : t.calendar.class.join()}
-        </Button.Root>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              class="hb-button hb-button--sm hb-button--{item.liveClass.type === 'one_on_one'
+                ? 'primary'
+                : 'secondary'}"
+              href={liveRoomHref(item.liveClass._id)}
+            >
+              {item.viewerIsWalkIn ? t.calendar.class.joinWalkIn() : t.calendar.class.join()}
+            </Button.Root>
+          {/snippet}
+        </CreditCostTooltip>
       {:else if item.viewerReservationStatus === "reserved" || item.viewerReservationStatus === "joined"}
         <Button.Root
           class="hb-button hb-button--paper hb-button--sm"
@@ -162,14 +183,24 @@
           {t.calendar.class.noCredits()}
         </Button.Root>
       {:else}
-        <Button.Root
-          class="hb-button hb-button--sm {isPrivate ? 'hb-button--primary' : 'hb-button--secondary'}"
-          type="button"
-          onclick={() => onReserve(item.liveClass._id)}
-          disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
+        <CreditCostTooltip
+          cost={item.liveClass.creditCost}
+          balance={item.viewerAvailableCredits}
+          pool={creditPool}
+          enabled={showCreditTooltip}
         >
-          {t.calendar.class.reserve()}
-        </Button.Root>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              class="hb-button hb-button--sm {isPrivate ? 'hb-button--primary' : 'hb-button--secondary'}"
+              type="button"
+              onclick={() => onReserve(item.liveClass._id)}
+              disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
+            >
+              {t.calendar.class.reserve()}
+            </Button.Root>
+          {/snippet}
+        </CreditCostTooltip>
       {/if}
     </div>
   </div>

@@ -2,9 +2,17 @@
   import {
     experienceLabelMap as experienceLabels,
     equipmentLabelMap as equipmentLabels,
-    goalLabelMap as goalLabels,
+    goalLabel,
+    pathologyLabel,
     fmtList,
   } from "$lib/labels";
+  import {
+    healthDeclarationQuestionIds,
+    type HealthDeclarationAnswers,
+  } from "$features/onboarding/health-declaration";
+  import { useI18n } from "$lib/i18n/runes.svelte";
+
+  const { t } = useI18n();
 
   let {
     profile,
@@ -13,9 +21,19 @@
       experience: string;
       equipment: string[];
       goals: string[];
+      pathologies?: string[];
       notes?: string | null;
+      healthDeclarationAnswers?: HealthDeclarationAnswers | Record<string, "yes" | "no">;
     };
   } = $props();
+
+  const healthFlags = $derived(
+    profile.healthDeclarationAnswers
+      ? healthDeclarationQuestionIds
+          .filter((id) => profile.healthDeclarationAnswers?.[id] === "yes")
+          .map((id) => t.onboarding.healthDeclaration.questions[id]())
+      : [],
+  );
 </script>
 
 <section class="profile-view" aria-label="פרטי פרופיל פילאטיס">
@@ -30,12 +48,28 @@
     </div>
     <div class="profile-view__cell">
       <span class="profile-view__label">מטרות</span>
-      <span class="profile-view__value">{fmtList(profile.goals, goalLabels)}</span>
+      <span class="profile-view__value">{profile.goals.map(goalLabel).join(", ")}</span>
     </div>
+    {#if profile.pathologies && profile.pathologies.length > 0}
+      <div class="profile-view__cell profile-view__cell--wide">
+        <span class="profile-view__label">פתולוגיות</span>
+        <span class="profile-view__value">{profile.pathologies.map(pathologyLabel).join(", ")}</span>
+      </div>
+    {/if}
     {#if profile.notes && profile.notes.trim().length > 0}
       <div class="profile-view__cell profile-view__cell--wide">
         <span class="profile-view__label">הערות לתרגול</span>
         <p class="profile-view__notes">{profile.notes}</p>
+      </div>
+    {/if}
+    {#if healthFlags.length > 0}
+      <div class="profile-view__cell profile-view__cell--wide">
+        <span class="profile-view__label">הצהרת בריאות — תשובות «כן»</span>
+        <ul class="profile-view__health-flags">
+          {#each healthFlags as flag}
+            <li>{flag}</li>
+          {/each}
+        </ul>
       </div>
     {/if}
   </div>
@@ -71,7 +105,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .profile-view__value {
@@ -86,6 +120,18 @@
     line-height: 1.55;
     color: var(--ink);
     white-space: pre-wrap;
+  }
+
+  .profile-view__health-flags {
+    margin: 0;
+    padding-inline-start: var(--space-5);
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .profile-view__health-flags li + li {
+    margin-top: var(--space-2);
   }
 
   @media (max-width: 820px) {

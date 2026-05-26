@@ -89,7 +89,7 @@
 
   .link-sent p {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step-0);
     line-height: 1.5;
   }
@@ -98,7 +98,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step--1);
   }
 

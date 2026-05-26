@@ -56,7 +56,7 @@
   :global(.live-cancel-alert__desc) {
     margin: 0 0 var(--space-4);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.45;
   }
 

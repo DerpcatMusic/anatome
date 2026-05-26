@@ -22,7 +22,7 @@
     </nav>
 
     <div class="landing-footer__contact">
-      <span class="landing-footer__contact-label">יצירת קשר</span>
+      <span class="landing-footer__contact-label l-eyebrow">יצירת קשר</span>
       <a class="landing-footer__email" href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
     </div>
   </div>

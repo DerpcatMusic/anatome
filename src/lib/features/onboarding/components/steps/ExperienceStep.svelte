@@ -1,6 +1,5 @@
 <script lang="ts">
   import { useI18n } from '$lib/i18n/runes.svelte';
-  import { experienceOptions } from '$lib/labels';
   import { RadioGroup } from "bits-ui";
 
   let {
@@ -10,11 +9,11 @@
   } = $props();
 
   const { t } = useI18n();
-  const options = $derived(experienceOptions.map(([val, title]) => ({
-    value: val,
-    label: title,
-    description: val === "new" ? t.onboarding.experience.newDesc() : val === "some" ? t.onboarding.experience.someDesc() : t.onboarding.experience.steadyDesc(),
-  })));
+  const options = $derived([
+    { value: "new" as const, label: t.onboarding.experience.newTitle(), description: t.onboarding.experience.newDesc() },
+    { value: "some" as const, label: t.onboarding.experience.someTitle(), description: t.onboarding.experience.someDesc() },
+    { value: "steady" as const, label: t.onboarding.experience.steadyTitle(), description: t.onboarding.experience.steadyDesc() },
+  ]);
 </script>
 
 <div class="experience-options">

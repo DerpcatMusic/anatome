@@ -4,17 +4,27 @@
 
   import { useI18n } from "$lib/i18n/runes.svelte";
   import {
-    equipmentOptions,
     goalOptions,
+    normalizeEquipmentId,
+    pathologyOptions,
     type Equipment,
     type Goal,
+    type Pathology,
   } from "$lib/labels";
+  import {
+    emptyHealthDeclarationAnswers,
+    hasHealthDeclarationYes,
+    isHealthDeclarationComplete,
+    normalizeHealthDeclarationAnswers,
+    type HealthDeclarationAnswers,
+  } from "$lib/features/onboarding/health-declaration";
   import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
   import ExperienceStep from "./steps/ExperienceStep.svelte";
   import EquipmentStep from "./steps/EquipmentStep.svelte";
   import GoalsStep from "./steps/GoalsStep.svelte";
   import NotesStep from "./steps/NotesStep.svelte";
+  import HealthDeclarationStep from "./steps/HealthDeclarationStep.svelte";
   import SummaryStep from "./steps/SummaryStep.svelte";
   import "./OnboardingForm.css";
 
@@ -31,7 +41,9 @@
       equipment: string[];
       experience: "new" | "some" | "steady";
       goals: string[];
+      pathologies?: string[];
       notes: string;
+      healthDeclarationAnswers?: Record<string, "yes" | "no">;
     };
   } = $props();
 
@@ -40,29 +52,75 @@
 
   const steps = [
     { id: "experience" as const, title: t.onboarding.experience.title(), subtitle: t.onboarding.experience.subtitle() },
-    { id: "equipment-goals" as const, title: t.onboarding.equipment.title(), subtitle: t.onboarding.equipment.subtitle() },
-    { id: "notes-summary" as const, title: t.onboarding.notes.title(), subtitle: t.onboarding.notes.subtitle() },
+    { id: "equipment" as const, title: t.onboarding.equipment.title(), subtitle: t.onboarding.equipment.subtitle() },
+    { id: "goals" as const, title: t.onboarding.goals.title(), subtitle: t.onboarding.goals.subtitle() },
+    { id: "notes" as const, title: t.onboarding.notes.title(), subtitle: "" },
+    { id: "health-declaration" as const, title: t.onboarding.healthDeclaration.title(), subtitle: t.onboarding.healthDeclaration.subtitle() },
+    { id: "summary" as const, title: t.onboarding.summary.title(), subtitle: t.onboarding.summary.subtitle() },
   ] as const;
-
-  type StepId = (typeof steps)[number]["id"];
 
   let stepIndex = $state(0);
   let equipment = $state<Equipment[]>(["mat"]);
-  let goals = $state<Goal[]>(["strength"]);
+  let goals = $state<Goal[]>(["pelvic_floor_rehab"]);
   let experience = $state<"new" | "some" | "steady">("some");
+  let pathologies = $state<Pathology[]>([]);
   let notes = $state("");
+  let healthDeclarationAnswers = $state<HealthDeclarationAnswers>(emptyHealthDeclarationAnswers());
   let healthInfoConsent = $state(false);
   let healthDeclarationAccepted = $state(false);
   let pending = $state(false);
   let error = $state("");
   let submitted = $state(false);
 
+  const pathologyIds = new Set(pathologyOptions.map(([id]) => id));
+
+  function isKnownGoal(value: string): value is Goal {
+    return goalOptions.some(([id]) => id === value);
+  }
+
+  function isKnownPathology(value: string): value is Pathology {
+    return pathologyIds.has(value as Pathology);
+  }
+
+  const legacyGoalMap: Record<string, Goal> = {
+    strength: "functional_daily",
+    mobility: "stress_breathing",
+    posture: "functional_daily",
+    back_care: "back_pathology",
+    return_to_movement: "functional_daily",
+  };
+
+  function normalizeGoal(value: string): Goal | null {
+    if (isKnownGoal(value)) return value;
+    return legacyGoalMap[value] ?? null;
+  }
+
   $effect(() => {
-    equipment = initialProfile?.equipment?.filter((e): e is Equipment => equipmentOptions.some(([id]) => id === e)) ?? ["mat"];
-    goals = initialProfile?.goals?.filter((g): g is Goal => goalOptions.some(([id]) => id === g)) ?? ["strength"];
+    equipment = initialProfile?.equipment
+      ?.map((item) => normalizeEquipmentId(item))
+      .filter((item): item is Equipment => item !== null) ?? ["mat"];
+    goals = initialProfile?.goals
+      ?.map(normalizeGoal)
+      .filter((goal): goal is Goal => goal !== null) ?? ["pelvic_floor_rehab"];
     experience = initialProfile?.experience ?? "some";
+    pathologies = initialProfile?.pathologies?.filter(isKnownPathology) ?? [];
     notes = initialProfile?.notes ?? "";
-    healthInfoConsent = (initialProfile?.notes?.trim().length ?? 0) > 0;
+
+    if (initialProfile?.healthDeclarationAnswers) {
+      healthDeclarationAnswers = {
+        ...emptyHealthDeclarationAnswers(),
+        ...initialProfile.healthDeclarationAnswers,
+      };
+    } else {
+      healthDeclarationAnswers = emptyHealthDeclarationAnswers();
+    }
+
+    healthInfoConsent =
+      (initialProfile?.pathologies?.length ?? 0) > 0 ||
+      (initialProfile?.notes?.trim().length ?? 0) > 0 ||
+      (initialProfile?.healthDeclarationAnswers
+        ? Object.values(initialProfile.healthDeclarationAnswers).some((answer) => answer === "yes")
+        : false);
     healthDeclarationAccepted = mode === "edit";
     stepIndex = 0;
     error = "";
@@ -72,15 +130,24 @@
   const currentStep = $derived(steps[stepIndex]);
   const isFirst = $derived(stepIndex === 0);
   const isLast = $derived(stepIndex === steps.length - 1);
-
   const progressPercent = $derived(((stepIndex + 1) / steps.length) * 100);
 
+  const needsHealthConsent = $derived(
+    pathologies.length > 0 ||
+      notes.trim().length > 0 ||
+      hasHealthDeclarationYes(healthDeclarationAnswers),
+  );
+
   const canProceed = $derived(
-    currentStep.id === "equipment-goals"
-      ? equipment.length > 0 && goals.length > 0
-      : currentStep.id === "notes-summary"
-        ? healthDeclarationAccepted && (notes.trim().length === 0 || healthInfoConsent)
-      : true
+    currentStep.id === "equipment"
+      ? equipment.length > 0
+      : currentStep.id === "goals"
+        ? goals.length > 0
+        : currentStep.id === "health-declaration"
+          ? isHealthDeclarationComplete(healthDeclarationAnswers) &&
+            healthDeclarationAccepted &&
+            (!needsHealthConsent || healthInfoConsent)
+          : true,
   );
 
   function next() {
@@ -98,8 +165,20 @@
     pending = true;
     error = "";
     try {
+      const normalizedAnswers = normalizeHealthDeclarationAnswers(healthDeclarationAnswers);
+      if (normalizedAnswers === null) {
+        throw new Error(t.onboarding.healthDeclaration.incompleteError());
+      }
+
       await client.mutation(api.users.onboarding.complete, {
-        equipment, experience, goals, notes, healthInfoConsent, healthDeclarationAccepted,
+        equipment,
+        experience,
+        goals,
+        pathologies,
+        notes,
+        healthDeclarationAnswers: normalizedAnswers,
+        healthInfoConsent,
+        healthDeclarationAccepted,
       });
       if (mode === "edit") {
         onSaved?.();
@@ -124,7 +203,6 @@
   </div>
 {:else}
   <div class="onboarding">
-    <!-- Right panel: question (beige mesh) — FIRST in DOM → column 1 = RIGHT in RTL -->
     <div class="panel panel--question">
       <div class="panel__inner">
         <div class="question">
@@ -136,7 +214,6 @@
       </div>
     </div>
 
-    <!-- Left panel: form (white) — SECOND in DOM → column 2 = LEFT in RTL -->
     <div class="panel panel--form">
       <div class="panel__inner">
         {#if mode === "onboarding"}
@@ -149,39 +226,30 @@
         <div class="form-body">
           {#if currentStep.id === "experience"}
             <ExperienceStep bind:experience />
-          {:else if currentStep.id === "equipment-goals"}
-            <div class="combo-section">
-              <p class="combo-section__label">{t.onboarding.equipment.title()}</p>
-              <EquipmentStep bind:equipment />
-            </div>
-            <div class="combo-section">
-              <p class="combo-section__label">{t.onboarding.goals.title()}</p>
-              <GoalsStep bind:goals />
-            </div>
-          {:else if currentStep.id === "notes-summary"}
-            <NotesStep bind:notes />
-            <div class="privacy-consent" data-active={notes.trim().length > 0}>
-              <p>
-                השדה הזה אופציונלי ועשוי לכלול מידע רגיש כמו כאב, פציעה, הריון, ניתוח או מגבלה רפואית.
-                המידע נשמר רק כדי להתאים לך תרגול ולייבים, ואינו מחליף ייעוץ רפואי.
-              </p>
-              <label class="privacy-consent__check">
-                <input type="checkbox" bind:checked={healthInfoConsent} disabled={notes.trim().length === 0} />
-                <span>אני מסכימ/ה לשמירת המידע שמסרתי לצורך התאמת פעילות.</span>
-              </label>
-            </div>
-            <div class="health-declaration">
-              <p>
-                הצהרת בריאות: הפעילות אינה טיפול רפואי או פיזיותרפיה. אם יש כאב חד, פציעה פעילה,
-                הריון, אחרי לידה, ניתוח, בעיית לב, לחץ דם, סחרחורת או מגבלה רפואית — יש להתייעץ
-                עם גורם רפואי מוסמך לפני התחלה ולעצור מיד אם יש החמרה או תחושה חריגה.
-              </p>
-              <label class="privacy-consent__check">
-                <input type="checkbox" bind:checked={healthDeclarationAccepted} />
-                <span>קראתי ואני מאשר/ת שהפעילות מתאימה לי או שהתייעצתי עם גורם רפואי כנדרש.</span>
-              </label>
-            </div>
-            <SummaryStep {experience} {equipment} {goals} />
+          {:else if currentStep.id === "equipment"}
+            <EquipmentStep bind:equipment />
+          {:else if currentStep.id === "goals"}
+            <GoalsStep bind:goals />
+          {:else if currentStep.id === "notes"}
+            <NotesStep bind:pathologies bind:notes />
+          {:else if currentStep.id === "health-declaration"}
+            <HealthDeclarationStep
+              bind:answers={healthDeclarationAnswers}
+              bind:healthInfoConsent
+              bind:healthDeclarationAccepted
+              {needsHealthConsent}
+            />
+          {:else if currentStep.id === "summary"}
+            <SummaryStep
+              {experience}
+              {equipment}
+              {goals}
+              {pathologies}
+              {notes}
+              {healthDeclarationAnswers}
+              {healthDeclarationAccepted}
+              {healthInfoConsent}
+            />
           {/if}
 
           {#if error}

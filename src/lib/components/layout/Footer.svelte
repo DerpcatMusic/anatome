@@ -63,7 +63,7 @@
 
   .footer-tagline {
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .footer-links {
@@ -84,7 +84,7 @@
 
   .footer-links a:hover,
   .footer-legal a:hover {
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .footer-contact {
@@ -104,7 +104,7 @@
   }
 
   .footer-contact span {
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
     font-size: var(--step--1);
   }
@@ -116,7 +116,7 @@
     padding-top: var(--space-5);
     border-top: var(--border);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .footer-legal a {

@@ -69,7 +69,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .profile-view__value {
@@ -101,7 +101,7 @@
     font-family: var(--font-mono);
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .compliance-dot {

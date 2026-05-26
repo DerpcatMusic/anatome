@@ -4,6 +4,7 @@
     dashboardPathForRole,
     initAuth,
     setCachedRole,
+    canRunAuthenticatedQuery,
   } from "$lib/auth/session.svelte";
 
   import { useI18n } from "$lib/i18n/runes.svelte";
@@ -16,7 +17,7 @@
   const auth = initAuth();
   const { t } = useI18n();
 
-  const dashboardQuery = useQuery(api.users.dashboard.get, () => auth.isAuthenticated ? {} : 'skip');
+  const dashboardQuery = useQuery(api.users.dashboard.get, () => canRunAuthenticatedQuery() ? {} : 'skip');
 
   let status = $state<"checking" | "locked" | "ready" | "done" | "error">("checking");
   let error = $state("");

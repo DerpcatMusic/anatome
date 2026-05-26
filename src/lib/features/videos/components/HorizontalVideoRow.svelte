@@ -26,6 +26,7 @@
     hideStatus = false,
     hideHeader = false,
     carousel = true,
+    vodCreditBalance = null,
     onSelect,
   }: {
     title: string;
@@ -42,6 +43,7 @@
     hideHeader?: boolean;
     /** Horizontal carousel track (YouTube-style). */
     carousel?: boolean;
+    vodCreditBalance?: number | null;
     onSelect: (video: RowVideo) => void;
   } = $props();
 
@@ -83,6 +85,7 @@
             teaserLocked={teaserLocked && video.locked}
             {unlockHint}
             {hideStatus}
+            {vodCreditBalance}
             pending={pendingId === video._id}
             onclick={() => onSelect(video)}
           />
@@ -115,7 +118,7 @@
 
   .video-row__subtitle {
     margin: var(--space-2) 0 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
     max-width: 60ch;
   }

@@ -7,7 +7,13 @@
   import MarketingNavbar from "$components/layout/MarketingNavbar.svelte";
   import LandingAuthHost from "$lib/features/marketing/LandingAuthHost.svelte";
   import { initConvex } from "$lib/convex/setup";
-  import { initAuth, wireConvexAuth } from "$lib/auth/session.svelte";
+  import {
+    initAuth,
+    wireConvexAuth,
+    canRunAuthenticatedQuery,
+    getCachedRole,
+    setCachedRole,
+  } from "$lib/auth/session.svelte";
   import { useThemeMedia } from "$features/app/themeMedia.svelte";
 
   let { children } = $props();
@@ -22,17 +28,19 @@
 
   const auth = initAuth();
   const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
 
-  const role = $derived(profileQuery.data?.role ?? null);
+  const role = $derived(profileQuery.data?.role ?? getCachedRole());
   const isStaff = $derived(role === "instructor" || role === "admin");
 
   /** Public catalog only — signed-in members use /u/library (app shell). */
   $effect(() => {
     if (!browser || auth.isLoading) return;
     if (!auth.isAuthenticated) return;
-    if (profileQuery.isLoading) return;
+    if (!canRunAuthenticatedQuery()) return;
+    if (profileQuery.data?.role) setCachedRole(profileQuery.data.role);
+    if (profileQuery.isLoading && role === null) return;
     if (isStaff) {
       void goto("/i/videos", { replaceState: true });
       return;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
-  import { initAuth, getCachedRole } from "$lib/auth/session.svelte";
+  import { initAuth, getCachedRole, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import AppSkeleton from "./AppSkeleton.svelte";
   import AppLocked from "./AppLocked.svelte";
 
@@ -17,7 +17,7 @@
 
   // Fetch the real profile from the backend instead of trusting localStorage
   const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    auth.isAuthenticated ? {} : "skip"
+    canRunAuthenticatedQuery() ? {} : "skip"
   );
 
   const realRole = $derived(profileQuery.data?.role ?? getCachedRole());
@@ -33,7 +33,11 @@
     return true;
   });
 
-  const isLoading = $derived(auth.isLoading || profileQuery.isLoading);
+  const isLoading = $derived(
+    auth.isLoading ||
+      (auth.isAuthenticated && !canRunAuthenticatedQuery()) ||
+      profileQuery.isLoading,
+  );
 </script>
 
 {#if isLoading}

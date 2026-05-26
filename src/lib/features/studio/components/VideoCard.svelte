@@ -134,7 +134,7 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .placeholder-icon {
@@ -165,7 +165,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    color: var(--muted);
+    color: var(--foreground-muted);
     padding: var(--space-1);
     display: flex;
     border-radius: 2px;
@@ -180,7 +180,7 @@
     margin: 0;
     font-size: var(--step--1);
     line-height: 1.45;
-    color: var(--muted);
+    color: var(--foreground-muted);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;

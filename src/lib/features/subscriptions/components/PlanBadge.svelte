@@ -62,7 +62,7 @@
 
   .plan-badge--starter .plan-badge__dot {
     background: var(--muted);
-    box-shadow: 0 0 0 2px color-mix(in oklch, var(--muted) 30%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--foreground-muted) 30%, transparent);
   }
 
   .plan-badge--steady .plan-badge__dot {

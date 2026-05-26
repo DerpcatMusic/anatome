@@ -39,13 +39,14 @@
     try {
       const { blob } = await processAvatarFile(file);
       const uploadUrl = await client.mutation(api.profiles.avatar.generateUploadUrl, {});
+      const contentType = blob.type || "image/webp";
       const response = await fetch(uploadUrl, {
         method: "POST",
-        headers: { "Content-Type": blob.type },
+        headers: { "Content-Type": contentType },
         body: blob,
       });
       if (!response.ok) {
-        throw new Error("העלאת התמונה נכשלה");
+        throw new Error(`העלאת התמונה נכשלה (${response.status})`);
       }
       const { storageId } = (await response.json()) as { storageId: string };
       await client.mutation(api.profiles.avatar.setFromStorage, {
@@ -167,7 +168,7 @@
   .avatar-upload__hint {
     margin: 0;
     font-size: var(--step--2);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .avatar-upload__error {

@@ -4,13 +4,13 @@
   import InstructorVideoManager from "$features/studio/components/InstructorVideoManager.svelte";
   import VideoLibraryShell from "./VideoLibraryShell.svelte";
   import { api } from "$convex/_generated/api";
-  import { authQuery, initAuth } from "$lib/auth/session.svelte";
+  import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useQuery } from "convex-svelte";
   import { resource } from "runed";
   import "../videos-feature.css";
 
   const auth = initAuth();
-  const profileQuery = useQuery(api.profiles.viewer.get, () => auth.isAuthenticated ? {} : "skip");
+  const profileQuery = useQuery(api.profiles.viewer.get, () => canRunAuthenticatedQuery() ? {} : "skip");
   const role = $derived(profileQuery.data?.role ?? "customer");
   const isStaff = $derived(role === "instructor" || role === "admin");
 

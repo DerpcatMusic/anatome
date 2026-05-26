@@ -717,7 +717,7 @@
   .live-composer--popover :global(.hb-input:focus),
   .live-composer--popover :global(.hb-textarea:focus) {
     box-shadow: none;
-    outline: 2px solid var(--secondary-cool);
+    outline: 2px solid var(--accent);
     outline-offset: 0;
   }
 
@@ -748,7 +748,7 @@
   .live-composer__ended-hint {
     margin: 0;
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .live-composer--quick .live-composer__title-input {
@@ -780,7 +780,7 @@
   }
 
   .live-composer--popover .live-composer__title-input:focus {
-    border-bottom-color: var(--secondary-cool);
+    border-bottom-color: var(--accent);
     outline: none;
     box-shadow: none;
   }
@@ -800,9 +800,9 @@
   }
 
   .quick-type-badge--group {
-    border-color: color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
-    color: var(--secondary-cool);
-    background: color-mix(in oklch, var(--secondary-cool) 14%, var(--paper));
+    border-color: color-mix(in oklch, var(--accent) 55%, var(--line-light));
+    color: var(--accent);
+    background: color-mix(in oklch, var(--accent) 14%, var(--paper));
   }
 
   .quick-type-badge--one-on-one {
@@ -818,7 +818,7 @@
     padding-inline: 0;
     min-height: 32px;
     font-weight: 700;
-    color: var(--secondary-cool);
+    color: var(--accent);
   }
 
   .composer-desc--quick {
@@ -930,7 +930,7 @@
   }
 
   .quick-time-sep {
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 700;
     font-size: var(--step--2);
   }
@@ -944,7 +944,7 @@
     font-family: var(--font-mono);
     font-size: var(--step--2);
     font-weight: 700;
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
     background: transparent;
     border: none;
@@ -975,7 +975,7 @@
   .quick-capacity-row__label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -1018,7 +1018,7 @@
   }
 
   .live-composer--popover :global(.live-type-toggle--quick .live-type-toggle__item[data-state="on"]) {
-    background: color-mix(in oklch, var(--secondary-cool) 22%, var(--surface));
+    background: color-mix(in oklch, var(--accent) 22%, var(--surface));
     color: var(--ink);
     box-shadow: none;
   }
@@ -1045,9 +1045,9 @@
   .live-composer--popover
     .live-composer__equipment
     :global(.equipment-grid--compact .hb-choice[data-state="checked"]) {
-    background: color-mix(in oklch, var(--secondary-cool) 18%, var(--paper));
+    background: color-mix(in oklch, var(--accent) 18%, var(--paper));
     color: var(--ink);
-    outline: 2px solid color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
+    outline: 2px solid color-mix(in oklch, var(--accent) 55%, var(--line-light));
     outline-offset: -2px;
   }
 
@@ -1088,7 +1088,7 @@
 
   .field-optional {
     font-weight: 600;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .capacity-locked {
@@ -1137,8 +1137,8 @@
   }
 
   :global(.live-type-toggle__item[data-state="on"]) {
-    background: color-mix(in oklch, var(--secondary-cool) 22%, var(--elevated));
-    border-color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--accent) 22%, var(--elevated));
+    border-color: var(--accent);
   }
 
   :global(.live-type-toggle__item[data-state="on"][data-value="one_on_one"]) {
@@ -1148,7 +1148,7 @@
 
   :global(.live-type-toggle__item:hover) {
     background: var(--surface);
-    border-color: color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
+    border-color: color-mix(in oklch, var(--accent) 45%, var(--line-light));
   }
 
   :global(.live-type-toggle__item .material-symbols-rounded) {
@@ -1180,7 +1180,7 @@
   .date-display {
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--muted);
+    color: var(--foreground-muted);
     padding-inline: var(--space-1);
   }
 
@@ -1193,7 +1193,7 @@
   .time-label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
     text-transform: uppercase;
   }
@@ -1210,7 +1210,7 @@
     font-family: var(--font-mono);
     font-weight: 800;
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -1229,7 +1229,7 @@
   .settings-label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
     text-transform: uppercase;
   }

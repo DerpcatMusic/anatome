@@ -28,7 +28,7 @@
     font-size: var(--step--2);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 700;
     margin: 0 0 var(--space-2);
     padding-bottom: var(--space-2);

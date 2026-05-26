@@ -3,7 +3,7 @@
   import { api } from "$convex/_generated/api";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
-  import { authQuery, initAuth, setCachedRole } from "$lib/auth/session.svelte";
+  import { authQuery, initAuth, setCachedRole, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import { liveRoomHref } from "$lib/i18n/context";
   import { Button, Toggle, ToggleGroup } from "bits-ui";
@@ -29,8 +29,8 @@
   type ClassTypeFilter = "all" | "group_live" | "one_on_one";
 
   const auth = initAuth();
-  const profileQuery = useQuery(api.profiles.viewer.get, () => (auth.isAuthenticated ? {} : "skip"));
-  const classesQuery = useQuery(api.live.class.listMine, () => (auth.isAuthenticated ? {} : "skip"));
+  const profileQuery = useQuery(api.profiles.viewer.get, () => (canRunAuthenticatedQuery() ? {} : "skip"));
+  const classesQuery = useQuery(api.live.class.listMine, () => (canRunAuthenticatedQuery() ? {} : "skip"));
 
   const classes = $derived(classesQuery.data ?? []);
   const loading = $derived(profileQuery.isLoading || classesQuery.isLoading);
@@ -564,7 +564,7 @@
   }
 
   :global(.studio-bar-btn:focus-visible) {
-    outline: 2px solid var(--secondary-cool);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
@@ -592,23 +592,23 @@
   }
 
   :global(.studio-bar-btn[data-state="on"][data-value="group_live"]) {
-    background: color-mix(in oklch, var(--secondary-cool) 18%, var(--elevated));
-    border-color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--accent) 18%, var(--elevated));
+    border-color: var(--accent);
     color: var(--ink);
   }
 
   :global(.studio-bar-btn[data-state="on"][data-value="group_live"]:hover) {
-    box-shadow: 0 0 0 1px var(--secondary-cool);
+    box-shadow: 0 0 0 1px var(--accent);
   }
 
   :global(.studio-bar-btn--availability[data-state="on"]) {
-    background: color-mix(in oklch, var(--secondary-cool) 14%, var(--elevated));
-    border-color: var(--secondary-cool);
+    background: color-mix(in oklch, var(--accent) 14%, var(--elevated));
+    border-color: var(--accent);
     color: var(--ink);
   }
 
   :global(.studio-bar-btn--availability[data-state="on"]:hover) {
-    box-shadow: 0 0 0 1px var(--secondary-cool);
+    box-shadow: 0 0 0 1px var(--accent);
   }
 
   :global(.studio-filter .studio-bar-btn[data-state="on"][data-value="all"]) {

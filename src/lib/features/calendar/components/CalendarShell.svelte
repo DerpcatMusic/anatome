@@ -4,7 +4,7 @@
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
   import { useQuery, useConvexClient } from "convex-svelte";
-  import { initAuth } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import BookingAgendaList from "./BookingAgendaList.svelte";
   import OneOnOneRequestModal, {
@@ -28,6 +28,7 @@
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
 
   const agendaRangeStart = $derived(startOfLocalDay());
   let agendaRangeEnd = $state(initialAgendaRangeEnd(startOfLocalDay(), "all"));
@@ -48,7 +49,7 @@
   const client = useConvexClient();
 
   const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
   const isCustomer = $derived(profileQuery.data?.role === "customer");
 
@@ -64,7 +65,7 @@
   });
 
   const query = useQuery(api.live.calendar.listRange, () =>
-    auth.isAuthenticated
+    canRunAuthenticatedQuery()
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
@@ -73,7 +74,7 @@
   );
 
   const dayAvailabilityQuery = useQuery(api.oneOnOne.customer.listDayAvailability, () =>
-    auth.isAuthenticated && isCustomer
+    canRunAuthenticatedQuery() && isCustomer
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
@@ -86,7 +87,7 @@
   );
 
   const pendingRequestsQuery = useQuery(api.oneOnOne.customer.listMine, () =>
-    auth.isAuthenticated && isCustomer && typeFilter !== "group_live" ? {} : "skip",
+    canRunAuthenticatedQuery() && isCustomer && typeFilter !== "group_live" ? {} : "skip",
   );
 
   const classes = $derived(query.data ?? []);
@@ -107,6 +108,9 @@
   const oneOnOnePaneGroups = $derived(groupAgendaByDay(splitAgenda.oneOnOne));
 
   const hasOneOnOneCredits = $derived(dayWindows.some((w) => w.availableCredits >= 1));
+  const oneOnOneCreditBalance = $derived(
+    dayWindows.reduce((max, w) => Math.max(max, w.availableCredits), 0),
+  );
 
   const showOneOnOneRequest = $derived(isCustomer && typeFilter !== "group_live");
 
@@ -271,15 +275,25 @@
       </ToggleGroup.Root>
 
       {#if showOneOnOneRequest}
-        <Button.Root
-          class="hb-button hb-button--primary hb-button--sm"
-          type="button"
-          disabled={!hasOneOnOneCredits}
-          title={hasOneOnOneCredits ? "בקשת שיעור אישי" : "אין קרדיט 1:1 זמין"}
-          onclick={() => openOneOnOneModal()}
+        <CreditCostTooltip
+          cost={1}
+          balance={oneOnOneCreditBalance}
+          pool="oneOnOne"
+          enabled={hasOneOnOneCredits}
         >
-          בקשת 1:1
-        </Button.Root>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              class="hb-button hb-button--primary hb-button--sm"
+              type="button"
+              disabled={!hasOneOnOneCredits}
+              title={hasOneOnOneCredits ? "בקשת שיעור אישי" : "אין קרדיט 1:1 זמין"}
+              onclick={() => openOneOnOneModal()}
+            >
+              בקשת 1:1
+            </Button.Root>
+          {/snippet}
+        </CreditCostTooltip>
       {/if}
 
     </div>
@@ -406,7 +420,7 @@
     margin: 0;
     font-size: var(--step--1);
     line-height: 1.5;
-    color: color-mix(in oklch, var(--ink) 72%, var(--muted));
+    color: color-mix(in oklch, var(--ink) 72%, var(--foreground-muted));
     max-width: 58ch;
   }
 

@@ -13,7 +13,6 @@
   import { useI18n } from "$lib/i18n/runes";
   import { chunkMacroflowRows } from "$features/videos/lib/catalog-chunks";
   import CatalogCategoryRail from "./CatalogCategoryRail.svelte";
-  import MacroflowCreditsBadge from "./MacroflowCreditsBadge.svelte";
   import HorizontalVideoRow, { type RowVideo } from "./HorizontalVideoRow.svelte";
   import RedeemVideoDialog, { type RedeemTarget } from "./RedeemVideoDialog.svelte";
   import type { CategoryGroup } from "./MicroflowCategorySection.svelte";
@@ -233,7 +232,6 @@
               {t.catalog.dashboardLink()}
             </a>
           {/if}
-          <MacroflowCreditsBadge balance={data.vodCredits ?? 0} />
         </div>
         {#if ownedHint}
           <span class="catalog-page__owned-hint">{ownedHint}</span>
@@ -266,6 +264,7 @@
             videos={rowVideos}
             emptyMessage=""
             hideHeader
+            vodCreditBalance={guest ? null : (data.vodCredits ?? 0)}
             {pendingId}
             carousel
             teaserLocked={guest}

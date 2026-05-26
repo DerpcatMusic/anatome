@@ -86,7 +86,7 @@
 
   .navbar__tagline {
     font-size: var(--step-0);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 600;
   }
 
@@ -103,7 +103,7 @@
     place-items: center;
     background: transparent;
     border: var(--border);
-    color: var(--muted);
+    color: var(--foreground-muted);
     cursor: pointer;
     padding: 0;
     transition: color var(--duration-fast), border-color var(--duration-fast), background var(--duration-fast);
@@ -121,7 +121,7 @@
 
   .navbar__status {
     font-size: var(--step-0);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
   }
 

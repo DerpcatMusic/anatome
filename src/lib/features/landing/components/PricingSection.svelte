@@ -18,7 +18,9 @@
 
 <section class="l-panel l-section section--pricing" aria-label="מחירים">
   <div class="l-shell">
+    <p class="l-eyebrow l-in">{t.landing.pricing.tag()}</p>
     <h2 class="section-title l-in">{t.landing.pricing.headline()}</h2>
+    <p class="section-lead l-in">{t.landing.pricing.lead()}</p>
 
     <div class="pricing">
       {#if featured}
@@ -31,7 +33,7 @@
           <div class="pricing__featured-side">
             <p class="pricing__price">{featured.monthlyPriceIls} {t.landing.pricing.perMonth()}</p>
             <Button.Root
-              class="hb-button hb-button--brand"
+              class="hb-button hb-button--brand hb-button--pill"
               type="button"
               onclick={openAuthOverlay}
             >

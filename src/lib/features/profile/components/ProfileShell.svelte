@@ -2,7 +2,7 @@
   import { Button } from "bits-ui";
   import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
-  import { authQuery, initAuth } from "$lib/auth/session.svelte";
+  import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
   import AppLocked from "$features/app/components/AppLocked.svelte";
@@ -66,13 +66,15 @@
   const client = useConvexClient();
 
   const viewerQuery = useQuery(api.profiles.viewer.get, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
   const viewerAvatarUrl = $derived(viewerQuery.data?.avatarUrl ?? null);
   const viewerDisplayName = $derived(viewerQuery.data?.displayName ?? "");
 
   async function refreshViewerProfile() {
-    await appProfileResource.refetch();
+    if (isInstructorAudience) {
+      await appProfileResource.refetch();
+    }
   }
 
   $effect(() => {
@@ -91,7 +93,9 @@
           equipment: dashboardResource.current.profile.equipment,
           experience: dashboardResource.current.profile.experience,
           goals: dashboardResource.current.profile.goals,
+          pathologies: dashboardResource.current.profile.pathologies ?? [],
           notes: dashboardResource.current.profile.notes ?? "",
+          healthDeclarationAnswers: dashboardResource.current.profile.healthDeclarationAnswers ?? undefined,
         }
       : null,
   );
@@ -470,7 +474,7 @@
   }
 
   .drop-text {
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step-0);
   }
 

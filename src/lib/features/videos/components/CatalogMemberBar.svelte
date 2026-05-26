@@ -1,16 +1,18 @@
 <script lang="ts">
-  import MacroflowCreditsBadge from "./MacroflowCreditsBadge.svelte";
+  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
 
   let {
     vodCredits = 0,
   }: {
     vodCredits?: number;
   } = $props();
+
+  const balances = $derived({ vod: vodCredits, live: 0, oneOnOne: 0 });
 </script>
 
 <div class="catalog-member-bar">
   <a class="catalog-member-bar__home" href="/u/dashboard">אזור אישי</a>
-  <MacroflowCreditsBadge balance={vodCredits} />
+  <WalletCreditStrip balances={balances} pools={["vod"]} size="sm" layout="stack" variant="pill" />
 </div>
 
 <style>

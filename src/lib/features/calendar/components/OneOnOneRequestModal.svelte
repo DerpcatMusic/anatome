@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Dialog, Button } from "bits-ui";
+  import CreditCostHint from "$lib/features/credits/CreditCostHint.svelte";
   import type { DayAvailability } from "../lib/agenda";
   import {
     formatWallMinutes,
@@ -38,6 +39,9 @@
   let timeError = $state("");
 
   const hasCredits = $derived(windows.some((w) => w.availableCredits >= 1));
+  const oneOnOneBalance = $derived(
+    windows.reduce((max, w) => Math.max(max, w.availableCredits), 0),
+  );
 
   const dayGroups = $derived.by(() => {
     const map = new Map<number, DayAvailability[]>();
@@ -253,15 +257,18 @@
           סגירה
         </Dialog.Close>
         {#if hasCredits && dayGroups.length > 0}
-          <Button.Root
-            class="hb-button hb-button--primary hb-button--sm"
-            type="button"
-            disabled={!canSubmit || pending}
-            aria-busy={pending}
-            onclick={submit}
-          >
-            {pending ? "שולחת..." : "שליחת בקשה"}
-          </Button.Root>
+          <div class="one-on-one-modal__submit">
+            <CreditCostHint cost={1} balance={oneOnOneBalance} pool="oneOnOne" />
+            <Button.Root
+              class="hb-button hb-button--primary hb-button--sm"
+              type="button"
+              disabled={!canSubmit || pending}
+              aria-busy={pending}
+              onclick={submit}
+            >
+              {pending ? "שולחת..." : "שליחת בקשה"}
+            </Button.Root>
+          </div>
         {/if}
       </div>
     </Dialog.Content>
@@ -285,14 +292,14 @@
     margin: 0;
     font-size: var(--step--1);
     line-height: 1.45;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .one-on-one-modal__blocked {
     margin: 0;
     padding: var(--space-4);
     border: var(--border);
-    border-inline-start: 3px solid var(--muted);
+    border-inline-start: 3px solid var(--border-color);
     background: var(--surface);
     font-weight: 700;
     line-height: 1.45;
@@ -315,7 +322,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin-bottom: var(--space-2);
     padding: 0;
   }
@@ -363,7 +370,7 @@
   .one-on-one-modal__window-meta {
     margin: var(--space-1) 0 0;
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 600;
   }
 
@@ -386,16 +393,24 @@
     display: block;
     margin-top: var(--space-1);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-weight: 600;
   }
 
   .one-on-one-modal__footer {
     display: flex;
     justify-content: flex-end;
+    align-items: flex-end;
     gap: var(--space-2);
     flex-wrap: wrap;
     padding-top: var(--space-2);
     border-top: 1px solid var(--line-light);
+  }
+
+  .one-on-one-modal__submit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-2);
   }
 </style>

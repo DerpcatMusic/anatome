@@ -72,7 +72,7 @@
     height: 36px;
     border: var(--border);
     background: var(--elevated);
-    color: var(--muted);
+    color: var(--foreground-muted);
     text-decoration: none;
     border-radius: 0;
     transition:

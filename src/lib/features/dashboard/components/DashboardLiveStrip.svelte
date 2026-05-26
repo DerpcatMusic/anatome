@@ -132,7 +132,7 @@
   }
 
   .live-strip__item:hover {
-    background: color-mix(in oklch, var(--secondary-cool) 10%, var(--paper));
+    background: color-mix(in oklch, var(--accent) 10%, var(--paper));
   }
 
   .live-strip__status {
@@ -140,7 +140,7 @@
     font-size: var(--step--2);
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .live-strip__status[data-status="live"] {
@@ -157,12 +157,12 @@
 
   .live-strip__when {
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .live-strip__empty-text {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
   }
 

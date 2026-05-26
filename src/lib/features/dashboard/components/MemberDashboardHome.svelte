@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
-  import { initAuth } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { routePath } from "$lib/i18n/context";
   import HorizontalVideoRow from "$features/videos/components/HorizontalVideoRow.svelte";
@@ -21,10 +21,10 @@
   const { t } = useI18n();
 
   const catalogQuery = useQuery(api.video.catalog.listCatalog, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
   const upcomingQuery = useQuery(api.live.calendar.listUpcoming, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
 
   const now = Date.now();

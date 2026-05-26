@@ -152,7 +152,7 @@
   .requests-panel__intro {
     margin: 0 0 var(--space-3);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.4;
   }
 
@@ -165,7 +165,7 @@
 
   .requests-panel__loading {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   :global(.requests-scroll) {

@@ -11,21 +11,45 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: var(--paper);
-  color: var(--ink);
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: var(--accent-soft);
+  background: var(--secondary-subtle);
   color: var(--ink);
 }
 
 [data-theme="dark"] ::selection {
-  background: var(--accent-soft);
+  background: color-mix(in oklch, var(--secondary) 28%, var(--muted));
   color: var(--ink);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-pill);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong-color);
 }
 
 a {
@@ -84,14 +108,14 @@ h3 {
   font-size: var(--step--1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--foreground-muted);
   margin-bottom: var(--space-5);
 }
 
 .lead {
   margin-top: var(--space-5);
   font-size: var(--step-1);
-  color: var(--muted);
+  color: var(--foreground-muted);
   line-height: 1.6;
   max-width: 44ch;
 }
@@ -192,7 +216,7 @@ h3 {
 }
 
 .features__header p {
-  color: var(--muted);
+  color: var(--foreground-muted);
   max-width: 46ch;
   font-size: var(--step-1);
 }
@@ -223,7 +247,7 @@ h3 {
 }
 
 .features-grid p {
-  color: var(--muted);
+  color: var(--foreground-muted);
   line-height: 1.6;
   font-size: var(--step-0);
 }
@@ -245,7 +269,7 @@ h3 {
 }
 
 .cta-section p {
-  color: var(--muted);
+  color: var(--foreground-muted);
   max-width: 40ch;
   font-size: var(--step-1);
 }
@@ -328,7 +352,7 @@ h3 {
 .locked .kicker {
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  color: var(--muted);
+  color: var(--foreground-muted);
 }
 
 .locked h1 {
@@ -337,7 +361,7 @@ h3 {
 }
 
 .locked p {
-  color: var(--muted);
+  color: var(--foreground-muted);
 }
 
 .locked__action {

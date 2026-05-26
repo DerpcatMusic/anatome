@@ -162,7 +162,7 @@
     border: var(--border);
     background: var(--elevated);
     text-align: center;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.5;
     font-size: var(--step--1);
   }
@@ -179,7 +179,7 @@
     margin: 0;
     font-size: var(--step--2);
     font-weight: 600;
-    color: var(--muted);
+    color: var(--foreground-muted);
     text-align: center;
   }
 </style>

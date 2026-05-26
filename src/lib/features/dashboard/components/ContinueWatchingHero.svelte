@@ -3,7 +3,7 @@
   import { api } from "$convex/_generated/api";
   import { Button } from "bits-ui";
   import { useQuery } from "convex-svelte";
-  import { initAuth } from "$lib/auth/session.svelte";
+  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { watchHref, routePath } from "$lib/i18n/context";
   import { formatProgressLabel } from "../lib/format";
@@ -22,7 +22,7 @@
   const auth = initAuth();
   const { t } = useI18n();
   const progressQuery = useQuery(api.video.playback.getContinueWatching, () =>
-    auth.isAuthenticated ? {} : "skip",
+    canRunAuthenticatedQuery() ? {} : "skip",
   );
 
   const item = $derived(progressQuery.data ?? null);
@@ -151,7 +151,7 @@
     height: 100%;
     background: linear-gradient(
       145deg,
-      color-mix(in oklch, var(--secondary-cool) 18%, var(--surface)),
+      color-mix(in oklch, var(--accent) 18%, var(--surface)),
       var(--surface)
     );
   }
@@ -180,7 +180,7 @@
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .continue-hero__progress {
@@ -193,7 +193,7 @@
   .continue-hero__progress span {
     display: block;
     height: 100%;
-    background: var(--secondary-cool);
+    background: var(--accent);
     transition: width var(--duration-fast) var(--ease-out);
   }
 
@@ -213,7 +213,7 @@
     font-size: var(--step--2);
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .continue-hero__welcome-title {
@@ -224,7 +224,7 @@
 
   .continue-hero__welcome-text {
     margin: var(--space-2) 0 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.6;
     max-width: 52ch;
   }

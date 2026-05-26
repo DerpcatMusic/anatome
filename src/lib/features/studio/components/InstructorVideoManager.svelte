@@ -4,7 +4,7 @@
   import type { Equipment } from "$lib/labels";
   import { Button } from "bits-ui";
   import { resource } from "runed";
-  import { authQuery, initAuth } from "$lib/auth/session.svelte";
+  import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useQuery, useConvexClient } from "convex-svelte";
   import PageShell from "$features/app/components/PageShell.svelte";
   import Notice from "$components/ui/Notice.svelte";
@@ -37,7 +37,7 @@
   let editingVideoObj = $state<Video | null>(null);
 
   const client = useConvexClient();
-  const listQuery = useQuery(api.video.admin.listAll, () => (auth.isAuthenticated ? {} : "skip"));
+  const listQuery = useQuery(api.video.admin.listAll, () => (canRunAuthenticatedQuery() ? {} : "skip"));
   const library = $derived(listQuery.data ?? null);
 
   const categoriesResource = resource(

@@ -1,7 +1,13 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { equipmentListValidator, experienceValidator, goalsValidator } from "./lib/validators";
+import {
+  equipmentListValidator,
+  experienceValidator,
+  goalsValidator,
+  healthDeclarationAnswersValidator,
+  pathologiesListValidator,
+} from "./lib/validators";
 
 export default defineSchema({
   ...authTables,
@@ -355,7 +361,9 @@ export default defineSchema({
     equipment: equipmentListValidator,
     experience: experienceValidator,
     goals: goalsValidator,
+    pathologies: v.optional(pathologiesListValidator),
     notes: v.string(),
+    healthDeclarationAnswers: v.optional(healthDeclarationAnswersValidator),
     healthInfoConsentAcceptedAt: v.optional(v.number()),
     healthDeclarationAcceptedAt: v.optional(v.number()),
     onboardingCompletedAt: v.number(),

@@ -68,7 +68,7 @@
   }
 
   .action-card p {
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin: 0;
     line-height: 1.5;
   }

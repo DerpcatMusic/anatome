@@ -31,7 +31,7 @@
   .page-header__kicker {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     margin: 0 0 var(--space-1);
   }
 

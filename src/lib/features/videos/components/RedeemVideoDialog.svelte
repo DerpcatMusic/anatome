@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Dialog, Button } from "bits-ui";
+  import CreditCostHint from "$lib/features/credits/CreditCostHint.svelte";
   import { durationLabel } from "$lib/labels";
 
   export type RedeemTarget = {
@@ -31,21 +32,17 @@
     <Dialog.Overlay class="hb-dialog-overlay" />
     <Dialog.Content class="hb-dialog-content redeem-dialog" aria-label="אישור פתיחת סרטון">
       <Dialog.Title class="redeem-dialog__title">לפתוח את השיעור?</Dialog.Title>
-      <Dialog.Description class="redeem-dialog__desc">
-        {#if video}
-          קרדיט אחד עבור «{video.title}» ({durationLabel(video.durationSeconds)}). השיעור נשאר שלך.
-        {:else}
-          קרדיט אחד. השיעור נשאר שלך.
-        {/if}
-      </Dialog.Description>
+      {#if video}
+        <p class="redeem-dialog__meta">
+          {video.title}
+          <span class="redeem-dialog__duration">({durationLabel(video.durationSeconds)})</span>
+        </p>
+      {/if}
 
-      <div class="redeem-dialog__balance" class:redeem-dialog__balance--low={!canRedeem}>
-        <span>יתרה נוכחית</span>
-        <strong>{creditsBalance}</strong>
-      </div>
+      <CreditCostHint cost={1} balance={creditsBalance} pool="vod" />
 
       {#if !canRedeem}
-        <p class="redeem-dialog__warn">אין מספיק קרדיטים.</p>
+        <p class="redeem-dialog__warn">אין מספיק קרדיטים</p>
       {/if}
 
       <div class="redeem-dialog__actions">
@@ -78,31 +75,23 @@
     line-height: 1.2;
   }
 
-  :global(.redeem-dialog__desc) {
+  :global(.redeem-dialog__meta) {
     margin: 0;
-    color: var(--muted);
-    line-height: 1.6;
+    color: var(--foreground-muted);
+    line-height: 1.5;
+    font-size: var(--step--1);
   }
 
-  :global(.redeem-dialog__balance) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+  :global(.redeem-dialog__duration) {
+    opacity: 0.85;
+  }
+
+  :global(.redeem-dialog .credit-cost-hint) {
+    justify-content: center;
     padding: var(--space-3) var(--space-4);
     border: var(--border);
     background: var(--surface);
-  }
-
-  :global(.redeem-dialog__balance strong) {
-    font-family: var(--font-display);
-    font-size: var(--step-1);
-    color: var(--ink);
-  }
-
-  :global(.redeem-dialog__balance--low) {
-    border-color: color-mix(in oklch, var(--danger) 40%, var(--line));
-    background: color-mix(in oklch, var(--danger) 8%, var(--surface));
+    font-size: var(--step-0);
   }
 
   :global(.redeem-dialog__warn) {

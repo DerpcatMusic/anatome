@@ -361,9 +361,9 @@
   }
 
   .type-badge--group {
-    border-color: color-mix(in oklch, var(--secondary-cool) 55%, var(--line-light));
-    color: var(--secondary-cool);
-    background: color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated));
+    border-color: color-mix(in oklch, var(--accent) 55%, var(--line-light));
+    color: var(--accent);
+    background: color-mix(in oklch, var(--accent) 10%, var(--elevated));
   }
 
   .type-badge--one-on-one {
@@ -380,7 +380,7 @@
   .capacity-row__label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -436,7 +436,7 @@
 
   .field-optional {
     font-weight: 600;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   /* Date + time row */
@@ -465,7 +465,7 @@
   .date-display {
     font-size: var(--step--1);
     font-weight: 700;
-    color: var(--muted);
+    color: var(--foreground-muted);
     padding-inline: var(--space-1);
   }
 
@@ -478,7 +478,7 @@
   .time-label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
     text-transform: uppercase;
   }
@@ -495,7 +495,7 @@
     font-family: var(--font-mono);
     font-weight: 800;
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
     white-space: nowrap;
   }
 
@@ -515,7 +515,7 @@
   .settings-label {
     font-size: var(--step--2);
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-family: var(--font-mono);
     text-transform: uppercase;
   }
@@ -560,7 +560,7 @@
 
   .completed-tick {
     font-size: var(--step-3);
-    color: var(--muted);
+    color: var(--foreground-muted);
     flex-shrink: 0;
   }
 
@@ -573,7 +573,7 @@
   .banner-text p {
     margin: 4px 0 0;
     font-size: var(--step--2);
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.3;
   }
 
@@ -603,7 +603,7 @@
 
   .detail-label {
     font-weight: 800;
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .detail-value {

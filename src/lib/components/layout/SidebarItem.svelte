@@ -59,18 +59,18 @@
   }
 
   .sidebar-item--disabled {
-    color: var(--muted);
+    color: var(--foreground-muted);
     cursor: not-allowed;
   }
 
   .sidebar-item--disabled:hover {
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   .sidebar-item__badge {
     font-family: var(--font-mono);
     font-size: var(--step--2);
-    color: var(--muted);
+    color: var(--foreground-muted);
     border: var(--border);
     padding: 1px 6px;
     line-height: 1;

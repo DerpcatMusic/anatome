@@ -84,7 +84,7 @@
     aspect-ratio: 16 / 10;
     border: var(--border);
     background: var(--surface);
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step-0);
     font-weight: 700;
   }

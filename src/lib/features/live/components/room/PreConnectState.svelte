@@ -69,7 +69,7 @@
   }
 
   .entry-state p {
-    color: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step-0);
     font-weight: 750;
   }
@@ -77,7 +77,7 @@
   .entry-state__spinner {
     width: 42px;
     height: 42px;
-    border: 3px solid color-mix(in oklch, var(--secondary-cool) 45%, var(--line-light));
+    border: 3px solid color-mix(in oklch, var(--accent) 45%, var(--line-light));
     border-top-color: var(--ink);
     border-radius: 50%;
     animation: spin 0.75s linear infinite;

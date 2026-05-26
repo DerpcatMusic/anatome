@@ -170,7 +170,7 @@
   :global(.live-event-popover--group) {
     box-shadow:
       0 8px 32px rgb(0 0 0 / 0.1),
-      inset 0 3px 0 var(--secondary-cool);
+      inset 0 3px 0 var(--accent);
   }
 
   :global(.live-event-popover--one-on-one) {

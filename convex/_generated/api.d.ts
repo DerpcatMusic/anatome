@@ -57,6 +57,7 @@ import type * as oneOnOne_cron from "../oneOnOne/cron.js";
 import type * as oneOnOne_customer from "../oneOnOne/customer.js";
 import type * as oneOnOne_instructor from "../oneOnOne/instructor.js";
 import type * as oneOnOne_schedule from "../oneOnOne/schedule.js";
+import type * as ops_support from "../ops/support.js";
 import type * as profiles_avatar from "../profiles/avatar.js";
 import type * as profiles_bootstrap from "../profiles/bootstrap.js";
 import type * as profiles_dev from "../profiles/dev.js";
@@ -145,6 +146,7 @@ declare const fullApi: ApiFromModules<{
   "oneOnOne/customer": typeof oneOnOne_customer;
   "oneOnOne/instructor": typeof oneOnOne_instructor;
   "oneOnOne/schedule": typeof oneOnOne_schedule;
+  "ops/support": typeof ops_support;
   "profiles/avatar": typeof profiles_avatar;
   "profiles/bootstrap": typeof profiles_bootstrap;
   "profiles/dev": typeof profiles_dev;

@@ -6,21 +6,33 @@
 
 <section class="l-panel l-section section--steps" aria-label="איך מתחילים">
   <div class="l-shell">
-    <h2 class="section-title l-in">{t.landing.steps.headline()}</h2>
+    <header class="steps__header l-in">
+      <p class="l-eyebrow">{t.landing.steps.tag()}</p>
+      <h2 class="section-title">{t.landing.steps.headline()}</h2>
+    </header>
 
-    <div class="steps">
-      <article class="step l-in l-in--1">
-        <h3>{t.landing.steps.step1Title()}</h3>
-        <p>{t.landing.steps.step1Desc()}</p>
-      </article>
-      <article class="step l-in l-in--2">
-        <h3>{t.landing.steps.step2Title()}</h3>
-        <p>{t.landing.steps.step2Desc()}</p>
-      </article>
-      <article class="step l-in l-in--3">
-        <h3>{t.landing.steps.step3Title()}</h3>
-        <p>{t.landing.steps.step3Desc()}</p>
-      </article>
-    </div>
+    <ol class="steps">
+      <li class="step l-in l-in--1">
+        <span class="step__index" aria-hidden="true">1</span>
+        <div>
+          <h3>{t.landing.steps.step1Title()}</h3>
+          <p>{t.landing.steps.step1Desc()}</p>
+        </div>
+      </li>
+      <li class="step l-in l-in--2">
+        <span class="step__index" aria-hidden="true">2</span>
+        <div>
+          <h3>{t.landing.steps.step2Title()}</h3>
+          <p>{t.landing.steps.step2Desc()}</p>
+        </div>
+      </li>
+      <li class="step l-in l-in--3">
+        <span class="step__index" aria-hidden="true">3</span>
+        <div>
+          <h3>{t.landing.steps.step3Title()}</h3>
+          <p>{t.landing.steps.step3Desc()}</p>
+        </div>
+      </li>
+    </ol>
   </div>
 </section>

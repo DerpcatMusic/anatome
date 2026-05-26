@@ -159,7 +159,7 @@
     margin: 0;
     font-family: var(--font-mono);
     font-size: var(--step--1);
-    color: var(--muted);
+    color: var(--foreground-muted);
   }
 
   h2 {
@@ -171,7 +171,7 @@
 
   .intro {
     margin: 0;
-    color: var(--muted);
+    color: var(--foreground-muted);
     line-height: 1.4;
     font-size: var(--step-0);
   }

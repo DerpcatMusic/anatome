@@ -34,7 +34,7 @@
 
 .agenda-card--list.agenda-card--group,
 .agenda-card--list.agenda-card--pane-group {
-  border-inline-start-color: color-mix(in oklch, var(--secondary-cool) 55%, transparent);
+  border-inline-start-color: color-mix(in oklch, var(--accent) 55%, transparent);
 }
 
 .agenda-card--list.agenda-card--private,
@@ -56,7 +56,7 @@
 .agenda-card--list .agenda-card__instructor {
   font-size: var(--step--1);
   font-weight: 600;
-  color: var(--muted);
+  color: var(--foreground-muted);
 }
 
 .agenda-card--list .agenda-card__title-row h3 {
@@ -105,10 +105,10 @@
 }
 
 .agenda-card--group:not(.agenda-card--list) {
-  border-inline-start: 3px solid var(--secondary-cool);
+  border-inline-start: 3px solid var(--accent);
   background: linear-gradient(
     to inline-end,
-    color-mix(in oklch, var(--secondary-cool) 10%, var(--elevated)),
+    color-mix(in oklch, var(--accent) 10%, var(--elevated)),
     var(--elevated) 38%
   );
 }
@@ -144,7 +144,7 @@
 
 .agenda-card__end {
   font-size: var(--step--2);
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-weight: 600;
 }
 
@@ -182,7 +182,7 @@
   font-size: var(--step--1);
   font-weight: 600;
   line-height: 1.45;
-  color: var(--muted);
+  color: var(--foreground-muted);
 }
 
 .agenda-card__meta-strong {
@@ -204,7 +204,7 @@
 .agenda-card__rsvp {
   margin: 0;
   font-size: var(--step--1);
-  color: var(--muted);
+  color: var(--foreground-muted);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -244,7 +244,7 @@
   padding: var(--space-1) var(--space-3);
   font-size: var(--step--1);
   font-weight: 700;
-  color: var(--muted);
+  color: var(--foreground-muted);
   border: 1px dashed var(--line-light);
   border-radius: 8px;
   background: var(--surface);
@@ -265,8 +265,8 @@
 }
 
 .agenda-status-badge--live {
-  background: color-mix(in oklch, var(--secondary-cool) 12%, var(--surface));
-  color: var(--secondary-cool);
+  background: color-mix(in oklch, var(--accent) 12%, var(--surface));
+  color: var(--accent);
 }
 
 .agenda-status-badge--live-private {
