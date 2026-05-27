@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { requireUserId, requireAppProfile, requireRole } from "../lib/authz";
+import { normalizeEquipmentList } from "../lib/equipmentCatalog";
 import { equipmentListValidator } from "../lib/validators";
 import { LIMITS } from "../lib/constants";
 
@@ -54,7 +55,9 @@ export const updateMetadata = mutation({
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.title !== undefined) patch.title = args.title.trim();
     if (args.description !== undefined) patch.description = args.description.trim();
-    if (args.requiredEquipment !== undefined) patch.requiredEquipment = args.requiredEquipment;
+    if (args.requiredEquipment !== undefined) {
+      patch.requiredEquipment = normalizeEquipmentList(args.requiredEquipment);
+    }
     if (args.accessKind !== undefined) patch.accessKind = args.accessKind;
     if (args.status !== undefined) patch.status = args.status;
     await ctx.db.patch(args.videoId, patch);

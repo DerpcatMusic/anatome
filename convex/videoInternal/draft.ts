@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
+import { normalizeEquipmentList } from "../lib/equipmentCatalog";
 import { equipmentListValidator } from "../lib/validators";
 
 const accessKindValidator = v.union(v.literal("macroflow"), v.literal("microflow"));
@@ -27,7 +28,7 @@ export const create = internalMutation({
       description: args.description,
       provider: "mux",
       durationSeconds: 0,
-      requiredEquipment: args.requiredEquipment,
+      requiredEquipment: normalizeEquipmentList(args.requiredEquipment),
       accessKind: args.accessKind,
       muxVideoQuality: args.muxVideoQuality,
       muxMaxResolutionTier: args.muxMaxResolutionTier,

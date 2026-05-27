@@ -1,5 +1,7 @@
 import { v } from "convex/values";
 import { EQUIPMENT_STORAGE_IDS } from "./equipmentCatalog";
+import { EXPERIENCE_IDS } from "./experienceCatalog";
+import { GOAL_IDS } from "./goalCatalog";
 import { PATHOLOGY_IDS } from "./pathologyCatalog";
 
 export const equipmentValidator = v.union(
@@ -8,22 +10,13 @@ export const equipmentValidator = v.union(
 
 export const equipmentListValidator = v.array(equipmentValidator);
 
-export const goalValidator = v.union(
-  v.literal("pelvic_floor_rehab"),
-  v.literal("stress_breathing"),
-  v.literal("functional_daily"),
-  v.literal("back_pathology"),
-  // Legacy goals — kept for existing memberProfiles
-  v.literal("strength"),
-  v.literal("mobility"),
-  v.literal("posture"),
-  v.literal("back_care"),
-  v.literal("return_to_movement"),
-);
+export const goalValidator = v.union(...GOAL_IDS.map((id) => v.literal(id)));
 
 export const goalsValidator = v.array(goalValidator);
 
-export const experienceValidator = v.union(v.literal("new"), v.literal("some"), v.literal("steady"));
+export const experienceValidator = v.union(
+  ...EXPERIENCE_IDS.map((id) => v.literal(id)),
+);
 
 export const pathologyValidator = v.union(
   ...PATHOLOGY_IDS.map((id) => v.literal(id)),

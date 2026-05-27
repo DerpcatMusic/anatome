@@ -1,42 +1,4 @@
-/** Marketing copy for pricing cards — mirrors `convex/subscriptions/plans.ts` defaults. */
-export const LANDING_PLANS = [
-  {
-    slug: "starter",
-    nameHe: "בסיס תנועה",
-    monthlyPriceIls: 119,
-    vodCreditsPerMonth: 4,
-    liveCreditsPerMonth: 1,
-    oneOnOneCreditsPerMonth: 0,
-    platformFeeIls: 40,
-  },
-  {
-    slug: "steady",
-    nameHe: "תרגול קבוע",
-    monthlyPriceIls: 199,
-    vodCreditsPerMonth: 8,
-    liveCreditsPerMonth: 2,
-    oneOnOneCreditsPerMonth: 0,
-    platformFeeIls: 40,
-  },
-  {
-    slug: "guided",
-    nameHe: "ליווי אישי",
-    monthlyPriceIls: 329,
-    vodCreditsPerMonth: 8,
-    liveCreditsPerMonth: 2,
-    oneOnOneCreditsPerMonth: 1,
-    platformFeeIls: 40,
-  },
-  {
-    slug: "intensive",
-    nameHe: "שיקום אינטנסיבי",
-    monthlyPriceIls: 489,
-    vodCreditsPerMonth: 12,
-    liveCreditsPerMonth: 3,
-    oneOnOneCreditsPerMonth: 2,
-    platformFeeIls: 40,
-  },
-] as const;
+/** Marketing copy for pricing cards — factual prices/names come from Convex `listPlans`. */
 
 export const PLAN_DESCRIPTIONS: Record<string, string> = {
   starter: "דמי פלטפורמה, 4 שיעורי עומק ושיעור לייב קבוצתי אחד בחודש.",

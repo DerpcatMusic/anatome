@@ -1,5 +1,8 @@
 import { RULES } from "./constants";
 import { normalizeEquipmentList } from "./equipmentCatalog";
+import type { GoalId } from "./goalCatalog";
+import { normalizeGoalList } from "./goalCatalog";
+import { isExperienceId } from "./experienceCatalog";
 import { normalizePathologyList } from "./pathologyCatalog";
 export type HealthDeclarationAnswers = {
   heartCondition: "yes" | "no";
@@ -17,7 +20,7 @@ export type OnboardingCompleteInput = {
   lastName: string;
   equipment: string[];
   experience: "new" | "some" | "steady";
-  goals: OnboardingGoal[];
+  goals: readonly string[];
   pathologies: string[];
   notes: string;
   healthDeclarationAnswers: HealthDeclarationAnswers;
@@ -25,16 +28,7 @@ export type OnboardingCompleteInput = {
   healthDeclarationAccepted: boolean;
 };
 
-export type OnboardingGoal =
-  | "pelvic_floor_rehab"
-  | "stress_breathing"
-  | "functional_daily"
-  | "back_pathology"
-  | "strength"
-  | "mobility"
-  | "posture"
-  | "back_care"
-  | "return_to_movement";
+export type OnboardingGoal = GoalId;
 
 export type PreparedOnboardingProfile = {
   firstName: string;
@@ -42,7 +36,7 @@ export type PreparedOnboardingProfile = {
   displayName: string;
   equipment: ReturnType<typeof normalizeEquipmentList>;
   experience: "new" | "some" | "steady";
-  goals: OnboardingGoal[];
+  goals: ReturnType<typeof normalizeGoalList>;
   pathologies: ReturnType<typeof normalizePathologyList>;
   notes: string;
   healthDeclarationAnswers: HealthDeclarationAnswers;
@@ -81,7 +75,12 @@ export function prepareOnboardingProfile(
     throw new Error("נדרש לבחור לפחות פריט ציוד אחד.");
   }
 
-  if (args.goals.length === 0) {
+  if (!isExperienceId(args.experience)) {
+    throw new Error("רמת ניסיון לא תקינה.");
+  }
+
+  const goals = normalizeGoalList(args.goals);
+  if (goals.length === 0) {
     throw new Error("נדרש לבחור לפחות מטרה אחת.");
   }
 
@@ -112,7 +111,7 @@ export function prepareOnboardingProfile(
     displayName,
     equipment,
     experience: args.experience,
-    goals: args.goals,
+    goals,
     pathologies,
     notes,
     healthDeclarationAnswers: args.healthDeclarationAnswers,

@@ -4,7 +4,8 @@
   import { useI18n } from "$lib/i18n/runes";
   import { openAuthOverlay } from "$lib/auth/open-overlay";
   import { LANDING_IMAGES } from "$lib/features/landing/images";
-  import { LANDING_PLANS, PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+  import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+  import { useActivePlans } from "$lib/features/subscriptions/activePlans.svelte";
   import LandingFooter from "$lib/features/landing/components/LandingFooter.svelte";
   import "../concept.css";
   import {
@@ -50,9 +51,10 @@
     { question: t.landing.faq.q7(), answer: t.landing.faq.a7() },
   ]);
 
+  const { plans, isLoading: plansLoading } = useActivePlans();
   const featuredSlug = "guided";
-  const featured = $derived(LANDING_PLANS.find((p) => p.slug === featuredSlug));
-  const otherPlans = $derived(LANDING_PLANS.filter((p) => p.slug !== featuredSlug));
+  const featured = $derived(plans.find((p) => p.slug === featuredSlug));
+  const otherPlans = $derived(plans.filter((p) => p.slug !== featuredSlug));
 
   onMount(() => {
     hydrate3d = true;

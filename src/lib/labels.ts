@@ -1,5 +1,5 @@
 // ─── Shared label dictionaries ───
-// Equipment and pathology IDs/labels are sourced from Convex catalogs (single source of truth).
+// Equipment, pathology, goal, and experience IDs/labels are sourced from Convex catalogs.
 
 import {
   CANONICAL_EQUIPMENT_IDS,
@@ -8,17 +8,28 @@ import {
   type CanonicalEquipmentId,
 } from "$convex/lib/equipmentCatalog";
 import {
+  EXPERIENCE_IDS,
+  experienceDisplayLabels,
+  isExperienceId,
+} from "$convex/lib/experienceCatalog";
+import {
+  CANONICAL_GOAL_IDS,
+  canonicalGoalDisplayLabels,
+  goalDisplayLabel,
+  isCanonicalGoalId,
+  isGoalId,
+  type CanonicalGoalId,
+} from "$convex/lib/goalCatalog";
+import {
   PATHOLOGY_IDS,
   pathologyDisplayLabels,
   isPathologyId,
   type PathologyId,
 } from "$convex/lib/pathologyCatalog";
 
-export const experienceOptions = [
-  ["new", "חדשה לגמרי"],
-  ["some", "חדשה לייט"],
-  ["steady", "מתרגלת קבועה"],
-] as const;
+export const experienceOptions = EXPERIENCE_IDS.map(
+  (id) => [id, experienceDisplayLabels[id]] as const,
+);
 
 export type Experience = (typeof experienceOptions)[number][0];
 
@@ -28,22 +39,11 @@ export const equipmentOptions = CANONICAL_EQUIPMENT_IDS.map(
 
 export type Equipment = CanonicalEquipmentId;
 
-export const goalOptions = [
-  ["pelvic_floor_rehab", "שיקום רצפת אגן"],
-  ["stress_breathing", "הפחתת סטרס ונשימה"],
-  ["functional_daily", "חיזוק פונקציונלי יום יומי"],
-  ["back_pathology", "טיפול בפתולוגיות גב"],
-] as const;
+export const goalOptions = CANONICAL_GOAL_IDS.map(
+  (id) => [id, canonicalGoalDisplayLabels[id]] as const,
+);
 
-export type Goal = (typeof goalOptions)[number][0];
-
-const legacyGoalLabels: Record<string, string> = {
-  strength: "כוח",
-  mobility: "תנועה",
-  posture: "יציבה",
-  back_care: "גב",
-  return_to_movement: "חזרה לתנועה",
-};
+export type Goal = CanonicalGoalId;
 
 export const pathologyOptions = PATHOLOGY_IDS.map(
   (id) => [id, pathologyDisplayLabels[id]] as const,
@@ -67,16 +67,19 @@ export function normalizeEquipmentId(id: string): Equipment | null {
 }
 
 export function experienceLabel(id: string): string {
-  return experienceLabelMap[id] ?? id;
+  if (isExperienceId(id)) return experienceDisplayLabels[id];
+  return id;
 }
 
 export function goalLabel(id: string): string {
-  return goalLabelMap[id] ?? legacyGoalLabels[id] ?? id;
+  return goalDisplayLabel(id);
 }
 
 export function pathologyLabel(id: string): string {
   return isPathologyId(id) ? pathologyDisplayLabels[id] : id;
 }
+
+export { isCanonicalGoalId, isGoalId };
 
 export function fmtList(arr: string[], labels: Record<string, string>): string {
   return arr.map((v) => labels[v] ?? v).filter(Boolean).join(", ") || "—";

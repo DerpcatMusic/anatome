@@ -70,6 +70,16 @@ describe("prepareOnboardingProfile", () => {
   });
 });
 
+describe("goalCatalog", () => {
+  test("filters invalid goals on prepare", () => {
+    const prepared = prepareOnboardingProfile({
+      ...baseArgs,
+      goals: ["pelvic_floor_rehab", "invalid_goal", "strength"],
+    });
+    expect(prepared.goals).toEqual(["pelvic_floor_rehab", "strength"]);
+  });
+});
+
 describe("pathologyCatalog", () => {
   test("deduplicates pathology ids", () => {
     expect(normalizePathologyList(["back_pain", "back_pain", "invalid"])).toEqual([

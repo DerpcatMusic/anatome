@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    experienceLabelMap as experienceLabels,
+    experienceLabel,
     fmtEquipmentList,
     goalLabel,
     pathologyLabel,
@@ -42,7 +42,7 @@
   <div class="profile-view__grid">
     <div class="profile-view__cell">
       <span class="profile-view__label">ניסיון בתרגול</span>
-      <span class="profile-view__value">{experienceLabels[profile.experience] ?? profile.experience}</span>
+      <span class="profile-view__value">{experienceLabel(profile.experience)}</span>
     </div>
     <div class="profile-view__cell">
       <span class="profile-view__label">ציוד בבית</span>

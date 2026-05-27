@@ -1,10 +1,9 @@
 <script lang="ts">
   import {
-    experienceLabelMap as experienceLabels,
+    experienceLabel,
     fmtEquipmentList,
-    goalLabelMap as goalLabels,
+    goalLabel,
     pathologyLabel,
-    fmtList,
   } from "$lib/labels";
   import {
     healthDeclarationQuestionIds,
@@ -98,7 +97,7 @@
     <div class="profile-summary__grid">
       <div class="profile-summary__cell">
         <span class="profile-summary__label">{t.dashboard.profile.experience()}</span>
-        <span class="profile-summary__value">{experienceLabels[profile.experience] ?? profile.experience}</span>
+        <span class="profile-summary__value">{experienceLabel(profile.experience)}</span>
       </div>
       <div class="profile-summary__cell">
         <span class="profile-summary__label">{t.dashboard.profile.equipment()}</span>
@@ -106,7 +105,7 @@
       </div>
       <div class="profile-summary__cell">
         <span class="profile-summary__label">{t.dashboard.profile.goals()}</span>
-        <span class="profile-summary__value">{fmtList(profile.goals, goalLabels)}</span>
+        <span class="profile-summary__value">{profile.goals.map(goalLabel).join(", ")}</span>
       </div>
       {#if profile.pathologies && profile.pathologies.length > 0}
         <div class="profile-summary__cell profile-summary__cell--wide">

@@ -12,7 +12,7 @@
 
   const auth = initAuth();
   const profileQuery = useQuery(api.profiles.viewer.get, () => canRunAuthenticatedQuery() ? {} : "skip");
-  const role = $derived(profileQuery.data?.role ?? "customer");
+  const role = $derived(profileQuery.data?.role ?? null);
   const isStaff = $derived(role === "instructor" || role === "admin");
 
   const queryNow = useQueryNowMs();
@@ -50,6 +50,15 @@
     <p class="videos-eyebrow">חשבון נעול</p>
     <h2>צריך להתחבר כדי לצפות בווידאו</h2>
     <a class="button-link" href="/">כניסה</a>
+  </div>
+{:else if profileQuery.isLoading}
+  <div class="videos-skeleton-shell">
+    <div class="skeleton skeleton--hero"></div>
+    <div class="videos-skeleton-row">
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
+      <div class="skeleton videos-skeleton--card"></div>
+    </div>
   </div>
 {:else if isStaff}
   <InstructorVideoManager />

@@ -5,6 +5,7 @@ import { internal } from "../_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
+import { normalizeEquipmentList } from "../lib/equipmentCatalog";
 import { equipmentListValidator } from "../lib/validators";
 import { MS, RULES, LIMITS } from "../lib/constants";
 
@@ -159,7 +160,8 @@ export const create = mutation({
     if (args.capacity < 1 || args.capacity > maxCapacity) {
       throw new Error(args.type === "one_on_one" ? "קיבולת 1:1 חייבת להיות 1" : `קיבולת חייבת להיות בין 1 ל-${RULES.MAX_GROUP_CAPACITY}`);
     }
-    if (args.requiredEquipment.length === 0) throw new Error("חובה לבחור לפחות פריט ציוד אחד");
+    const requiredEquipment = normalizeEquipmentList(args.requiredEquipment);
+    if (requiredEquipment.length === 0) throw new Error("חובה לבחור לפחות פריט ציוד אחד");
     if (args.joinOpensMinutesBefore < 0 || args.joinOpensMinutesBefore > 60) {
       throw new Error("זמן פתיחת כניסה חייב להיות בין 0 ל-60 דקות לפני תחילת השיעור");
     }
@@ -185,7 +187,7 @@ export const create = mutation({
       joinOpensAt,
       joinClosesAt,
       capacity: args.capacity,
-      requiredEquipment: args.requiredEquipment,
+      requiredEquipment,
       creditKind: args.type === "one_on_one" ? "oneOnOne" : "live",
       creditCost: 1,
       seatsTaken: 0,
@@ -326,7 +328,8 @@ export const reschedule = mutation({
     if (args.capacity < 1 || args.capacity > maxCapacity) {
       throw new Error("קיבולת לא תקינה");
     }
-    if (args.requiredEquipment.length === 0) {
+    const requiredEquipment = normalizeEquipmentList(args.requiredEquipment);
+    if (requiredEquipment.length === 0) {
       throw new Error("חובה לבחור לפחות פריט ציוד אחד");
     }
     if (args.joinOpensMinutesBefore < 0 || args.joinOpensMinutesBefore > 60) {
@@ -360,7 +363,7 @@ export const reschedule = mutation({
       joinOpensAt,
       joinClosesAt,
       capacity: args.capacity,
-      requiredEquipment: args.requiredEquipment,
+      requiredEquipment,
       updatedAt: now,
     };
     if (args.title !== undefined && args.title.trim().length >= 3) {

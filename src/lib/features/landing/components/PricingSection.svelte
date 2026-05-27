@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
-  import { LANDING_PLANS, PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+  import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+  import { useActivePlans } from "$lib/features/subscriptions/activePlans.svelte";
 
   interface Props {
     openAuthOverlay: () => void;
@@ -10,10 +11,11 @@
   let { openAuthOverlay }: Props = $props();
 
   const { t } = useI18n();
+  const { plans, isLoading } = useActivePlans();
 
   const featuredSlug = "guided";
-  const featured = $derived(LANDING_PLANS.find((p) => p.slug === featuredSlug));
-  const otherPlans = $derived(LANDING_PLANS.filter((p) => p.slug !== featuredSlug));
+  const featured = $derived(plans.find((p) => p.slug === featuredSlug));
+  const otherPlans = $derived(plans.filter((p) => p.slug !== featuredSlug));
 </script>
 
 <section class="l-panel l-section section--pricing" aria-label="מחירים">
@@ -22,7 +24,9 @@
     <p class="section-lead l-in">{t.landing.pricing.lead()}</p>
 
     <div class="pricing">
-      {#if featured}
+      {#if isLoading}
+        <p class="section-lead l-in" aria-busy="true">{t.landing.pricing.lead()}</p>
+      {:else if featured}
         <div class="pricing__featured l-in">
           <div>
             <p class="pricing__badge">{t.landing.pricing.featuredBadge()}</p>
