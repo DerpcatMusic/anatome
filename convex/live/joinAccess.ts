@@ -19,7 +19,7 @@ export type JoinAccessResolveResult = {
   classTitle: string;
 };
 
-async function broadcastMetaForClass(
+export async function broadcastMetaForClass(
   ctx: QueryCtx,
   liveClassId: Id<"liveClasses">,
   status: Doc<"liveClasses">["status"],
@@ -39,6 +39,19 @@ async function broadcastMetaForClass(
     isBroadcastLive: true,
     broadcastStartedByUserId: room.startedByUserId,
   };
+}
+
+/** Instructor or admin for this class (may enter before broadcast). */
+export function viewerIsInstructorForClass(
+  profile: Doc<"appProfiles"> | null,
+  liveClass: Pick<Doc<"liveClasses">, "instructorUserId">,
+  userId: Id<"users">,
+): boolean {
+  return (
+    profile !== null &&
+    (profile.role === "admin" ||
+      (profile.role === "instructor" && liveClass.instructorUserId === userId))
+  );
 }
 
 function withBroadcastMeta(
@@ -80,10 +93,7 @@ export async function resolveJoinAccess(
     .withIndex("by_userId", (q) => q.eq("userId", userId))
     .take(1);
   const profile = profiles[0] ?? null;
-  const isInstructor =
-    profile !== null &&
-    (profile.role === "admin" ||
-      (profile.role === "instructor" && liveClass.instructorUserId === userId));
+  const isInstructor = viewerIsInstructorForClass(profile, liveClass, userId);
 
   if (!isInstructor) {
     const memberProfiles = await ctx.db

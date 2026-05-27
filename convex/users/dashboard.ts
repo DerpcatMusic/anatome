@@ -32,20 +32,23 @@ export const get = query({
       : null;
     const reservations = await ctx.db
       .query("liveReservations")
-      .withIndex("by_userId_and_status", (q) => q.eq("userId", userId).eq("status", "reserved"))
+      .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
       .order("desc")
       .take(LIMITS.DASHBOARD_RESERVATIONS);
 
     let liveAlert: { liveClassId: string; title: string; startsAt: number } | null = null;
 
-    if (reservations.length > 0) {
+    const activeReservations = reservations.filter(
+      (row) => row.status === "reserved" || row.status === "joined",
+    );
+    if (activeReservations.length > 0) {
       const liveClasses = await ctx.db
         .query("liveClasses")
         .withIndex("by_status_and_startsAt", (q) => q.eq("status", "live"))
         .take(LIMITS.DASHBOARD_LIVE_CLASSES);
       const liveClassMap = new Map(liveClasses.map((c) => [c._id, c]));
 
-      for (const reservation of reservations) {
+      for (const reservation of activeReservations) {
         const liveClass = liveClassMap.get(reservation.liveClassId);
         if (liveClass !== undefined) {
           liveAlert = { liveClassId: liveClass._id, title: liveClass.title, startsAt: liveClass.startsAt };

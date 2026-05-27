@@ -19,6 +19,7 @@ import {
   viewerIsLiveStaff,
 } from "../lib/liveClassAccess";
 import { requireQueryNow } from "../lib/queryNow";
+import { broadcastMetaForClass, viewerIsInstructorForClass } from "./joinAccess";
 
 export const listUpcoming = query({
   args: {
@@ -185,6 +186,13 @@ export const listRange = query({
         continue;
       }
       const inJoinWindow = isInLiveJoinWindow(liveClass, now);
+      const isInstructor =
+        userId !== null && viewerIsInstructorForClass(appProfile, liveClass, userId);
+      let broadcastLive = false;
+      if (liveClass.status === "live") {
+        const broadcast = await broadcastMetaForClass(ctx, liveClass._id, liveClass.status);
+        broadcastLive = broadcast.isBroadcastLive;
+      }
       const instructor =
         instructorProfiles.get(liveClass.instructorUserId as string) ?? null;
 
@@ -209,7 +217,8 @@ export const listRange = query({
           liveClass.status === "live" &&
           inJoinWindow &&
           hasEquipmentAccess &&
-          hasValidReservation,
+          hasValidReservation &&
+          (isInstructor || broadcastLive),
         viewerIsWalkIn: false,
         viewerAvailableCredits: available,
         viewerMissingEquipment,

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalQuery } from "../_generated/server";
+import { shouldSkipLiveReminderDelivery } from "../lib/liveReminderDelivery";
 
 export const reminderContext = internalQuery({
   args: { reminderId: v.id("liveReminderEvents") },
@@ -36,12 +37,7 @@ export const reminderContext = internalQuery({
       ctx.db.get(reminder.userId),
     ]);
 
-    const skipped =
-      reservation === null ||
-      liveClass === null ||
-      reservation.status === "cancelled" ||
-      reservation.status === "refunded" ||
-      liveClass.status === "cancelled";
+    const skipped = shouldSkipLiveReminderDelivery(reservation, liveClass);
 
     const prefsRow = await ctx.db
       .query("notificationPreferences")

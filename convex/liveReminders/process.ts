@@ -2,6 +2,7 @@ import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { LIMITS } from "../lib/constants";
+import { shouldSkipLiveReminderDelivery } from "../lib/liveReminderDelivery";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 
@@ -25,13 +26,7 @@ async function processReminder(
     ctx.db.get(reminder.liveClassId),
   ]);
 
-  if (
-    reservation === null ||
-    liveClass === null ||
-    reservation.status === "cancelled" ||
-    reservation.status === "refunded" ||
-    liveClass.status === "cancelled"
-  ) {
+  if (shouldSkipLiveReminderDelivery(reservation, liveClass)) {
     await ctx.db.patch(reminder._id, {
       status: "skipped",
       processedAt: Date.now(),
