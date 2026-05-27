@@ -13,6 +13,12 @@ import {
 } from "./live-room-shared";
 import type { JoinInfo } from "./join-token";
 import type { ConnectionState } from "./types";
+import {
+  remoteVideoQualityForParticipant,
+  type SessionSubscribePolicy,
+} from "./live-subscribe-policy";
+
+export type { SessionSubscribePolicy } from "./live-subscribe-policy";
 
 export type SessionDeviceSelection = {
   selectedVideoDevice: string;
@@ -37,10 +43,6 @@ export type SessionCaptureOptions = {
 export type SessionPublishIntent = {
   publishCamera: boolean;
   publishMic: boolean;
-};
-
-export type SessionSubscribePolicy = {
-  isInstructorRoom: boolean;
 };
 
 export type SessionConnectHandlers = {
@@ -74,10 +76,6 @@ function shouldSubscribeToPublication(
   return isInstructorIdentity(participantIdentity(participant));
 }
 
-function targetQualityForPublication(participant: unknown): 0 | 1 | 2 {
-  return isInstructorIdentity(participantIdentity(participant)) ? 2 : 0;
-}
-
 function subscribeIfAllowed(
   policy: SessionSubscribePolicy,
   publication: unknown,
@@ -93,7 +91,9 @@ function subscribeIfAllowed(
   const shouldSubscribe = shouldSubscribeToPublication(policy, participant);
   pub.setSubscribed(shouldSubscribe);
   if (shouldSubscribe && pub.kind === "video" && typeof pub.setVideoQuality === "function") {
-    pub.setVideoQuality(targetQualityForPublication(participant));
+    pub.setVideoQuality(
+      remoteVideoQualityForParticipant(policy, participantIdentity(participant)),
+    );
   }
 }
 
@@ -104,6 +104,13 @@ function attachParticipantListeners(
   const value = participant as { trackPublications?: Map<string, unknown> };
   value.trackPublications?.forEach((publication) => {
     subscribeIfAllowed(policy, publication, participant);
+  });
+}
+
+/** Re-apply simulcast layer caps after instructor updates receive quality. */
+export function applySessionSubscribePolicy(room: Room, policy: SessionSubscribePolicy) {
+  room.remoteParticipants.forEach((participant) => {
+    attachParticipantListeners(policy, participant);
   });
 }
 

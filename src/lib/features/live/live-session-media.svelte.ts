@@ -11,21 +11,32 @@ import {
   participantIsLocal,
   trackSource,
 } from "./live-room-shared";
-import type {
-  AudioPresetChoice,
-  BitrateChoice,
-  ConnectionQualityLevel,
-  DegradationPreferenceChoice,
-  DeviceAccessState,
-  MediaDevice,
-  MediaSource,
-  PerTrackStat,
-  PreConnectStep,
-  StreamStats,
-  VideoCodecChoice,
-  VideoFramerateChoice,
-  VideoResolutionChoice,
+import { api } from "$convex/_generated/api";
+import { applySessionSubscribePolicy } from "./live-session-connect";
+import {
+  buildSessionSubscribePolicy,
+  remoteVideoQualityForParticipant,
+} from "./live-subscribe-policy";
+import {
+  resolutionToSubscribeLayer,
+  subscriberPresetToQuality,
+  subscriberQualityToPreset,
+  type AudioPresetChoice,
+  type BitrateChoice,
+  type ConnectionQualityLevel,
+  type DegradationPreferenceChoice,
+  type DeviceAccessState,
+  type MediaDevice,
+  type MediaSource,
+  type PerTrackStat,
+  type PreConnectStep,
+  type StreamStats,
+  type SubscriberReceivePreset,
+  type VideoCodecChoice,
+  type VideoFramerateChoice,
+  type VideoResolutionChoice,
 } from "./types";
+import { isInstructorIdentity } from "./live-room-shared";
 
 /** Preview, devices, publish profile, and local media controls. */
 export class LiveSessionMedia extends LiveSessionUi {
@@ -63,6 +74,10 @@ export class LiveSessionMedia extends LiveSessionUi {
   simulcastEnabled = $state(true);
   forceStereo = $state(false);
   degradationPreference = $state<DegradationPreferenceChoice>("maintain-framerate");
+  /** Max video layer remote customers subscribe to for instructor camera (bandwidth control). */
+  subscriberReceivePreset = $state<SubscriberReceivePreset>("medium");
+
+  readonly subscriberVideoQuality = $derived(subscriberPresetToQuality(this.subscriberReceivePreset));
   audioProcessingEnabled = $state(true);
   cameraAccess = $state<DeviceAccessState>("unknown");
   micAccess = $state<DeviceAccessState>("unknown");
@@ -91,8 +106,51 @@ export class LiveSessionMedia extends LiveSessionUi {
     return this.isInstructorIdentity(participantIdentity(participant));
   }
 
+  protected buildSubscribePolicy() {
+    return buildSessionSubscribePolicy({
+      isInstructorRoom: this.isInstructorRoom,
+      selectedResolution: this.selectedResolution,
+      joinAccess: this.joinAccess,
+    });
+  }
+
   protected targetQualityForPublication(participant: unknown): 0 | 1 | 2 {
-    return this.isInstructorIdentity(participantIdentity(participant)) ? 2 : 0;
+    return remoteVideoQualityForParticipant(
+      this.buildSubscribePolicy(),
+      participantIdentity(participant),
+    );
+  }
+
+  applySubscribePolicyToRoom() {
+    if (this._room === null) return;
+    applySessionSubscribePolicy(this._room, this.buildSubscribePolicy());
+  }
+
+  /** Keep Convex + remote subscribers aligned with the publish preset / resolution. */
+  async syncPublishReceiveFromResolution() {
+    if (!this.isInstructorRoom) return;
+    const preset = subscriberQualityToPreset(resolutionToSubscribeLayer(this.selectedResolution));
+    if (this.subscriberReceivePreset !== preset) {
+      this.subscriberReceivePreset = preset;
+    }
+    await this.persistSubscriberReceivePreset();
+    this.applySubscribePolicyToRoom();
+  }
+
+  async persistSubscriberReceivePreset() {
+    const classId = this.effectiveClassId;
+    if (classId === null || !this.isInstructorRoom) return;
+    await this.client.mutation(api.live.class.setSubscriberReceivePreset, {
+      liveClassId: classId,
+      preset: this.subscriberReceivePreset,
+    });
+  }
+
+  async setSubscriberReceivePreset(preset: SubscriberReceivePreset) {
+    if (!this.isInstructorRoom) return;
+    this.subscriberReceivePreset = preset;
+    await this.persistSubscriberReceivePreset();
+    this.applySubscribePolicyToRoom();
   }
 
   protected subscribeIfAllowed(publication: unknown, participant: unknown) {
@@ -244,7 +302,7 @@ export class LiveSessionMedia extends LiveSessionUi {
     if (this.statsTimer !== null) return;
     this.statsTimer = window.setInterval(() => {
       if (!this.inRoom) return;
-      if (this.sidebarTab === "info") {
+      if (this.sidebarTab === "info" || this.showQualityPanel) {
         void this.refreshStreamStats();
         return;
       }
@@ -613,8 +671,21 @@ export class LiveSessionMedia extends LiveSessionUi {
 
   protected resolutionDimensions(isInstructor: boolean) {
     const frameRate = this.selectedFramerate;
-    if (this.selectedResolution === "1080p" && isInstructor) return { width: 1920, height: 1080, frameRate };
-    if (this.selectedResolution === "720p" || isInstructor) return { width: 1280, height: 720, frameRate };
+    if (this.selectedResolution === "1080p") {
+      return { width: 1920, height: 1080, frameRate };
+    }
+    if (this.selectedResolution === "720p") {
+      return { width: 1280, height: 720, frameRate };
+    }
+    if (this.selectedResolution === "480p") {
+      return { width: 854, height: 480, frameRate: Math.min(frameRate, 30) };
+    }
+    if (this.selectedResolution === "360p") {
+      return { width: 640, height: 360, frameRate: Math.min(frameRate, 30) };
+    }
+    if (isInstructor) {
+      return { width: 1280, height: 720, frameRate };
+    }
     return { width: 640, height: 360, frameRate: Math.min(frameRate, 30) };
   }
 

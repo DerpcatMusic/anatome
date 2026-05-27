@@ -71,6 +71,13 @@ export const joinAccessSnapshotValidator = v.object({
   minutesUntilClose: v.union(v.number(), v.null()),
   isInstructor: v.boolean(),
   equipmentBlocked: v.boolean(),
+  isBroadcastLive: v.boolean(),
+  broadcastStartedByUserId: v.optional(v.id("users")),
+  subscriberReceivePreset: v.union(
+    v.literal("low"),
+    v.literal("medium"),
+    v.literal("high"),
+  ),
 });
 
 export type JoinAccessSnapshot = Infer<typeof joinAccessSnapshotValidator>;

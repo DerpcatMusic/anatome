@@ -2,9 +2,14 @@ import type { ConvexClient } from "convex/browser";
 import type { Id } from "$convex/_generated/dataModel";
 import { api } from "$convex/_generated/api";
 import { useQuery } from "convex-svelte";
-import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+import {
+  authQuery,
+  canRunAuthenticatedQuery,
+  initAuth,
+} from "$lib/auth/session.svelte";
 import { hasLiveClassIdParam } from "$lib/convex/ids";
 import {
+  joinInfoEqual,
   joinSnapshotFromContext,
   type JoinContextSnapshot,
   type JoinTokenPhase,
@@ -40,11 +45,45 @@ export function useConvexJoinToken(options: UseConvexJoinTokenOptions) {
 
   let contextOverride = $state<JoinContextSnapshot | null | undefined>(undefined);
 
+  /** HTTP preflight while Convex WS auth is still settling (see app `+layout` cap). */
+  $effect(() => {
+    const id = options.liveClassId;
+    const now = options.nowMs;
+    if (id === null || auth.isLoading) {
+      contextOverride = undefined;
+      return;
+    }
+    if (!auth.isAuthenticated) {
+      contextOverride = undefined;
+      return;
+    }
+    if (canRunAuthenticatedQuery()) {
+      if (contextQuery.data !== undefined) {
+        contextOverride = undefined;
+      }
+      return;
+    }
+    if (contextOverride !== undefined) return;
+
+    let cancelled = false;
+    void authQuery(api.live.session.getJoinContext, { liveClassId: id, now }).then(
+      (data) => {
+        if (!cancelled) contextOverride = data ?? null;
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  });
+
   const awaitingJoinContext = $derived(
     options.liveClassId !== null &&
       (auth.isLoading ||
-        !canRunAuthenticatedQuery() ||
-        (contextOverride === undefined &&
+        (!canRunAuthenticatedQuery() &&
+          auth.isAuthenticated &&
+          contextOverride === undefined) ||
+        (canRunAuthenticatedQuery() &&
+          contextOverride === undefined &&
           contextQuery.data === undefined &&
           contextQuery.isLoading)),
   );
@@ -86,13 +125,14 @@ export function useConvexJoinToken(options: UseConvexJoinTokenOptions) {
       contextOverride = undefined;
       return;
     }
-    contextOverride = await options.client.query(api.live.session.getJoinContext, {
-      liveClassId: id,
-      now: options.nowMs,
-    });
+    const args = { liveClassId: id, now: options.nowMs };
+    contextOverride = canRunAuthenticatedQuery()
+      ? await options.client.query(api.live.session.getJoinContext, args)
+      : await authQuery(api.live.session.getJoinContext, args);
   }
 
   function setJoinInfo(info: JoinInfo | null) {
+    if (joinInfoEqual(joinInfo, info)) return;
     joinInfo = info;
   }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Calendar, TimeGrid, Interaction } from "@event-calendar/core";
+  import { Calendar, DayGrid, TimeGrid, Interaction } from "@event-calendar/core";
   import "@event-calendar/core/index.css";
   import "$features/live/styles/calendar-theme.css";
 
@@ -10,7 +10,6 @@
   import type { Equipment } from "$lib/labels";
   import {
     formatAppScrollTime,
-    formatAppTime,
     formatEventCalendarWallTime,
     fromCalendarEventDate,
     toCalendarEventDate,
@@ -30,16 +29,21 @@
     type PaintedSlots,
   } from "$features/studio/lib/one-on-one-availability";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import {
+    buildLiveClassEventHtml,
+    buildPreviewEventHtml,
+    escapeCalendarHtml,
+  } from "$features/live/lib/calendar-event-html";
 
   const QUICK_CREATE_PREVIEW_ID = "__quick_create_preview__";
   const AVAILABILITY_DOUBLE_CLICK_MS = 400;
   const CALENDAR_SLOT_HEIGHT_MIN = 24;
   const CALENDAR_SLOT_HEIGHT_MAX = 72;
-  const CALENDAR_WHEEL_DAY_THRESHOLD_PX = 180;
   const { t } = useI18n();
 
+  type CalendarViewMode = "week" | "month";
+
   let lastAvailabilityClick = { eventId: "", at: 0 };
-  let wheelDayRemainder = 0;
 
   function startOfWeek(date: Date, firstDay = 0): Date {
     const d = new Date(date);
@@ -62,7 +66,7 @@
     actionId: string | null;
     onSelectSlot: (timeLocalString: string, durationMinutes: number, anchor: SelectionAnchor) => void;
     onEventClick: (liveClass: LiveClass, anchor: SelectionAnchor) => void;
-    createPreview?: { startsAt: number; endsAt: number } | null;
+    createPreview?: { startsAt: number; endsAt: number; requiredEquipment?: string[] } | null;
     onCreatePreviewChange?: (startsAt: number, endsAt: number) => void;
     availabilityPaintMode?: boolean;
     availabilityPainted?: PaintedSlots;
@@ -90,6 +94,7 @@
 
   let submitting = $state(false);
   let dragError = $state("");
+  let calendarViewMode = $state<CalendarViewMode>("week");
   let calendarSlotHeight = $state(36);
   let panGesture = $state<{
     pointerId: number;
@@ -98,7 +103,8 @@
   } | null>(null);
   type CalendarHandle = {
     unselect: () => void;
-    setOption: (name: string, value: unknown) => CalendarHandle;
+    next: () => CalendarHandle;
+    prev: () => CalendarHandle;
   };
 
   type CalendarEventInput = {
@@ -134,15 +140,6 @@
   const isCoarsePointer = $derived(
     typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
   );
-
-  function escapeHtml(str: string): string {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
 
   function readSelectionAnchor(container: HTMLElement | null): SelectionAnchor | undefined {
     if (!container) return undefined;
@@ -202,54 +199,43 @@
     return containerEl?.querySelector(".ec-main") ?? null;
   }
 
-  function shiftCalendarDate(days: number) {
-    if (days === 0) return;
-    clearCalendarSelection();
-    const next = new Date(viewStart);
-    next.setDate(next.getDate() + days);
-    calendarRef?.setOption("date", next);
+  function setCalendarSlotHeight(nextHeight: number, anchorY?: number) {
+    const main = calendarMainEl();
+    const oldHeight = calendarSlotHeight;
+    const next = Math.round(clamp(nextHeight, CALENDAR_SLOT_HEIGHT_MIN, CALENDAR_SLOT_HEIGHT_MAX));
+    if (next === oldHeight) return;
+
+    const rect = main?.getBoundingClientRect();
+    const y = rect ? clamp(anchorY ?? rect.height / 2, 0, rect.height) : 0;
+    const scrollTop = main?.scrollTop ?? 0;
+    calendarSlotHeight = next;
+
+    if (main) {
+      requestAnimationFrame(() => {
+        main.scrollTop = ((scrollTop + y) * next) / oldHeight - y;
+      });
+    }
   }
 
-  function dayPanThreshold(): number {
-    const day = containerEl?.querySelector(".ec-time-grid .ec-body .ec-day");
-    if (!(day instanceof HTMLElement)) return CALENDAR_WHEEL_DAY_THRESHOLD_PX;
-    return Math.max(90, day.getBoundingClientRect().width * 0.55);
+  function zoomCalendar(direction: "in" | "out") {
+    setCalendarSlotHeight(calendarSlotHeight + (direction === "in" ? 6 : -6));
+  }
+
+  function resetCalendarZoom() {
+    setCalendarSlotHeight(36);
   }
 
   function handleCalendarWheel(event: WheelEvent) {
     if (event.shiftKey) {
       event.preventDefault();
       const main = calendarMainEl();
-      const oldHeight = calendarSlotHeight;
-      const nextHeight = Math.round(
-        clamp(
-          oldHeight * Math.exp(-event.deltaY * 0.0025),
-          CALENDAR_SLOT_HEIGHT_MIN,
-          CALENDAR_SLOT_HEIGHT_MAX,
-        ),
-      );
-      if (nextHeight === oldHeight) return;
-
       const rect = main?.getBoundingClientRect();
-      const y = rect ? clamp(event.clientY - rect.top, 0, rect.height) : 0;
-      const scrollTop = main?.scrollTop ?? 0;
-      calendarSlotHeight = nextHeight;
-
-      if (main) {
-        requestAnimationFrame(() => {
-          main.scrollTop = ((scrollTop + y) * nextHeight) / oldHeight - y;
-        });
-      }
+      setCalendarSlotHeight(
+        calendarSlotHeight * Math.exp(-event.deltaY * 0.0025),
+        rect ? event.clientY - rect.top : undefined,
+      );
       return;
     }
-
-    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) * 1.35) return;
-    event.preventDefault();
-    wheelDayRemainder += event.deltaX;
-    const days = Math.trunc(wheelDayRemainder / CALENDAR_WHEEL_DAY_THRESHOLD_PX);
-    if (days === 0) return;
-    wheelDayRemainder -= days * CALENDAR_WHEEL_DAY_THRESHOLD_PX;
-    shiftCalendarDate(days);
   }
 
   function handleCalendarPointerDown(event: PointerEvent) {
@@ -259,7 +245,7 @@
     panGesture = {
       pointerId: event.pointerId,
       anchorX: event.clientX,
-      threshold: dayPanThreshold(),
+      threshold: 160,
     };
   }
 
@@ -273,7 +259,12 @@
       ...panGesture,
       anchorX: panGesture.anchorX - days * panGesture.threshold,
     };
-    shiftCalendarDate(days);
+    calendarRef?.unselect();
+    if (days > 0) {
+      calendarRef?.next();
+    } else {
+      calendarRef?.prev();
+    }
   }
 
   function clearPanGesture(event?: PointerEvent) {
@@ -373,6 +364,9 @@
               startEditable: true,
               durationEditable: true,
               classNames: ["ec-preview", "ec-quick-create-preview"],
+              extendedProps: {
+                previewEquipment: createPreview.requiredEquipment ?? [],
+              },
             },
           ]
         : []),
@@ -387,12 +381,18 @@
     clearCalendarSelection();
   }
 
-  const plugins = [TimeGrid, Interaction];
+  const plugins = [DayGrid, TimeGrid, Interaction];
 
-  function handleDatesSet(info: { start: Date; end: Date }) {
+  function handleDatesSet(info: { start: Date; end: Date; view?: { type?: string } }) {
     const nextStartMs = info.start.getTime();
     const nextEndMs = info.end.getTime();
     onViewRangeChange?.(info.start, info.end);
+
+    const nextMode = info.view?.type === "dayGridMonth" ? "month" : "week";
+    if (calendarViewMode !== nextMode) {
+      calendarViewMode = nextMode;
+    }
+
     if (nextStartMs === viewStart.getTime() && nextEndMs === viewEnd.getTime()) {
       return;
     }
@@ -400,16 +400,9 @@
     viewEnd = info.end;
   }
 
-  const calendarOptions = $derived({
-    view: "timeGridRollingWeek",
-    views: {
-      timeGridRollingWeek: {
-        type: "timeGridWeek",
-        duration: { days: 7 },
-        dateIncrement: { days: 1 },
-        buttonText: "שבוע",
-      },
-    },
+  let calendarOptions = $state({
+    view: "timeGridWeek",
+    date: new Date(weekStart),
     locale: "he",
     direction: "rtl" as const,
     firstDay: 0,
@@ -419,7 +412,7 @@
     snapDuration: "00:15:00",
     slotLabelInterval: "01:00:00",
     slotEventOverlap: false,
-    slotHeight: calendarSlotHeight,
+    slotHeight: 36,
 
     slotMinTime: "00:00:00",
     slotMaxTime: "24:00:00",
@@ -429,26 +422,40 @@
 
     selectable: true,
     unselectAuto: true,
-    unselectCancel: availabilityPaintMode
-      ? ".live-event-popover, .live-event-popover *"
-      : ".live-event-popover, .live-event-popover *, .ec-quick-create-preview",
+    unselectCancel: ".live-event-popover, .live-event-popover *, .ec-quick-create-preview",
     selectMinDistance: 8,
-    editable: !availabilityPaintMode,
-    eventStartEditable: !availabilityPaintMode,
-    eventDurationEditable: !availabilityPaintMode,
-    pointer: availabilityPaintMode,
+    editable: true,
+    eventStartEditable: true,
+    eventDurationEditable: true,
+    pointer: false,
     nowIndicator: true,
     customScrollbars: true,
     selectBackgroundColor: "var(--accent)",
-    longPressDelay: isCoarsePointer ? 450 : 600,
+    longPressDelay: 600,
+    customButtons: {
+      zoomOut: {
+        text: "-",
+        click: () => zoomCalendar("out"),
+      },
+      zoomReset: {
+        text: "100%",
+        click: resetCalendarZoom,
+      },
+      zoomIn: {
+        text: "+",
+        click: () => zoomCalendar("in"),
+      },
+    },
 
     headerToolbar: {
-      start: "",
+      start: "timeGridWeek,dayGridMonth zoomOut,zoomReset,zoomIn",
       center: "title",
       end: "today prev,next",
     },
     buttonText: {
       today: t.studio.live.today(),
+      timeGridWeek: "שבוע",
+      dayGridMonth: "חודש",
     },
 
     eventOrder(
@@ -472,7 +479,7 @@
       return a.start.getTime() - b.start.getTime();
     },
 
-    events: buildCalendarEvents(availabilityPaintMode, calendarLiveClasses),
+    events: [] as CalendarEventInput[],
 
     datesSet: handleDatesSet,
 
@@ -621,6 +628,7 @@
         extendedProps: {
           originalClass?: LiveClass;
           kind?: string;
+          previewEquipment?: string[];
         };
         start: Date;
         end: Date;
@@ -629,7 +637,7 @@
     }) {
       if (info.event.extendedProps?.kind === "availability") {
         return {
-          html: `<div class="calendar-class-event-body calendar-availability-event"><div class="event-title">${escapeHtml(info.event.title)}</div></div>`,
+          html: `<div class="calendar-class-event-body calendar-availability-event"><div class="event-title">${escapeCalendarHtml(info.event.title)}</div></div>`,
         };
       }
 
@@ -639,14 +647,14 @@
         const start = formatEventCalendarWallTime(info.event.start);
         const end = formatEventCalendarWallTime(info.event.end);
         const duration = Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60000);
+        const equipment = info.event.extendedProps?.previewEquipment ?? [];
         return {
-          html: `
-            <div class="calendar-preview-event">
-              <span class="preview-start">${start}</span>
-              <span class="preview-divider">${duration} דק׳</span>
-              <span class="preview-end">${end}</span>
-            </div>
-          `,
+          html: buildPreviewEventHtml({
+            startLabel: start,
+            endLabel: end,
+            durationMinutes: duration,
+            requiredEquipment: equipment,
+          }),
         };
       }
 
@@ -654,17 +662,45 @@
         return { html: "" };
       }
 
-      const formattedTime = `${formatAppTime(c.startsAt)} \u2013 ${formatAppTime(c.endsAt)}`;
-
       return {
-        html: `
-          <div class="calendar-class-event-body status-${c.status}" title="${escapeHtml(c.title)} \u2022 ${formattedTime}">
-            <div class="event-title">${escapeHtml(c.title)}</div>
-            ${c.status === "live" ? `<div class="event-meta"><span class="pulse-indicator" aria-label="\u05e9\u05d9\u05d3\u05d5\u05e8 \u05d7\u05d9"></span></div>` : ""}
-          </div>
-        `,
+        html: buildLiveClassEventHtml({
+          title: c.title,
+          startsAt: c.startsAt,
+          endsAt: c.endsAt,
+          status: c.status,
+          requiredEquipment: c.requiredEquipment,
+        }),
       };
     },
+  });
+
+  $effect(() => {
+    const isWeekView = calendarViewMode === "week";
+    calendarOptions.events = buildCalendarEvents(availabilityPaintMode, calendarLiveClasses);
+    calendarOptions.slotHeight = calendarSlotHeight;
+    calendarOptions.selectable = isWeekView;
+    calendarOptions.editable = isWeekView && !availabilityPaintMode;
+    calendarOptions.eventStartEditable = isWeekView && !availabilityPaintMode;
+    calendarOptions.eventDurationEditable = isWeekView && !availabilityPaintMode;
+    calendarOptions.pointer = isWeekView && availabilityPaintMode;
+    calendarOptions.unselectCancel = availabilityPaintMode
+      ? ".live-event-popover, .live-event-popover *"
+      : ".live-event-popover, .live-event-popover *, .ec-quick-create-preview";
+    calendarOptions.longPressDelay = isCoarsePointer ? 450 : 600;
+    calendarOptions.customButtons = {
+      zoomOut: {
+        text: "-",
+        click: () => zoomCalendar("out"),
+      },
+      zoomReset: {
+        text: `${Math.round((calendarSlotHeight / 36) * 100)}%`,
+        click: resetCalendarZoom,
+      },
+      zoomIn: {
+        text: "+",
+        click: () => zoomCalendar("in"),
+      },
+    };
   });
 </script>
 

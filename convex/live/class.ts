@@ -99,6 +99,40 @@ export const getJoinAccess = query({
   },
 });
 
+const subscriberReceivePreset = v.union(
+  v.literal("low"),
+  v.literal("medium"),
+  v.literal("high"),
+);
+
+export const setSubscriberReceivePreset = mutation({
+  args: {
+    liveClassId: v.id("liveClasses"),
+    preset: subscriberReceivePreset,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    requireRole(profile, ["instructor", "admin"]);
+
+    const liveClass = await ctx.db.get(args.liveClassId);
+    if (liveClass === null) throw new Error("Class not found");
+    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
+      throw new Error("Unauthorized");
+    }
+    if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
+      throw new Error("לא ניתן לעדכן איכות צפייה לשיעור בסטטוס זה");
+    }
+
+    await ctx.db.patch(args.liveClassId, {
+      subscriberReceivePreset: args.preset,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
 export const create = mutation({
   args: {
     title: v.string(),

@@ -47,6 +47,16 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [sveltekit()],
+		/** Pre-bundle Convex + UI deps so HMR restarts do not 404 `?v=` chunks. */
+		optimizeDeps: {
+			include: ['convex-svelte', 'convex/browser', 'bits-ui'],
+		},
+		server: {
+			watch: {
+				// Large generated output — ignore to avoid dev-server restart storms.
+				ignored: ['**/build/**', '**/.check-run*.txt'],
+			},
+		},
 		build: {
 			// The app has intentionally lazy media SDK chunks for Mux playback and LiveKit rooms.
 			chunkSizeWarningLimit: 1100,

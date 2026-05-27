@@ -400,6 +400,23 @@
   color: var(--lr-text-muted);
 }
 
+.lr-header__host-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--step--2);
+  font-weight: 600;
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 12%, var(--lr-chip-bg));
+  border: 1px solid color-mix(in oklch, var(--primary) 28%, var(--border-color));
+}
+
+.lr-header__host-badge .material-symbols-rounded {
+  font-size: 1rem;
+}
+
 .lr-header__broadcast {
   display: inline-flex;
   align-items: center;
@@ -698,11 +715,10 @@
   z-index: 120;
 }
 
-/* ── Dock sidebar (chat / participants / info) ── */
+/* ── Dock sidebar (chat / participants / info) — matches app sidebar rail ── */
 .lr-dock-sidebar {
   position: absolute;
   inset-block: calc(56px + var(--space-4)) 88px;
-  /* Physical left in RTL (Hebrew); mirrors former right-side overlay */
   inset-inline-end: var(--space-3);
   inset-inline-start: auto;
   z-index: 35;
@@ -710,9 +726,14 @@
   max-width: calc(100% - var(--space-6));
   min-height: 0;
   pointer-events: none;
+  transition: width 0.2s var(--ease-out);
 }
 
-.lr-dock-sidebar__tabs {
+.lr-dock-sidebar--rail-only {
+  width: var(--lr-sidebar-nav-width);
+}
+
+.lr-dock-sidebar__shell {
   pointer-events: auto;
   display: flex;
   flex-direction: row;
@@ -721,13 +742,11 @@
   height: 100%;
   min-height: 0;
   direction: ltr;
-  border-radius: var(--radius-xl);
   overflow: hidden;
-  background: var(--lr-chrome-bg);
-  border: var(--lr-chrome-border);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--lr-chrome-shadow);
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-ambient);
 }
 
 .lr-dock-sidebar__nav {
@@ -735,10 +754,10 @@
   flex-direction: column;
   flex-shrink: 0;
   width: var(--lr-sidebar-nav-width);
-  gap: 2px;
+  gap: var(--space-1);
   padding: var(--space-2) var(--space-1);
-  border-inline-end: 1px solid var(--lr-bar-edge);
-  background: color-mix(in oklch, var(--foreground) 4%, transparent);
+  border-inline-end: 1px solid var(--border-color);
+  background: var(--card);
 }
 
 .lr-dock-sidebar__nav-btn {
@@ -749,39 +768,41 @@
   justify-content: center;
   gap: 2px;
   width: 100%;
-  min-height: 3.5rem;
+  min-height: 3.25rem;
   padding: var(--space-1);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: transparent;
-  color: var(--lr-text-muted);
+  color: var(--foreground-muted);
   font: inherit;
   font-size: var(--step--2);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.15;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background 0.15s var(--ease-out),
+    color 0.15s var(--ease-out);
 }
 
 .lr-dock-sidebar__nav-btn:hover {
-  background: color-mix(in oklch, var(--foreground) 8%, transparent);
-  color: var(--lr-text);
+  background: var(--secondary-subtle);
+  color: var(--primary);
 }
 
-.lr-dock-sidebar__nav-btn[data-state="active"] {
-  background: var(--lr-nav-active-bg);
-  color: var(--lr-nav-active-fg);
-  box-shadow: inset 0 0 0 1px var(--lr-on-ring);
+.lr-dock-sidebar__nav-btn--active {
+  font-weight: 800;
+  background: var(--secondary-subtle);
+  color: var(--primary);
+  box-shadow: inset 3px 0 0 var(--secondary);
 }
 
-.lr-dock-sidebar__nav-btn[data-state="active"] .lr-dock-sidebar__nav-icon {
-  color: var(--lr-nav-active-fg);
+.lr-dock-sidebar__nav-btn--active .lr-dock-sidebar__nav-icon {
+  color: var(--secondary);
 }
 
 .lr-dock-sidebar__nav-icon {
-  font-size: 1.35rem;
+  font-size: 1.375rem;
+  color: var(--foreground-muted);
 }
 
 .lr-dock-sidebar__nav-label {
@@ -790,6 +811,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.lr-dock-sidebar--rail-only .lr-dock-sidebar__nav-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .lr-dock-sidebar__badge {
@@ -814,6 +847,7 @@
   min-width: 0;
   min-height: 0;
   display: flex;
+  background: var(--muted);
 }
 
 .lr-dock-sidebar__pane {
@@ -830,10 +864,6 @@
 .lr-dock-sidebar__pane :global(.hb-scroll-area) {
   flex: 1 1 auto;
   min-height: 0;
-}
-
-.lr-dock-sidebar__pane[data-state="inactive"] {
-  display: none;
 }
 
 .lr-room-panel {

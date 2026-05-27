@@ -110,19 +110,29 @@
   const showLiveTab = $derived(nextLive !== null);
 
   const baseNav = $derived(navMap[prefix] ?? navMap["/u"]);
+  const liveNavItem = $derived.by((): NavItem | null => {
+    if (!nextLive) return null;
+    const isBroadcastLive = nextLive.status === "live";
+    if (isInstructorPrefix) {
+      return {
+        href: liveRoomHref(nextLive.classId),
+        label: isBroadcastLive ? t.live.preConnect.enterRoom() : t.live.preConnect.title(),
+        icon: isBroadcastLive ? "sensors" : "video_settings",
+        tone: isBroadcastLive ? ("live" as const) : ("calendar" as const),
+        isLive: isBroadcastLive,
+      };
+    }
+    return {
+      href: liveRoomHref(nextLive.classId),
+      label: t.live.preConnect.enterRoom(),
+      icon: "sensors",
+      tone: "live" as const,
+      isLive: true,
+    };
+  });
+
   const navItems = $derived(
-    showLiveTab
-      ? [
-          {
-            href: liveRoomHref(nextLive!.classId),
-            label: "כניסה לשידור",
-            icon: "sensors",
-            tone: "live" as const,
-            isLive: true,
-          },
-          ...baseNav,
-        ]
-      : baseNav,
+    liveNavItem ? [liveNavItem, ...baseNav] : baseNav,
   );
 
   const currentPath = $derived(page.url.pathname);

@@ -3,11 +3,12 @@
 .ec {
   font-family: var(--font-body);
   color-scheme: light;
-  --ec-bg-color: var(--white);
-  --ec-border-color: var(--line-light);
+  --ec-bg-color: var(--background);
+  --ec-border-color: color-mix(in oklch, var(--line-light) 72%, transparent);
+  --ec-hour-line-color: color-mix(in oklch, var(--line) 55%, transparent);
   --ec-text-color: var(--ink);
-  --ec-today-bg-color: var(--surface);
-  --ec-highlight-color: var(--surface);
+  --ec-today-bg-color: var(--primary-subtle);
+  --ec-highlight-color: color-mix(in oklch, var(--accent) 12%, transparent);
   --ec-button-bg-color: var(--white);
   --ec-button-border-color: var(--line-light);
   --ec-button-active-bg-color: var(--surface);
@@ -18,10 +19,11 @@
 .ec-dark .ec {
   color-scheme: dark;
   --ec-bg-color: var(--surface);
-  --ec-border-color: var(--line);
+  --ec-border-color: color-mix(in oklch, var(--line) 65%, transparent);
+  --ec-hour-line-color: color-mix(in oklch, var(--line-light) 45%, transparent);
   --ec-text-color: var(--ink);
-  --ec-today-bg-color: var(--surface);
-  --ec-highlight-color: var(--surface);
+  --ec-today-bg-color: var(--primary-subtle);
+  --ec-highlight-color: color-mix(in oklch, var(--accent) 14%, transparent);
   --ec-button-bg-color: var(--surface);
   --ec-button-border-color: var(--line);
   --ec-button-active-bg-color: var(--line-light);
@@ -30,18 +32,23 @@
 }
 
 .ec .ec-time-grid .ec-body .ec-day {
+  --ec-day-bg-color: var(--ec-bg-color);
   background-color: var(--ec-day-bg-color);
-  background-image: linear-gradient(
-    to top,
-    var(--ec-border-color) 1px,
-    transparent 1px
-  );
-  background-size: 100% var(--ec-slot-height);
+  background-image:
+    linear-gradient(to top, var(--ec-border-color) 1px, transparent 1px),
+    linear-gradient(to top, var(--ec-hour-line-color) 1px, transparent 1px);
+  background-size:
+    100% var(--ec-slot-height),
+    100% calc(var(--ec-slot-height) * 2);
 }
 
-.ec .ec-time-grid .ec-body .ec-day.ec-today,
+.ec .ec-time-grid .ec-body .ec-day.ec-today {
+  --ec-day-bg-color: var(--ec-today-bg-color);
+  background-color: var(--ec-today-bg-color);
+}
+
 .ec .ec-time-grid .ec-body .ec-day.ec-highlight {
-  background-color: var(--ec-day-bg-color);
+  background-color: var(--ec-highlight-color);
 }
 
 .ec-toolbar {
@@ -62,8 +69,11 @@
   background: var(--ec-button-bg-color);
   color: var(--ec-text-color);
   cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  border-radius: var(--radius-sm);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .ec-button:hover {
@@ -107,7 +117,10 @@
 .ec-day-head.ec-today,
 .ec-col-head.ec-today {
   background: var(--ec-today-bg-color);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  color: var(--primary);
+  box-shadow: inset 0 -2px 0 var(--primary);
 }
 
 .ec-time {
@@ -133,20 +146,24 @@
   background: var(--ec-bg-color);
 }
 
-/* ── Events: group = cool live blue (--accent), 1:1 + availability = pink (--primary) ── */
+/* ── Events: group = clay live (--accent), 1:1 + availability = forest (--primary) ── */
 .ec-event {
-  border-radius: 3px;
-  border: 1px solid var(--line-light);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklch, var(--line-light) 80%, transparent);
+  border-inline-end-width: 3px;
   padding: 0;
-  margin-inline: 1px;
+  margin-inline: 2px;
   color: var(--ink);
-  background: var(--surface);
+  background: var(--card);
   opacity: 1;
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--ink) 4%, transparent);
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    filter 0.15s ease,
-    opacity 0.15s ease;
+    border-color 0.18s ease,
+    background 0.18s ease,
+    filter 0.18s ease,
+    opacity 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
   overflow: hidden;
   min-width: 0;
   cursor: pointer;
@@ -154,22 +171,25 @@
 
 .ec-event.ec-event-type--availability {
   z-index: 1;
-  background: var(--primary);
+  background: color-mix(in oklch, var(--primary) 92%, var(--ink));
   border-color: var(--primary);
+  border-inline-end-color: color-mix(in oklch, var(--paper) 35%, var(--primary));
   color: var(--paper);
 }
 
 .ec-event.ec-event-type--one_on_one {
   z-index: 2;
-  background: var(--primary);
+  background: color-mix(in oklch, var(--primary) 88%, var(--ink));
   border-color: var(--primary);
+  border-inline-end-color: color-mix(in oklch, var(--paper) 40%, var(--primary));
   color: var(--paper);
 }
 
 .ec-event.ec-event-type--group_live {
   z-index: 3;
-  background: color-mix(in oklch, var(--accent) 22%, var(--surface));
-  border-color: color-mix(in oklch, var(--accent) 40%, var(--line-light));
+  background: color-mix(in oklch, var(--accent) 18%, var(--card));
+  border-color: color-mix(in oklch, var(--accent) 32%, var(--line-light));
+  border-inline-end-color: var(--accent);
   color: var(--ink);
 }
 
@@ -178,16 +198,22 @@
 }
 
 .ec-event.ec-event-type--group_live:hover {
-  filter: brightness(0.97);
+  filter: brightness(0.98);
 }
 
 .ec-event.ec-event-type--one_on_one:hover,
 .ec-event.ec-event-type--availability:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .ec-event:active {
   transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ec-event:hover {
+    box-shadow: 0 10px 22px -14px color-mix(in oklch, var(--ink) 22%, transparent);
+  }
 }
 
 .ec-event.ec-draggable .ec-event-resizer {
@@ -261,15 +287,16 @@
 }
 
 .calendar-class-event-body {
-  padding: 6px 10px;
+  container-type: size;
+  padding: 7px 9px 6px;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  gap: 4px;
+  gap: 3px;
   direction: rtl;
   text-align: right;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .calendar-class-event-body .event-title,
@@ -294,8 +321,77 @@
 .calendar-class-event-body .event-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-1);
   flex-shrink: 0;
+  margin-top: auto;
+}
+
+.calendar-class-event-body .event-time {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 800;
+  line-height: 1.2;
+  opacity: 0.88;
+  white-space: nowrap;
+}
+
+.ec-event.ec-event-type--group_live .calendar-class-event-body .event-time {
+  color: var(--ink);
+}
+
+.ec-event.ec-event-type--one_on_one .calendar-class-event-body .event-time,
+.ec-event.ec-event-type--availability .calendar-class-event-body .event-time {
+  color: inherit;
+}
+
+.calendar-class-event-body .event-equipment {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.calendar-class-event-body .event-equipment__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+}
+
+.ec-event.ec-event-type--group_live .calendar-class-event-body .event-equipment__icon {
+  color: color-mix(in oklch, var(--accent) 70%, var(--ink));
+}
+
+.ec-event.ec-event-type--one_on_one .calendar-class-event-body .event-equipment__icon,
+.ec-event.ec-event-type--availability .calendar-class-event-body .event-equipment__icon {
+  color: color-mix(in oklch, var(--paper) 92%, transparent);
+}
+
+.calendar-class-event-body .event-equipment__overflow {
+  min-height: 1rem;
+  padding: 0 var(--space-1);
+  font-size: 0.6rem;
+}
+
+@container (max-height: 44px) {
+  .calendar-class-event-body .event-time {
+    display: none;
+  }
+}
+
+.ec-daygrid .calendar-class-event-body .event-time {
+  display: none;
+}
+
+.ec-daygrid .calendar-class-event-body {
+  padding: 4px 6px;
+  gap: 2px;
+}
+
+.ec-daygrid .calendar-class-event-body .event-title {
+  -webkit-line-clamp: 1;
 }
 
 .calendar-class-event-body .meta-badge {
@@ -323,10 +419,29 @@
 .pulse-indicator {
   width: 8px;
   height: 8px;
-  background: var(--primary);
+  background: var(--success);
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--success) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse-indicator {
+    animation: calendar-live-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes calendar-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(0.92);
+  }
 }
 
 .ec-now-indicator {
@@ -355,10 +470,11 @@
   z-index: 1000;
   user-select: none;
   opacity: 1;
-  background: color-mix(in oklch, var(--accent) 28%, var(--surface));
-  border-color: color-mix(in oklch, var(--accent) 45%, var(--line-light));
+  background: color-mix(in oklch, var(--accent) 24%, var(--card));
+  border-color: color-mix(in oklch, var(--accent) 42%, var(--line-light));
+  border-inline-end-color: var(--accent);
   color: var(--ink);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   overflow: visible;
   cursor: grab;
 }
@@ -409,9 +525,18 @@
   height: 100%;
   min-height: 0;
   gap: 3px;
-  padding: 4px;
+  padding: 5px 6px;
   text-align: center;
   direction: rtl;
+}
+
+.calendar-preview-event .preview-equipment {
+  margin-top: 2px;
+  justify-content: center;
+}
+
+.calendar-preview-event .event-equipment__icon {
+  color: color-mix(in oklch, var(--accent) 75%, var(--ink));
 }
 
 .calendar-preview-event .preview-start,
@@ -460,5 +585,13 @@
 @media (prefers-reduced-motion: reduce) {
   .ec-event {
     transition: none;
+  }
+
+  .ec-event:hover {
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--ink) 4%, transparent);
+  }
+
+  .pulse-indicator {
+    animation: none;
   }
 }

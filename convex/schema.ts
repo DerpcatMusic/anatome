@@ -140,6 +140,10 @@ export default defineSchema({
     seatsTaken: v.optional(v.number()),
     startScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     endScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
+    /** Max simulcast layer customers pull for instructor video (bandwidth control). */
+    subscriberReceivePreset: v.optional(
+      v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
+    ),
   })
     .index("by_startsAt", ["startsAt"])
     .index("by_status_and_startsAt", ["status", "startsAt"])

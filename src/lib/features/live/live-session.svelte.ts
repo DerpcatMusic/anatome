@@ -2,7 +2,6 @@
  * Approach A live session — join token, connect module, and room chrome state.
  */
 import type { ConvexClient } from "convex/browser";
-import { getCachedRole } from "$lib/auth/session.svelte";
 import { useI18n } from "$lib/i18n/runes.svelte";
 import type { JoinInfo } from "./join-token";
 import { LiveSessionLifecycle } from "./live-session-lifecycle.svelte";
@@ -11,6 +10,7 @@ import {
   teardownLiveSessionRoom,
   type SessionCaptureOptions,
 } from "./live-session-connect";
+import { buildSessionSubscribePolicy } from "./live-subscribe-policy";
 import { isCameraNotFoundMediaError } from "./live-room-shared";
 
 const i18n = useI18n();
@@ -71,9 +71,14 @@ export class LiveSession extends LiveSessionLifecycle {
         this.joinInfo.participantRole === "admin"
       );
     }
-    const role = getCachedRole();
-    return role === "instructor" || role === "admin";
+    if (this.joinAccess !== null) {
+      return this.joinAccess.isInstructor;
+    }
+    return false;
   });
+
+  /** Class-scoped host (owner instructor or admin), not global app role. */
+  readonly isClassHost = $derived(this.joinAccess?.isInstructor === true);
 
   readonly classTitle = $derived(
     this.joinInfo?.classTitle?.trim() || this.joinContextTitle?.trim() || "",
@@ -116,9 +121,34 @@ export class LiveSession extends LiveSessionLifecycle {
     return i18n.t.live.room.joinClosesIn({ minutes });
   });
   readonly joinWaitingMessage = $derived.by(() => {
-    const minutes = this.joinAccess?.minutesUntilOpen;
-    if (minutes === null || minutes === undefined) return null;
-    return i18n.t.live.room.joinOpensIn({ minutes });
+    const access = this.joinAccess;
+    if (!access) return null;
+    const minutes = access.minutesUntilOpen;
+    if (minutes !== null) {
+      return i18n.t.live.room.joinOpensIn({ minutes });
+    }
+    if (!access.isInstructor && access.status === "scheduled" && !access.canEnter) {
+      const instructor = this.joinInfo?.instructorName?.trim();
+      if (instructor) {
+        return i18n.t.live.room.waitingForInstructorNamed({ instructor });
+      }
+      return i18n.t.live.room.waitingForBroadcastStart();
+    }
+    return null;
+  });
+
+  readonly joinWaitingTitle = $derived.by(() => {
+    const access = this.joinAccess;
+    if (
+      access &&
+      !access.isInstructor &&
+      access.status === "scheduled" &&
+      !access.canEnter &&
+      access.minutesUntilOpen === null
+    ) {
+      return i18n.t.live.room.waitingForBroadcastTitle();
+    }
+    return i18n.t.live.room.joinTooEarlyTitle();
   });
   readonly connectionQualityLabel = $derived.by(() => {
     switch (this.connectionQuality) {
@@ -159,12 +189,20 @@ export class LiveSession extends LiveSessionLifecycle {
   );
 
   toggleParticipants() {
-    this.setSidebarTab(this.sidebarTab === "participants" ? "chat" : "participants");
+    this.toggleSidebarTab("participants");
   }
 
   toggleQualityPanel() {
-    this.setSidebarTab(this.sidebarTab === "info" ? "chat" : "info");
+    this.toggleSidebarTab("info");
   }
+
+  readonly subscribePolicy = $derived(
+    buildSessionSubscribePolicy({
+      isInstructorRoom: this.isInstructorRoom,
+      selectedResolution: this.selectedResolution,
+      joinAccess: this.joinAccess,
+    }),
+  );
 
   leave() {
     if (this.isInstructorRoom && this.inRoom && this.onInstructorLeaveInApp) {
@@ -194,7 +232,7 @@ export class LiveSession extends LiveSessionLifecycle {
           publishCamera: this.publishCameraOnNextJoin,
           publishMic: this.publishMicOnNextJoin,
         },
-        subscribe: { isInstructorRoom: this.isInstructorRoom },
+        subscribe: this.subscribePolicy,
         handlers: {
           onConnectionState: (state) => {
             this.connectionState = state;
@@ -231,7 +269,7 @@ export class LiveSession extends LiveSessionLifecycle {
       this.status = "ready";
 
       if (info.liveClassType === "group_live" && !this.isInstructorRoom) {
-        this.setSidebarTab("chat");
+        this.openChat();
       }
       if (this.isInstructorRoom) {
         this.publishMicOnNextJoin = true;
@@ -242,6 +280,7 @@ export class LiveSession extends LiveSessionLifecycle {
       void this.refreshInRoomDevices().then(() => this.syncLocalMediaFromRoom());
       this.registerChatHandler(result.room);
       this.updateConnectionQualityFromRoom();
+      this.applySubscribePolicyToRoom();
       this.startStatsTimer();
       this.startTokenRefreshTimer();
       void this.acquireWakeLock();

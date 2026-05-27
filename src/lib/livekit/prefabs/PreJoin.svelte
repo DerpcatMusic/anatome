@@ -16,6 +16,10 @@
 		onError?: (error: Error) => void;
 		defaults?: Partial<LocalUserChoices>;
 		joinLabel?: string;
+		/** Material Symbols name for the primary submit button. */
+		joinIcon?: string;
+		/** Extra classes on the primary submit (e.g. start-live variant). */
+		joinButtonClass?: string;
 		micLabel?: string;
 		camLabel?: string;
 		userLabel?: string;
@@ -30,6 +34,8 @@
 		onError,
 		defaults = {},
 		joinLabel = 'Join Room',
+		joinIcon = 'sensors',
+		joinButtonClass = '',
 		micLabel = 'Microphone',
 		camLabel = 'Camera',
 		userLabel = 'Username',
@@ -235,11 +241,11 @@
 			/>
 		{/if}
 		<Button.Root
-			class="hb-button hb-button--primary hb-button--md lk-prejoin__join"
+			class="hb-button hb-button--primary hb-button--md lk-prejoin__join {joinButtonClass}"
 			type="submit"
 			disabled={!isValid}
 		>
-			<span class="material-symbols-rounded" aria-hidden="true">sensors</span>
+			<span class="material-symbols-rounded" aria-hidden="true">{joinIcon}</span>
 			{joinLabel}
 		</Button.Root>
 	</form>

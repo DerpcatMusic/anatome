@@ -44,3 +44,4 @@ reference/
 # legacy (pre-SvelteKit)
 dist/
 .astro/
+.svelte-doctor/*

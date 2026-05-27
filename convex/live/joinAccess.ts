@@ -1,4 +1,4 @@
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { viewerCanAccessLiveClass } from "../lib/equipment";
@@ -18,6 +18,43 @@ export type JoinAccessResolveResult = {
   snapshot: JoinAccessSnapshot;
   classTitle: string;
 };
+
+async function broadcastMetaForClass(
+  ctx: QueryCtx,
+  liveClassId: Id<"liveClasses">,
+  status: Doc<"liveClasses">["status"],
+): Promise<Pick<JoinAccessSnapshot, "isBroadcastLive" | "broadcastStartedByUserId">> {
+  if (status !== "live") {
+    return { isBroadcastLive: false };
+  }
+  const rooms = await ctx.db
+    .query("liveRooms")
+    .withIndex("by_liveClassId", (q) => q.eq("liveClassId", liveClassId))
+    .take(1);
+  const room = rooms[0] ?? null;
+  if (room === null || room.status !== "active" || room.startedByUserId === undefined) {
+    return { isBroadcastLive: false };
+  }
+  return {
+    isBroadcastLive: true,
+    broadcastStartedByUserId: room.startedByUserId,
+  };
+}
+
+function withBroadcastMeta(
+  snapshot: Omit<
+    JoinAccessSnapshot,
+    "isBroadcastLive" | "broadcastStartedByUserId" | "subscriberReceivePreset"
+  >,
+  broadcast: Pick<JoinAccessSnapshot, "isBroadcastLive" | "broadcastStartedByUserId">,
+  liveClass: Doc<"liveClasses">,
+): JoinAccessSnapshot {
+  return {
+    ...snapshot,
+    ...broadcast,
+    subscriberReceivePreset: liveClass.subscriberReceivePreset ?? "medium",
+  };
+}
 
 /**
  * Shared pre-flight join gate for `getJoinAccess` and `getJoinContext`.
@@ -60,19 +97,24 @@ export async function resolveJoinAccess(
       liveClass.requiredEquipment,
     );
     if (equipmentBlocked) {
+      const broadcast = await broadcastMetaForClass(ctx, liveClassId, liveClass.status);
       return {
         classTitle: liveClass.title,
-        snapshot: {
-          joinOpensAt: liveClass.joinOpensAt,
-          joinClosesAt: liveClass.joinClosesAt,
-          startsAt: liveClass.startsAt,
-          status: liveClass.status,
-          canEnter: false,
-          minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
-          minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
-          isInstructor: false,
-          equipmentBlocked: true,
-        },
+        snapshot: withBroadcastMeta(
+          {
+            joinOpensAt: liveClass.joinOpensAt,
+            joinClosesAt: liveClass.joinClosesAt,
+            startsAt: liveClass.startsAt,
+            status: liveClass.status,
+            canEnter: false,
+            minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
+            minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
+            isInstructor: false,
+            equipmentBlocked: true,
+          },
+          broadcast,
+          liveClass,
+        ),
       };
     }
 
@@ -83,25 +125,30 @@ export async function resolveJoinAccess(
   }
 
   const inWindow = isInLiveJoinWindow(liveClass, now);
+  const broadcast = await broadcastMetaForClass(ctx, liveClassId, liveClass.status);
   const canEnter =
     inWindow &&
     liveClass.status !== "ended" &&
     liveClass.status !== "cancelled" &&
     liveClass.status !== "draft" &&
-    (isInstructor || liveClass.status === "live");
+    (isInstructor || (liveClass.status === "live" && broadcast.isBroadcastLive));
 
   return {
     classTitle: liveClass.title,
-    snapshot: {
-      joinOpensAt: liveClass.joinOpensAt,
-      joinClosesAt: liveClass.joinClosesAt,
-      startsAt: liveClass.startsAt,
-      status: liveClass.status,
-      canEnter,
-      minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
-      minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
-      isInstructor,
-      equipmentBlocked: false,
-    },
+    snapshot: withBroadcastMeta(
+      {
+        joinOpensAt: liveClass.joinOpensAt,
+        joinClosesAt: liveClass.joinClosesAt,
+        startsAt: liveClass.startsAt,
+        status: liveClass.status,
+        canEnter,
+        minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
+        minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
+        isInstructor,
+        equipmentBlocked: false,
+      },
+      broadcast,
+      liveClass,
+    ),
   };
 }

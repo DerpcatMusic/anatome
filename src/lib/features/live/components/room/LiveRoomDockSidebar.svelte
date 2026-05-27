@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Tabs } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import type { LiveSession } from "$lib/features/live/live-session.svelte";
   import type { LiveSidebarTab } from "$lib/features/live/live-session-ui.svelte";
@@ -23,50 +22,59 @@
     { value: "info", icon: "info", label: t.live.room.sidebarInfo() },
   ]);
 
-  function onTabChange(value: string) {
-    session.setSidebarTab(value as LiveSidebarTab);
-  }
+  const activeTab = $derived(session.sidebarTab);
+  const railOnly = $derived(activeTab === null);
 </script>
 
-<aside class="lr-dock-sidebar" aria-label={t.live.room.sidebarTitle()}>
-  <Tabs.Root
-    class="lr-dock-sidebar__tabs"
-    orientation="vertical"
-    value={session.sidebarTab}
-    onValueChange={onTabChange}
-  >
-    <Tabs.List class="lr-dock-sidebar__nav" aria-label={t.live.room.sidebarTitle()}>
+<aside
+  class="lr-dock-sidebar"
+  class:lr-dock-sidebar--rail-only={railOnly}
+  aria-label={t.live.room.sidebarTitle()}
+>
+  <div class="lr-dock-sidebar__shell">
+    <nav class="lr-dock-sidebar__nav" aria-label={t.live.room.sidebarTitle()}>
       {#each tabs as tab (tab.value)}
-        <Tabs.Trigger class="lr-dock-sidebar__nav-btn" value={tab.value}>
+        <button
+          type="button"
+          class="lr-dock-sidebar__nav-btn"
+          class:lr-dock-sidebar__nav-btn--active={activeTab === tab.value}
+          aria-pressed={activeTab === tab.value}
+          aria-current={activeTab === tab.value ? "true" : undefined}
+          onclick={() => session.toggleSidebarTab(tab.value)}
+        >
           <span class="material-symbols-rounded lr-dock-sidebar__nav-icon" aria-hidden="true"
             >{tab.icon}</span
           >
           <span class="lr-dock-sidebar__nav-label">{tab.label}</span>
-          {#if tab.value === "chat" && session.unreadChatCount > 0 && session.sidebarTab !== "chat"}
+          {#if tab.value === "chat" && session.unreadChatCount > 0 && activeTab !== "chat"}
             <span class="lr-dock-sidebar__badge" aria-label={t.live.room.newMessages()}>
               {session.unreadChatCount}
             </span>
           {/if}
-        </Tabs.Trigger>
+        </button>
       {/each}
-    </Tabs.List>
+    </nav>
 
-    <div class="lr-dock-sidebar__body">
-      <Tabs.Content class="lr-dock-sidebar__pane" value="chat">
-        <RoomChatContent
-          messages={session.chatMessages}
-          bind:draft={session.chatDraft}
-          onSend={() => void session.sendChatMessage()}
-        />
-      </Tabs.Content>
-
-      <Tabs.Content class="lr-dock-sidebar__pane" value="participants">
-        <ParticipantSidebarList />
-      </Tabs.Content>
-
-      <Tabs.Content class="lr-dock-sidebar__pane" value="info">
-        <RoomInfoContent {session} {participantCount} active={session.sidebarTab === "info"} />
-      </Tabs.Content>
-    </div>
-  </Tabs.Root>
+    {#if activeTab !== null}
+      <div class="lr-dock-sidebar__body">
+        {#if activeTab === "chat"}
+          <div class="lr-dock-sidebar__pane">
+            <RoomChatContent
+              messages={session.chatMessages}
+              bind:draft={session.chatDraft}
+              onSend={() => void session.sendChatMessage()}
+            />
+          </div>
+        {:else if activeTab === "participants"}
+          <div class="lr-dock-sidebar__pane">
+            <ParticipantSidebarList />
+          </div>
+        {:else}
+          <div class="lr-dock-sidebar__pane">
+            <RoomInfoContent {session} {participantCount} active={true} />
+          </div>
+        {/if}
+      </div>
+    {/if}
+  </div>
 </aside>

@@ -38,11 +38,44 @@ export type JoinAccessSnapshot = {
   minutesUntilClose: number | null;
   isInstructor: boolean;
   equipmentBlocked: boolean;
+  isBroadcastLive: boolean;
+  broadcastStartedByUserId?: import("$convex/_generated/dataModel").Id<"users">;
+  subscriberReceivePreset: "low" | "medium" | "high";
 };
 
 export type JoinContextSnapshot = JoinAccessSnapshot & {
   classTitle: string;
 };
+
+/** Value equality for join access (avoids `$state` proxy `!==` mismatches). */
+export function joinAccessSnapshotsEqual(
+  a: JoinAccessSnapshot | null,
+  b: JoinAccessSnapshot | null,
+): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return (
+    a.joinOpensAt === b.joinOpensAt &&
+    a.joinClosesAt === b.joinClosesAt &&
+    a.startsAt === b.startsAt &&
+    a.status === b.status &&
+    a.canEnter === b.canEnter &&
+    a.minutesUntilOpen === b.minutesUntilOpen &&
+    a.minutesUntilClose === b.minutesUntilClose &&
+    a.isInstructor === b.isInstructor &&
+    a.equipmentBlocked === b.equipmentBlocked &&
+    a.isBroadcastLive === b.isBroadcastLive &&
+    a.broadcastStartedByUserId === b.broadcastStartedByUserId &&
+    a.subscriberReceivePreset === b.subscriberReceivePreset
+  );
+}
+
+/** Value equality for minted JWT join payloads. */
+export function joinInfoEqual(a: JoinInfo | null, b: JoinInfo | null): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return a.token === b.token && a.roomName === b.roomName;
+}
 
 export type JoinTokenSnapshot = {
   phase: JoinTokenPhase;
@@ -77,14 +110,20 @@ function mapAccessToStatus(
     if (access.minutesUntilOpen !== null) {
       return { status: "waiting", error: "", phase: "error" };
     }
+    if (!access.isInstructor && access.status === "scheduled") {
+      return { status: "waiting", error: "", phase: "error" };
+    }
     const error =
       access.status === "ended" || access.status === "cancelled"
         ? i18n.t.live.room.disconnectRoomEnded()
         : i18n.t.live.room.joinTooEarlyBody();
     return { status: "error", error, phase: "error" };
   }
-  const status: RoomStatus =
-    access.isInstructor && access.status === "scheduled" ? "prep" : "ready";
+  const hostMustStartBroadcast =
+    access.isInstructor &&
+    (access.status === "scheduled" ||
+      (access.status === "live" && !access.isBroadcastLive));
+  const status: RoomStatus = hostMustStartBroadcast ? "prep" : "ready";
   return { status, error: "", phase: "idle" };
 }
 

@@ -34,10 +34,12 @@
   />
 {:else if join.status === "waiting"}
   <PreConnectState
-    title={t.live.room.joinTooEarlyTitle()}
+    title={minutesUntilOpen !== null
+      ? t.live.room.joinTooEarlyTitle()
+      : t.live.room.waitingForBroadcastTitle()}
     message={minutesUntilOpen !== null
       ? t.live.room.joinOpensIn({ minutes: minutesUntilOpen })
-      : t.live.room.joinTooEarlyBody()}
+      : t.live.room.waitingForBroadcastStart()}
     tone="neutral"
   />
 {:else if join.status === "error"}

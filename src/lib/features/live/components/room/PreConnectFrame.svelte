@@ -6,12 +6,14 @@
     subtitle = "",
     scheduleLine = "",
     statusLabel = "",
+    statusTone = "default",
     children,
   }: {
     title: string;
     subtitle?: string;
     scheduleLine?: string;
     statusLabel?: string;
+    statusTone?: "default" | "live" | "prep";
     children: Snippet;
   } = $props();
 </script>
@@ -32,7 +34,12 @@
       {/if}
     </div>
     {#if statusLabel}
-      <span class="live-preconnect__status" role="status">{statusLabel}</span>
+      <span
+        class="live-preconnect__status"
+        class:live-preconnect__status--live={statusTone === "live"}
+        class:live-preconnect__status--prep={statusTone === "prep"}
+        role="status"
+      >{statusLabel}</span>
     {/if}
   </header>
   <div class="live-preconnect__body">
@@ -114,13 +121,25 @@
     flex-shrink: 0;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-pill);
-    border: 1px solid color-mix(in oklch, var(--danger) 35%, var(--border-color));
-    background: color-mix(in oklch, var(--danger) 12%, var(--muted));
-    color: var(--destructive);
+    border: 1px solid var(--border-color);
+    background: var(--muted);
+    color: var(--foreground-muted);
     font-size: var(--step--2);
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  .live-preconnect__status--prep {
+    border-color: color-mix(in oklch, var(--accent) 45%, var(--border-color));
+    background: color-mix(in oklch, var(--accent) 12%, var(--card));
+    color: var(--accent);
+  }
+
+  .live-preconnect__status--live {
+    border-color: color-mix(in oklch, var(--accent) 40%, var(--border-color));
+    background: color-mix(in oklch, var(--accent) 10%, var(--muted));
+    color: var(--accent);
   }
 
   .live-preconnect__body {

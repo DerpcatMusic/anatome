@@ -2,7 +2,11 @@ import type { ConvexClient } from "convex/browser";
 import type { Id } from "$convex/_generated/dataModel";
 import { api } from "$convex/_generated/api";
 import { useQuery } from "convex-svelte";
-import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+import {
+  authQuery,
+  canRunAuthenticatedQuery,
+  initAuth,
+} from "$lib/auth/session.svelte";
 import { joinSnapshotFromContext } from "../../join-token";
 import type { JoinInfo, JoinTokenPhase } from "./types";
 import type { RoomStatus } from "./types";
@@ -30,11 +34,54 @@ export function useJoinContext(options: UseJoinContextOptions) {
     undefined,
   );
 
+  $effect(() => {
+    const id = options.liveClassId;
+    const now = options.nowMs;
+    if (id === null || auth.isLoading) {
+      contextOverride = undefined;
+      return;
+    }
+    if (!auth.isAuthenticated) {
+      contextOverride = undefined;
+      return;
+    }
+    if (canRunAuthenticatedQuery()) {
+      if (contextQuery.data !== undefined) {
+        contextOverride = undefined;
+      }
+      return;
+    }
+    if (contextOverride !== undefined) return;
+
+    let cancelled = false;
+    void authQuery(api.live.session.getJoinContext, { liveClassId: id, now }).then(
+      (data) => {
+        if (!cancelled) contextOverride = data ?? null;
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  const awaitingJoinContext = $derived(
+    options.liveClassId !== null &&
+      (auth.isLoading ||
+        (!canRunAuthenticatedQuery() &&
+          auth.isAuthenticated &&
+          contextOverride === undefined) ||
+        (canRunAuthenticatedQuery() &&
+          contextOverride === undefined &&
+          contextQuery.data === undefined &&
+          contextQuery.isLoading)),
+  );
+
   const snapshot = $derived(
     joinSnapshotFromContext(contextOverride ?? contextQuery.data, {
-      isLoading: auth.isLoading || contextQuery.isLoading,
+      isLoading: auth.isLoading || contextQuery.isLoading || awaitingJoinContext,
       isAuthenticated: auth.isAuthenticated,
       authError: auth.error,
+      hasClassId: options.liveClassId !== null,
     }),
   );
 
@@ -63,10 +110,10 @@ export function useJoinContext(options: UseJoinContextOptions) {
       contextOverride = undefined;
       return;
     }
-    contextOverride = await options.client.query(api.live.session.getJoinContext, {
-      liveClassId: id,
-      now: options.nowMs,
-    });
+    const args = { liveClassId: id, now: options.nowMs };
+    contextOverride = canRunAuthenticatedQuery()
+      ? await options.client.query(api.live.session.getJoinContext, args)
+      : await authQuery(api.live.session.getJoinContext, args);
   }
 
   /** User gesture — mint JWT (Phase 1 gate). */

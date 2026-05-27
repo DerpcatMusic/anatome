@@ -2,19 +2,8 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { LIMITS } from "../lib/constants";
 import { internal } from "../_generated/api";
-import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { ensureLiveRoomForClass } from "../lib/liveRoom";
 import { settleReservationsForClass } from "./settle";
-
-async function startLiveClass(
-  ctx: MutationCtx,
-  liveClass: Doc<"liveClasses">,
-  now: number,
-) {
-  await ctx.db.patch(liveClass._id, { status: "live", updatedAt: now });
-  await ensureLiveRoomForClass(ctx, liveClass._id, now);
-}
 
 async function endLiveClass(
   ctx: MutationCtx,
@@ -49,25 +38,7 @@ async function endLiveClass(
   await settleReservationsForClass(ctx, liveClass._id);
 }
 
-export const autoStart = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const now = Date.now();
-    const dueClasses = await ctx.db
-      .query("liveClasses")
-      .withIndex("by_status_and_startsAt", (q) =>
-        q.eq("status", "scheduled").lte("startsAt", now),
-      )
-      .take(LIMITS.CRON_CLASSES);
-
-    for (const liveClass of dueClasses) {
-      if (liveClass.status !== "scheduled") continue;
-      if (now < liveClass.joinOpensAt || now > liveClass.joinClosesAt) continue;
-      await startLiveClass(ctx, liveClass, now);
-    }
-  },
-});
-
+/** @deprecated Auto go-live removed; instructors use `api.live.class.start`. Kept for stale scheduled jobs. */
 export const startOne = internalMutation({
   args: {
     liveClassId: v.id("liveClasses"),
@@ -78,12 +49,7 @@ export const startOne = internalMutation({
     if (liveClass === null) return { status: "missing" as const };
     if (liveClass.startsAt !== args.expectedStartsAt) return { status: "stale" as const };
     if (liveClass.status !== "scheduled") return { status: "inactive" as const };
-
-    const now = Date.now();
-    if (now > liveClass.joinClosesAt) return { status: "closed" as const };
-    if (now < liveClass.joinOpensAt) return { status: "early" as const };
-    await startLiveClass(ctx, liveClass, now);
-    return { status: "started" as const };
+    return { status: "manual_start_required" as const };
   },
 });
 

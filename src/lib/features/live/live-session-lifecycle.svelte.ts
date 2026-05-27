@@ -3,7 +3,12 @@ import { api } from "$convex/_generated/api";
 import type { Room } from "livekit-client";
 import { sanitizeMediaDeviceId } from "$lib/media/device-id";
 import { disconnectMessage, i18n, LK_DISCONNECT } from "./live-room-shared";
-import { fetchJoinAccessSnapshot, issueJoinCredentials } from "./join-token";
+import {
+  fetchJoinAccessSnapshot,
+  issueJoinCredentials,
+  joinAccessSnapshotsEqual,
+  joinInfoEqual,
+} from "./join-token";
 import {
   prepareJoinConnection as warmJoinConnection,
   teardownLiveSessionRoom,
@@ -318,7 +323,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     if (liveClassId === null || !this.inRoom) return;
     try {
       const joinInfo = await issueJoinCredentials(this.client, liveClassId);
-      this.joinInfo = joinInfo;
+      this.setJoinInfo(joinInfo);
       const lkRoom = this._room;
       if (lkRoom) {
         const { ConnectionState } = await import("livekit-client");
@@ -341,8 +346,8 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     const liveClassId = this.getClassId();
     if (liveClassId === null) return false;
     try {
-      this.joinInfo = await issueJoinCredentials(this.client, liveClassId);
-      this.startExpiryTimer(this.joinInfo.joinClosesAt);
+      this.setJoinInfo(await issueJoinCredentials(this.client, liveClassId));
+      this.startExpiryTimer(this.joinInfo!.joinClosesAt);
       this.startTokenRefreshTimer();
       return true;
     } catch (reason) {
@@ -472,24 +477,54 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     }
   }
 
+  /** Assign minted JWT and notify the join-token hook (no proxy `!==` on $state). */
+  setJoinInfo(info: import("./join-token").JoinInfo | null) {
+    if (joinInfoEqual(this.joinInfo, info)) return;
+    this.joinInfo = info;
+    this.onJoinInfoMinted?.(info);
+  }
+
   applyJoinTokenSnapshot(
     snapshot: Awaited<ReturnType<typeof fetchJoinAccessSnapshot>> & {
       joinInfo?: import("./join-token").JoinInfo | null;
     },
   ) {
-    this.joinTokenPhase = snapshot.phase;
+    if (this.joinTokenPhase !== snapshot.phase) {
+      this.joinTokenPhase = snapshot.phase;
+    }
     if (snapshot.phase === "loading") {
-      this.status = "checking";
+      if (this.status !== "checking") this.status = "checking";
       return;
     }
-    this.status = snapshot.status;
-    this.error = snapshot.error;
-    this.joinAccess = snapshot.joinAccess;
-    this.joinContextTitle = snapshot.classTitle;
-    if (snapshot.joinInfo) {
-      this.joinInfo = snapshot.joinInfo;
-      this.startExpiryTimer(snapshot.joinInfo.joinClosesAt);
+    if (this.status !== snapshot.status) this.status = snapshot.status;
+    if (this.error !== snapshot.error) this.error = snapshot.error;
+    if (this.joinContextTitle !== snapshot.classTitle) {
+      this.joinContextTitle = snapshot.classTitle;
+    }
+
+    const access = snapshot.joinAccess;
+    const prevPreset = this.joinAccess?.subscriberReceivePreset;
+    if (!joinAccessSnapshotsEqual(access, this.joinAccess)) {
+      this.joinAccess = access;
+    }
+    if (access) {
+      const preset = access.subscriberReceivePreset ?? "medium";
+      if (this.subscriberReceivePreset !== preset) {
+        this.subscriberReceivePreset = preset;
+      }
+      if (prevPreset !== preset) {
+        this.applySubscribePolicyToRoom();
+      }
+    }
+
+    const canHoldJoinInfo = snapshot.status === "ready" || snapshot.status === "prep";
+    const nextJoinInfo = canHoldJoinInfo ? (snapshot.joinInfo ?? null) : null;
+    if (nextJoinInfo && !joinInfoEqual(this.joinInfo, nextJoinInfo)) {
+      this.setJoinInfo(nextJoinInfo);
+      this.startExpiryTimer(nextJoinInfo.joinClosesAt);
       void this.prepareJoinConnection();
+    } else if (!canHoldJoinInfo && this.joinInfo !== null && !this.inRoom) {
+      this.setJoinInfo(null);
     }
   }
 

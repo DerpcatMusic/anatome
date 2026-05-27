@@ -27,9 +27,26 @@ type NextLivePick = Pick<
   "_id" | "title" | "status" | "startsAt" | "joinOpensAt" | "joinClosesAt" | "type"
 >;
 
+/** Members only see sidebar entry once the instructor has started the broadcast. */
+export function isMemberLiveSidebarEligible(
+  liveClass: SidebarLiveClass,
+  now: number,
+): boolean {
+  if (liveClass.status !== "live") return false;
+  return isInLiveJoinWindow(liveClass, now);
+}
+
 /** Prefer actively live classes, then soonest start among eligible sidebar targets. */
-export function pickBestSidebarLiveClass<T extends NextLivePick>(candidates: T[], now: number): T | null {
-  const eligible = candidates.filter((row) => isLiveSidebarEligible(row, now));
+export function pickBestSidebarLiveClass<T extends NextLivePick>(
+  candidates: T[],
+  now: number,
+  options?: { memberView?: boolean },
+): T | null {
+  const eligible = candidates.filter((row) =>
+    options?.memberView
+      ? isMemberLiveSidebarEligible(row, now)
+      : isLiveSidebarEligible(row, now),
+  );
   if (eligible.length === 0) return null;
   eligible.sort((a, b) => {
     const aLive = a.status === "live" ? 1 : 0;

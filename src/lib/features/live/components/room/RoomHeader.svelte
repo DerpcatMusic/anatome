@@ -112,6 +112,13 @@
       </div>
     </div>
 
+    {#if session?.isClassHost}
+      <span class="lr-header__host-badge" role="status">
+        <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+        {t.live.preConnect.hostBadge()}
+      </span>
+    {/if}
+
     {#if session?.classBroadcastLabel}
       <span
         class="lr-header__broadcast"

@@ -40,6 +40,7 @@
   });
 
   session.refetchJoinToken = () => joinToken.refetch();
+  session.onJoinInfoMinted = (info) => joinToken.setJoinInfo(info);
 
   session.onInstructorLeaveInApp = () => {
     dock.enterPip();
@@ -74,16 +75,10 @@
       phase: joinToken.isLoading ? "loading" : joinToken.phase,
       status: joinToken.status,
       error: joinToken.error,
-      joinInfo: joinToken.joinInfo ?? session.joinInfo,
+      joinInfo: joinToken.joinInfo,
       joinAccess: joinToken.joinAccess,
       classTitle: joinToken.classTitle,
     });
-  });
-
-  $effect(() => {
-    if (session.joinInfo) {
-      joinToken.setJoinInfo(session.joinInfo);
-    }
   });
 
   $effect(() => {
@@ -97,10 +92,10 @@
     }
   });
 
+  /** Mirror reference `useEffect([connect])` — sync on every connect flag change. */
   $effect(() => {
-    if (!session.sessionConnect) {
-      void session.syncSessionConnect();
-    }
+    session.sessionConnect;
+    void session.syncSessionConnect();
   });
 
   $effect(() => {

@@ -6,7 +6,8 @@ export type LiveSidebarTab = "chat" | "participants" | "info";
 /** Panels, chat, modals, and session-ended UX state. */
 export class LiveSessionUi extends LiveSessionCore {
   unreadChatCount = $state(0);
-  sidebarTab = $state<LiveSidebarTab>("chat");
+  /** `null` = icon rail only (no expanded panel). */
+  sidebarTab = $state<LiveSidebarTab | null>(null);
   /** @deprecated Use `sidebarTab === 'participants'`. */
   showParticipants = $state(false);
   /** @deprecated Use `sidebarTab === 'chat'`. */
@@ -20,14 +21,24 @@ export class LiveSessionUi extends LiveSessionCore {
 
   joinExpiryWarned = false;
 
-  setSidebarTab(tab: LiveSidebarTab) {
-    this.sidebarTab = tab;
+  readonly sidebarExpanded = $derived(this.sidebarTab !== null);
+
+  private syncLegacySidebarFlags(tab: LiveSidebarTab | null) {
     this.showChat = tab === "chat";
     this.showParticipants = tab === "participants";
     this.showQualityPanel = tab === "info";
+  }
+
+  setSidebarTab(tab: LiveSidebarTab | null) {
+    this.sidebarTab = tab;
+    this.syncLegacySidebarFlags(tab);
     if (tab === "chat") {
       this.unreadChatCount = 0;
     }
+  }
+
+  toggleSidebarTab(tab: LiveSidebarTab) {
+    this.setSidebarTab(this.sidebarTab === tab ? null : tab);
   }
 
   openChat() {
@@ -35,11 +46,7 @@ export class LiveSessionUi extends LiveSessionCore {
   }
 
   toggleChat() {
-    if (this.sidebarTab === "chat") {
-      this.setSidebarTab("participants");
-    } else {
-      this.openChat();
-    }
+    this.toggleSidebarTab("chat");
   }
 
   dismissJoinExpiryModal() {
@@ -51,5 +58,6 @@ export class LiveSessionUi extends LiveSessionCore {
     this.showJoinExpiryModal = false;
     this.joinExpiryWarned = false;
     this.unreadChatCount = 0;
+    this.setSidebarTab(null);
   }
 }

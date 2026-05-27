@@ -7,6 +7,7 @@
   } from "$lib/features/live/live-session.svelte";
   import LiveMediaSplitControl from "./ui/LiveMediaSplitControl.svelte";
   import LiveInlineAudioMeter from "./ui/LiveInlineAudioMeter.svelte";
+  import LivePublishSettingsFields from "./LivePublishSettingsFields.svelte";
 
   let {
     session: sessionProp,
@@ -111,7 +112,7 @@
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content
-            class="hb-popover-content lr-popover lr-settings-panel"
+            class="hb-popover-content lr-popover lr-settings-panel lr-settings-panel--publish"
             side="top"
             align="center"
             sideOffset={8}
@@ -119,43 +120,54 @@
             <div class="lr-settings">
               <strong class="lr-settings__title">{t.live.room.settingsTitle()}</strong>
 
-              <span class="hb-switch">
-                <Switch.Root
-                  class="hb-switch__root"
-                  aria-label={t.live.room.echoCancel()}
-                  bind:checked={session.audioProcessingEnabled}
-                  onCheckedChange={() => void session.applyAudioProcessing()}
-                >
-                  <Switch.Thumb class="hb-switch__thumb" />
-                </Switch.Root>
-                <span>{t.live.room.echoCancel()}</span>
-              </span>
-
               {#if session.isInstructorRoom}
+                <LivePublishSettingsFields
+                  {session}
+                  mode="compact"
+                  showPresets={false}
+                  showEchoToggle={false}
+                />
+              {/if}
+
+              <div class="lr-settings__session">
                 <span class="hb-switch">
                   <Switch.Root
                     class="hb-switch__root"
-                    aria-label={t.live.controls.selfMonitorOn()}
-                    bind:checked={session.selfAudioMonitorEnabled}
+                    aria-label={t.live.room.echoCancel()}
+                    bind:checked={session.audioProcessingEnabled}
+                    onCheckedChange={() => void session.applyAudioProcessing()}
                   >
                     <Switch.Thumb class="hb-switch__thumb" />
                   </Switch.Root>
-                  <span>{t.live.controls.selfMonitorOn()}</span>
+                  <span>{t.live.room.echoCancel()}</span>
                 </span>
 
-                <span class="hb-switch">
-                  <Switch.Root
-                    class="hb-switch__root"
-                    aria-label={t.live.room.screenShareAudio()}
-                    checked={session.screenShareAudioEnabled}
-                    disabled={!session.screenShareEnabled}
-                    onCheckedChange={(value) => void session.setScreenShareAudioEnabled(!!value)}
-                  >
-                    <Switch.Thumb class="hb-switch__thumb" />
-                  </Switch.Root>
-                  <span>{t.live.room.screenShareAudio()}</span>
-                </span>
-              {/if}
+                {#if session.isInstructorRoom}
+                  <span class="hb-switch">
+                    <Switch.Root
+                      class="hb-switch__root"
+                      aria-label={t.live.controls.selfMonitorOn()}
+                      bind:checked={session.selfAudioMonitorEnabled}
+                    >
+                      <Switch.Thumb class="hb-switch__thumb" />
+                    </Switch.Root>
+                    <span>{t.live.controls.selfMonitorOn()}</span>
+                  </span>
+
+                  <span class="hb-switch">
+                    <Switch.Root
+                      class="hb-switch__root"
+                      aria-label={t.live.room.screenShareAudio()}
+                      checked={session.screenShareAudioEnabled}
+                      disabled={!session.screenShareEnabled}
+                      onCheckedChange={(value) => void session.setScreenShareAudioEnabled(!!value)}
+                    >
+                      <Switch.Thumb class="hb-switch__thumb" />
+                    </Switch.Root>
+                    <span>{t.live.room.screenShareAudio()}</span>
+                  </span>
+                {/if}
+              </div>
             </div>
           </Popover.Content>
         </Popover.Portal>
@@ -173,5 +185,18 @@
 
   .lr-control-bar__media {
     flex-shrink: 0;
+  }
+
+  :global(.lr-settings-panel--publish) {
+    max-width: min(92vw, 320px);
+    max-height: min(70vh, 520px);
+    overflow: auto;
+  }
+
+  .lr-settings__session {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-color);
   }
 </style>

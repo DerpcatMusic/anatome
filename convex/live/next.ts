@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { isInLiveJoinWindow } from "../lib/liveJoin";
 import { isLiveSidebarEligible, pickBestSidebarLiveClass } from "../lib/liveSidebar";
 import { viewerCanAccessLiveClass } from "../lib/equipment";
 import { requireQueryNow } from "../lib/queryNow";
@@ -22,8 +23,15 @@ const nextLivePayloadValidator = v.object({
   type: v.union(v.literal("group_live"), v.literal("one_on_one")),
 });
 
-function toNextLivePayload(liveClass: Doc<"liveClasses">, now: number) {
-  if (!isLiveSidebarEligible(liveClass, now)) return null;
+function toNextLivePayload(
+  liveClass: Doc<"liveClasses">,
+  now: number,
+  options?: { memberView?: boolean },
+) {
+  const eligible = options?.memberView
+    ? liveClass.status === "live" && isInLiveJoinWindow(liveClass, now)
+    : isLiveSidebarEligible(liveClass, now);
+  if (!eligible) return null;
   return {
     classId: liveClass._id,
     title: liveClass.title,
@@ -115,8 +123,8 @@ export const get = query({
       memberCandidates.push(liveClass);
     }
 
-    const best = pickBestSidebarLiveClass(memberCandidates, now);
+    const best = pickBestSidebarLiveClass(memberCandidates, now, { memberView: true });
     if (best === null) return null;
-    return toNextLivePayload(best, now);
+    return toNextLivePayload(best, now, { memberView: true });
   },
 });

@@ -1837,6 +1837,7 @@ type RootTranslation = {
 			 * ה​ש​י​ע​ו​ר​ ​ע​ד​י​י​ן​ ​ל​א​ ​ה​ת​ח​י​ל​.​ ​ר​ק​ ​מ​ד​ר​י​כ​ה​ ​א​ו​ ​א​ד​מ​י​ן​ ​י​כ​ו​ל​י​ם​ ​ל​ה​ת​ח​י​ל​ ​א​ו​ת​ו​ ​מ​כ​א​ן​.
 			 */
 			prepNoticeInstructor: string
+			hostBadge: string
 			/**
 			 * ק​ו​ל​ ​ה​מ​ד​ר​י​כ​ה
 			 */
@@ -1913,6 +1914,22 @@ type RootTranslation = {
 			 * ב​ד​י​ק​ת​ ​מ​כ​ש​י​ר​י​ם
 			 */
 			devicesCheckTitle: string
+			advancedSettingsLabel: string
+			publishPrepHint: string
+			presetAudienceNote: string
+			publishInRoomHint: string
+			statusAwaitingStart: string
+			prepCalloutTitle: string
+			reenterLiveNotice: string
+			codecHevcNote: string
+			subscriberReceiveTitle: string
+			subscriberReceiveHint: string
+			subscriberReceiveLow: string
+			subscriberReceiveMedium: string
+			subscriberReceiveHigh: string
+			subscriberReceiveLowDesc: string
+			subscriberReceiveMediumDesc: string
+			subscriberReceiveHighDesc: string
 		}
 		room: {
 			/**
@@ -1981,6 +1998,8 @@ type RootTranslation = {
 			 * @param {unknown} instructor
 			 */
 			waitingForInstructorNamed: RequiredParams<'instructor'>
+			waitingForBroadcastTitle: string
+			waitingForBroadcastStart: string
 			/**
 			 * {​t​i​t​l​e​}
 			 * @param {unknown} title
@@ -4571,6 +4590,7 @@ export type TranslationFunctions = {
 			 * השיעור עדיין לא התחיל. רק מדריכה או אדמין יכולים להתחיל אותו מכאן.
 			 */
 			prepNoticeInstructor: () => LocalizedString
+			hostBadge: () => LocalizedString
 			/**
 			 * קול המדריכה
 			 */
@@ -4647,6 +4667,22 @@ export type TranslationFunctions = {
 			 * בדיקת מכשירים
 			 */
 			devicesCheckTitle: () => LocalizedString
+			advancedSettingsLabel: () => LocalizedString
+			publishPrepHint: () => LocalizedString
+			presetAudienceNote: () => LocalizedString
+			publishInRoomHint: () => LocalizedString
+			statusAwaitingStart: () => LocalizedString
+			prepCalloutTitle: () => LocalizedString
+			reenterLiveNotice: () => LocalizedString
+			codecHevcNote: () => LocalizedString
+			subscriberReceiveTitle: () => LocalizedString
+			subscriberReceiveHint: () => LocalizedString
+			subscriberReceiveLow: () => LocalizedString
+			subscriberReceiveMedium: () => LocalizedString
+			subscriberReceiveHigh: () => LocalizedString
+			subscriberReceiveLowDesc: () => LocalizedString
+			subscriberReceiveMediumDesc: () => LocalizedString
+			subscriberReceiveHighDesc: () => LocalizedString
 		}
 		room: {
 			/**
@@ -4714,6 +4750,8 @@ export type TranslationFunctions = {
 			 * מחכים ל{instructor}…
 			 */
 			waitingForInstructorNamed: (arg: { instructor: unknown }) => LocalizedString
+			waitingForBroadcastTitle: () => LocalizedString
+			waitingForBroadcastStart: () => LocalizedString
 			/**
 			 * {title}
 			 */

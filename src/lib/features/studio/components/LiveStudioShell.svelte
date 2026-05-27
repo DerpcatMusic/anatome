@@ -52,8 +52,11 @@
 
   const classes = $derived(classesQuery.data ?? []);
   const classesQueryError = $derived(classesQuery.error?.message ?? "");
+  let hasLoadedClasses = $state(false);
   const loading = $derived(
-    !canRunAuthenticatedQuery() || profileQuery.isLoading || classesQuery.isLoading,
+    !canRunAuthenticatedQuery() ||
+      profileQuery.isLoading ||
+      (classesQuery.isLoading && !hasLoadedClasses),
   );
 
   let error = $state("");
@@ -97,6 +100,7 @@
       ? {
           startsAt: parseDateTimeLocal(startsAtLocal),
           endsAt: parseDateTimeLocal(startsAtLocal) + durationMinutes * 60 * 1000,
+          requiredEquipment,
         }
       : null,
   );
@@ -118,6 +122,12 @@
   );
 
   let lastCreatedClassId = $state<Id<"liveClasses"> | null>(null);
+
+  $effect(() => {
+    if (classesQuery.data !== undefined) {
+      hasLoadedClasses = true;
+    }
+  });
 
   $effect(() => {
     if (!canRunAuthenticatedQuery() || profileQuery.isLoading) return;

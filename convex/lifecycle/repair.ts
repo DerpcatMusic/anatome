@@ -45,10 +45,7 @@ export const scheduleMissing = internalMutation({
       .take(LIMITS.CRON_CLASSES);
 
     for (const liveClass of [...scheduledClasses, ...liveRows]) {
-      if (
-        liveClass.startScheduledFunctionId !== undefined &&
-        liveClass.endScheduledFunctionId !== undefined
-      ) {
+      if (liveClass.endScheduledFunctionId !== undefined) {
         continue;
       }
       const scheduled = await scheduleLiveClassLifecycle(

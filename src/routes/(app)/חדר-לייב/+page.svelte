@@ -38,7 +38,7 @@
     if (invalidClassId) return "invalidClass" as const;
     if (classIdParam !== null) return "room" as const;
     if (!isStaffWithoutClass) return "room" as const;
-    if (!canRunAuthenticatedQuery() || nextLiveQuery.isLoading) return "resolving" as const;
+    if (canRunAuthenticatedQuery() && nextLiveQuery.isLoading) return "resolving" as const;
     const nextClassId = nextLiveQuery.data?.classId;
     if (nextClassId) return "redirect" as const;
     return "room" as const;
