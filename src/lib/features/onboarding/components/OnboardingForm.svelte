@@ -144,8 +144,10 @@
   const isLast = $derived(stepIndex === steps.length - 1);
   const progressPercent = $derived(((stepIndex + 1) / steps.length) * 100);
 
+  /** Health declaration answers are always stored — consent is required on this step. */
   const needsHealthConsent = $derived(
-    pathologies.length > 0 ||
+    currentStep.id === "health-declaration" ||
+      pathologies.length > 0 ||
       notes.trim().length > 0 ||
       hasHealthDeclarationYes(healthDeclarationAnswers),
   );

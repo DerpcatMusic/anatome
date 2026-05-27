@@ -68,13 +68,7 @@ export const complete = mutation({
       throw new Error("Health declaration is required before starting.");
     }
 
-    const sensitiveData = hasSensitiveHealthData({
-      pathologies: cleanPathologies,
-      notes: cleanNotes,
-      healthDeclarationAnswers: args.healthDeclarationAnswers,
-    });
-
-    if (sensitiveData && !args.healthInfoConsent) {
+    if (!args.healthInfoConsent) {
       throw new Error("Health information consent is required before saving health data.");
     }
 
@@ -86,9 +80,7 @@ export const complete = mutation({
       notes: cleanNotes,
       healthDeclarationAnswers: args.healthDeclarationAnswers,
       healthDeclarationAcceptedAt: now,
-      healthInfoConsentAcceptedAt: sensitiveData
-        ? now
-        : existing?.healthInfoConsentAcceptedAt,
+      healthInfoConsentAcceptedAt: now,
       updatedAt: now,
     };
 

@@ -76,15 +76,15 @@
     </Checkbox.Root>
   </div>
 
-  <div class="health-step__consent" data-active={needsHealthConsent}>
+  {#if needsHealthConsent}
+  <div class="health-step__consent" data-active="true">
     <p>{t.onboarding.healthDeclaration.consentIntro()}</p>
     <div class="health-consent-row">
       <Checkbox.Root
         class="health-consent-check"
         checked={healthInfoConsent}
-        disabled={!needsHealthConsent}
         onchange={() => {
-          if (needsHealthConsent) healthInfoConsent = !healthInfoConsent;
+          healthInfoConsent = !healthInfoConsent;
         }}
       >
         {#snippet children({ checked })}
@@ -94,6 +94,7 @@
       </Checkbox.Root>
     </div>
   </div>
+  {/if}
 </div>
 
 <style>
@@ -168,10 +169,6 @@
     padding: var(--space-4);
     border: var(--border);
     background: var(--paper);
-  }
-
-  .health-step__consent[data-active="false"] {
-    opacity: 0.72;
   }
 
   .health-step :global(.health-consent-check) {
