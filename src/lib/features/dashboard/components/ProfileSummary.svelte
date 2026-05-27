@@ -3,6 +3,7 @@
     experienceLabelMap as experienceLabels,
     equipmentLabelMap as equipmentLabels,
     goalLabelMap as goalLabels,
+    pathologyLabel,
     fmtList,
   } from "$lib/labels";
   import { useI18n } from "$lib/i18n/runes.svelte";
@@ -19,6 +20,7 @@
     experience: string;
     equipment: string[];
     goals: string[];
+    pathologies?: string[];
     notes?: string | null;
   };
 
@@ -91,6 +93,14 @@
         <span class="profile-summary__label">{t.dashboard.profile.goals()}</span>
         <span class="profile-summary__value">{fmtList(profile.goals, goalLabels)}</span>
       </div>
+      {#if profile.pathologies && profile.pathologies.length > 0}
+        <div class="profile-summary__cell profile-summary__cell--wide">
+          <span class="profile-summary__label">{t.onboarding.summary.pathologies()}</span>
+          <span class="profile-summary__value"
+            >{profile.pathologies.map(pathologyLabel).join(", ")}</span
+          >
+        </div>
+      {/if}
       {#if profile.notes && profile.notes.trim().length > 0}
         <div class="profile-summary__cell profile-summary__cell--wide">
           <span class="profile-summary__label">{t.dashboard.profile.notes()}</span>

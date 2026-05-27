@@ -1,5 +1,18 @@
 // ─── Shared label dictionaries ───
-// Centralized here so they aren't duplicated across 6+ components.
+// Equipment and pathology IDs/labels are sourced from Convex catalogs (single source of truth).
+
+import {
+  CANONICAL_EQUIPMENT_IDS,
+  equipmentDisplayLabels,
+  normalizeEquipmentId as normalizeEquipmentIdFromCatalog,
+  type CanonicalEquipmentId,
+} from "$convex/lib/equipmentCatalog";
+import {
+  PATHOLOGY_IDS,
+  pathologyDisplayLabels,
+  isPathologyId,
+  type PathologyId,
+} from "$convex/lib/pathologyCatalog";
 
 export const experienceOptions = [
   ["new", "חדשה לגמרי"],
@@ -9,25 +22,11 @@ export const experienceOptions = [
 
 export type Experience = (typeof experienceOptions)[number][0];
 
-export const equipmentOptions = [
-  ["mat", "Mat"],
-  ["reformer", "Reformer"],
-  ["cadillac", "Cadillac"],
-  ["chair", "Chair"],
-  ["spine_corrector", "Spine Corrector"],
-  ["small_ball", "Small Ball"],
-  ["resistance_band", "Resistance Band"],
-  ["roller", "Roller"],
-  ["light_weights", "Weights"],
-  ["magic_circle", "Magic Circle"],
-  ["spiky_balls", "Spiky Balls"],
-] as const;
+export const equipmentOptions = CANONICAL_EQUIPMENT_IDS.map(
+  (id) => [id, equipmentDisplayLabels[id]] as const,
+);
 
-const legacyEquipmentLabels: Record<string, string> = {
-  barrel: "Spine Corrector",
-};
-
-export type Equipment = (typeof equipmentOptions)[number][0] | "barrel";
+export type Equipment = CanonicalEquipmentId;
 
 export const goalOptions = [
   ["pelvic_floor_rehab", "שיקום רצפת אגן"],
@@ -46,28 +45,11 @@ const legacyGoalLabels: Record<string, string> = {
   return_to_movement: "חזרה לתנועה",
 };
 
-export const pathologyOptions = [
-  ["back_pain", "כאבי גב"],
-  ["disc_herniation", "פריצת / בלוט דיסק"],
-  ["neck_pain", "כאבי צוואר"],
-  ["sciatica", "סיאטיקה"],
-  ["pregnancy", "הריון"],
-  ["postpartum", "שיקום אחרי לידה"],
-  ["osteoporosis", "אוסטאופורוזיס / דליחת סידן"],
-  ["scoliosis", "סקוליוזיס / עקמות גב"],
-  ["diastasis_recti", "הפרדת שרירי הבטן (דיאסטזיס)"],
-  ["pelvic_floor_weakness", "חולשת רצפת אגן"],
-  ["hip_pain", "כאבי ירך / מפרק ירך"],
-  ["knee_pain", "כאבי ברכיים"],
-  ["shoulder_pain", "כאבי כתף / קרעים"],
-  ["fibromyalgia", "כאב כרוני / פיבromyalgia"],
-  ["arthritis", "דלקת פרקים"],
-  ["post_surgery", "שיקום אחרי ניתוח"],
-  ["incontinence", "דליפות שתן"],
-  ["prolapse", "צניחה"],
-] as const;
+export const pathologyOptions = PATHOLOGY_IDS.map(
+  (id) => [id, pathologyDisplayLabels[id]] as const,
+);
 
-export type Pathology = (typeof pathologyOptions)[number][0];
+export type Pathology = PathologyId;
 
 export const experienceLabelMap: Record<string, string> = Object.fromEntries(experienceOptions);
 export const equipmentLabelMap: Record<string, string> = Object.fromEntries(equipmentOptions);
@@ -75,14 +57,13 @@ export const goalLabelMap: Record<string, string> = Object.fromEntries(goalOptio
 export const pathologyLabelMap: Record<string, string> = Object.fromEntries(pathologyOptions);
 
 export function equipmentLabel(id: string): string {
-  return equipmentLabelMap[id] ?? legacyEquipmentLabels[id] ?? id;
+  const normalized = normalizeEquipmentIdFromCatalog(id);
+  if (normalized !== null) return equipmentDisplayLabels[normalized];
+  return id;
 }
 
 export function normalizeEquipmentId(id: string): Equipment | null {
-  const normalized = id === "barrel" ? "spine_corrector" : id;
-  return equipmentOptions.some(([equipmentId]) => equipmentId === normalized)
-    ? (normalized as Equipment)
-    : null;
+  return normalizeEquipmentIdFromCatalog(id);
 }
 
 export function experienceLabel(id: string): string {
@@ -94,7 +75,7 @@ export function goalLabel(id: string): string {
 }
 
 export function pathologyLabel(id: string): string {
-  return pathologyLabelMap[id] ?? id;
+  return isPathologyId(id) ? pathologyDisplayLabels[id] : id;
 }
 
 export function fmtList(arr: string[], labels: Record<string, string>): string {

@@ -79,14 +79,12 @@
   let error = $state("");
   let submitted = $state(false);
 
-  const pathologyIds = new Set(pathologyOptions.map(([id]) => id));
-
   function isKnownGoal(value: string): value is Goal {
     return goalOptions.some(([id]) => id === value);
   }
 
   function isKnownPathology(value: string): value is Pathology {
-    return pathologyIds.has(value as Pathology);
+    return pathologyOptions.some(([id]) => id === value);
   }
 
   const legacyGoalMap: Record<string, Goal> = {
@@ -102,41 +100,68 @@
     return legacyGoalMap[value] ?? null;
   }
 
-  $effect(() => {
-    const prefilled = displayNameForOnboardingPrefill(initialDisplayName);
-    firstName = prefilled.firstName;
-    lastName = prefilled.lastName;
-    nameWarning = false;
+  function hydrateFromInitialProfile(profile: NonNullable<typeof initialProfile>) {
+    equipment = profile.equipment
+      .map((item) => normalizeEquipmentId(item))
+      .filter((item): item is Equipment => item !== null);
+    if (equipment.length === 0) equipment = ["mat"];
 
-    equipment = initialProfile?.equipment
-      ?.map((item) => normalizeEquipmentId(item))
-      .filter((item): item is Equipment => item !== null) ?? ["mat"];
-    goals = initialProfile?.goals
-      ?.map(normalizeGoal)
-      .filter((goal): goal is Goal => goal !== null) ?? ["pelvic_floor_rehab"];
-    experience = initialProfile?.experience ?? "some";
-    pathologies = initialProfile?.pathologies?.filter(isKnownPathology) ?? [];
-    notes = initialProfile?.notes ?? "";
+    goals = profile.goals
+      .map(normalizeGoal)
+      .filter((goal): goal is Goal => goal !== null);
+    if (goals.length === 0) goals = ["pelvic_floor_rehab"];
 
-    if (initialProfile?.healthDeclarationAnswers) {
+    experience = profile.experience;
+    pathologies = profile.pathologies?.filter(isKnownPathology) ?? [];
+    notes = profile.notes ?? "";
+
+    if (profile.healthDeclarationAnswers) {
       healthDeclarationAnswers = {
         ...emptyHealthDeclarationAnswers(),
-        ...initialProfile.healthDeclarationAnswers,
+        ...profile.healthDeclarationAnswers,
       };
     } else {
       healthDeclarationAnswers = emptyHealthDeclarationAnswers();
     }
 
     healthInfoConsent =
-      (initialProfile?.pathologies?.length ?? 0) > 0 ||
-      (initialProfile?.notes?.trim().length ?? 0) > 0 ||
-      (initialProfile?.healthDeclarationAnswers
-        ? Object.values(initialProfile.healthDeclarationAnswers).some((answer) => answer === "yes")
+      (profile.pathologies?.length ?? 0) > 0 ||
+      (profile.notes?.trim().length ?? 0) > 0 ||
+      (profile.healthDeclarationAnswers
+        ? Object.values(profile.healthDeclarationAnswers).some((answer) => answer === "yes")
         : false);
     healthDeclarationAccepted = mode === "edit";
-    stepIndex = 0;
-    error = "";
-    submitted = false;
+  }
+
+  let profileHydrationKey = $state<string | null>(null);
+  let displayNameHydrated = $state(false);
+
+  /** Edit mode: hydrate once per profile snapshot — never reset mid-flow. */
+  $effect(() => {
+    if (!initialProfile) return;
+    const key = JSON.stringify({
+      equipment: initialProfile.equipment,
+      experience: initialProfile.experience,
+      goals: initialProfile.goals,
+      pathologies: initialProfile.pathologies ?? [],
+      notes: initialProfile.notes,
+      healthDeclarationAnswers: initialProfile.healthDeclarationAnswers ?? null,
+    });
+    if (profileHydrationKey === key) return;
+    profileHydrationKey = key;
+    hydrateFromInitialProfile(initialProfile);
+  });
+
+  /** Onboarding: prefill name once when OAuth display name arrives — do not wipe other fields. */
+  $effect(() => {
+    if (displayNameHydrated || initialProfile) return;
+    if (!initialDisplayName) return;
+    const prefilled = displayNameForOnboardingPrefill(initialDisplayName);
+    if (firstName.trim() === "" && lastName.trim() === "") {
+      firstName = prefilled.firstName;
+      lastName = prefilled.lastName;
+    }
+    displayNameHydrated = true;
   });
 
   const currentStep = $derived(steps[stepIndex]);
@@ -184,20 +209,36 @@
     if (!isFirst) stepIndex--;
   }
 
+  const healthDeclarationStepIndex = steps.findIndex((s) => s.id === "health-declaration");
+
   async function submit() {
     if (!nameComplete) {
       nameWarning = true;
       stepIndex = 0;
       return;
     }
+
+    const normalizedAnswers = normalizeHealthDeclarationAnswers(healthDeclarationAnswers);
+    if (normalizedAnswers === null) {
+      error = t.onboarding.healthDeclaration.incompleteError();
+      if (healthDeclarationStepIndex >= 0) stepIndex = healthDeclarationStepIndex;
+      return;
+    }
+
+    if (!healthDeclarationAccepted || !healthInfoConsent) {
+      error = "נדרשת הסכמה לשמירת מידע בריאותי והצהרת בריאות.";
+      if (healthDeclarationStepIndex >= 0) stepIndex = healthDeclarationStepIndex;
+      return;
+    }
+
+    if (equipment.length === 0 || goals.length === 0) {
+      error = t.onboarding.saveError();
+      return;
+    }
+
     pending = true;
     error = "";
     try {
-      const normalizedAnswers = normalizeHealthDeclarationAnswers(healthDeclarationAnswers);
-      if (normalizedAnswers === null) {
-        throw new Error(t.onboarding.healthDeclaration.incompleteError());
-      }
-
       await authMutation(api.users.onboarding.complete, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),

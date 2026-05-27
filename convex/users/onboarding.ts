@@ -9,27 +9,7 @@ import {
   healthDeclarationAnswersValidator,
   pathologiesListValidator,
 } from "../lib/validators";
-import { RULES } from "../lib/constants";
-import { buildDisplayName, normalizeNamePart } from "../lib/displayName";
-
-function hasSensitiveHealthData(args: {
-  pathologies: string[];
-  notes: string;
-  healthDeclarationAnswers: {
-    heartCondition: "yes" | "no";
-    chestPain: "yes" | "no";
-    dizziness: "yes" | "no";
-    boneJointIssue: "yes" | "no";
-    highBloodPressure: "yes" | "no";
-    pregnancy: "yes" | "no";
-    recentBirth: "yes" | "no";
-    recentSurgery: "yes" | "no";
-  };
-}): boolean {
-  if (args.pathologies.length > 0) return true;
-  if (args.notes.trim().length > 0) return true;
-  return Object.values(args.healthDeclarationAnswers).some((answer) => answer === "yes");
-}
+import { prepareOnboardingProfile } from "../lib/onboardingValidation";
 
 export const complete = mutation({
   args: {
@@ -46,13 +26,10 @@ export const complete = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Authentication required");
+    if (userId === null) throw new Error("נדרשת התחברות.");
 
+    const prepared = prepareOnboardingProfile(args);
     const appProfile = await getOrCreateAppProfile(ctx, userId);
-
-    const firstName = normalizeNamePart(args.firstName, "First name");
-    const lastName = normalizeNamePart(args.lastName, "Last name");
-    const displayName = buildDisplayName(firstName, lastName);
 
     const now = Date.now();
     const existingRows = await ctx.db
@@ -61,31 +38,20 @@ export const complete = mutation({
       .take(1);
     const existing = existingRows[0] ?? null;
 
-    const cleanNotes = args.notes.trim().slice(0, RULES.MAX_ONBOARDING_NOTES_LENGTH);
-    const cleanPathologies = [...new Set(args.pathologies)];
-
-    if (!args.healthDeclarationAccepted) {
-      throw new Error("Health declaration is required before starting.");
-    }
-
-    if (!args.healthInfoConsent) {
-      throw new Error("Health information consent is required before saving health data.");
-    }
-
     const profilePatch = {
-      equipment: args.equipment,
-      experience: args.experience,
-      goals: args.goals,
-      pathologies: cleanPathologies,
-      notes: cleanNotes,
-      healthDeclarationAnswers: args.healthDeclarationAnswers,
+      equipment: prepared.equipment,
+      experience: prepared.experience,
+      goals: prepared.goals,
+      pathologies: prepared.pathologies,
+      notes: prepared.notes,
+      healthDeclarationAnswers: prepared.healthDeclarationAnswers,
       healthDeclarationAcceptedAt: now,
       healthInfoConsentAcceptedAt: now,
       updatedAt: now,
     };
 
     await ctx.db.patch(appProfile._id, {
-      displayName,
+      displayName: prepared.displayName,
       updatedAt: now,
     });
 
