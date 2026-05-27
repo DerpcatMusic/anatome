@@ -18,7 +18,7 @@
 
 <div class="experience-options">
   <RadioGroup.Root bind:value={experience} orientation="vertical">
-    {#each options as option}
+    {#each options as option (option.value)}
       <RadioGroup.Item value={option.value} class="hb-choice experience-choice">
         {#snippet children({ checked })}
           <span class="hb-choice__title">{option.label}</span>

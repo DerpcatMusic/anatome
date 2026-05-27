@@ -37,6 +37,16 @@ export function formatLiveStartsAt(startsAt: number, now = Date.now()): string {
   return liveWhenFormatter.format(startsAt);
 }
 
+const profileTimestampFormatter = new Intl.DateTimeFormat("he-IL", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: LOCAL_TIMEZONE,
+});
+
+export function formatProfileTimestamp(ms: number): string {
+  return profileTimestampFormatter.format(new Date(ms));
+}
+
 export function formatProgressLabel(currentSeconds: number, durationSeconds: number | null): string {
   const format = (total: number) => {
     const m = Math.floor(total / 60);

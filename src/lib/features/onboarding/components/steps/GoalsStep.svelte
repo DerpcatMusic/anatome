@@ -18,7 +18,7 @@
 </script>
 
 <div class="goals-wrap">
-  {#each goalOptions as [value, label]}
+  {#each goalOptions as [value, label] (value)}
     <Checkbox.Root
       class="hb-choice goal-choice"
       checked={goals.includes(value)}

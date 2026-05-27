@@ -124,12 +124,13 @@
       healthDeclarationAnswers = emptyHealthDeclarationAnswers();
     }
 
-    healthInfoConsent =
+    const hasSensitiveData =
       (profile.pathologies?.length ?? 0) > 0 ||
       (profile.notes?.trim().length ?? 0) > 0 ||
       (profile.healthDeclarationAnswers
         ? Object.values(profile.healthDeclarationAnswers).some((answer) => answer === "yes")
         : false);
+    healthInfoConsent = mode === "edit" || hasSensitiveData;
     healthDeclarationAccepted = mode === "edit";
   }
 
@@ -152,10 +153,9 @@
     hydrateFromInitialProfile(initialProfile);
   });
 
-  /** Onboarding: prefill name once when OAuth display name arrives — do not wipe other fields. */
+  /** Prefill name once when display name arrives (OAuth or edit) — do not wipe other fields. */
   $effect(() => {
-    if (displayNameHydrated || initialProfile) return;
-    if (!initialDisplayName) return;
+    if (displayNameHydrated || !initialDisplayName) return;
     const prefilled = displayNameForOnboardingPrefill(initialDisplayName);
     if (firstName.trim() === "" && lastName.trim() === "") {
       firstName = prefilled.firstName;
@@ -212,6 +212,8 @@
   const healthDeclarationStepIndex = steps.findIndex((s) => s.id === "health-declaration");
 
   async function submit() {
+    if (pending || submitted) return;
+
     if (!nameComplete) {
       nameWarning = true;
       stepIndex = 0;

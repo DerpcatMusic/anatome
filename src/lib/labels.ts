@@ -82,6 +82,11 @@ export function fmtList(arr: string[], labels: Record<string, string>): string {
   return arr.map((v) => labels[v] ?? v).filter(Boolean).join(", ") || "—";
 }
 
+/** Equipment labels with legacy id normalization (e.g. barrel → spine corrector). */
+export function fmtEquipmentList(arr: string[]): string {
+  return arr.map(equipmentLabel).filter(Boolean).join(", ") || "—";
+}
+
 export function classTypeLabel(type: "group_live" | "one_on_one"): string {
   return type === "one_on_one" ? "1:1 אישי" : "לייב קבוצתי";
 }

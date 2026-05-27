@@ -29,7 +29,7 @@
   <p class="health-step__intro">{t.onboarding.healthDeclaration.intro()}</p>
 
   <div class="health-step__questions">
-    {#each healthDeclarationQuestionIds as questionId}
+    {#each healthDeclarationQuestionIds as questionId (questionId)}
       <fieldset class="health-question">
         <legend>{questionLabel(questionId)}</legend>
         <RadioGroup.Root

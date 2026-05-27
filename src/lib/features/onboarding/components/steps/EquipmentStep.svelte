@@ -19,7 +19,7 @@
 </script>
 
 <div class="equip-grid">
-  {#each equipmentOptions as [value, label]}
+  {#each equipmentOptions as [value, label] (value)}
     <Checkbox.Root
       class="hb-choice equip-choice"
       checked={equipment.includes(value)}

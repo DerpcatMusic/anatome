@@ -99,6 +99,10 @@
           pathologies: dashboardResource.current.profile.pathologies ?? [],
           notes: dashboardResource.current.profile.notes ?? "",
           healthDeclarationAnswers: dashboardResource.current.profile.healthDeclarationAnswers ?? undefined,
+          healthDeclarationAcceptedAt:
+            dashboardResource.current.profile.healthDeclarationAcceptedAt ?? undefined,
+          healthInfoConsentAcceptedAt:
+            dashboardResource.current.profile.healthInfoConsentAcceptedAt ?? undefined,
         }
       : null,
   );

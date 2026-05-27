@@ -1,13 +1,17 @@
 <script lang="ts">
   import {
     experienceLabelMap as experienceLabels,
-    equipmentLabelMap as equipmentLabels,
+    fmtEquipmentList,
     goalLabelMap as goalLabels,
     pathologyLabel,
     fmtList,
   } from "$lib/labels";
+  import {
+    healthDeclarationQuestionIds,
+    type HealthDeclarationAnswers,
+  } from "$lib/features/onboarding/health-declaration";
+  import { formatProfileTimestamp } from "$lib/features/dashboard/lib/format";
   import { useI18n } from "$lib/i18n/runes.svelte";
-
 
   type StaffProfile = {
     displayName?: string | null;
@@ -22,6 +26,9 @@
     goals: string[];
     pathologies?: string[];
     notes?: string | null;
+    healthDeclarationAnswers?: HealthDeclarationAnswers | Record<string, "yes" | "no">;
+    healthDeclarationAcceptedAt?: number;
+    healthInfoConsentAcceptedAt?: number;
   };
 
   let {
@@ -37,6 +44,14 @@
   } = $props();
 
   const { t } = useI18n();
+
+  const healthFlags = $derived(
+    profile?.healthDeclarationAnswers
+      ? healthDeclarationQuestionIds
+          .filter((id) => profile?.healthDeclarationAnswers?.[id] === "yes")
+          .map((id) => t.onboarding.healthDeclaration.questions[id]())
+      : [],
+  );
 </script>
 
 {#if isStaff && appProfile}
@@ -87,7 +102,7 @@
       </div>
       <div class="profile-summary__cell">
         <span class="profile-summary__label">{t.dashboard.profile.equipment()}</span>
-        <span class="profile-summary__value">{fmtList(profile.equipment, equipmentLabels)}</span>
+        <span class="profile-summary__value">{fmtEquipmentList(profile.equipment)}</span>
       </div>
       <div class="profile-summary__cell">
         <span class="profile-summary__label">{t.dashboard.profile.goals()}</span>
@@ -105,6 +120,32 @@
         <div class="profile-summary__cell profile-summary__cell--wide">
           <span class="profile-summary__label">{t.dashboard.profile.notes()}</span>
           <span class="profile-summary__value">{profile.notes}</span>
+        </div>
+      {/if}
+      {#if healthFlags.length > 0}
+        <div class="profile-summary__cell profile-summary__cell--wide">
+          <span class="profile-summary__label">{t.onboarding.summary.health()}</span>
+          <ul class="profile-summary__health-flags">
+            {#each healthFlags as flag (flag)}
+              <li>{flag}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+      {#if profile.healthDeclarationAcceptedAt}
+        <div class="profile-summary__cell">
+          <span class="profile-summary__label">{t.onboarding.summary.declaration()}</span>
+          <span class="profile-summary__value"
+            >{formatProfileTimestamp(profile.healthDeclarationAcceptedAt)}</span
+          >
+        </div>
+      {/if}
+      {#if profile.healthInfoConsentAcceptedAt}
+        <div class="profile-summary__cell">
+          <span class="profile-summary__label">{t.onboarding.summary.consent()}</span>
+          <span class="profile-summary__value"
+            >{formatProfileTimestamp(profile.healthInfoConsentAcceptedAt)}</span
+          >
         </div>
       {/if}
     </div>
@@ -169,6 +210,18 @@
     font-size: var(--step-1);
     font-weight: 700;
     line-height: 1.3;
+  }
+
+  .profile-summary__health-flags {
+    margin: 0;
+    padding-inline-start: var(--space-4);
+    font-size: var(--step-0);
+    line-height: 1.45;
+    font-weight: 650;
+  }
+
+  .profile-summary__health-flags li + li {
+    margin-top: var(--space-1);
   }
 
   .compliance-bar {

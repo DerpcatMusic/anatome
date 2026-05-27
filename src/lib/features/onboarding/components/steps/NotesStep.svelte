@@ -46,7 +46,7 @@
   </label>
 
   <div class="notes-step__pathologies" role="group" aria-label={t.onboarding.notes.pathologiesGroup()}>
-    {#each filteredPathologies as [value, label]}
+    {#each filteredPathologies as [value, label] (value)}
       <Checkbox.Root
         class="hb-choice pathology-choice"
         checked={pathologies.includes(value)}

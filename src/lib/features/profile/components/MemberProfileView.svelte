@@ -1,15 +1,15 @@
 <script lang="ts">
   import {
     experienceLabelMap as experienceLabels,
-    equipmentLabelMap as equipmentLabels,
+    fmtEquipmentList,
     goalLabel,
     pathologyLabel,
-    fmtList,
   } from "$lib/labels";
   import {
     healthDeclarationQuestionIds,
     type HealthDeclarationAnswers,
   } from "$features/onboarding/health-declaration";
+  import { formatProfileTimestamp } from "$lib/features/dashboard/lib/format";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   const { t } = useI18n();
@@ -24,6 +24,8 @@
       pathologies?: string[];
       notes?: string | null;
       healthDeclarationAnswers?: HealthDeclarationAnswers | Record<string, "yes" | "no">;
+      healthDeclarationAcceptedAt?: number;
+      healthInfoConsentAcceptedAt?: number;
     };
   } = $props();
 
@@ -44,7 +46,7 @@
     </div>
     <div class="profile-view__cell">
       <span class="profile-view__label">ציוד בבית</span>
-      <span class="profile-view__value">{fmtList(profile.equipment, equipmentLabels)}</span>
+      <span class="profile-view__value">{fmtEquipmentList(profile.equipment)}</span>
     </div>
     <div class="profile-view__cell">
       <span class="profile-view__label">מטרות</span>
@@ -66,10 +68,26 @@
       <div class="profile-view__cell profile-view__cell--wide">
         <span class="profile-view__label">הצהרת בריאות — תשובות «כן»</span>
         <ul class="profile-view__health-flags">
-          {#each healthFlags as flag}
+          {#each healthFlags as flag (flag)}
             <li>{flag}</li>
           {/each}
         </ul>
+      </div>
+    {/if}
+    {#if profile.healthDeclarationAcceptedAt}
+      <div class="profile-view__cell">
+        <span class="profile-view__label">{t.onboarding.summary.declaration()}</span>
+        <span class="profile-view__value"
+          >{formatProfileTimestamp(profile.healthDeclarationAcceptedAt)}</span
+        >
+      </div>
+    {/if}
+    {#if profile.healthInfoConsentAcceptedAt}
+      <div class="profile-view__cell">
+        <span class="profile-view__label">{t.onboarding.summary.consent()}</span>
+        <span class="profile-view__value"
+          >{formatProfileTimestamp(profile.healthInfoConsentAcceptedAt)}</span
+        >
       </div>
     {/if}
   </div>
