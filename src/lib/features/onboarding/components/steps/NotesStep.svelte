@@ -50,7 +50,7 @@
       <Checkbox.Root
         class="hb-choice pathology-choice"
         checked={pathologies.includes(value)}
-        onchange={() => {
+        onCheckedChange={() => {
           pathologies = toggle(pathologies, value);
         }}
       >

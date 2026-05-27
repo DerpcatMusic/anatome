@@ -20,7 +20,13 @@
 
 <div class="equip-grid">
   {#each equipmentOptions as [value, label]}
-    <Checkbox.Root class="hb-choice equip-choice" checked={equipment.includes(value)} onchange={() => equipment = toggle(equipment, value)}>
+    <Checkbox.Root
+      class="hb-choice equip-choice"
+      checked={equipment.includes(value)}
+      onCheckedChange={() => {
+        equipment = toggle(equipment, value);
+      }}
+    >
       <EquipmentIcon name={value} />
       <span>{label}</span>
     </Checkbox.Root>

@@ -19,7 +19,13 @@
 
 <div class="goals-wrap">
   {#each goalOptions as [value, label]}
-    <Checkbox.Root class="hb-choice goal-choice" checked={goals.includes(value)} onchange={() => goals = toggle(goals, value)}>
+    <Checkbox.Root
+      class="hb-choice goal-choice"
+      checked={goals.includes(value)}
+      onCheckedChange={() => {
+        goals = toggle(goals, value);
+      }}
+    >
       <span>{label}</span>
     </Checkbox.Root>
   {/each}

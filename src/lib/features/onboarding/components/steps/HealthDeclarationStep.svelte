@@ -64,10 +64,7 @@
   <div class="health-consent-row">
     <Checkbox.Root
       class="health-consent-check"
-      checked={healthDeclarationAccepted}
-      onchange={() => {
-        healthDeclarationAccepted = !healthDeclarationAccepted;
-      }}
+      bind:checked={healthDeclarationAccepted}
     >
       {#snippet children({ checked })}
         <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
@@ -82,10 +79,7 @@
     <div class="health-consent-row">
       <Checkbox.Root
         class="health-consent-check"
-        checked={healthInfoConsent}
-        onchange={() => {
-          healthInfoConsent = !healthInfoConsent;
-        }}
+        bind:checked={healthInfoConsent}
       >
         {#snippet children({ checked })}
           <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
