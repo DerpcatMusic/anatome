@@ -15,7 +15,7 @@ import { ensureLiveRoomForClass } from "../lib/liveRoom";
 import { requireQueryNow } from "../lib/queryNow";
 import { isAutoPublishedOpenSlot } from "../lib/liveClassDisplay";
 import { hasLiveClassConflict } from "../lib/oneOnOne";
-import { releaseCredits, type LiveCreditPool } from "../credits/lib";
+import { releaseLiveReservationHoldIfStillReserved } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "./schedule";
 import { settleReservationsForClass } from "./settle";
 import { scheduleReminderEvent } from "../liveReminders/schedule";
@@ -459,26 +459,24 @@ export const cancel = mutation({
       }
     }
 
-    const reservations = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
-      )
-      .take(LIMITS.LIVE_PARTICIPANTS);
+    const activeStatuses = ["reserved", "joined"] as const;
+    for (const status of activeStatuses) {
+      const reservations = await ctx.db
+        .query("liveReservations")
+        .withIndex("by_liveClassId_and_status", (q) =>
+          q.eq("liveClassId", args.liveClassId).eq("status", status),
+        )
+        .take(LIMITS.LIVE_PARTICIPANTS);
 
-    for (const res of reservations) {
-      const creditKind: LiveCreditPool =
-        res.creditKind === "live" ? "live" : "oneOnOne";
-      await releaseCredits(
-        ctx,
-        res.walletId,
-        creditKind,
-        res.creditsReserved,
-      );
-      await ctx.db.patch(res._id, {
-        status: "cancelled",
-        cancelledAt: now,
-      });
+      for (const res of reservations) {
+        if (status === "reserved") {
+          await releaseLiveReservationHoldIfStillReserved(ctx, res._id);
+        }
+        await ctx.db.patch(res._id, {
+          status: "cancelled",
+          cancelledAt: now,
+        });
+      }
     }
 
     await ctx.db.patch(args.liveClassId, {

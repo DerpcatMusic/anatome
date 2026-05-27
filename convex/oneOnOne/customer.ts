@@ -151,23 +151,29 @@ export const requestSlot = mutation({
     await reserveOneOnOneCredits(ctx, wallet._id, 1);
 
     const now = Date.now();
-    const requestId = await ctx.db.insert("oneOnOneRequests", {
-      customerUserId: userId,
-      instructorUserId: args.instructorUserId,
-      requestedStartsAt: args.startsAt,
-      requestedEndsAt: args.endsAt,
-      note: args.note.trim().slice(0, RULES.MAX_NOTE_LENGTH),
-      status: "pending",
-      walletId: wallet._id,
-      createdAt: now,
-      updatedAt: now,
-    });
-    const expirationScheduledFunctionId = await scheduleOneOnOneRequestExpiration(
-      ctx,
-      requestId,
-      args.startsAt,
-    );
-    await ctx.db.patch(requestId, { expirationScheduledFunctionId });
+    let requestId: Id<"oneOnOneRequests">;
+    try {
+      requestId = await ctx.db.insert("oneOnOneRequests", {
+        customerUserId: userId,
+        instructorUserId: args.instructorUserId,
+        requestedStartsAt: args.startsAt,
+        requestedEndsAt: args.endsAt,
+        note: args.note.trim().slice(0, RULES.MAX_NOTE_LENGTH),
+        status: "pending",
+        walletId: wallet._id,
+        createdAt: now,
+        updatedAt: now,
+      });
+      const expirationScheduledFunctionId = await scheduleOneOnOneRequestExpiration(
+        ctx,
+        requestId,
+        args.startsAt,
+      );
+      await ctx.db.patch(requestId, { expirationScheduledFunctionId });
+    } catch (error) {
+      await releaseOneOnOneCredits(ctx, wallet._id, 1);
+      throw error;
+    }
     return requestId;
   },
 });

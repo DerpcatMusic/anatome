@@ -4,7 +4,7 @@ import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { LIMITS } from "../lib/constants";
-import { releaseCredits, type LiveCreditPool } from "../credits/lib";
+import { releaseLiveReservationHoldIfStillReserved } from "../credits/lib";
 
 export async function settleReservationsForClass(
   ctx: MutationCtx,
@@ -18,14 +18,11 @@ export async function settleReservationsForClass(
     .take(LIMITS.CRON_SETTLE);
 
   for (const reservation of reservations) {
-    const kind: LiveCreditPool =
-      reservation.creditKind === "live" ? "live" : "oneOnOne";
-    await releaseCredits(
+    const released = await releaseLiveReservationHoldIfStillReserved(
       ctx,
-      reservation.walletId,
-      kind,
-      reservation.creditsReserved,
+      reservation._id,
     );
+    if (released === null) continue;
     await ctx.db.patch(reservation._id, { status: "no_show" });
   }
 

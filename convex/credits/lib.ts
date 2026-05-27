@@ -279,6 +279,29 @@ export async function releaseOneOnOneCredits(
   await releaseCredits(ctx, walletId, "oneOnOne", amount);
 }
 
+/**
+ * Re-read reservation and release wallet hold only if still `reserved`.
+ * Prevents double-refund when join/settle/cancel race on the same row.
+ */
+export async function releaseLiveReservationHoldIfStillReserved(
+  ctx: MutationCtx,
+  reservationId: Id<"liveReservations">,
+): Promise<Doc<"liveReservations"> | null> {
+  const reservation = await ctx.db.get(reservationId);
+  if (reservation === null || reservation.status !== "reserved") {
+    return null;
+  }
+  const kind: LiveCreditPool =
+    reservation.creditKind === "live" ? "live" : "oneOnOne";
+  await releaseCredits(
+    ctx,
+    reservation.walletId,
+    kind,
+    reservation.creditsReserved,
+  );
+  return reservation;
+}
+
 export async function consumeLiveCredits(
   ctx: MutationCtx,
   walletId: Id<"userWallets">,
