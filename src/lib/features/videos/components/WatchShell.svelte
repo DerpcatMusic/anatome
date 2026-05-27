@@ -115,9 +115,36 @@
 
 <style>
   .watch-header h1 {
-    font-size: var(--step-3);
-    line-height: 1.1;
+    font-size: clamp(var(--step-1), 4vw, var(--step-3));
+    line-height: 1.2;
     margin: var(--space-2) 0 0;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 48rem) {
+    .watch-header {
+      padding-inline: var(--space-4);
+      padding-block: max(var(--space-3), env(safe-area-inset-top)) var(--space-3);
+    }
+
+    .watch-header h1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    :global(.mux-player-wrapper) {
+      margin-inline: calc(-1 * var(--space-4));
+      width: calc(100% + 2 * var(--space-4));
+      max-width: 100vw;
+    }
+
+    .meta-card {
+      margin-inline: var(--space-4);
+      margin-block-end: max(var(--space-5), env(safe-area-inset-bottom));
+    }
   }
 
   .meta-card,

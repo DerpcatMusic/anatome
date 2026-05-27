@@ -10,6 +10,7 @@
   import PageShell from "$features/app/components/PageShell.svelte";
   import Notice from "$components/ui/Notice.svelte";
   import SubscriptionManager from "$features/dashboard/components/SubscriptionManager.svelte";
+  import NotificationSettings from "$features/settings/components/NotificationSettings.svelte";
   import MemberProfileView from "./MemberProfileView.svelte";
   import InstructorProfileView from "./InstructorProfileView.svelte";
   import AvatarUpload from "./AvatarUpload.svelte";
@@ -368,6 +369,8 @@
         subscriptionPlan={dashboard?.subscriptionPlan ?? null}
         pendingSubscriptionPlan={dashboard?.pendingSubscriptionPlan ?? null}
       />
+
+      <NotificationSettings />
     {:else}
       <div class="profile-toolbar">
         <Button.Root

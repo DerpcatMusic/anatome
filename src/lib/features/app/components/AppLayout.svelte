@@ -42,6 +42,7 @@
 <div
   class="app-layout"
   class:app-layout--sidebar-collapsed={sidebar.isCollapsed}
+  class:app-layout--live-room={isFullbleed && isLiveRoomPath(pathname)}
   data-sidebar-collapsed={sidebar.isCollapsed ? "" : undefined}
 >
   <AppSidebar />
@@ -113,8 +114,26 @@
       transition: none;
     }
 
+    .app-layout--live-room {
+      min-height: 100dvh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-layout--live-room :global(.app-sidebar) {
+      display: none;
+    }
+
+    .app-layout--live-room .app-main {
+      min-height: 0;
+      height: 100%;
+      padding: 0;
+    }
+
     .app-main {
       padding: var(--space-5) clamp(16px, 4vw, 32px);
+      padding-block: max(var(--space-5), env(safe-area-inset-top))
+        max(var(--space-5), env(safe-area-inset-bottom));
     }
 
     .app-main[data-fullbleed] {

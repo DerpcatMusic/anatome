@@ -146,6 +146,8 @@
     grid-template-rows: auto 1fr auto;
     background: var(--background);
     direction: rtl;
+    padding-block: env(safe-area-inset-top) env(safe-area-inset-bottom);
+    padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   }
 
   .v2-room__header {

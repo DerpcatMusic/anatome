@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig, loadEnv } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 /** @param {string} url */
 function normalizeConvexDeploymentUrl(url) {
@@ -44,9 +45,63 @@ export default defineConfig(({ mode }) => {
 	if (process.env.PUBLIC_MUX_ENV_KEY === undefined) {
 		process.env.PUBLIC_MUX_ENV_KEY = env.PUBLIC_MUX_ENV_KEY || '';
 	}
+	if (process.env.PUBLIC_VAPID_PUBLIC_KEY === undefined) {
+		process.env.PUBLIC_VAPID_PUBLIC_KEY = env.PUBLIC_VAPID_PUBLIC_KEY || '';
+	}
 
 	return {
-		plugins: [sveltekit()],
+		plugins: [
+			sveltekit(),
+			VitePWA({
+				strategies: 'injectManifest',
+				srcDir: 'src',
+				filename: 'sw.ts',
+				registerType: 'autoUpdate',
+				injectRegister: false,
+				includeAssets: ['favicon.svg', 'icons/*.png'],
+				manifest: false,
+				injectManifest: {
+					globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
+				},
+				workbox: {
+					navigateFallback: '/app.html',
+					navigateFallbackDenylist: [/^\/_app\//, /^\/api\//],
+					runtimeCaching: [
+						{
+							urlPattern: /^https:\/\/.*\.convex\.cloud\/.*/i,
+							handler: 'NetworkOnly',
+						},
+						{
+							urlPattern: /^https:\/\/.*\.livekit\.cloud\/.*/i,
+							handler: 'NetworkOnly',
+						},
+						{
+							urlPattern: /^https:\/\/stream\.mux\.com\/.*/i,
+							handler: 'NetworkOnly',
+						},
+						{
+							urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+							handler: 'StaleWhileRevalidate',
+							options: {
+								cacheName: 'google-fonts-stylesheets',
+							},
+						},
+						{
+							urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+							handler: 'CacheFirst',
+							options: {
+								cacheName: 'google-fonts-webfonts',
+								expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+							},
+						},
+					],
+				},
+				devOptions: {
+					enabled: true,
+					type: 'module',
+				},
+			}),
+		],
 		/** Pre-bundle Convex + UI deps so HMR restarts do not 404 `?v=` chunks. */
 		optimizeDeps: {
 			include: ['convex-svelte', 'convex/browser', 'bits-ui'],

@@ -1,0 +1,50 @@
+{
+  "name": "AnatoMe — פילאטיס שיקומי בבית",
+  "short_name": "AnatoMe",
+  "description": "שיעורי פילאטיס שיקומי בבית — וידאו ולייב",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#18241b",
+  "background_color": "#fbf9f4",
+  "categories": ["health", "fitness"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ספרייה",
+      "short_name": "ספרייה",
+      "description": "סרטוני תרגול",
+      "url": "/u/library",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "לוח שיעורים",
+      "short_name": "לוח",
+      "description": "שיעורים חיים",
+      "url": "/u/calendar",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

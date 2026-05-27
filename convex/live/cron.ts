@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { LIMITS } from "../lib/constants";
 import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { settleReservationsForClass } from "./settle";
 

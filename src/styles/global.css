@@ -47,13 +47,40 @@ html[data-theme="dark"] {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+html.pwa-standalone body {
+  /* Slightly tighter chrome when launched from home screen */
+  overscroll-behavior-y: none;
+}
+
+#pwa-update-banner {
+  position: fixed;
+  inset-inline: max(var(--space-4), env(safe-area-inset-left))
+    max(var(--space-4), env(safe-area-inset-right));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-ambient);
+  font-size: var(--text-sm);
+}
+
+#pwa-update-banner[hidden] {
+  display: none;
 }
 
 ::selection {

@@ -1,14 +1,19 @@
-# dependencies
+# dependencies (Bun is canonical — do not commit npm lockfile)
 node_modules/
+package-lock.json
 
 # SvelteKit
 .svelte-kit/
 build/
 
-# Vite
+# Vite / PWA dev
 .vite/
+dev-dist/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Cloudflare Workers local
+.wrangler/
 
 # Convex local dev state (generated API types in convex/_generated/ stay tracked)
 .convex/
@@ -37,11 +42,18 @@ Thumbs.db
 .check-log.txt
 .check-full.txt
 .check-run.txt
+.check-run-*.txt
 .check-output.txt
+check-output.txt
 .agent-plans/
 reference/
+
+# Svelte tooling diagnostics (local only)
+.svelte-doctor/
+
+# TypeScript incremental
+*.tsbuildinfo
 
 # legacy (pre-SvelteKit)
 dist/
 .astro/
-.svelte-doctor/*

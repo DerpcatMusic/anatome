@@ -6,6 +6,7 @@
 	import { Tooltip } from 'bits-ui';
 	import { initConvex } from '$lib/convex/setup';
 	import { wireConvexAuth } from '$lib/auth/session.svelte';
+	import { registerPwaClient } from '$lib/pwa/register-pwa';
 
 	let { children } = $props();
 
@@ -19,11 +20,23 @@
 	if (browser) {
 		wireConvexAuth(client);
 	}
+
+	$effect(() => {
+		if (!browser) return;
+		return registerPwaClient();
+	});
 </script>
 
 <svelte:head>
 	<link rel="stylesheet" href={materialSymbolsHref} />
 </svelte:head>
+
+<div id="pwa-update-banner" hidden>
+	<span>גרסה חדשה זמינה.</span>
+	<button type="button" class="hb-button hb-button--ink hb-button--sm" id="pwa-update-reload">
+		רענון
+	</button>
+</div>
 
 <Tooltip.Provider delayDuration={160}>
 	{@render children()}

@@ -10,6 +10,8 @@
   import { liveRoomHref, routePath } from "$lib/i18n/context";
   import { isInvalidLiveClassIdParam } from "$lib/convex/ids";
   import PreConnectState from "$features/live/components/room/PreConnectState.svelte";
+  import { browser } from "$app/environment";
+  import { isMobileViewport } from "$lib/pwa/platform";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   const { t } = useI18n();
@@ -17,8 +19,13 @@
   const classIdParam = $derived(page.url.searchParams.get("classId"));
   const invalidClassId = $derived(isInvalidLiveClassIdParam(classIdParam));
   const calendarHref = routePath("uCalendar");
-  /** Strangler: `?roomEngine=v2` uses core-only rebuild (`src/lib/features/live/v2/`). */
-  const useRoomEngineV2 = $derived(page.url.searchParams.get("roomEngine") === "v2");
+  /** Strangler: `?roomEngine=v2` uses core-only rebuild; mobile defaults to v2. */
+  const useRoomEngineV2 = $derived.by(() => {
+    const param = page.url.searchParams.get("roomEngine");
+    if (param === "v2") return true;
+    if (param === "v1") return false;
+    return browser && isMobileViewport();
+  });
 
   const isStaffWithoutClass = $derived.by(() => {
     if (invalidClassId) return false;

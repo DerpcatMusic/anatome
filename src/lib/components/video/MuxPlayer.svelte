@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { PUBLIC_MUX_ENV_KEY } from "$env/static/public";
+  import { syncMediaSession } from "$lib/pwa/media-session";
 
   type MuxPlayerElement = HTMLElement & {
     currentTime: number;
@@ -48,7 +49,20 @@
       .catch(() => {
         muxLoadError = true;
       });
+
+    return () => syncMediaSession(null);
   });
+
+  $effect(() => {
+    if (!muxReady || !title) return;
+    syncMediaSession({ title, artworkUrl: thumbnailUrl ?? null });
+  });
+
+  function onPlayerPlay() {
+    if (title) {
+      syncMediaSession({ title, artworkUrl: thumbnailUrl ?? null });
+    }
+  }
 
   function reportProgress(force = false) {
     if (!player || !onProgress) return;
@@ -88,6 +102,8 @@
       cap-rendition-to-player-size
       accent-color="var(--secondary)"
       style="--controls-backdrop-color: rgba(0,0,0,0.6);"
+      playsinline
+      onplay={onPlayerPlay}
       ontimeupdate={() => reportProgress(false)}
       onpause={() => reportProgress(true)}
       onseeking={() => reportProgress(true)}

@@ -1,13 +1,22 @@
 import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import { LIMITS } from "../lib/constants";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 
+async function scheduleDelivery(
+  ctx: MutationCtx,
+  reminder: Doc<"liveReminderEvents">,
+) {
+  await ctx.scheduler.runAfter(0, internal.liveReminders.deliver.one, {
+    reminderId: reminder._id,
+  });
+}
+
 async function processReminder(
   ctx: MutationCtx,
   reminder: Doc<"liveReminderEvents">,
-  now: number,
 ) {
   if (reminder.status !== "pending") return "inactive" as const;
 
@@ -25,16 +34,16 @@ async function processReminder(
   ) {
     await ctx.db.patch(reminder._id, {
       status: "skipped",
-      processedAt: now,
+      processedAt: Date.now(),
     });
     return "skipped" as const;
   }
 
-  await ctx.db.patch(reminder._id, {
-    status: "sent",
-    processedAt: now,
-  });
-  return "sent" as const;
+  if (reminder.deliveryScheduledAt === undefined) {
+    await ctx.db.patch(reminder._id, { deliveryScheduledAt: Date.now() });
+  }
+  await scheduleDelivery(ctx, reminder);
+  return "scheduled" as const;
 }
 
 export const due = internalMutation({
@@ -48,40 +57,11 @@ export const due = internalMutation({
       )
       .take(LIMITS.REMINDER_BATCH);
 
-    const reservationIds = [...new Set(due.map((r) => r.reservationId))];
-    const liveClassIds = [...new Set(due.map((r) => r.liveClassId))];
-
-    const [reservations, liveClasses] = await Promise.all([
-      Promise.all(reservationIds.map((id) => ctx.db.get(id))),
-      Promise.all(liveClassIds.map((id) => ctx.db.get(id))),
-    ]);
-
-    const reservationMap = new Map(
-      reservations
-        .filter((r): r is NonNullable<typeof r> => r !== null)
-        .map((r) => [r._id, r]),
-    );
-    const liveClassMap = new Map(
-      liveClasses
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map((c) => [c._id, c]),
-    );
-
     let processed = 0;
     for (const reminder of due) {
-      const reservation = reservationMap.get(reminder.reservationId) ?? null;
-      const liveClass = liveClassMap.get(reminder.liveClassId) ?? null;
-      if (
-        reservation === null ||
-        liveClass === null ||
-        reservation.status === "cancelled" ||
-        reservation.status === "refunded" ||
-        liveClass.status === "cancelled"
-      ) {
-        await ctx.db.patch(reminder._id, { status: "skipped", processedAt: now });
-      } else {
-        await ctx.db.patch(reminder._id, { status: "sent", processedAt: now });
-      }
+      if (reminder.deliveryScheduledAt !== undefined) continue;
+      await ctx.db.patch(reminder._id, { deliveryScheduledAt: now });
+      await scheduleDelivery(ctx, reminder);
       processed += 1;
     }
 
@@ -98,7 +78,7 @@ export const one = internalMutation({
     const reminder = await ctx.db.get(args.reminderId);
     if (reminder === null) return { status: "missing" as const };
     if (reminder.sendAt !== args.expectedSendAt) return { status: "stale" as const };
-    const status = await processReminder(ctx, reminder, Date.now());
+    const status = await processReminder(ctx, reminder);
     return { status };
   },
 });

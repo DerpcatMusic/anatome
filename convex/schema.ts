@@ -220,6 +220,10 @@ export default defineSchema({
     createdAt: v.number(),
     processedAt: v.optional(v.number()),
     scheduledFunctionId: v.optional(v.id("_scheduled_functions")),
+    pushSentAt: v.optional(v.number()),
+    emailSentAt: v.optional(v.number()),
+    deliveryError: v.optional(v.string()),
+    deliveryScheduledAt: v.optional(v.number()),
   })
     .index("by_status_and_sendAt", ["status", "sendAt"])
     .index("by_reservationId", ["reservationId"])
@@ -359,6 +363,27 @@ export default defineSchema({
     .index("by_userId_and_action", ["userId", "action"])
     .index("by_userId_and_action_and_timestamp", ["userId", "action", "timestamp"])
     .index("by_timestamp", ["timestamp"]),
+
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    keys: v.object({
+      p256dh: v.string(),
+      auth: v.string(),
+    }),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
+
+  notificationPreferences: defineTable({
+    userId: v.id("users"),
+    liveRemindersPush: v.boolean(),
+    liveRemindersEmail: v.boolean(),
+    updatedAt: v.number(),
+  }).index("by_userId", ["userId"]),
 
   memberProfiles: defineTable({
     userId: v.id("users"),
