@@ -19,5 +19,6 @@ export async function resolveDashboardRedirectPath(): Promise<string> {
     return dashboardPathFromCachedRole(null);
   }
 
-  return dashboardPathForRole(session.role as AppRole, session.needsOnboarding);
+  const role = (session.role ?? "customer") as AppRole;
+  return dashboardPathForRole(role, session.needsOnboarding);
 }

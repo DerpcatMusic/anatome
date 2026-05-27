@@ -457,6 +457,34 @@ export async function authQuery<Query extends FunctionReference<"query">>(
   }
 }
 
+export async function authMutation<Mutation extends FunctionReference<"mutation">>(
+  mutation: Mutation,
+  args: Mutation["_args"],
+): Promise<Mutation["_returnType"]> {
+  let token = tokenStore.current;
+
+  if (token === null) {
+    token = await refreshToken();
+    if (token === null) throw new Error(expiredSessionMessage);
+  }
+
+  const client = makeHttpClient(token);
+
+  try {
+    return await client.mutation(mutation, args);
+  } catch (reason) {
+    if (!isLikelyAuthError(reason)) {
+      throw reason;
+    }
+
+    token = await refreshToken();
+    if (token === null) throw new Error(expiredSessionMessage);
+
+    const retryClient = makeHttpClient(token);
+    return await retryClient.mutation(mutation, args);
+  }
+}
+
 export async function startEmailSignIn(email: string) {
   await convex.action(api.auth.signIn, {
     provider: "email",
@@ -503,7 +531,8 @@ export async function completeSignIn() {
     return;
   }
 
-  setCachedRole(session.role);
+  const role = session.role ?? "customer";
+  setCachedRole(role);
 
   const returnTo = consumeReturnTo();
   if (returnTo !== null) {
@@ -511,7 +540,7 @@ export async function completeSignIn() {
     return;
   }
 
-  window.location.assign(dashboardPathForRole(session.role, session.needsOnboarding));
+  window.location.assign(dashboardPathForRole(role, session.needsOnboarding));
 }
 
 export async function signOut() {

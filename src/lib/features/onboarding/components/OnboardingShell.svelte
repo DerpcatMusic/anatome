@@ -1,6 +1,8 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import {
+    authMutation,
+    authQuery,
     dashboardPathForRole,
     initAuth,
     setCachedRole,
@@ -19,6 +21,7 @@
   const { t } = useI18n();
 
   const queryNow = useQueryNowMs();
+  /** Optional enrichment once WS auth is ready (display name). */
   const dashboardQuery = useQuery(api.users.dashboard.get, () =>
     canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
   );
@@ -35,31 +38,49 @@
       status = "locked";
       return;
     }
-    if (dashboardQuery.isLoading) {
-      status = "checking";
-      return;
-    }
-    if (dashboardQuery.error) {
-      status = "error";
-      error = dashboardQuery.error.message;
-      return;
-    }
-    const dashboard = dashboardQuery.data;
-    if (dashboard === null) {
-      // WS may still be connecting; keep skeleton unless local session is gone.
-      status = auth.isAuthenticated ? "checking" : "locked";
-    } else {
-      if (dashboard.role) setCachedRole(dashboard.role);
-      if (!dashboard.needsOnboarding) {
-        status = "done";
-        window.location.assign(
-          dashboardPathForRole(dashboard.role, false),
-        );
-      } else {
+
+    let cancelled = false;
+    status = "checking";
+
+    void (async () => {
+      try {
+        const session = await authQuery(api.users.session.resolve, {});
+        if (cancelled) return;
+
+        if (session === null) {
+          status = "locked";
+          return;
+        }
+
+        const role = session.role ?? "customer";
+        setCachedRole(role);
+
+        if (!session.needsOnboarding) {
+          status = "done";
+          window.location.assign(dashboardPathForRole(role, false));
+          return;
+        }
+
         status = "ready";
+        void authMutation(api.users.bootstrap.ensureAppProfile, {}).catch(() => {
+          /* Best-effort; onboarding.complete also ensures profile */
+        });
+      } catch (reason) {
+        if (cancelled) return;
+        status = "error";
+        error =
+          reason instanceof Error ? reason.message : "לא הצלחנו לטעון את החשבון";
       }
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   });
+
+  const initialDisplayName = $derived(
+    dashboardQuery.data?.appProfile?.displayName ?? null,
+  );
 </script>
 
 <section class="onboarding-page">
@@ -82,7 +103,7 @@
     <div class="onboarding-page__child">
       <OnboardingForm
         redirectTo="/u/dashboard"
-        initialDisplayName={dashboardQuery.data?.appProfile?.displayName}
+        initialDisplayName={initialDisplayName}
       />
     </div>
   {/if}
@@ -90,10 +111,10 @@
 
 <style>
   .onboarding-page {
-    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
   }
 
   .onboarding-page__child {
-    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
   }
 </style>

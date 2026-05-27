@@ -1,6 +1,6 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
-  import { useConvexClient } from "convex-svelte";
+  import { authMutation } from "$lib/auth/session.svelte";
 
   import { useI18n } from "$lib/i18n/runes.svelte";
   import {
@@ -52,7 +52,6 @@
   } = $props();
 
   const { t } = useI18n();
-  const client = useConvexClient();
 
   const steps = [
     { id: "name" as const, title: t.onboarding.name.title(), subtitle: t.onboarding.name.subtitle() },
@@ -197,7 +196,7 @@
         throw new Error(t.onboarding.healthDeclaration.incompleteError());
       }
 
-      await client.mutation(api.users.onboarding.complete, {
+      await authMutation(api.users.onboarding.complete, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         equipment,

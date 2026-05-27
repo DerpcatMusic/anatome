@@ -88,6 +88,7 @@ import type * as subscriptions_lib from "../subscriptions/lib.js";
 import type * as subscriptions_plans from "../subscriptions/plans.js";
 import type * as subscriptions_schedule from "../subscriptions/schedule.js";
 import type * as subscriptions_seed from "../subscriptions/seed.js";
+import type * as users_bootstrap from "../users/bootstrap.js";
 import type * as users_dashboard from "../users/dashboard.js";
 import type * as users_onboarding from "../users/onboarding.js";
 import type * as users_session from "../users/session.js";
@@ -194,6 +195,7 @@ declare const fullApi: ApiFromModules<{
   "subscriptions/plans": typeof subscriptions_plans;
   "subscriptions/schedule": typeof subscriptions_schedule;
   "subscriptions/seed": typeof subscriptions_seed;
+  "users/bootstrap": typeof users_bootstrap;
   "users/dashboard": typeof users_dashboard;
   "users/onboarding": typeof users_onboarding;
   "users/session": typeof users_session;
