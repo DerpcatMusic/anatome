@@ -1,0 +1,82 @@
+/**
+ * Material Symbols Rounded — app-wide icon system.
+ * FILL 0→1 morph on selection (Android-style) via font-variation-settings transition.
+ * No hover weight changes — only morph when selected / pressed / toggled on.
+ */
+
+:root {
+  --icon-size: 1.25rem;
+  --icon-opsz: 24;
+  --icon-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --icon-morph-duration: 450ms;
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--icon-size);
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  direction: ltr;
+  white-space: nowrap;
+  word-wrap: normal;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  /* Default: thin outline */
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 300,
+    "GRAD" 0,
+    "opsz" var(--icon-opsz);
+  transition: font-variation-settings var(--icon-morph-duration) var(--icon-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .material-symbols-rounded {
+    transition: none;
+  }
+}
+
+/* Selected / active — FILL morphs outline → filled */
+.material-symbols-rounded.icon--selected,
+[aria-current="page"] .material-symbols-rounded,
+[aria-current="true"] .material-symbols-rounded,
+[aria-pressed="true"] .material-symbols-rounded,
+[aria-selected="true"] .material-symbols-rounded,
+[data-state="on"] .material-symbols-rounded,
+.material-symbols-rounded--filled {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 500,
+    "GRAD" 0,
+    "opsz" var(--icon-opsz);
+}
+
+/* Size steps */
+.material-symbols-rounded--sm {
+  --icon-size: 1.125rem;
+  --icon-opsz: 20;
+}
+
+.material-symbols-rounded--md {
+  --icon-size: 1.25rem;
+  --icon-opsz: 24;
+}
+
+.material-symbols-rounded--lg {
+  --icon-size: 1.5rem;
+  --icon-opsz: 24;
+}
+
+.material-symbols-rounded--xl {
+  --icon-size: 1.625rem;
+  --icon-opsz: 28;
+}

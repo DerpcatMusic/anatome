@@ -143,29 +143,35 @@ export const reserve = mutation({
 
     const now = Date.now();
     await reserveCredits(ctx, wallet._id, creditKind, liveClass.creditCost);
+    await reserveClassSeat(ctx, args.liveClassId);
 
     let reservationId: Id<"liveReservations">;
-    if (existing !== null) {
-      await ctx.db.patch(existing._id, {
-        walletId: wallet._id,
-        status: "reserved",
-        creditKind: liveClass.creditKind,
-        creditsReserved: liveClass.creditCost,
-        reservedAt: now,
-      });
-      reservationId = existing._id;
-    } else {
-      reservationId = await ctx.db.insert("liveReservations", {
-        liveClassId: args.liveClassId,
-        userId,
-        walletId: wallet._id,
-        status: "reserved",
-        creditKind: liveClass.creditKind,
-        creditsReserved: liveClass.creditCost,
-        reservedAt: now,
-      });
+    try {
+      if (existing !== null) {
+        await ctx.db.patch(existing._id, {
+          walletId: wallet._id,
+          status: "reserved",
+          creditKind: liveClass.creditKind,
+          creditsReserved: liveClass.creditCost,
+          reservedAt: now,
+        });
+        reservationId = existing._id;
+      } else {
+        reservationId = await ctx.db.insert("liveReservations", {
+          liveClassId: args.liveClassId,
+          userId,
+          walletId: wallet._id,
+          status: "reserved",
+          creditKind: liveClass.creditKind,
+          creditsReserved: liveClass.creditCost,
+          reservedAt: now,
+        });
+      }
+    } catch (error) {
+      await releaseClassSeats(ctx, args.liveClassId);
+      await releaseCredits(ctx, wallet._id, creditKind, liveClass.creditCost);
+      throw error;
     }
-    await reserveClassSeat(ctx, args.liveClassId);
 
     await createReminderEventsForReservation(
       ctx,

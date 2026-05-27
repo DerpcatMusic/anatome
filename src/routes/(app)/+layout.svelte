@@ -20,8 +20,12 @@
 		type ViewerProfileSnapshot,
 	} from "$features/app/context/appContext";
 	import AppLayout from "$features/app/components/AppLayout.svelte";
+	import LiveDockProvider from "$lib/features/live/dock/LiveDockProvider.svelte";
+	import { setupAppShellViewTransitions } from "$lib/navigation/app-shell-transition";
 	import { untrack } from 'svelte';
+	import { onMount } from 'svelte';
 	import { useThemeMedia } from '$features/app/themeMedia.svelte';
+	import '@fontsource/secular-one/hebrew-400.css';
 
 	let { children } = $props();
 
@@ -32,6 +36,10 @@
 		wireConvexAuth(client);
 		useThemeMedia();
 	}
+
+	onMount(() => {
+		setupAppShellViewTransitions();
+	});
 
 	const auth = initAuth();
 	const profileQuery = useQuery(api.profiles.viewer.get, () =>
@@ -105,13 +113,8 @@
 	});
 </script>
 
-<svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap"
-	/>
-</svelte:head>
-
 <AppLayout>
-	{@render children()}
+	<LiveDockProvider>
+		{@render children()}
+	</LiveDockProvider>
 </AppLayout>

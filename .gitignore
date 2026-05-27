@@ -33,6 +33,13 @@ Thumbs.db
 
 # local agent / tooling
 .pi/
+.cursor/debug-*.log
+.check-log.txt
+.check-full.txt
+.check-run.txt
+.check-output.txt
+.agent-plans/
+reference/
 
 # legacy (pre-SvelteKit)
 dist/

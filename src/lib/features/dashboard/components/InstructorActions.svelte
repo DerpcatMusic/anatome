@@ -6,7 +6,7 @@
 </script>
 
 <div class="instructor-actions">
-  <a class="action-card" href="/i/live">
+  <a class="action-card" href="/i/calendar">
     <span class="action-card__num">01</span>
     <h3>{t.dashboard.actions.studioLive.title()}</h3>
     <p>{t.dashboard.actions.studioLive.desc()}</p>

@@ -121,13 +121,6 @@
 <div class="landing-page" bind:this={landingRoot}>
   <div class="l-hero-fixed" class:l-hero-fixed--inactive={!heroActive}>
     <HeroBackground />
-    {#if browser}
-      {#await import("$lib/features/landing/components/MeshGradient.svelte") then { default: MeshGradient }}
-        <div class="landing-page__mesh">
-          <MeshGradient variant="hero" />
-        </div>
-      {/await}
-    {/if}
     <HeroSection openAuthOverlay={() => openAuthOverlay()} />
   </div>
 

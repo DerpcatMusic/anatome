@@ -17,6 +17,7 @@
   } from "$lib/auth/session.svelte";
   import { untrack } from "svelte";
   import { useThemeMedia } from "$features/app/themeMedia.svelte";
+  import "@fontsource/secular-one/hebrew-400.css";
 
   let { children } = $props();
 

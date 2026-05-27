@@ -1146,9 +1146,19 @@
     border-color: var(--primary);
   }
 
-  :global(.live-type-toggle__item:hover) {
+  :global(.live-type-toggle__item:hover:not([data-state="on"])) {
     background: var(--surface);
     border-color: color-mix(in oklch, var(--accent) 45%, var(--line-light));
+  }
+
+  :global(.live-type-toggle__item[data-state="on"]:hover) {
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 55%, transparent);
+  }
+
+  :global(.live-type-toggle__item[data-state="on"][data-value="one_on_one"]:hover) {
+    background: color-mix(in oklch, var(--primary) 10%, var(--surface));
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent);
   }
 
   :global(.live-type-toggle__item .material-symbols-rounded) {

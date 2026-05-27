@@ -25,22 +25,10 @@
   border-radius: 0;
   box-shadow: none;
   background: transparent;
-  border-inline-start: 2px solid transparent;
 }
 
 .agenda-card--list:hover:not(.agenda-card--disabled) {
   background: var(--accent-soft);
-}
-
-.agenda-card--list.agenda-card--group,
-.agenda-card--list.agenda-card--pane-group {
-  border-inline-start-color: color-mix(in oklch, var(--accent) 55%, transparent);
-}
-
-.agenda-card--list.agenda-card--private,
-.agenda-card--list.agenda-card--request-day,
-.agenda-card--list.agenda-card--pane-one-on-one {
-  border-inline-start-color: color-mix(in oklch, var(--primary) 50%, transparent);
 }
 
 .agenda-card--list.agenda-card--group,
@@ -105,7 +93,6 @@
 }
 
 .agenda-card--group:not(.agenda-card--list) {
-  border-inline-start: 3px solid var(--accent);
   background: linear-gradient(
     to inline-end,
     color-mix(in oklch, var(--accent) 10%, var(--elevated)),
@@ -114,12 +101,10 @@
 }
 
 .agenda-card--private:not(.agenda-card--list) {
-  border-inline-start: 3px solid var(--primary);
   background: linear-gradient(to inline-end, var(--accent-soft), var(--elevated) 38%);
 }
 
 .agenda-card--request-day:not(.agenda-card--list) {
-  border-inline-start: 3px solid var(--primary);
   background: linear-gradient(to inline-end, var(--accent-soft), var(--elevated) 40%);
 }
 

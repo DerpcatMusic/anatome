@@ -248,7 +248,7 @@ html[data-theme="dark"] .hero-bg__scrim {
 }
 
 html[data-theme="dark"] .l-panel.section--about {
-  border-top-color: color-mix(in oklch, var(--line-light) 80%, var(--primary) 20%);
+  border-top-color: color-mix(in oklch, var(--line-light) 88%, var(--foreground) 12%);
   box-shadow: 0 12px 40px -24px color-mix(in oklch, black 40%, transparent);
 }
 

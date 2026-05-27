@@ -299,7 +299,7 @@
     margin: 0;
     padding: var(--space-4);
     border: var(--border);
-    border-inline-start: 3px solid var(--border-color);
+    border-radius: var(--radius-md);
     background: var(--surface);
     font-weight: 700;
     line-height: 1.45;
@@ -356,9 +356,8 @@
   .one-on-one-modal__window {
     padding: var(--space-3) var(--space-4);
     border: var(--border);
-    border-inline-start: 3px solid var(--primary);
     background: var(--accent-soft);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
   }
 
   .one-on-one-modal__window-range {

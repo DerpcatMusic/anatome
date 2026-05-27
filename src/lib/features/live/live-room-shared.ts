@@ -27,6 +27,8 @@ export function participantIsLocal(participant: unknown) {
   return Boolean((participant as { isLocal?: boolean }).isLocal);
 }
 
+export { sanitizeMediaDeviceId } from "$lib/media/device-id";
+
 export function publicationId(publication: unknown, track: unknown, fallback: string) {
   const pub = publication as { trackSid?: string; sid?: string };
   const value = track as { sid?: string; mediaStreamTrack?: { id?: string } };
@@ -65,6 +67,34 @@ export function disconnectMessage(reason: number | undefined): string | null {
   if (reason === LK_DISCONNECT.CONNECTION_TIMEOUT) return i18n.t.live.room.disconnectTimeout();
   if (reason === LK_DISCONNECT.MEDIA_FAILURE) return i18n.t.live.room.disconnectMediaFailed();
   return null;
+}
+
+export function isCameraNotFoundMediaError(message: string) {
+  const trimmed = message.trim();
+  if (!trimmed) return false;
+  return trimmed === i18n.t.live.preConnect.cameraNotFound();
+}
+
+/** Suppress nagging "no camera" toasts when the user is not publishing video. */
+export function shouldShowMediaErrorInRoom(message: string, cameraEnabled: boolean) {
+  const trimmed = message.trim();
+  if (!trimmed) return false;
+  if (!cameraEnabled && isCameraNotFoundMediaError(trimmed)) return false;
+  return true;
+}
+
+export function mediaErrorFromReason(
+  kind: "camera" | "microphone",
+  reason: unknown,
+): string | null {
+  const errName = reason instanceof DOMException ? reason.name : "";
+  if (
+    kind === "camera" &&
+    (errName === "NotFoundError" || errName === "DevicesNotFoundError")
+  ) {
+    return null;
+  }
+  return getMediaErrorMessage(kind, reason);
 }
 
 export function getMediaErrorMessage(kind: "camera" | "microphone", reason: unknown) {

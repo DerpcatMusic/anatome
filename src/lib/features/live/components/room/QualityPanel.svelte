@@ -1,34 +1,42 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { Button, ScrollArea } from "bits-ui";
-  import type { LiveRoom } from "$lib/features/live/room.svelte";
+  import {
+    resolveLiveSession,
+    type LiveSessionQuality,
+  } from "$lib/features/live/live-session.svelte";
 
   import { tick } from "svelte";
 
   let {
-    room,
+    session: sessionProp,
+    room: roomAlias,
     participantCount = 0,
   }: {
-    room: LiveRoom;
+    session?: LiveSessionQuality;
+    /** @deprecated Pass `session` instead. */
+    room?: LiveSessionQuality;
     participantCount?: number;
   } = $props();
+
+  const session = $derived(resolveLiveSession(sessionProp, roomAlias, "QualityPanel"));
   const { t } = useI18n();
 
   $effect(() => {
-    if (room.showQualityPanel) {
-      void tick().then(() => room.refreshStreamStats());
+    if (session.showQualityPanel) {
+      void tick().then(() => session.refreshStreamStats());
     }
   });
 </script>
 
-{#if room.isInstructorRoom && room.showQualityPanel}
+{#if session.isInstructorRoom && session.showQualityPanel}
   <aside class="lr-quality" aria-label={t.live.stats.title()}>
     <div class="lr-panel__header">
       <h3>{t.live.stats.title()}</h3>
       <Button.Root
         class="hb-button hb-button--close"
         type="button"
-        onclick={() => room.showQualityPanel = false}
+        onclick={() => (session.showQualityPanel = false)}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>
@@ -43,34 +51,34 @@
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.video()}</dt>
-          <dd class="lr-quality__value">{room.streamStats.videoTracks}</dd>
+          <dd class="lr-quality__value">{session.streamStats.videoTracks}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.audio()}</dt>
-          <dd class="lr-quality__value">{room.streamStats.audioTracks}</dd>
+          <dd class="lr-quality__value">{session.streamStats.audioTracks}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.bitrate()}</dt>
-          <dd class="lr-quality__value">{room.formattedBitrate}</dd>
+          <dd class="lr-quality__value">{session.formattedBitrate}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.resolution()}</dt>
-          <dd class="lr-quality__value">{room.formattedResolution}</dd>
+          <dd class="lr-quality__value">{session.formattedResolution}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.fps()}</dt>
-          <dd class="lr-quality__value">{room.formattedFps}</dd>
+          <dd class="lr-quality__value">{session.formattedFps}</dd>
         </div>
         <div class="lr-quality__row">
           <dt class="lr-quality__label">{t.live.stats.packetLoss()}</dt>
-          <dd class="lr-quality__value">{room.formattedPacketLoss}</dd>
+          <dd class="lr-quality__value">{session.formattedPacketLoss}</dd>
         </div>
       </dl>
-      {#if room.trackStats.length > 0}
+      {#if session.trackStats.length > 0}
         <details class="lr-quality__track-list" open>
           <summary>{t.live.stats.videoSources()}</summary>
           <div class="lr-quality__tracks">
-            {#each room.trackStats.filter((t) => t.kind === "video") as stat (stat.id)}
+            {#each session.trackStats.filter((t) => t.kind === "video") as stat (stat.id)}
               <div class="lr-track-stat">
                 <span class="lr-track-stat__name">{stat.name}</span>
                 <span

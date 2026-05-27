@@ -9,11 +9,15 @@
   import { useQuery } from "convex-svelte";
   import { initAuth, canRunAuthenticatedQuery, getCachedRole } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
 
   const auth = initAuth();
   const appContext = getAppContext();
   const { t } = useI18n();
-  const query = useQuery(api.users.dashboard.get, () => canRunAuthenticatedQuery() ? {} : "skip");
+  const queryNow = useQueryNowMs();
+  const query = useQuery(api.users.dashboard.get, () =>
+    canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
+  );
 
   const knownRole = $derived(
     (appContext.role ?? getCachedRole()) as "customer" | "instructor" | "admin" | null,

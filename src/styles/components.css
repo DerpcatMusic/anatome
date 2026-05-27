@@ -311,15 +311,21 @@ textarea {
   flex-shrink: 0;
 }
 
-.day-pill:hover {
+.day-pill:hover:not([data-state="on"]) {
   background: var(--surface);
   border-color: var(--secondary);
 }
 
 .day-pill[data-state="on"] {
-  background: var(--surface);
+  background: color-mix(in oklch, var(--secondary) 16%, var(--surface));
   border-color: var(--secondary);
   border-radius: 12px;
+}
+
+.day-pill[data-state="on"]:hover {
+  background: color-mix(in oklch, var(--secondary) 26%, var(--surface));
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--secondary) 45%, transparent);
 }
 
 .day-pill__name {

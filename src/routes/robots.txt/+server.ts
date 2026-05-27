@@ -8,7 +8,7 @@ const DISALLOWED = [
   "/u/calendar",
   "/u/one-on-one",
   "/u/videos",
-  "/i/live",
+  "/i/calendar",
   routePath("liveRoom"),
   "/u/profile",
   routePath("watch"),

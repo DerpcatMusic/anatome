@@ -1,24 +1,26 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { initExperienceBentoScroll } from "./experience-bento-scroll";
+import { prefersReducedMotion } from "./landing-motion";
 
-const DESKTOP_MQ = "(min-width: 900px)";
-
-export function prefersReducedMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
+export { prefersReducedMotion };
 
 /** Registers ScrollTrigger chapters for the marketing landing. No-op when reduced motion. */
 export function initLandingScroll(root: HTMLElement): () => void {
   if (prefersReducedMotion()) return () => {};
 
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ limitCallbacks: true });
+
+  let cleanupBento: (() => void) | undefined;
 
   const ctx = gsap.context(() => {
     initHeroFade(root);
     initAboutParallax(root);
-    initExperienceBento(root);
+    cleanupBento = initExperienceBentoScroll(root);
     initStepsTimeline(root);
     initPricingGlow(root);
+    ScrollTrigger.refresh();
   }, root);
 
   const onResize = () => ScrollTrigger.refresh();
@@ -26,6 +28,7 @@ export function initLandingScroll(root: HTMLElement): () => void {
 
   return () => {
     window.removeEventListener("resize", onResize);
+    cleanupBento?.();
     ctx.revert();
   };
 }
@@ -36,16 +39,13 @@ function initHeroFade(root: HTMLElement) {
   if (!spacer || !heroFixed) return;
 
   const targets = [
-    heroFixed.querySelector(".hero-bg__media"),
-    heroFixed.querySelector(".hero-bg__scrim"),
-    heroFixed.querySelector(".hero-bg__filter"),
-    root.querySelector(".landing-page__mesh"),
+    heroFixed.querySelector(".hero-bg"),
   ].filter((el): el is Element => el != null);
 
   if (targets.length === 0) return;
 
   gsap.to(targets, {
-    opacity: 0.2,
+    opacity: 0.35,
     ease: "none",
     scrollTrigger: {
       trigger: spacer,
@@ -75,82 +75,6 @@ function initAboutParallax(root: HTMLElement) {
       },
     },
   );
-}
-
-function initExperienceBento(root: HTMLElement) {
-  const experience = root.querySelector<HTMLElement>("[data-landing-experience]");
-  const track = experience?.querySelector<HTMLElement>(".experience-bento__track");
-  const pin = experience?.querySelector<HTMLElement>(".experience-bento__pin");
-  const frames = experience?.querySelectorAll<HTMLElement>("[data-experience-bento-frame]");
-
-  if (!experience || !track || !pin || !frames?.length) return;
-
-  const rotations = [-2.25, 1.75, -1.5, 2];
-  const step = 1 / frames.length;
-
-  const hideAll = () => {
-    frames.forEach((frame, i) => {
-      gsap.set(frame, {
-        autoAlpha: 0,
-        rotate: rotations[i % rotations.length],
-        scale: 0.92,
-        y: 28,
-        visibility: "hidden",
-      });
-    });
-  };
-
-  if (!window.matchMedia(DESKTOP_MQ).matches) {
-    experience.removeAttribute("data-bento-pinned");
-    gsap.set(frames, { clearProps: "all" });
-    return;
-  }
-
-  experience.setAttribute("data-bento-pinned", "");
-  hideAll();
-
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: track,
-      start: "top top",
-      end: "bottom bottom",
-      pin,
-      pinSpacing: true,
-      scrub: 0.65,
-      anticipatePin: 1,
-      snap: {
-        snapTo: (value: number) => {
-          const step = 1 / Math.max(frames.length - 1, 1);
-          return Math.round(value / step) * step;
-        },
-        duration: { min: 0.12, max: 0.28 },
-        delay: 0.03,
-      },
-    },
-  });
-
-  frames.forEach((frame, i) => {
-    tl.fromTo(
-      frame,
-      {
-        autoAlpha: 0,
-        rotate: rotations[i % rotations.length],
-        scale: 0.92,
-        y: 28,
-        visibility: "hidden",
-      },
-      {
-        autoAlpha: 1,
-        rotate: 0,
-        scale: 1,
-        y: 0,
-        visibility: "visible",
-        duration: step * 0.85,
-        ease: "power3.out",
-      },
-      i * step,
-    );
-  });
 }
 
 function initStepsTimeline(root: HTMLElement) {

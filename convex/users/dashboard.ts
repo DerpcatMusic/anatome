@@ -2,10 +2,14 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query } from "../_generated/server";
 import { getCreditAccess } from "../credits/lib";
 import { LIMITS } from "../lib/constants";
+import { requireQueryNow } from "../lib/queryNow";
+import { v } from "convex/values";
 
 export const get = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
 
@@ -20,7 +24,8 @@ export const get = query({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .take(1);
     const profile = profiles[0] ?? null;
-    const { subscription, wallet } = await getCreditAccess(ctx, userId);
+    const at = requireQueryNow(args.now);
+    const { subscription, wallet } = await getCreditAccess(ctx, userId, at);
     const subscriptionPlan = subscription ? await ctx.db.get(subscription.planId) : null;
     const pendingSubscriptionPlan = subscription?.pendingPlanId
       ? await ctx.db.get(subscription.pendingPlanId)

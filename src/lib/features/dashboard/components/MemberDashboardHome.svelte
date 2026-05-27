@@ -2,6 +2,7 @@
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { routePath } from "$lib/i18n/context";
   import type { WalletLike } from "$lib/features/credits/balances";
@@ -20,11 +21,12 @@
 
   const { t } = useI18n();
 
+  const queryNow = useQueryNowMs();
   const upcomingQuery = useQuery(api.live.calendar.listUpcoming, () =>
-    canRunAuthenticatedQuery() ? {} : "skip",
+    canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
   );
 
-  const now = Date.now();
+  const now = $derived(queryNow.nowMs);
 
   const upcomingLives = $derived.by((): DashboardLiveItem[] => {
     const rows = upcomingQuery.data ?? [];

@@ -1,4 +1,6 @@
 @import "./fonts.css";
+@import "./icons.css";
+@import "./app-route-transition.css";
 @import "./reset.css";
 @import "./tokens.css";
 @import "./utilities.css";
@@ -7,6 +9,41 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Theme toggle: crossfade (View Transitions) + color fallback */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --theme-transition-duration: 0.32s;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--theme-transition-duration);
+    animation-timing-function: var(--ease-out);
+  }
+
+  html.is-theme-transitioning,
+  html.is-theme-transitioning *,
+  html.is-theme-transitioning *::before,
+  html.is-theme-transitioning *::after {
+    transition-property:
+      background-color,
+      color,
+      border-color,
+      outline-color,
+      fill,
+      stroke,
+      box-shadow,
+      text-decoration-color;
+    transition-duration: var(--theme-transition-duration);
+    transition-timing-function: var(--ease-out);
+  }
 }
 
 body {
@@ -25,8 +62,8 @@ body {
 }
 
 [data-theme="dark"] ::selection {
-  background: color-mix(in oklch, var(--secondary) 28%, var(--muted));
-  color: var(--ink);
+  background: color-mix(in oklch, var(--foreground) 18%, var(--card));
+  color: var(--foreground);
 }
 
 * {

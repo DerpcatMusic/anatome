@@ -4,6 +4,7 @@
   import { api } from "$convex/_generated/api";
   import { useConvexClient, useQuery } from "convex-svelte";
   import Notice from "$components/ui/Notice.svelte";
+  import { LOCAL_TIMEZONE } from "$lib/datetime/local";
   import { SUBSCRIPTIONS_ENABLED } from "$lib/features/subscriptions/featureFlags";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
   import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
@@ -31,7 +32,11 @@
   let planModalOpen = $state(false);
 
   const renewalDate = $derived(
-    subscription ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL") : null,
+    subscription
+      ? new Date(subscription.currentPeriodEnd).toLocaleDateString("he-IL", {
+          timeZone: LOCAL_TIMEZONE,
+        })
+      : null,
   );
   const hasPaidPlan = $derived(Boolean(subscription && subscriptionPlan));
 

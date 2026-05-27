@@ -3,126 +3,130 @@
 
   let {
     title,
-    backHref,
+    subtitle = "",
+    scheduleLine = "",
+    statusLabel = "",
     children,
   }: {
     title: string;
-    backHref: string;
+    subtitle?: string;
+    scheduleLine?: string;
+    statusLabel?: string;
     children: Snippet;
   } = $props();
 </script>
 
-<section class="live-entry" aria-label={title}>
-  <div class="live-entry__mesh" aria-hidden="true"></div>
-  <div class="live-entry__shell">
-    <header class="live-entry__header">
-      <a class="live-entry__close" href={backHref} aria-label="חזרה">
-        <span class="material-symbols-rounded" aria-hidden="true">close</span>
-      </a>
-      <h1 class="live-entry__title">{title}</h1>
-    </header>
+<section class="live-preconnect" aria-label={title}>
+  <header class="live-preconnect__header">
+    <div class="live-preconnect__heading">
+      <span class="live-preconnect__kicker">לייב</span>
+      <h1 class="live-preconnect__title">{title}</h1>
+      {#if scheduleLine}
+        <p class="live-preconnect__schedule">
+          <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+          {scheduleLine}
+        </p>
+      {/if}
+      {#if subtitle}
+        <p class="live-preconnect__subtitle">{subtitle}</p>
+      {/if}
+    </div>
+    {#if statusLabel}
+      <span class="live-preconnect__status" role="status">{statusLabel}</span>
+    {/if}
+  </header>
+  <div class="live-preconnect__body">
     {@render children()}
   </div>
 </section>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0");
-
-  .live-entry {
-    position: fixed;
-    inset: 0;
-    z-index: 60;
-    display: grid;
-    place-items: center;
-    overflow: auto;
-    padding: clamp(16px, 3vw, 40px);
-    box-sizing: border-box;
-    background: var(--paper);
-  }
-
-  .live-entry__mesh {
-    display: none;
-  }
-
-  .live-entry__shell {
+  .live-preconnect {
     position: relative;
-    width: min(100%, 1120px);
-    min-height: min(720px, calc(100vh - 48px));
-    display: grid;
-    grid-template-rows: auto 1fr;
-    gap: clamp(20px, 3vw, 36px);
-    padding: clamp(18px, 3vw, 36px);
-    border: 1px solid var(--line-light);
-    background: var(--elevated);
-    box-shadow: 0 8px 32px rgb(0 0 0 / 0.08);
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: clamp(16px, 2.5vw, 28px);
+    box-sizing: border-box;
+    overflow: auto;
   }
 
-  .live-entry__header {
+  .live-preconnect__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--space-4);
     direction: rtl;
-  }
-
-  .live-entry__close {
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border: var(--border);
-    background: var(--elevated);
-    color: var(--foreground-muted);
-    text-decoration: none;
-    border-radius: 0;
-    transition:
-      background var(--duration-fast),
-      color var(--duration-fast),
-      border-radius 0.55s cubic-bezier(0.34, 1.8, 0.64, 1);
     flex-shrink: 0;
   }
 
-  .live-entry__close:hover {
-    background: var(--surface);
-    color: var(--ink);
-    border-radius: 18px;
+  .live-preconnect__heading {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
   }
 
-  .live-entry__title {
-    font-size: clamp(1.6rem, 3vw, 2.4rem);
-    line-height: 1.1;
-    font-weight: 900;
+  .live-preconnect__kicker {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--secondary);
+  }
+
+  .live-preconnect__title {
     margin: 0;
-    flex: 1;
-    text-align: center;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+    line-height: 1.1;
+    font-weight: 400;
+    color: var(--foreground);
   }
 
-  .material-symbols-rounded {
-    width: 1.5rem;
-    height: 1.5rem;
-    display: block;
-    overflow: hidden;
-    font-family: "Material Symbols Rounded";
-    font-size: 1.5rem;
-    line-height: 1;
-    letter-spacing: 0;
-    direction: ltr;
-    font-feature-settings: "liga";
+  .live-preconnect__schedule {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--foreground-muted);
   }
 
-  @media (max-width: 52rem) {
-    .live-entry {
-      place-items: stretch;
-      padding: var(--space-3);
-    }
+  .live-preconnect__schedule .material-symbols-rounded {
+    --icon-size: 1.125rem;
+    color: var(--accent);
+  }
 
-    .live-entry__shell {
-      min-height: calc(100vh - 24px);
-      gap: var(--space-5);
-    }
+  .live-preconnect__subtitle {
+    margin: 0;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--foreground-muted);
+  }
 
-    .live-entry__title {
-      font-size: var(--step-2);
-    }
+  .live-preconnect__status {
+    flex-shrink: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-pill);
+    border: 1px solid color-mix(in oklch, var(--danger) 35%, var(--border-color));
+    background: color-mix(in oklch, var(--danger) 12%, var(--muted));
+    color: var(--destructive);
+    font-size: var(--step--2);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .live-preconnect__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 </style>

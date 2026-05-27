@@ -16,9 +16,11 @@ import {
   buildAvailableSlots,
   buildDayAvailabilityWindows,
   isOneOnOneSlotFree,
+  addLocalDays,
   slotMatchesAvailability,
   startOfLocalDay,
 } from "../lib/oneOnOne";
+import { requireQueryNow } from "../lib/queryNow";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { scheduleOneOnOneRequestExpiration } from "./schedule";
@@ -27,6 +29,7 @@ export const listAvailableSlots = query({
   args: {
     from: v.number(),
     to: v.number(),
+    now: v.number(),
   },
   handler: async (ctx, args): Promise<AvailableOneOnOneSlot[]> => {
     const userId = await requireUserId(ctx);
@@ -34,9 +37,16 @@ export const listAvailableSlots = query({
     requireCustomer(profile);
     if (args.from >= args.to) throw new Error("טווח תאריכים לא תקין");
 
-    const { wallet } = await getCreditAccess(ctx, userId);
+    const at = requireQueryNow(args.now);
+    const { wallet } = await getCreditAccess(ctx, userId, at);
     const availableCredits = wallet === null ? 0 : availableOneOnOneCredits(wallet);
-    return await buildAvailableSlots(ctx, args.from, args.to, availableCredits);
+    return await buildAvailableSlots(
+      ctx,
+      args.from,
+      args.to,
+      availableCredits,
+      at,
+    );
   },
 });
 
@@ -44,6 +54,7 @@ export const listDayAvailability = query({
   args: {
     from: v.number(),
     to: v.number(),
+    now: v.number(),
   },
   handler: async (ctx, args): Promise<OneOnOneDayWindow[]> => {
     const userId = await requireUserId(ctx);
@@ -51,9 +62,16 @@ export const listDayAvailability = query({
     requireCustomer(profile);
     if (args.from >= args.to) throw new Error("טווח תאריכים לא תקין");
 
-    const { wallet } = await getCreditAccess(ctx, userId);
+    const at = requireQueryNow(args.now);
+    const { wallet } = await getCreditAccess(ctx, userId, at);
     const availableCredits = wallet === null ? 0 : availableOneOnOneCredits(wallet);
-    return await buildDayAvailabilityWindows(ctx, args.from, args.to, availableCredits);
+    return await buildDayAvailabilityWindows(
+      ctx,
+      args.from,
+      args.to,
+      availableCredits,
+      at,
+    );
   },
 });
 
@@ -98,8 +116,10 @@ export const requestSlot = mutation({
     requireCustomer(profile);
     await checkRateLimit(ctx, userId, "oneOnOneRequest");
     if (args.startsAt <= Date.now() + MS.TWO_HOURS) throw new Error("התאריך קרוב מדי");
-    const latestDayStart =
-      startOfLocalDay(Date.now()) + RULES.ONE_ON_ONE_MAX_ADVANCE_DAYS * MS.DAY;
+    const latestDayStart = addLocalDays(
+      startOfLocalDay(Date.now()),
+      RULES.ONE_ON_ONE_MAX_ADVANCE_DAYS,
+    );
     if (startOfLocalDay(args.startsAt) > latestDayStart) {
       throw new Error("ניתן לבקש שיעור 1:1 עד 30 יום קדימה בלבד");
     }

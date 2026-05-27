@@ -9,7 +9,6 @@
   } from "$lib/auth/session.svelte";
   import { liveRoomHref, routePath } from "$lib/i18n/context";
   import { isInvalidLiveClassIdParam } from "$lib/convex/ids";
-  import LiveRoomShell from "$features/live/components/room/LiveRoomShell.svelte";
   import PreConnectState from "$features/live/components/room/PreConnectState.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
@@ -18,6 +17,8 @@
   const classIdParam = $derived(page.url.searchParams.get("classId"));
   const invalidClassId = $derived(isInvalidLiveClassIdParam(classIdParam));
   const calendarHref = routePath("uCalendar");
+  /** Strangler: `?roomEngine=v2` uses core-only rebuild (`src/lib/features/live/v2/`). */
+  const useRoomEngineV2 = $derived(page.url.searchParams.get("roomEngine") === "v2");
 
   const isStaffWithoutClass = $derived.by(() => {
     if (invalidClassId) return false;
@@ -26,8 +27,11 @@
     return role === "instructor" || role === "admin";
   });
 
+  const staffRedirectNow = Date.now();
   const nextLiveQuery = useQuery(api.live.next.get, () =>
-    isStaffWithoutClass && canRunAuthenticatedQuery() ? {} : "skip",
+    isStaffWithoutClass && canRunAuthenticatedQuery()
+      ? { now: staffRedirectNow }
+      : "skip",
   );
 
   const entryPhase = $derived.by(() => {
@@ -61,17 +65,25 @@
       actionHref={calendarHref}
     />
   </section>
+{:else if useRoomEngineV2}
+  {#await import("$lib/features/live/v2/LiveRoomV2Shell.svelte") then { default: LiveRoomV2Shell }}
+    <LiveRoomV2Shell />
+  {/await}
 {:else}
-  <LiveRoomShell />
+  {#await import("$lib/features/live/components/room/LiveRoomShell.svelte") then { default: LiveRoomShell }}
+    <LiveRoomShell />
+  {/await}
 {/if}
 
 <style>
   .live-entry-resolve {
-    position: fixed;
-    inset: 0;
-    z-index: 60;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
     display: grid;
     place-items: center;
-    background: var(--paper);
+    padding: var(--space-4);
+    box-sizing: border-box;
   }
 </style>

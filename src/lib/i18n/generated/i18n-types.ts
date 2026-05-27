@@ -1709,6 +1709,15 @@ type RootTranslation = {
 			 */
 			title: string
 			/**
+			 * ע​ם​ ​{​n​a​m​e​}
+			 * @param {unknown} name
+			 */
+			classWithInstructor: RequiredParams<'name'>
+			/**
+			 * ע​ו​ד​ ​ר​ג​ע​ ​ו​נ​כ​נ​ס​י​ם​ ​ל​ש​י​ע​ו​ר​.​ ​א​פ​ש​ר​ ​ל​ה​ש​א​י​ר​ ​א​ת​ ​ה​מ​כ​ש​י​ר​י​ם​ ​כ​מ​ו​ ​ש​ה​ג​ד​ר​ת​.
+			 */
+			joiningHint: string
+			/**
 			 * A​n​a​t​o​M​e​ ​L​i​v​e
 			 */
 			kicker: string
@@ -1825,6 +1834,10 @@ type RootTranslation = {
 			 */
 			prepNotice: string
 			/**
+			 * ה​ש​י​ע​ו​ר​ ​ע​ד​י​י​ן​ ​ל​א​ ​ה​ת​ח​י​ל​.​ ​ר​ק​ ​מ​ד​ר​י​כ​ה​ ​א​ו​ ​א​ד​מ​י​ן​ ​י​כ​ו​ל​י​ם​ ​ל​ה​ת​ח​י​ל​ ​א​ו​ת​ו​ ​מ​כ​א​ן​.
+			 */
+			prepNoticeInstructor: string
+			/**
 			 * ק​ו​ל​ ​ה​מ​ד​ר​י​כ​ה
 			 */
 			voicePresetLabel: string
@@ -1852,6 +1865,14 @@ type RootTranslation = {
 			 * ה​ת​ח​ל​ת​ ​ל​י​י​ב
 			 */
 			startLive: string
+			/**
+			 * ה​ת​ח​ל​ת​ ​ה​ל​י​י​ב​ ​ו​כ​נ​י​ס​ה​ ​ל​ח​ד​ר
+			 */
+			startLiveAndEnter: string
+			/**
+			 * ה​ת​ח​ל​ת​ ​ל​י​י​ב​ ​ב​ל​י​ ​מ​צ​ל​מ​ה​ ​ו​מ​י​ק​ר​ו​פ​ו​ן
+			 */
+			startLiveWithoutDevices: string
 			/**
 			 * ר​ז​ו​ל​ו​צ​י​ה
 			 */
@@ -1942,10 +1963,15 @@ type RootTranslation = {
 			 * ש​י​ת​ו​ף​ ​מ​ס​ך
 			 */
 			screenShare: string
+			allowAudioPlayback: string
+			classStatusLive: string
+			classStatusScheduled: string
+			classStatusEnded: string
 			/**
 			 * א​י​ן​ ​ו​י​ד​א​ו
 			 */
 			noVideo: string
+			noCameraDetected: string
 			/**
 			 * מ​ח​כ​י​ם​ ​ש​ה​מ​ד​ר​י​כ​ה​ ​ת​ת​ח​ב​ר​.​.​.
 			 */
@@ -2236,6 +2262,28 @@ type RootTranslation = {
 			 */
 			echoCancel: string
 			/**
+			 * ש​מ​ע​ ​ש​י​ת​ו​ף​ ​מ​ס​ך
+			 */
+			screenShareAudio: string
+			/**
+			 * ל​ו​ח​ ​ח​ד​ר
+			 */
+			sidebarTitle: string
+			/**
+			 * מ​י​ד​ע
+			 */
+			sidebarInfo: string
+			/**
+			 * ח​י​ב​ו​ר
+			 */
+			sidebarConnection: string
+			sidebarQuality: string
+			sidebarPublish: string
+			sidebarTracks: string
+			sidebarLiveStats: string
+			sidebarOn: string
+			sidebarOff: string
+			/**
 			 * מ​י​ק​ר​ו​פ​ו​ן​ ​פ​ע​י​ל
 			 */
 			micOn: string
@@ -2321,6 +2369,14 @@ type RootTranslation = {
 			 * מ​ס​ך
 			 */
 			screenOffLabel: string
+			/**
+			 * ש​מ​י​ע​ת​ ​ה​מ​י​ק​ר​ו​פ​ו​ן​ ​ש​ל​י
+			 */
+			selfMonitorOn: string
+			/**
+			 * כ​י​ב​ו​י​ ​מ​ו​נ​י​ט​ו​ר​ ​ע​צ​מ​י
+			 */
+			selfMonitorOff: string
 		}
 		stats: {
 			/**
@@ -2534,6 +2590,18 @@ type RootTranslation = {
 			 * +​ ​צ​ו​ר​ ​ל​י​י​ב
 			 */
 			create: string
+			/**
+			 * ה​י​ו​ם
+			 */
+			today: string
+			/**
+			 * ש​י​ע​ו​ר​ ​ח​ד​ש
+			 */
+			newClassPreview: string
+			/**
+			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​ת​ז​מ​ן​ ​מ​ח​ד​ש​ ​א​ת​ ​ה​ש​י​ע​ו​ר​.
+			 */
+			rescheduleError: string
 		}
 		videos: {
 			/**
@@ -4376,6 +4444,14 @@ export type TranslationFunctions = {
 			 */
 			title: () => LocalizedString
 			/**
+			 * עם {name}
+			 */
+			classWithInstructor: (arg: { name: unknown }) => LocalizedString
+			/**
+			 * עוד רגע ונכנסים לשיעור. אפשר להשאיר את המכשירים כמו שהגדרת.
+			 */
+			joiningHint: () => LocalizedString
+			/**
 			 * AnatoMe Live
 			 */
 			kicker: () => LocalizedString
@@ -4492,6 +4568,10 @@ export type TranslationFunctions = {
 			 */
 			prepNotice: () => LocalizedString
 			/**
+			 * השיעור עדיין לא התחיל. רק מדריכה או אדמין יכולים להתחיל אותו מכאן.
+			 */
+			prepNoticeInstructor: () => LocalizedString
+			/**
 			 * קול המדריכה
 			 */
 			voicePresetLabel: () => LocalizedString
@@ -4519,6 +4599,14 @@ export type TranslationFunctions = {
 			 * התחלת לייב
 			 */
 			startLive: () => LocalizedString
+			/**
+			 * התחלת הלייב וכניסה לחדר
+			 */
+			startLiveAndEnter: () => LocalizedString
+			/**
+			 * התחלת לייב בלי מצלמה ומיקרופון
+			 */
+			startLiveWithoutDevices: () => LocalizedString
 			/**
 			 * רזולוציה
 			 */
@@ -4609,10 +4697,15 @@ export type TranslationFunctions = {
 			 * שיתוף מסך
 			 */
 			screenShare: () => LocalizedString
+			allowAudioPlayback: () => LocalizedString
+			classStatusLive: () => LocalizedString
+			classStatusScheduled: () => LocalizedString
+			classStatusEnded: () => LocalizedString
 			/**
 			 * אין וידאו
 			 */
 			noVideo: () => LocalizedString
+			noCameraDetected: () => LocalizedString
 			/**
 			 * מחכים שהמדריכה תתחבר...
 			 */
@@ -4898,6 +4991,28 @@ export type TranslationFunctions = {
 			 */
 			echoCancel: () => LocalizedString
 			/**
+			 * שמע שיתוף מסך
+			 */
+			screenShareAudio: () => LocalizedString
+			/**
+			 * לוח חדר
+			 */
+			sidebarTitle: () => LocalizedString
+			/**
+			 * מידע
+			 */
+			sidebarInfo: () => LocalizedString
+			/**
+			 * חיבור
+			 */
+			sidebarConnection: () => LocalizedString
+			sidebarQuality: () => LocalizedString
+			sidebarPublish: () => LocalizedString
+			sidebarTracks: () => LocalizedString
+			sidebarLiveStats: () => LocalizedString
+			sidebarOn: () => LocalizedString
+			sidebarOff: () => LocalizedString
+			/**
 			 * מיקרופון פעיל
 			 */
 			micOn: () => LocalizedString
@@ -4983,6 +5098,14 @@ export type TranslationFunctions = {
 			 * מסך
 			 */
 			screenOffLabel: () => LocalizedString
+			/**
+			 * שמיעת המיקרופון שלי
+			 */
+			selfMonitorOn: () => LocalizedString
+			/**
+			 * כיבוי מוניטור עצמי
+			 */
+			selfMonitorOff: () => LocalizedString
 		}
 		stats: {
 			/**
@@ -5193,6 +5316,18 @@ export type TranslationFunctions = {
 			 * + צור לייב
 			 */
 			create: () => LocalizedString
+			/**
+			 * היום
+			 */
+			today: () => LocalizedString
+			/**
+			 * שיעור חדש
+			 */
+			newClassPreview: () => LocalizedString
+			/**
+			 * לא הצלחנו לתזמן מחדש את השיעור.
+			 */
+			rescheduleError: () => LocalizedString
 		}
 		videos: {
 			/**

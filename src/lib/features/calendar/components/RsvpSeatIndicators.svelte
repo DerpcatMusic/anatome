@@ -25,6 +25,7 @@
   {#each slots as filled, index (index)}
     <span
       class="material-symbols-rounded rsvp-seats__icon"
+      class:icon--selected={filled}
       class:rsvp-seats__icon--taken={filled}
       aria-hidden="true"
     >person</span>
@@ -44,15 +45,13 @@
   }
 
   .rsvp-seats__icon {
-    font-size: 1.125rem;
-    line-height: 1;
+    --icon-size: 1.125rem;
+    --icon-opsz: 20;
     color: color-mix(in oklch, var(--foreground-muted) 55%, transparent);
-    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
   }
 
   .rsvp-seats__icon--taken {
     color: var(--primary);
-    font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20;
   }
 
   .rsvp-seats__overflow {

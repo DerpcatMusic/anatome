@@ -3,6 +3,7 @@
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { routePath } from "$lib/i18n/context";
   import HorizontalVideoRow from "$features/videos/components/HorizontalVideoRow.svelte";
@@ -32,8 +33,9 @@
     return () => observer.disconnect();
   });
 
+  const queryNow = useQueryNowMs();
   const catalogQuery = useQuery(api.video.catalog.listCatalog, () =>
-    canRunAuthenticatedQuery() && catalogEnabled ? {} : "skip",
+    canRunAuthenticatedQuery() && catalogEnabled ? { now: queryNow.nowMs } : "skip",
   );
 
   const latestVideos = $derived.by((): RowVideo[] => {

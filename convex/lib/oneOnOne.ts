@@ -2,10 +2,18 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { LIMITS, MS, RULES } from "../lib/constants";
 import { loadInstructorProfiles } from "../lib/instructorProfile";
+import {
+  addIsraelDays,
+  APP_TIMEZONE,
+  israelDateTimeOnDay,
+  israelWeekday,
+  MINUTE_MS,
+  startOfIsraelDay,
+} from "./appTime";
 
-export const oneOnOneTimezone = "Asia/Jerusalem";
-export const dayMs = 24 * 60 * 60 * 1000;
-export const minuteMs = 60 * 1000;
+export const oneOnOneTimezone = APP_TIMEZONE;
+export const dayMs = MS.DAY;
+export const minuteMs = MINUTE_MS;
 
 export type AvailableOneOnOneSlot = {
   instructorUserId: Id<"users">;
@@ -32,12 +40,19 @@ export type OneOnOneDayWindow = {
 export const oneOnOneLessonDurationMs = RULES.ONE_ON_ONE_DURATION_MINUTES * minuteMs;
 
 export function startOfLocalDay(ts: number) {
-  const date = new Date(ts);
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  return startOfIsraelDay(ts);
+}
+
+export function addLocalDays(dayStart: number, days: number) {
+  return addIsraelDays(dayStart, days);
 }
 
 export function weekday(ts: number) {
-  return new Date(ts).getDay();
+  return israelWeekday(ts);
+}
+
+export function localDateTimeOnDay(dayStart: number, minuteOfDay: number) {
+  return israelDateTimeOnDay(dayStart, minuteOfDay);
 }
 
 export function oneOnOneAvailableCredits(wallet: Doc<"userWallets">) {
@@ -75,11 +90,11 @@ export async function hasLiveClassConflict(
       q.eq("instructorUserId", instructorUserId).gte("startsAt", startsAt - dayMs).lt("startsAt", endsAt + dayMs),
     )
     .take(LIMITS.INSTRUCTOR_CLASSES);
-  return classes.some((liveClass) =>
-    liveClass._id !== excludeLiveClassId &&
-    liveClass.status !== "cancelled" &&
-    overlaps(startsAt, endsAt, liveClass.startsAt, liveClass.endsAt),
-  );
+  return classes.some((liveClass) => {
+    if (liveClass._id === excludeLiveClassId) return false;
+    if (liveClass.status !== "scheduled" && liveClass.status !== "live") return false;
+    return overlaps(startsAt, endsAt, liveClass.startsAt, liveClass.endsAt);
+  });
 }
 
 export async function isOneOnOneSlotFree(
@@ -87,6 +102,7 @@ export async function isOneOnOneSlotFree(
   instructorUserId: Id<"users">,
   startsAt: number,
   endsAt: number,
+  excludeOneOnOneRequestId?: Id<"oneOnOneRequests">,
 ) {
   if (await hasLiveClassConflict(ctx, instructorUserId, startsAt, endsAt)) return false;
 
@@ -97,6 +113,7 @@ export async function isOneOnOneSlotFree(
     )
     .take(LIMITS.INSTRUCTOR_REQUESTS);
   return !requests.some((request) =>
+    request._id !== excludeOneOnOneRequestId &&
     (request.status === "pending" || request.status === "approved") &&
     overlaps(startsAt, endsAt, request.requestedStartsAt, request.requestedEndsAt),
   );
@@ -119,8 +136,8 @@ export async function slotMatchesAvailability(
   const dayStart = startOfLocalDay(startsAt);
   return rules.some((rule) => {
     if (!rule.isActive) return false;
-    const windowStart = dayStart + rule.startMinute * minuteMs;
-    const windowEnd = dayStart + rule.endMinute * minuteMs;
+    const windowStart = israelDateTimeOnDay(dayStart, rule.startMinute);
+    const windowEnd = israelDateTimeOnDay(dayStart, rule.endMinute);
     return startsAt >= windowStart && endsAt <= windowEnd;
   });
 }
@@ -130,18 +147,20 @@ export async function buildDayAvailabilityWindows(
   from: number,
   to: number,
   availableCredits: number,
+  now: number,
 ): Promise<OneOnOneDayWindow[]> {
   const instructorIds = await activeInstructorIds(ctx);
   const instructorIdSet = new Set(instructorIds);
   const instructorProfiles = await loadInstructorProfiles(ctx, instructorIds);
   const windows: OneOnOneDayWindow[] = [];
-  const now = Date.now();
   const minLead = MS.TWO_HOURS;
-  const horizonEnd =
-    startOfLocalDay(now) + (RULES.ONE_ON_ONE_MAX_ADVANCE_DAYS + 1) * dayMs;
+  const horizonEnd = addLocalDays(
+    startOfLocalDay(now),
+    RULES.ONE_ON_ONE_MAX_ADVANCE_DAYS + 1,
+  );
   const effectiveTo = Math.min(to, horizonEnd);
 
-  for (let dayStart = startOfLocalDay(from); dayStart < effectiveTo; dayStart += dayMs) {
+  for (let dayStart = startOfLocalDay(from); dayStart < effectiveTo; dayStart = addIsraelDays(dayStart, 1)) {
     const rules = await ctx.db
       .query("oneOnOneAvailabilityRules")
       .withIndex("by_isActive_and_weekday", (q) => q.eq("isActive", true).eq("weekday", weekday(dayStart)))
@@ -154,8 +173,8 @@ export async function buildDayAvailabilityWindows(
 
     for (const rule of rules) {
       if (!instructorIdSet.has(rule.instructorUserId)) continue;
-      const windowStartsAt = dayStart + rule.startMinute * minuteMs;
-      const windowEndsAt = dayStart + rule.endMinute * minuteMs;
+      const windowStartsAt = israelDateTimeOnDay(dayStart, rule.startMinute);
+      const windowEndsAt = israelDateTimeOnDay(dayStart, rule.endMinute);
       if (windowEndsAt <= windowStartsAt) continue;
 
       const existing = byInstructor.get(rule.instructorUserId);
@@ -198,6 +217,7 @@ export async function buildAvailableSlots(
   from: number,
   to: number,
   availableCredits: number,
+  now: number,
 ) {
   const instructorIds = await activeInstructorIds(ctx);
   const instructorIdSet = new Set(instructorIds);
@@ -216,7 +236,7 @@ export async function buildAvailableSlots(
     return name;
   }
 
-  for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart += dayMs) {
+  for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart = addIsraelDays(dayStart, 1)) {
     const rules = await ctx.db
       .query("oneOnOneAvailabilityRules")
       .withIndex("by_isActive_and_weekday", (q) => q.eq("isActive", true).eq("weekday", weekday(dayStart)))
@@ -224,16 +244,12 @@ export async function buildAvailableSlots(
 
     for (const rule of rules) {
       if (!instructorIdSet.has(rule.instructorUserId)) continue;
-      const step = (rule.slotMinutes + rule.bufferMinutes) * minuteMs;
       const duration = rule.slotMinutes * minuteMs;
-      for (
-        let startsAt = dayStart + rule.startMinute * minuteMs;
-        startsAt + duration <= dayStart + rule.endMinute * minuteMs;
-        startsAt += step
-      ) {
+      for (let startMinute = rule.startMinute; startMinute + rule.slotMinutes <= rule.endMinute; startMinute += rule.slotMinutes + rule.bufferMinutes) {
+        const startsAt = israelDateTimeOnDay(dayStart, startMinute);
         const endsAt = startsAt + duration;
         if (startsAt < from || endsAt > to) continue;
-        if (startsAt <= Date.now() + MS.TWO_HOURS) continue;
+        if (startsAt <= now + MS.TWO_HOURS) continue;
         if (!(await isOneOnOneSlotFree(ctx, rule.instructorUserId, startsAt, endsAt))) continue;
         slots.push({
           instructorUserId: rule.instructorUserId,

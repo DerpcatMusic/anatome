@@ -7,6 +7,7 @@
   import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useQuery } from "convex-svelte";
   import { resource } from "runed";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import "../videos-feature.css";
 
   const auth = initAuth();
@@ -14,11 +15,12 @@
   const role = $derived(profileQuery.data?.role ?? "customer");
   const isStaff = $derived(role === "instructor" || role === "admin");
 
+  const queryNow = useQueryNowMs();
   const libraryResource = resource(
-    () => auth.isAuthenticated && !isStaff,
-    async (shouldFetch) => {
-      if (!shouldFetch) return null;
-      return await authQuery(api.video.catalog.listLibrary, {});
+    () => (auth.isAuthenticated && !isStaff ? queryNow.nowMs : null),
+    async (now) => {
+      if (now === null) return null;
+      return await authQuery(api.video.catalog.listLibrary, { now });
     },
   );
 

@@ -6,23 +6,22 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
 import { equipmentListValidator } from "../lib/validators";
-import { viewerCanAccessLiveClass } from "../lib/equipment";
 import { MS, RULES, LIMITS } from "../lib/constants";
 
 const STUDIO_CALENDAR_PAST_MS = 14 * MS.DAY;
 const STUDIO_CALENDAR_FUTURE_MS = 10 * 7 * MS.DAY;
-import { roomNameForClass } from "../lib/live";
+import { ensureLiveRoomForClass } from "../lib/liveRoom";
+import { requireQueryNow } from "../lib/queryNow";
+import { isAutoPublishedOpenSlot } from "../lib/liveClassDisplay";
 import { hasLiveClassConflict } from "../lib/oneOnOne";
 import { releaseCredits, type LiveCreditPool } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "./schedule";
 import { settleReservationsForClass } from "./settle";
 import { scheduleReminderEvent } from "../liveReminders/schedule";
-import {
-  assertInLiveJoinWindow,
-  isInLiveJoinWindow,
-  minutesUntilJoinCloses,
-  minutesUntilJoinOpens,
-} from "../lib/liveJoin";
+import { assertInLiveJoinWindow } from "../lib/liveJoin";
+import { joinAccessSnapshotValidator } from "./joinContract";
+import { resolveJoinAccess } from "./joinAccess";
+import { viewerCanSeeLiveClass } from "../lib/liveClassAccess";
 
 const classType = v.union(v.literal("group_live"), v.literal("one_on_one"));
 const creditKind = v.union(v.literal("live"), v.literal("oneOnOne"));
@@ -48,11 +47,15 @@ export const get = query({
     const liveClass = await ctx.db.get(args.liveClassId);
     if (liveClass === null) return null;
 
+    if (userId === null) return null;
+
+    if (!(await viewerCanSeeLiveClass(ctx, liveClass, userId))) {
+      return null;
+    }
+
     if (liveClass.type === "group_live") {
       return liveClass;
     }
-
-    if (userId === null) return null;
 
     const profiles = await ctx.db
       .query("appProfiles")
@@ -87,108 +90,12 @@ export const get = query({
 export const getJoinAccess = query({
   args: {
     liveClassId: v.id("liveClasses"),
+    now: v.number(),
   },
-  returns: v.union(
-    v.null(),
-    v.object({
-      joinOpensAt: v.number(),
-      joinClosesAt: v.number(),
-      startsAt: v.number(),
-      status: v.union(
-        v.literal("draft"),
-        v.literal("scheduled"),
-        v.literal("live"),
-        v.literal("ended"),
-        v.literal("cancelled"),
-      ),
-      canEnter: v.boolean(),
-      minutesUntilOpen: v.union(v.number(), v.null()),
-      minutesUntilClose: v.union(v.number(), v.null()),
-      isInstructor: v.boolean(),
-      equipmentBlocked: v.boolean(),
-    }),
-  ),
+  returns: v.union(v.null(), joinAccessSnapshotValidator),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) return null;
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) return null;
-    if (liveClass.type !== "group_live" && liveClass.type !== "one_on_one") {
-      return null;
-    }
-
-    const profiles = await ctx.db
-      .query("appProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .take(1);
-    const profile = profiles[0] ?? null;
-    const isInstructor =
-      profile !== null &&
-      (profile.role === "admin" ||
-        (profile.role === "instructor" && liveClass.instructorUserId === userId));
-
-    if (!isInstructor) {
-      const memberProfiles = await ctx.db
-        .query("memberProfiles")
-        .withIndex("by_userId", (q) => q.eq("userId", userId))
-        .take(1);
-      const memberProfile = memberProfiles[0] ?? null;
-      if (memberProfile === null) return null;
-      const equipmentBlocked = !viewerCanAccessLiveClass(
-        memberProfile.equipment,
-        liveClass.requiredEquipment,
-      );
-      if (equipmentBlocked) {
-        const now = Date.now();
-        return {
-          joinOpensAt: liveClass.joinOpensAt,
-          joinClosesAt: liveClass.joinClosesAt,
-          startsAt: liveClass.startsAt,
-          status: liveClass.status,
-          canEnter: false,
-          minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
-          minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
-          isInstructor: false,
-          equipmentBlocked: true,
-        };
-      }
-
-      if (liveClass.type === "one_on_one") {
-        const reservations = await ctx.db
-          .query("liveReservations")
-          .withIndex("by_liveClassId_and_userId", (q) =>
-            q.eq("liveClassId", args.liveClassId).eq("userId", userId),
-          )
-          .take(10);
-        const reservation =
-          reservations.find((row) => row.status === "joined") ??
-          reservations.find((row) => row.status === "reserved") ??
-          null;
-        if (reservation === null) return null;
-      }
-    }
-
-    const now = Date.now();
-    const inWindow = isInLiveJoinWindow(liveClass, now);
-    const canEnter =
-      inWindow &&
-      liveClass.status !== "ended" &&
-      liveClass.status !== "cancelled" &&
-      liveClass.status !== "draft" &&
-      (isInstructor || liveClass.status === "live");
-
-    return {
-      joinOpensAt: liveClass.joinOpensAt,
-      joinClosesAt: liveClass.joinClosesAt,
-      startsAt: liveClass.startsAt,
-      status: liveClass.status,
-      canEnter,
-      minutesUntilOpen: minutesUntilJoinOpens(liveClass, now),
-      minutesUntilClose: minutesUntilJoinCloses(liveClass, now),
-      isInstructor,
-      equipmentBlocked: false,
-    };
+    const resolved = await resolveJoinAccess(ctx, args.liveClassId, args.now);
+    return resolved?.snapshot ?? null;
   },
 });
 
@@ -296,30 +203,9 @@ export const start = mutation({
       updatedAt: now,
     });
 
-    const existingRooms = await ctx.db
-      .query("liveRooms")
-      .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .take(1);
-    const existingRoom = existingRooms[0] ?? null;
-
-    if (existingRoom === null) {
-      await ctx.db.insert("liveRooms", {
-        liveClassId: args.liveClassId,
-        provider: "livekit",
-        roomName: roomNameForClass(args.liveClassId),
-        status: "active",
-        startedAt: now,
-        startedByUserId: userId,
-        updatedAt: now,
-      });
-    } else {
-      await ctx.db.patch(existingRoom._id, {
-        status: "active",
-        startedAt: existingRoom.startedAt ?? now,
-        startedByUserId: existingRoom.startedByUserId ?? userId,
-        updatedAt: now,
-      });
-    }
+    await ensureLiveRoomForClass(ctx, args.liveClassId, now, {
+      startedByUserId: userId,
+    });
 
     return args.liveClassId;
   },
@@ -582,23 +468,36 @@ export const cancel = mutation({
 });
 
 export const listMine = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    now: v.number(),
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const profile = await requireAppProfile(ctx, userId);
     requireRole(profile, ["instructor", "admin"]);
 
-    const now = Date.now();
-    const windowStart = now - STUDIO_CALENDAR_PAST_MS;
-    const windowEnd = now + STUDIO_CALENDAR_FUTURE_MS;
+    const now = requireQueryNow(args.now);
+    const windowStart = args.from ?? now - STUDIO_CALENDAR_PAST_MS;
+    const windowEnd = args.to ?? now + STUDIO_CALENDAR_FUTURE_MS;
 
-    return await ctx.db
+    if (windowStart >= windowEnd) {
+      throw new Error("Invalid studio calendar range");
+    }
+    if (windowEnd - windowStart > STUDIO_CALENDAR_FUTURE_MS + STUDIO_CALENDAR_PAST_MS) {
+      throw new Error("Studio calendar range is too large");
+    }
+
+    const scanned = await ctx.db
       .query("liveClasses")
       .withIndex("by_instructorUserId_and_startsAt", (q) =>
         q.eq("instructorUserId", userId).gte("startsAt", windowStart).lt("startsAt", windowEnd),
       )
       .order("asc")
-      .take(LIMITS.INSTRUCTOR_CLASSES);
+      .take(LIMITS.INSTRUCTOR_LIST_SCAN);
+
+    return scanned.filter((liveClass) => !isAutoPublishedOpenSlot(liveClass));
   },
 });
 

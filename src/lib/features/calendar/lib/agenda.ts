@@ -1,7 +1,7 @@
 import type { FunctionReturnType } from "convex/server";
 import { api } from "$convex/_generated/api";
-import { isInLocalDay, startOfLocalDay } from "$lib/datetime/local";
-import { CALENDAR_DAY_MS, ONE_ON_ONE_MAX_DAYS } from "./calendar-range";
+import { addAppDays, isInLocalDay, LOCAL_TIMEZONE, startOfLocalDay } from "$lib/datetime/local";
+import { ONE_ON_ONE_MAX_DAYS } from "./calendar-range";
 
 export type CalendarClass = FunctionReturnType<typeof api.live.calendar.listRange>[number];
 export type OpenSlot = FunctionReturnType<typeof api.oneOnOne.customer.listAvailableSlots>[number];
@@ -23,20 +23,20 @@ const dayHeaderFormatter = new Intl.DateTimeFormat("he-IL", {
   weekday: "long",
   day: "numeric",
   month: "long",
-  timeZone: "Asia/Jerusalem",
+  timeZone: LOCAL_TIMEZONE,
 });
 
 const dayShortFormatter = new Intl.DateTimeFormat("he-IL", {
   weekday: "short",
   day: "numeric",
   month: "short",
-  timeZone: "Asia/Jerusalem",
+  timeZone: LOCAL_TIMEZONE,
 });
 
 export function formatAgendaDayHeader(dayStart: number): string {
   const todayStart = startOfLocalDay();
   if (dayStart === todayStart) return `היום · ${dayShortFormatter.format(new Date(dayStart))}`;
-  const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
+  const tomorrowStart = addAppDays(todayStart, 1);
   if (dayStart === tomorrowStart) return `מחר · ${dayShortFormatter.format(new Date(dayStart))}`;
   return dayHeaderFormatter.format(new Date(dayStart));
 }
@@ -112,7 +112,7 @@ function isUpcomingAvailableClass(item: CalendarClass, now: number): boolean {
 
 function isUpcomingAvailableDayWindow(window: DayAvailability, now: number): boolean {
   const todayStart = startOfLocalDay(now);
-  const lastBookableDay = todayStart + ONE_ON_ONE_MAX_DAYS * CALENDAR_DAY_MS;
+  const lastBookableDay = addAppDays(todayStart, ONE_ON_ONE_MAX_DAYS);
   if (window.dayStart < todayStart || window.dayStart > lastBookableDay) return false;
   return window.latestBookableStartAt >= window.earliestBookableAt;
 }
@@ -181,4 +181,3 @@ export function groupAgendaByDay(entries: AgendaEntry[]): DayAgendaGroup[] {
       entries: dayEntries.sort((a, b) => a.startsAt - b.startsAt),
     }));
 }
-

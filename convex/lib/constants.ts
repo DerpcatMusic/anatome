@@ -97,6 +97,8 @@ export const LIMITS = {
   INSTRUCTOR_REQUESTS: 50,
   /** Instructor class list */
   INSTRUCTOR_CLASSES: 50,
+  /** Max rows scanned when building instructor studio calendar (skips hidden auto 1:1 slots). */
+  INSTRUCTOR_LIST_SCAN: 1000,
   /** Live class participant list */
   LIVE_PARTICIPANTS: 50,
   /** Playback token batch */

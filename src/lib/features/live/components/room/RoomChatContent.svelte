@@ -1,0 +1,135 @@
+<script lang="ts">
+  import { tick } from "svelte";
+  import { ScrollState } from "runed";
+  import { Button } from "bits-ui";
+  import { useI18n } from "$lib/i18n/runes.svelte";
+  import type { ChatMessage } from "$lib/features/live/types";
+
+  let {
+    messages,
+    draft = $bindable(""),
+    onSend,
+  }: {
+    messages: ChatMessage[];
+    draft?: string;
+    onSend: () => void;
+  } = $props();
+
+  const { t } = useI18n();
+
+  let scrollEl = $state<HTMLDivElement | null>(null);
+  const scroll = new ScrollState({ element: () => scrollEl });
+  const showScrollButton = $derived(!scroll.arrived.bottom);
+
+  function submit(event: SubmitEvent) {
+    event.preventDefault();
+    onSend();
+  }
+
+  function scrollToBottom() {
+    if (scrollEl) {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    }
+  }
+
+  $effect(() => {
+    const count = messages.length;
+    if (count > 0 && scroll.arrived.bottom) {
+      void tick().then(scrollToBottom);
+    }
+  });
+</script>
+
+<div class="lr-chat-content">
+  <div class="lr-chat__scroll" bind:this={scrollEl}>
+    <div class="lr-chat__list">
+      {#if messages.length === 0}
+        <div class="lr-chat__empty">{t.live.room.chatEmpty()}</div>
+      {/if}
+      {#each messages as message (message.id)}
+        <article class="lr-chat-message" class:lr-chat-message--local={message.isLocal}>
+          <div class="lr-chat-message__meta">
+            <span>{message.name}</span>
+            <time
+              >{new Intl.DateTimeFormat("he-IL", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jerusalem",
+              }).format(new Date(message.createdAt))}</time
+            >
+          </div>
+          <p class="lr-chat-message__text">{message.text}</p>
+        </article>
+      {/each}
+    </div>
+  </div>
+
+  {#if showScrollButton}
+    <button
+      type="button"
+      class="lr-chat__scroll-btn"
+      onclick={scrollToBottom}
+      aria-label={t.live.room.newMessages()}
+    >
+      <span class="material-symbols-rounded">arrow_downward</span>
+    </button>
+  {/if}
+
+  <form class="lr-chat__form" onsubmit={submit}>
+    <input
+      class="lr-chat__input"
+      bind:value={draft}
+      maxlength="500"
+      placeholder={t.live.room.chatPlaceholder()}
+      aria-label={t.live.room.chatPlaceholder()}
+    />
+    <Button.Root class="hb-button hb-button--ink hb-button--sm" type="submit" disabled={!draft.trim()}>
+      {t.live.room.chatSend()}
+    </Button.Root>
+  </form>
+</div>
+
+<style>
+  .lr-chat-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .lr-chat__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-light) transparent;
+  }
+
+  .lr-chat__scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .lr-chat__scroll::-webkit-scrollbar-thumb {
+    background: var(--line-light);
+    border-radius: 999px;
+  }
+
+  .lr-chat__scroll-btn {
+    position: absolute;
+    inset-block-end: 56px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    background: var(--ink);
+    color: var(--white);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+</style>

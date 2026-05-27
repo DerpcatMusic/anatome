@@ -229,7 +229,8 @@
   }
 
   .continue-hero__welcome {
-    border-inline-start: 3px solid var(--primary);
+    border: var(--border);
+    border-radius: var(--radius-md);
   }
 
   .continue-hero__welcome-head {

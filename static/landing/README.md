@@ -4,7 +4,7 @@ All images are **WebP**, optimized for the marketing page. Source: [Unsplash Lic
 
 | File | Unsplash photo ID | Use |
 |------|-------------------|-----|
-| `hero.webp` | `1518611012118` | Fixed hero background |
+| `hero.webp` | Yuval (`hero-yuval-source.jpg`) | Fixed hero background |
 | `about-instructor.webp` | `1571019613454` | About section portrait |
 | `preview-library.webp` | `1574680096145` | Experience preview / library card |
 | `session-anatomy.webp` | `1544367567` | Session card — anatomical focus |

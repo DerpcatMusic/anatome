@@ -1,0 +1,55 @@
+/**
+ * Sidebar tab switch: exit shrinks + fades, then enter grows + fades in.
+ * Driven by classes from app-shell-transition.ts (sequential — never two pages at once).
+ */
+
+:root {
+  --app-route-exit-duration: 260ms;
+  --app-route-enter-duration: 300ms;
+  --app-route-scale: 0.88;
+  --app-route-ease: ease-in-out;
+}
+
+.app-main__page {
+  width: 100%;
+  min-width: 0;
+  transform-origin: center center;
+}
+
+.app-main__page.app-route-exit {
+  animation: app-route-exit var(--app-route-exit-duration) var(--app-route-ease) forwards;
+  pointer-events: none;
+}
+
+.app-main__page.app-route-enter {
+  animation: app-route-enter var(--app-route-enter-duration) var(--app-route-ease) forwards;
+}
+
+@keyframes app-route-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(var(--app-route-scale));
+  }
+}
+
+@keyframes app-route-enter {
+  from {
+    opacity: 0;
+    transform: scale(var(--app-route-scale));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-main__page.app-route-exit,
+  .app-main__page.app-route-enter {
+    animation: none;
+  }
+}

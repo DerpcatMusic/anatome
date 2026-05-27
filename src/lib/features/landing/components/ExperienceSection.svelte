@@ -56,6 +56,7 @@
       <header class="experience-intro l-in">
         <h2 class="section-title section-title--center">{t.landing.pillars.headline()}</h2>
         <p class="section-lead section-lead--center">{t.landing.pillars.lead()}</p>
+        <p class="experience-intro__hint">גללי לאט — כל כרטיס נפתח בזמן</p>
       </header>
 
       <div class="experience-bento">

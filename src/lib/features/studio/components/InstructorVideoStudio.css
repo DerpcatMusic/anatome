@@ -316,14 +316,14 @@
 }
 
 .ivm .status-box.uploading {
-  border-inline-start: 4px solid var(--accent);
+  border: 1px solid color-mix(in oklch, var(--accent) 35%, var(--line-light));
 }
 
 .ivm .status-box.success {
   flex-direction: row;
   align-items: center;
   gap: var(--space-3);
-  border-inline-start: 4px solid var(--success);
+  border: 1px solid color-mix(in oklch, var(--success) 35%, var(--line-light));
   background: color-mix(in oklch, var(--success) 10%, var(--elevated));
 }
 
@@ -336,8 +336,8 @@
   flex-direction: row;
   align-items: center;
   gap: var(--space-2);
-  border-inline-start: 4px solid var(--primary);
-  background: color-mix(in oklch, var(--primary) 8%, var(--elevated));
+  border: 1px solid color-mix(in oklch, var(--destructive) 35%, var(--line-light));
+  background: color-mix(in oklch, var(--destructive) 8%, var(--elevated));
   color: var(--ink);
 }
 
@@ -472,14 +472,20 @@
     color var(--duration-fast);
 }
 
-.ivm .access-segment__btn:hover {
+.ivm .access-segment__btn:hover:not(.is-active) {
   color: var(--ink);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
 .ivm .access-segment__btn.is-active {
   background: var(--elevated);
   color: var(--ink);
   box-shadow: var(--shadow-sm);
+}
+
+.ivm .access-segment__btn.is-active:hover {
+  background: color-mix(in oklch, var(--elevated) 88%, var(--foreground));
+  box-shadow: var(--shadow-md);
 }
 
 .ivm .access-segment__btn.is-active[data-kind="macroflow"] {

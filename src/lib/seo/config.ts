@@ -43,7 +43,7 @@ export const SITE = {
    * Leave null in dev to avoid 404 until the asset is added.
    */
   heroVideo: null as string | null,
-  /** Full-bleed hero still — see `static/landing/hero.webp` (Unsplash, landing README) */
+  /** Full-bleed hero still — see `static/landing/hero.webp` */
   heroPoster: "/landing/hero.webp",
   twitterHandle: "@anatomepilates",
   founded: "2024",

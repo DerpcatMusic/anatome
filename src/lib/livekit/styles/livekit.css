@@ -1,0 +1,4 @@
+/**
+ * @deprecated Import `livekit-components.css` instead (loaded automatically by LiveKitRoom).
+ */
+@import "./livekit-components.css";

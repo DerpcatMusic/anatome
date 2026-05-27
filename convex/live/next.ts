@@ -3,6 +3,7 @@ import { query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { isLiveSidebarEligible, pickBestSidebarLiveClass } from "../lib/liveSidebar";
 import { viewerCanAccessLiveClass } from "../lib/equipment";
+import { requireQueryNow } from "../lib/queryNow";
 import type { Doc } from "../_generated/dataModel";
 
 const nextLivePayloadValidator = v.object({
@@ -35,13 +36,15 @@ function toNextLivePayload(liveClass: Doc<"liveClasses">, now: number) {
 }
 
 export const get = query({
-  args: {},
+  args: {
+    now: v.number(),
+  },
   returns: v.union(v.null(), nextLivePayloadValidator),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
 
-    const now = Date.now();
+    const now = requireQueryNow(args.now);
 
     const profiles = await ctx.db
       .query("appProfiles")
@@ -88,13 +91,24 @@ export const get = query({
       .take(50);
 
     const memberCandidates: Doc<"liveClasses">[] = [];
+    const activeReservations = reservations.filter(
+      (reservation) => reservation.status === "reserved" || reservation.status === "joined",
+    );
+    const reservedClassIds = [
+      ...new Set(activeReservations.map((reservation) => reservation.liveClassId)),
+    ];
+    const reservedClasses = await Promise.all(
+      reservedClassIds.map((classId) => ctx.db.get(classId)),
+    );
+    const reservedClassById = new Map(
+      reservedClasses
+        .filter((liveClass): liveClass is Doc<"liveClasses"> => liveClass !== null)
+        .map((liveClass) => [liveClass._id, liveClass]),
+    );
 
-    for (const reservation of reservations) {
-      if (reservation.status !== "reserved" && reservation.status !== "joined") {
-        continue;
-      }
-      const liveClass = await ctx.db.get(reservation.liveClassId);
-      if (liveClass === null) continue;
+    for (const reservation of activeReservations) {
+      const liveClass = reservedClassById.get(reservation.liveClassId);
+      if (liveClass === undefined) continue;
       if (!viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)) {
         continue;
       }

@@ -14,6 +14,7 @@
   import InstructorProfileView from "./InstructorProfileView.svelte";
   import AvatarUpload from "./AvatarUpload.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
 
   const { t } = useI18n();
 
@@ -25,12 +26,13 @@
 
   const auth = initAuth();
   const isInstructorAudience = $derived(audience === "instructor");
+  const queryNow = useQueryNowMs();
 
   const dashboardResource = resource(
-    () => auth.isAuthenticated,
-    async (isAuthenticated) => {
-      if (!isAuthenticated) return null;
-      return await authQuery(api.users.dashboard.get, {});
+    () => (auth.isAuthenticated ? queryNow.nowMs : null),
+    async (now) => {
+      if (now === null) return null;
+      return await authQuery(api.users.dashboard.get, { now });
     },
   );
 

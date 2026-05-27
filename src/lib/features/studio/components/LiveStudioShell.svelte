@@ -4,10 +4,10 @@
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
   import { authQuery, initAuth, setCachedRole, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import { liveRoomHref } from "$lib/i18n/context";
   import { Button, Toggle, ToggleGroup } from "bits-ui";
-  import WeeklyAgenda from "$features/live/components/WeeklyAgenda.svelte";
   import LiveClassModalShell from "$features/live/components/LiveClassModalShell.svelte";
   import LiveEventPopover from "$features/live/components/LiveEventPopover.svelte";
   import OneOnOneRequestsPanel from "./OneOnOneRequestsPanel.svelte";
@@ -19,21 +19,42 @@
     type PaintedSlots,
   } from "$features/studio/lib/one-on-one-availability";
   import { saveAvailabilityFromPainted } from "$features/studio/lib/save-availability-rules";
-  import { calendarVisibleClasses } from "$features/studio/lib/live-class-display";
+  import {
+    calendarVisibleClasses,
+    isAutoPublishedOpenSlot,
+  } from "$features/studio/lib/live-class-display";
   import type { Equipment } from "$lib/labels";
   import type { SelectionAnchor } from "$features/live/types/selection-anchor";
   import { anchorFromCalendarSelection } from "$features/live/types/selection-anchor";
-  import { parseDateTimeLocal, toDateTimeLocalString } from "$lib/datetime/local";
+  import {
+    fromCalendarEventDate,
+    nextAppHourDateTimeLocalString,
+    parseDateTimeLocal,
+    toCalendarEventDate,
+    toDateTimeLocalString,
+  } from "$lib/datetime/local";
 
   type LiveClass = FunctionReturnType<typeof api.live.class.listMine>[number];
   type ClassTypeFilter = "all" | "group_live" | "one_on_one";
 
   const auth = initAuth();
+  const queryNow = useQueryNowMs();
   const profileQuery = useQuery(api.profiles.viewer.get, () => (canRunAuthenticatedQuery() ? {} : "skip"));
-  const classesQuery = useQuery(api.live.class.listMine, () => (canRunAuthenticatedQuery() ? {} : "skip"));
+  let calendarQueryRange = $state<{ from: number; to: number } | null>(null);
+  const classesQuery = useQuery(api.live.class.listMine, () =>
+    canRunAuthenticatedQuery()
+      ? {
+          now: queryNow.nowMs,
+          ...(calendarQueryRange ?? {}),
+        }
+      : "skip",
+  );
 
   const classes = $derived(classesQuery.data ?? []);
-  const loading = $derived(profileQuery.isLoading || classesQuery.isLoading);
+  const classesQueryError = $derived(classesQuery.error?.message ?? "");
+  const loading = $derived(
+    !canRunAuthenticatedQuery() || profileQuery.isLoading || classesQuery.isLoading,
+  );
 
   let error = $state("");
   let actionId = $state<string | null>(null);
@@ -88,8 +109,18 @@
     !paintedEquals(availabilityPainted, availabilitySavedPainted),
   );
 
+  const availabilityModeStatus = $derived(
+    availabilitySaving
+      ? "שומרת זמינות..."
+      : availabilityDirty
+        ? "שינויים נשמרים אוטומטית"
+        : "הזמינות נשמרה",
+  );
+
+  let lastCreatedClassId = $state<Id<"liveClasses"> | null>(null);
+
   $effect(() => {
-    if (profileQuery.isLoading) return;
+    if (!canRunAuthenticatedQuery() || profileQuery.isLoading) return;
     const profile = profileQuery.data;
     if (profile === null || profile === undefined) {
       window.location.assign("/");
@@ -103,9 +134,7 @@
   });
 
   function defaultStartsAtLocal() {
-    const date = new Date(Date.now() + 60 * 60 * 1000);
-    date.setMinutes(0, 0, 0);
-    return toDateTimeLocalString(date.getTime());
+    return nextAppHourDateTimeLocalString();
   }
 
   function resetCreateForm() {
@@ -214,17 +243,19 @@
   async function createClass() {
     error = "";
     actionId = "create";
+    const startsAt = parseDateTimeLocal(startsAtLocal);
     try {
-      await client.mutation(api.live.class.create, {
+      const liveClassId = await client.mutation(api.live.class.create, {
         title,
         description,
         type: liveType,
-        startsAt: parseDateTimeLocal(startsAtLocal),
+        startsAt,
         durationMinutes: liveType === "one_on_one" ? 45 : durationMinutes,
         joinOpensMinutesBefore,
         capacity: liveType === "one_on_one" ? 1 : capacity,
         requiredEquipment: requiredEquipment.length > 0 ? requiredEquipment : ["mat"],
       });
+      lastCreatedClassId = liveClassId;
       startsAtLocal = defaultStartsAtLocal();
       durationMinutes = 50;
       closePopover();
@@ -313,8 +344,8 @@
       anchor ??
       anchorFromCalendarSelection(
         container,
-        new Date(startMs),
-        new Date(startMs + slotDurationMinutes * 60 * 1000),
+        toCalendarEventDate(startMs),
+        toCalendarEventDate(startMs + slotDurationMinutes * 60 * 1000),
       );
 
     openCreatePopover(nextAnchor);
@@ -353,6 +384,13 @@
     });
   }
 
+  function handleCalendarViewRangeChange(start: Date, end: Date) {
+    const from = fromCalendarEventDate(start);
+    const to = fromCalendarEventDate(end);
+    if (calendarQueryRange?.from === from && calendarQueryRange.to === to) return;
+    calendarQueryRange = { from, to };
+  }
+
   function handleEventClick(liveClass: LiveClass, anchor: SelectionAnchor) {
     closePopover();
     openEditPopover(liveClass, anchor);
@@ -369,8 +407,8 @@
     openCreatePopover(
       anchorFromCalendarSelection(
         container,
-        new Date(startMs),
-        new Date(startMs + durationMinutes * 60 * 1000),
+        toCalendarEventDate(startMs),
+        toCalendarEventDate(startMs + durationMinutes * 60 * 1000),
       ),
     );
   }
@@ -385,13 +423,13 @@
     <div class="skeleton skeleton--header"></div>
     <div class="skeleton skeleton--grid"></div>
   </div>
-{:else if error && classes.length === 0}
+{:else if (error || classesQueryError) && classes.length === 0}
   <div class="studio-error">
-    <p>{error}</p>
+    <p>{error || classesQueryError}</p>
     <button class="hb-button hb-button--ghost" type="button" onclick={retryLoad}>נסה שוב</button>
   </div>
 {:else}
-  <div class="studio-page">
+  <div class="studio-page" class:studio-page--availability-mode={availabilityPaintMode}>
     <header class="studio-toolbar" aria-label="כלי סטודיו לייב">
       <ToggleGroup.Root
         type="single"
@@ -411,7 +449,7 @@
         <Toggle.Root
           bind:pressed={availabilityPaintMode}
           onPressedChange={toggleAvailabilityPaintMode}
-          aria-label="עריכת זמינות שבועית"
+          aria-label="סימון זמינות 1:1"
         >
           {#snippet child({ props, pressed })}
             <button
@@ -420,7 +458,7 @@
               data-state={pressed ? "on" : "off"}
             >
               <span class="material-symbols-rounded" aria-hidden="true">edit_calendar</span>
-              זמינות
+              זמינות 1:1
               {#if availabilitySaving}
                 <span class="studio-availability-chip__dot" aria-hidden="true"></span>
               {/if}
@@ -458,21 +496,43 @@
       </div>
     {/if}
 
-    <WeeklyAgenda
-      bind:this={weeklyAgenda}
-      classes={studioCalendarClasses}
-      {typeFilter}
-      onStart={startLive}
-      onEnd={endLive}
-      {actionId}
-      onSelectSlot={handleSelectSlot}
-      onEventClick={handleEventClick}
-      createPreview={availabilityPaintMode ? null : quickCreatePreview}
-      onCreatePreviewChange={handleCreatePreviewChange}
-      {availabilityPaintMode}
-      availabilityPainted={availabilityPainted}
-      onAvailabilityPaintChange={handleAvailabilityPaintChange}
-    />
+    {#if availabilityPaintMode}
+      <section class="studio-availability-mode" aria-live="polite" aria-label="מצב סימון זמינות">
+        <div class="studio-availability-mode__mark" aria-hidden="true">
+          <span class="material-symbols-rounded">edit_calendar</span>
+        </div>
+        <div class="studio-availability-mode__copy">
+          <strong>מצב סימון זמינות 1:1 פעיל</strong>
+          <span>גררי על הלוח כדי לפתוח או להסיר זמינות. שיעורים קבוצתיים מוצגים ברקע בזמן הסימון.</span>
+        </div>
+        <div class="studio-availability-mode__actions">
+          <span class="studio-availability-mode__status">{availabilityModeStatus}</span>
+          <button class="studio-bar-btn studio-bar-btn--icon" type="button" onclick={() => toggleAvailabilityPaintMode(false)}>
+            <span class="material-symbols-rounded" aria-hidden="true">check</span>
+            סיום סימון
+          </button>
+        </div>
+      </section>
+    {/if}
+
+    {#await import("$features/live/components/WeeklyAgenda.svelte") then { default: WeeklyAgenda }}
+      <WeeklyAgenda
+        bind:this={weeklyAgenda}
+        classes={studioCalendarClasses}
+        {typeFilter}
+        onStart={startLive}
+        onEnd={endLive}
+        {actionId}
+        onSelectSlot={handleSelectSlot}
+        onEventClick={handleEventClick}
+        createPreview={availabilityPaintMode ? null : quickCreatePreview}
+        onCreatePreviewChange={handleCreatePreviewChange}
+        {availabilityPaintMode}
+        availabilityPainted={availabilityPainted}
+        onAvailabilityPaintChange={handleAvailabilityPaintChange}
+        onViewRangeChange={handleCalendarViewRangeChange}
+      />
+    {/await}
   </div>
 {/if}
 
@@ -516,6 +576,10 @@
     min-height: 0;
     direction: rtl;
     gap: 0;
+  }
+
+  .studio-page--availability-mode {
+    background: color-mix(in oklch, var(--primary) 2%, var(--paper));
   }
 
   .studio-toolbar {
@@ -602,13 +666,78 @@
   }
 
   :global(.studio-bar-btn--availability[data-state="on"]) {
-    background: color-mix(in oklch, var(--accent) 14%, var(--elevated));
-    border-color: var(--accent);
-    color: var(--ink);
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--paper);
+    box-shadow:
+      0 0 0 1px var(--primary),
+      0 10px 24px -18px var(--primary);
   }
 
   :global(.studio-bar-btn--availability[data-state="on"]:hover) {
-    box-shadow: 0 0 0 1px var(--accent);
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--paper);
+    box-shadow:
+      0 0 0 1px var(--primary),
+      0 10px 24px -18px var(--primary);
+  }
+
+  .studio-availability-mode {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-bottom: 1px solid color-mix(in oklch, var(--primary) 28%, var(--line-light));
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in oklch, var(--primary) 10%, var(--paper)),
+        color-mix(in oklch, var(--primary) 4%, var(--paper))
+      );
+    color: var(--ink);
+  }
+
+  .studio-availability-mode__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 4px;
+    background: var(--primary);
+    color: var(--paper);
+    box-shadow: 0 14px 28px -22px var(--primary);
+  }
+
+  .studio-availability-mode__mark .material-symbols-rounded {
+    font-size: 1.25rem;
+  }
+
+  .studio-availability-mode__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .studio-availability-mode__copy strong {
+    font-size: var(--step-0);
+    line-height: 1.25;
+  }
+
+  .studio-availability-mode__copy span,
+  .studio-availability-mode__status {
+    color: var(--foreground-muted);
+    font-size: var(--step--1);
+    line-height: 1.4;
+  }
+
+  .studio-availability-mode__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
   }
 
   :global(.studio-filter .studio-bar-btn[data-state="on"][data-value="all"]) {
@@ -721,6 +850,18 @@
     }
     50% {
       opacity: 0.35;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .studio-availability-mode {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .studio-availability-mode__actions {
+      grid-column: 1 / -1;
+      justify-content: space-between;
+      white-space: normal;
     }
   }
 </style>

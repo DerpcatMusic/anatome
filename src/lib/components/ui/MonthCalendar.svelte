@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Calendar } from "bits-ui";
   import { CalendarDate, type DateValue } from "@internationalized/date";
+  import { appDateParts } from "$lib/datetime/local";
 
   type EventDot = {
     date: DateValue;
@@ -23,8 +24,8 @@
   }
 
   function initPlaceholder() {
-    const today = new Date();
-    return new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const today = appDateParts();
+    return new CalendarDate(today.year, today.month, today.day);
   }
 
   const eventMap = $derived.by(() => {

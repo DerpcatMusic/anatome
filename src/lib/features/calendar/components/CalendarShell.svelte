@@ -24,7 +24,7 @@
     nextAgendaRangeEnd,
   } from "../lib/calendar-range";
   import { startOfLocalDay } from "$lib/datetime/local";
-  import { onMount } from "svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
@@ -32,7 +32,8 @@
 
   const agendaRangeStart = $derived(startOfLocalDay());
   let agendaRangeEnd = $state(initialAgendaRangeEnd(startOfLocalDay(), "all"));
-  let nowMs = $state(Date.now());
+  const queryNow = useQueryNowMs();
+  const nowMs = $derived(queryNow.nowMs);
   let actionId = $state<string | null>(null);
   let actionError = $state("");
   let oneOnOneModalOpen = $state(false);
@@ -69,6 +70,7 @@
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
+          now: nowMs,
         }
       : "skip",
   );
@@ -78,6 +80,7 @@
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
+          now: nowMs,
         }
       : "skip",
   );
@@ -222,20 +225,6 @@
     query.isLoading || (isCustomer && (dayAvailabilityQuery.isLoading || pendingRequestsQuery.isLoading)),
   );
 
-  onMount(() => {
-    const tick = () => {
-      nowMs = Date.now();
-    };
-    const interval = setInterval(tick, 60_000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") tick();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  });
 
   const slotDateFormatter = new Intl.DateTimeFormat("he-IL", {
     weekday: "short",
@@ -422,8 +411,7 @@
 
   .one-on-one-pending {
     border: var(--border);
-    border-inline-start: 3px solid var(--primary);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     background: var(--elevated);
     overflow: hidden;
   }

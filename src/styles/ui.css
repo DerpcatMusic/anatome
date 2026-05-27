@@ -19,10 +19,17 @@
     transform 0.08s ease;
 }
 
-.hb-button:hover {
+.hb-button:hover:not([data-state="on"]):not([aria-pressed="true"]) {
   background: var(--surface);
   border-color: var(--primary);
   border-radius: 26px;
+}
+
+.hb-button[data-state="on"]:hover,
+.hb-button[aria-pressed="true"]:hover {
+  background: color-mix(in oklch, var(--surface) 82%, var(--foreground));
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 40%, transparent);
 }
 
 .hb-button:active {
@@ -52,7 +59,7 @@
   border-color: var(--secondary);
 }
 
-.hb-button--secondary:hover {
+.hb-button--secondary:hover:not([data-state="on"]):not([aria-pressed="true"]) {
   background: var(--primary);
   color: var(--on-primary);
   border-color: var(--primary);
@@ -62,13 +69,27 @@
   background: var(--primary);
 }
 
+.hb-button--secondary[data-state="on"],
+.hb-button--secondary[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.hb-button--secondary[data-state="on"]:hover,
+.hb-button--secondary[aria-pressed="true"]:hover {
+  background: color-mix(in oklch, var(--primary) 86%, var(--foreground));
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 55%, transparent);
+}
+
 .hb-button--primary {
   background: var(--surface);
   color: var(--primary);
   border-color: var(--primary);
 }
 
-.hb-button--primary:hover {
+.hb-button--primary:hover:not([data-state="on"]):not([aria-pressed="true"]) {
   background: var(--primary);
   color: var(--white);
   border-color: var(--primary);
@@ -76,6 +97,20 @@
 
 .hb-button--primary:active {
   background: var(--primary);
+}
+
+.hb-button--primary[data-state="on"],
+.hb-button--primary[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.hb-button--primary[data-state="on"]:hover,
+.hb-button--primary[aria-pressed="true"]:hover {
+  background: color-mix(in oklch, var(--primary) 86%, var(--foreground));
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 55%, transparent);
 }
 
 .hb-button--brand {
@@ -217,9 +252,9 @@
 }
 
 .hb-button--icon-active:hover {
-  background: var(--secondary);
-  border-color: var(--secondary);
-  filter: brightness(1.04);
+  background: color-mix(in oklch, var(--secondary) 84%, var(--foreground));
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ink) 30%, transparent);
 }
 
 .hb-button--icon-danger {
@@ -295,9 +330,24 @@
 }
 
 .hb-button--control-on:hover:not(:disabled) {
-  background: var(--lr-control-on-bg, color-mix(in oklch, var(--accent) 28%, transparent));
+  background: color-mix(
+    in oklch,
+    var(--lr-control-on-bg, color-mix(in oklch, var(--accent) 28%, transparent)) 78%,
+    var(--foreground)
+  );
   border-color: var(--accent);
-  filter: brightness(1.03);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 45%, transparent);
+}
+
+.hb-button--control-active:hover:not(:disabled),
+.hb-button--control-participants-on:hover:not(:disabled) {
+  background: color-mix(
+    in oklch,
+    var(--lr-control-active-bg, color-mix(in oklch, var(--accent) 32%, transparent)) 78%,
+    var(--foreground)
+  );
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 50%, transparent);
 }
 
 .hb-button--control-off {
@@ -819,8 +869,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     transform 0.08s ease;
 }
 
-.hb-choice:hover:not([data-disabled]),
-.hb-choice[data-highlighted]:not([data-disabled]) {
+.hb-choice:hover:not([data-disabled]):not([data-state="checked"]):not([data-selected="true"]):not(.is-selected),
+.hb-choice[data-highlighted]:not([data-disabled]):not([data-state="checked"]):not([data-selected="true"]):not(.is-selected) {
   background: var(--surface);
   border-color: var(--secondary);
 }
@@ -836,6 +886,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: var(--secondary);
   border-color: var(--ink);
   color: var(--ink);
+}
+
+.hb-choice[data-state="checked"]:hover:not([data-disabled]),
+.hb-choice[data-selected="true"]:hover:not([data-disabled]),
+.hb-choice.is-selected:hover:not([data-disabled]) {
+  background: color-mix(in oklch, var(--secondary) 82%, var(--foreground));
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ink) 28%, transparent);
 }
 
 .hb-choice[data-disabled],
@@ -946,7 +1004,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   transition: background var(--duration-fast), color var(--duration-fast);
 }
 
-.hb-tab:hover {
+.hb-tab:hover:not([data-state="active"]) {
   background: var(--surface);
 }
 
@@ -954,6 +1012,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: var(--ink);
   color: var(--white);
   border-color: var(--ink);
+}
+
+.hb-tab[data-state="active"]:hover {
+  background: color-mix(in oklch, var(--ink) 88%, var(--foreground));
+  border-color: color-mix(in oklch, var(--ink) 88%, var(--foreground));
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 22%, transparent);
 }
 
 /* ─── Toggle Group ─── */
@@ -978,7 +1042,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
 }
 
-.hb-toggle-item:hover {
+.hb-toggle-item:hover:not([data-state="on"]) {
   background: var(--surface);
   border-color: var(--secondary);
 }
@@ -995,9 +1059,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-toggle-item[data-state="on"]:hover {
-  background: var(--secondary);
-  color: var(--paper);
+  background: color-mix(in oklch, var(--secondary) 82%, var(--foreground));
+  color: var(--ink);
   border-color: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ink) 28%, transparent);
 }
 
 .hb-dialog-overlay {
@@ -1482,8 +1547,9 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .hb-calendar__day--selected:hover {
-  background: var(--secondary);
+  background: color-mix(in oklch, var(--secondary) 84%, var(--foreground));
   border-color: var(--secondary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--secondary) 55%, transparent);
 }
 
 .hb-calendar__day--disabled {

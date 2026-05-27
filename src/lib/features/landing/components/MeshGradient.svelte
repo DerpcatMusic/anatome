@@ -10,6 +10,7 @@
   let canvas: HTMLCanvasElement | undefined = $state();
   let reducedMotion = $state(true);
   let isDark = $state(false);
+  let isVisible = $state(false);
 
   type Blob = {
     x: number;
@@ -191,7 +192,7 @@
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(off, 0, 0, ow, oh, 0, 0, w, h);
 
-      if (!reducedMotion) {
+      if (!reducedMotion && isVisible) {
         raf = requestAnimationFrame(draw);
       }
     };
@@ -218,11 +219,27 @@
 
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
+
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        isVisible = entries.some((entry) => entry.isIntersecting);
+        if (isVisible && !reducedMotion) {
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(draw);
+        } else {
+          cancelAnimationFrame(raf);
+        }
+      },
+      { rootMargin: "120px 0px", threshold: 0 },
+    );
+    visibilityObserver.observe(canvas);
+
     resize();
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      visibilityObserver.disconnect();
       themeObserver.disconnect();
       schemeMq.removeEventListener("change", onScheme);
     };

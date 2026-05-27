@@ -3,6 +3,7 @@
 	import MarketingNavbar from '$components/layout/MarketingNavbar.svelte';
 	import LandingAuthHost from '$lib/features/marketing/LandingAuthHost.svelte';
 	import { useThemeMedia } from '$features/app/themeMedia.svelte';
+	import '@fontsource/secular-one/hebrew-400.css';
 
 	let { children } = $props();
 

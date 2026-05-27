@@ -1,8 +1,6 @@
 /** App wall clock is always Israel — independent of the viewer's OS timezone. */
 export const LOCAL_TIMEZONE = "Asia/Jerusalem";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 type ZonedParts = {
   year: number;
   month: number;
@@ -45,9 +43,30 @@ function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
+export function appDateParts(instantMs: number = Date.now()): ZonedParts {
+  return zonedParts(instantMs);
+}
+
 /** Offset of `timeZone` at `instantMs` from UTC, in milliseconds (positive east of UTC). */
 export function getTimezoneOffsetMs(timeZone: string, instantMs: number): number {
-  const parts = zonedParts(instantMs);
+  const parts =
+    timeZone === LOCAL_TIMEZONE
+      ? zonedParts(instantMs)
+      : Object.fromEntries(
+          new Intl.DateTimeFormat("en-GB", {
+            timeZone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })
+            .formatToParts(new Date(instantMs))
+            .filter((part) => part.type !== "literal")
+            .map((part) => [part.type, Number(part.value)]),
+        ) as unknown as ZonedParts;
   const asUtc = Date.UTC(
     parts.year,
     parts.month - 1,
@@ -70,12 +89,20 @@ export function startOfLocalDay(instantMs: number = Date.now()): number {
   return parseDateTimeLocal(`${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}T00:00`);
 }
 
+export function addAppDays(dayStartMs: number, days: number): number {
+  const parts = zonedParts(dayStartMs);
+  const next = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+  return parseDateTimeLocal(
+    `${next.getUTCFullYear()}-${pad2(next.getUTCMonth() + 1)}-${pad2(next.getUTCDate())}T00:00`,
+  );
+}
+
 export function endOfLocalDay(dayStartMs: number): number {
-  return dayStartMs + DAY_MS;
+  return addAppDays(dayStartMs, 1);
 }
 
 export function isInLocalDay(instantMs: number, dayStartMs: number): boolean {
-  return instantMs >= dayStartMs && instantMs < dayStartMs + DAY_MS;
+  return instantMs >= dayStartMs && instantMs < endOfLocalDay(dayStartMs);
 }
 
 /** `HH:mm` in Israel for a stored UTC instant. */
@@ -92,10 +119,7 @@ export function formatAppScrollTime(instantMs: number = Date.now()): string {
 
 /** Minutes since midnight for a calendar `Date` (after {@link toCalendarEventDate}). */
 export function wallMinutesFromCalendarDate(date: Date): number {
-  if (isAppTimezoneBrowserDefault(date.getTime())) {
-    return date.getHours() * 60 + date.getMinutes();
-  }
-  return date.getUTCHours() * 60 + date.getUTCMinutes();
+  return date.getHours() * 60 + date.getMinutes();
 }
 
 /** `YYYY-MM-DD` in Israel. */
@@ -108,6 +132,13 @@ export function formatAppDate(instantMs: number): string {
 export function toDateTimeLocalString(instantMs: number): string {
   const parts = zonedParts(instantMs);
   return `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}T${pad2(parts.hour)}:${pad2(parts.minute)}`;
+}
+
+/** Default scheduler value: next hour in Israel wall time. */
+export function nextAppHourDateTimeLocalString(instantMs: number = Date.now()): string {
+  const parts = zonedParts(instantMs);
+  const nextHour = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour + 1));
+  return `${nextHour.getUTCFullYear()}-${pad2(nextHour.getUTCMonth() + 1)}-${pad2(nextHour.getUTCDate())}T${pad2(nextHour.getUTCHours())}:00`;
 }
 
 /**
@@ -146,36 +177,28 @@ export function parseDateTimeLocal(value: string): number {
 }
 
 /**
- * EventCalendar positions events using the Date's local fields in the viewer's TZ.
- * When the browser is not on Asia/Jerusalem, store Israel wall time in UTC slots.
+ * EventCalendar positions events from `Date` local fields, then converts them into
+ * its own UTC-backed slots. Pass Israel wall-clock values as local fields so a
+ * class at 18:00 Israel renders at 18:00 in every browser timezone.
  */
 export function toCalendarEventDate(instantMs: number): Date {
-  if (isAppTimezoneBrowserDefault(instantMs)) {
-    return new Date(instantMs);
-  }
   const parts = zonedParts(instantMs);
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute));
+  return new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
 }
 
 /** Inverse of {@link toCalendarEventDate} after select/drag on the calendar. */
 export function fromCalendarEventDate(date: Date): number {
-  if (isAppTimezoneBrowserDefault(date.getTime())) {
-    return date.getTime();
-  }
-  const y = date.getUTCFullYear();
-  const mo = pad2(date.getUTCMonth() + 1);
-  const d = pad2(date.getUTCDate());
-  const h = pad2(date.getUTCHours());
-  const mi = pad2(date.getUTCMinutes());
+  const y = date.getFullYear();
+  const mo = pad2(date.getMonth() + 1);
+  const d = pad2(date.getDate());
+  const h = pad2(date.getHours());
+  const mi = pad2(date.getMinutes());
   return parseDateTimeLocal(`${y}-${mo}-${d}T${h}:${mi}`);
 }
 
-/**
- * @deprecated Use {@link formatAppTime}. Kept for EventCalendar preview nodes that
- * already store wall time in UTC fields when the browser TZ ≠ Israel.
- */
+/** Formats the wall time already encoded for EventCalendar display. */
 export function formatEventCalendarWallTime(date: Date): string {
-  const h = String(date.getUTCHours()).padStart(2, "0");
-  const m = String(date.getUTCMinutes()).padStart(2, "0");
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
   return `${h}:${m}`;
 }

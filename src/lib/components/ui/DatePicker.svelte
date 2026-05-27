@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DatePicker } from "bits-ui";
   import { CalendarDate, type DateValue } from "@internationalized/date";
+  import { appDateParts } from "$lib/datetime/local";
 
   let {
     value = $bindable<DateValue | undefined>(undefined),
@@ -20,8 +21,8 @@
   }
 
   function initPlaceholder() {
-    const today = new Date();
-    return new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const today = appDateParts();
+    return new CalendarDate(today.year, today.month, today.day);
   }
 </script>
 

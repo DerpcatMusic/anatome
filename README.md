@@ -11,6 +11,8 @@ bun run build
 bun run dev:convex
 ```
 
+**Bundle size:** `vite.config.js` sets `build.chunkSizeWarningLimit` (1100 kB) for lazy Mux/LiveKit chunks. To inspect output sizes after build, use `bun run build` and review the Vite rolldown size table (no bundle analyzer in devDeps yet).
+
 ## Current Slice
 
 - Static Astro landing page.

@@ -17,6 +17,16 @@ const liveTimeFormatter = new Intl.DateTimeFormat("he-IL", {
   timeZone: LOCAL_TIMEZONE,
 });
 
+export function formatLiveWindow(startsAt: number, endsAt: number, now = Date.now()): string {
+  const dayStart = startOfAppDay(now);
+  const targetDay = startOfAppDay(startsAt);
+  const diffDays = Math.round((targetDay - dayStart) / 86_400_000);
+  const range = `${liveTimeFormatter.format(startsAt)}–${liveTimeFormatter.format(endsAt)}`;
+  if (diffDays === 0) return `היום · ${range}`;
+  if (diffDays === 1) return `מחר · ${range}`;
+  return `${liveWhenFormatter.format(startsAt)} · ${range}`;
+}
+
 export function formatLiveStartsAt(startsAt: number, now = Date.now()): string {
   const dayStart = startOfAppDay(now);
   const targetDay = startOfAppDay(startsAt);

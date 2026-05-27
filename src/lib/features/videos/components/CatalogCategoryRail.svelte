@@ -126,7 +126,8 @@
   .catalog-rail__item--active {
     background: var(--accent-soft);
     color: var(--ink);
-    box-shadow: inset 3px 0 0 var(--primary);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
   }
 
   .catalog-rail__item--active.catalog-rail__item--cat {

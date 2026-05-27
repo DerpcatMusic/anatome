@@ -6,7 +6,7 @@
   import StudioLiveClassForm from "$features/studio/components/StudioLiveClassForm.svelte";
   import type { Equipment } from "$lib/labels";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import { parseDateTimeLocal, toDateTimeLocalString } from "$lib/datetime/local";
+  import { nextAppHourDateTimeLocalString, parseDateTimeLocal } from "$lib/datetime/local";
   import Notice from "$components/ui/Notice.svelte";
   import "../dashboard.css";
 
@@ -27,9 +27,7 @@
   let requiredEquipment = $state<Equipment[]>(["mat"]);
 
   function defaultStartsAtLocal() {
-    const date = new Date(Date.now() + 60 * 60 * 1000);
-    date.setMinutes(0, 0, 0);
-    return toDateTimeLocalString(date.getTime());
+    return nextAppHourDateTimeLocalString();
   }
 
   function resetForm() {

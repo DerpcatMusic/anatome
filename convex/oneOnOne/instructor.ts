@@ -4,9 +4,11 @@ import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { requireAppProfile, requireInstructorOrAdmin, requireUserId } from "../lib/authz";
 import {
-  dayMs,
+  addLocalDays,
   hasLiveClassConflict,
   isOneOnOneSlotFree,
+  slotMatchesAvailability,
+  localDateTimeOnDay,
   minuteMs,
   oneOnOneTimezone,
   startOfLocalDay,
@@ -119,7 +121,7 @@ export const publishAvailability = mutation({
 
     const weeks = Math.min(8, Math.max(1, args.weeksAhead ?? 4));
     const from = Date.now();
-    const to = from + weeks * 7 * dayMs;
+    const to = addLocalDays(startOfLocalDay(from), weeks * 7 + 1);
 
     const rules = await ctx.db
       .query("oneOnOneAvailabilityRules")
@@ -133,16 +135,12 @@ export const publishAvailability = mutation({
     let created = 0;
     let skipped = 0;
 
-    for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart += dayMs) {
+    for (let dayStart = startOfLocalDay(from); dayStart < to; dayStart = addLocalDays(dayStart, 1)) {
       const dayRules = activeRules.filter((rule) => rule.weekday === weekday(dayStart));
       for (const rule of dayRules) {
-        const step = (RULES.ONE_ON_ONE_DURATION_MINUTES + RULES.ONE_ON_ONE_BUFFER_MINUTES) * minuteMs;
         const duration = RULES.ONE_ON_ONE_DURATION_MINUTES * minuteMs;
-        for (
-          let startsAt = dayStart + rule.startMinute * minuteMs;
-          startsAt + duration <= dayStart + rule.endMinute * minuteMs;
-          startsAt += step
-        ) {
+        for (let startMinute = rule.startMinute; startMinute + RULES.ONE_ON_ONE_DURATION_MINUTES <= rule.endMinute; startMinute += RULES.ONE_ON_ONE_DURATION_MINUTES + RULES.ONE_ON_ONE_BUFFER_MINUTES) {
+          const startsAt = localDateTimeOnDay(dayStart, startMinute);
           const endsAt = startsAt + duration;
           if (startsAt < from || endsAt > to) continue;
           if (startsAt <= Date.now() + 2 * 60 * 60 * 1000) continue;
@@ -197,6 +195,27 @@ export const approveRequest = mutation({
     if (request === null || request.instructorUserId !== userId) throw new Error("הבקשה לא נמצאה");
     if (request.status !== "pending") throw new Error("הבקשה אינה בהמתנה");
     if (await hasLiveClassConflict(ctx, userId, request.requestedStartsAt, request.requestedEndsAt)) {
+      throw new Error("החלון כבר אינו פנוי");
+    }
+    if (
+      !(await slotMatchesAvailability(
+        ctx,
+        userId,
+        request.requestedStartsAt,
+        request.requestedEndsAt,
+      ))
+    ) {
+      throw new Error("החלון אינו זמין");
+    }
+    if (
+      !(await isOneOnOneSlotFree(
+        ctx,
+        userId,
+        request.requestedStartsAt,
+        request.requestedEndsAt,
+        request._id,
+      ))
+    ) {
       throw new Error("החלון כבר אינו פנוי");
     }
 

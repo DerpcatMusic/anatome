@@ -13,9 +13,53 @@ function resolveIsDark(theme: Theme, systemPrefersDark: boolean): boolean {
   return theme === "dark" || (theme === "system" && systemPrefersDark);
 }
 
-function applyResolvedTheme(isDark: boolean) {
+const THEME_TRANSITION_MS = 320;
+
+let themeTransitionsEnabled = false;
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function applyResolvedTheme(isDark: boolean, options?: { instant?: boolean }) {
   if (typeof document === "undefined") return;
-  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+
+  const html = document.documentElement;
+  const next = isDark ? "dark" : "light";
+  if (html.getAttribute("data-theme") === next) return;
+
+  const apply = () => {
+    html.setAttribute("data-theme", next);
+    html.style.colorScheme = next;
+  };
+
+  const instant = options?.instant === true || !themeTransitionsEnabled || prefersReducedMotion();
+
+  if (instant) {
+    apply();
+    return;
+  }
+
+  if (typeof document.startViewTransition === "function") {
+    document.startViewTransition(apply);
+    return;
+  }
+
+  html.classList.add("is-theme-transitioning");
+  apply();
+  window.setTimeout(() => html.classList.remove("is-theme-transitioning"), THEME_TRANSITION_MS);
+}
+
+function enableThemeTransitionsAfterPaint() {
+  if (typeof window === "undefined") return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      themeTransitionsEnabled = true;
+    });
+  });
 }
 
 class ThemeStore {
@@ -31,7 +75,8 @@ class ThemeStore {
   constructor() {
     if (typeof window !== "undefined") {
       this.value = getInitialTheme();
-      applyResolvedTheme(this.isDark);
+      applyResolvedTheme(this.isDark, { instant: true });
+      enableThemeTransitionsAfterPaint();
     }
   }
 

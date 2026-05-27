@@ -1,11 +1,17 @@
-const minuteMs = 60 * 1000;
+import { appDateParts, parseDateTimeLocal } from "$lib/datetime/local";
 
-export function wallMinutesFromTimestamp(ts: number, dayStart: number): number {
-  return Math.floor((ts - dayStart) / minuteMs);
+export function wallMinutesFromTimestamp(ts: number, _dayStart: number): number {
+  const parts = appDateParts(ts);
+  return parts.hour * 60 + parts.minute;
 }
 
 export function timestampFromWallMinutes(dayStart: number, minutes: number): number {
-  return dayStart + minutes * minuteMs;
+  const parts = appDateParts(dayStart);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return parseDateTimeLocal(
+    `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+  );
 }
 
 export function formatWallMinutes(minutes: number): string {

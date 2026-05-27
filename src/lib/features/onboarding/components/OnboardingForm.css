@@ -201,6 +201,11 @@
   box-shadow: none;
 }
 
+.experience-choice[data-state="checked"]:hover:not([data-disabled]),
+.experience-choice[data-selected="true"]:hover:not([data-disabled]) {
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ink) 28%, transparent);
+}
+
 /* ─── Goal choices: compact chips ─── */
 .goal-choice {
   min-height: 44px;
@@ -212,6 +217,10 @@
 .goal-choice[data-state="checked"] {
   transform: none;
   box-shadow: none;
+}
+
+.goal-choice[data-state="checked"]:hover:not([data-disabled]) {
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ink) 28%, transparent);
 }
 
 /* ─── Mobile ─── */

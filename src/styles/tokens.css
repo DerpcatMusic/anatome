@@ -218,35 +218,40 @@ html[data-theme="light"] {
 }
 
 html[data-theme="dark"] {
-  --neutral-hue: 150;
+  /*
+   * Soft dark — warm stone neutrals (hue 95), not forest-tinted.
+   * Elevation: background → muted (+4 L) → card (+4 L).
+   * UI chrome uses gray primary/secondary; brand greens only on --credit-*.
+   */
+  --neutral-hue: 95;
 
-  --background: oklch(16% 0.018 150);
-  --foreground: oklch(94% 0.01 120);
-  --foreground-muted: oklch(68% 0.018 135);
+  --background: oklch(21% 0.006 95);
+  --foreground: oklch(96% 0.006 95);
+  --foreground-muted: oklch(75% 0.009 95);
 
-  --card: oklch(21% 0.022 150);
+  --card: oklch(29% 0.007 95);
   --card-foreground: var(--foreground);
 
-  --muted: oklch(19% 0.02 150);
+  --muted: oklch(25% 0.006 95);
   --muted-foreground: var(--foreground-muted);
 
-  --border-color: oklch(32% 0.018 145);
-  --border-strong-color: oklch(48% 0.022 140);
+  --border-color: oklch(38% 0.009 95);
+  --border-strong-color: oklch(52% 0.01 95);
 
-  --primary: oklch(78% 0.06 140);
-  --primary-foreground: oklch(16% 0.018 150);
-  --secondary: oklch(68% 0.06 135);
-  --secondary-foreground: oklch(18% 0.02 150);
+  --primary: oklch(93% 0.008 95);
+  --primary-foreground: var(--background);
+  --secondary: oklch(78% 0.01 95);
+  --secondary-foreground: var(--background);
   --accent: oklch(72% 0.08 55);
-  --accent-foreground: oklch(18% 0.02 55);
+  --accent-foreground: var(--background);
 
   --destructive: oklch(65% 0.18 25);
-  --success: oklch(68% 0.1 155);
+  --success: oklch(72% 0.11 200);
   --warning: oklch(82% 0.12 75);
 
   --paper: var(--background);
   --ink: var(--foreground);
-  --ink-secondary: oklch(82% 0.012 130);
+  --ink-secondary: oklch(86% 0.008 95);
   --surface: var(--muted);
   --elevated: var(--card);
   --white: var(--card);
@@ -259,14 +264,14 @@ html[data-theme="dark"] {
   --secondary-cool: var(--accent);
   --danger: var(--destructive);
 
-  --credit-vod: var(--secondary);
+  --credit-vod: oklch(68% 0.06 135);
   --credit-vod-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--secondary) 70%, var(--card)) 0%,
+    color-mix(in oklch, var(--credit-vod) 70%, var(--card)) 0%,
     var(--credit-vod) 48%,
-    color-mix(in oklch, var(--secondary) 80%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-vod) 80%, var(--foreground)) 100%
   );
-  --credit-vod-rim: color-mix(in oklch, var(--secondary) 75%, var(--foreground));
+  --credit-vod-rim: color-mix(in oklch, var(--credit-vod) 75%, var(--foreground));
   --credit-vod-icon: oklch(98% 0.02 95);
   --credit-live: var(--accent);
   --credit-live-surface: linear-gradient(
@@ -277,77 +282,85 @@ html[data-theme="dark"] {
   );
   --credit-live-rim: color-mix(in oklch, var(--accent) 70%, var(--foreground));
   --credit-live-icon: oklch(98% 0.01 85);
-  --credit-private: var(--primary);
+  --credit-private: oklch(78% 0.06 140);
   --credit-private-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--primary) 60%, var(--card)) 0%,
+    color-mix(in oklch, var(--credit-private) 60%, var(--card)) 0%,
     var(--credit-private) 48%,
-    color-mix(in oklch, var(--primary) 75%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-private) 75%, var(--foreground)) 100%
   );
-  --credit-private-rim: color-mix(in oklch, var(--primary) 70%, var(--foreground));
+  --credit-private-rim: color-mix(in oklch, var(--credit-private) 70%, var(--foreground));
   --credit-private-icon: oklch(98% 0.008 95);
   --credit-neu-radius: 12px;
   --credit-neu-track: var(--muted);
-  --credit-neu-highlight: oklch(28% 0.015 var(--neutral-hue) / 0.65);
-  --credit-neu-shadow: oklch(0% 0 0 / 0.45);
+  --credit-neu-highlight: oklch(34% 0.012 var(--neutral-hue) / 0.7);
+  --credit-neu-shadow: oklch(0% 0 0 / 0.38);
   --credit-neu-track-shadow:
-    inset 1px 1px 0 oklch(32% 0.015 var(--neutral-hue) / 0.5),
-    4px 4px 10px oklch(0% 0 0 / 0.35),
-    -2px -2px 6px oklch(24% 0.015 var(--neutral-hue) / 0.35);
+    inset 1px 1px 0 oklch(38% 0.012 var(--neutral-hue) / 0.55),
+    4px 4px 10px oklch(0% 0 0 / 0.28),
+    -2px -2px 6px oklch(30% 0.012 var(--neutral-hue) / 0.4);
   --credit-neu-track-shadow-hover:
-    inset 1px 1px 0 oklch(34% 0.015 var(--neutral-hue) / 0.55),
-    5px 5px 14px oklch(0% 0 0 / 0.42),
-    -3px -3px 8px oklch(26% 0.015 var(--neutral-hue) / 0.4);
+    inset 1px 1px 0 oklch(40% 0.012 var(--neutral-hue) / 0.6),
+    5px 5px 14px oklch(0% 0 0 / 0.34),
+    -3px -3px 8px oklch(32% 0.012 var(--neutral-hue) / 0.45);
   --credit-neu-disc-shadow:
-    inset 2px 2px 4px oklch(32% 0.015 var(--neutral-hue) / 0.55),
-    inset -2px -2px 5px oklch(0% 0 0 / 0.35),
-    2px 4px 8px oklch(0% 0 0 / 0.4);
+    inset 2px 2px 4px oklch(38% 0.012 var(--neutral-hue) / 0.6),
+    inset -2px -2px 5px oklch(0% 0 0 / 0.3),
+    2px 4px 8px oklch(0% 0 0 / 0.34);
   --credit-neu-disc-shadow-hover:
-    inset 2px 2px 5px oklch(34% 0.015 var(--neutral-hue) / 0.6),
-    inset -1px -1px 3px oklch(0% 0 0 / 0.28),
-    3px 6px 12px oklch(0% 0 0 / 0.45);
+    inset 2px 2px 5px oklch(40% 0.012 var(--neutral-hue) / 0.65),
+    inset -1px -1px 3px oklch(0% 0 0 / 0.24),
+    3px 6px 12px oklch(0% 0 0 / 0.38);
 
-  --shadow-sm: 0 2px 8px oklch(0% 0 0 / 0.22);
-  --shadow-md: 0 8px 24px oklch(0% 0 0 / 0.32);
-  --shadow-lg: 0 16px 40px oklch(0% 0 0 / 0.42);
-  --shadow-ambient: 0 40px 40px -20px oklch(0% 0 0 / 0.35);
-  --shadow-primary-button: 0 4px 14px oklch(0% 0 0 / 0.35);
+  --shadow-sm: 0 2px 8px oklch(0% 0 0 / 0.16);
+  --shadow-md: 0 8px 24px oklch(0% 0 0 / 0.24);
+  --shadow-lg: 0 16px 40px oklch(0% 0 0 / 0.32);
+  --shadow-ambient: 0 40px 40px -20px oklch(0% 0 0 / 0.28);
+  --shadow-primary-button: 0 4px 14px oklch(0% 0 0 / 0.28);
   --shadow-dropdown: var(--shadow-md);
   --shadow-select: var(--shadow-md);
   --shadow-popover: var(--shadow-md);
 
-  --overlay-scrim: oklch(0% 0 0 / 0.62);
+  --overlay-scrim: oklch(12% 0.006 95 / 0.55);
 
-  --glass-bg: oklch(18% 0.018 150 / 0.72);
-  --glass-strong-bg: oklch(18% 0.018 150 / 0.88);
-  --glass-border: 1px solid oklch(32% 0.018 145 / 0.55);
+  --glass-bg: oklch(27% 0.007 95 / 0.78);
+  --glass-strong-bg: oklch(29% 0.007 95 / 0.9);
+  --glass-border: 1px solid oklch(42% 0.009 95 / 0.5);
 
-  --video-bg: oklch(14% 0.018 150);
-  --video-bg-warm: oklch(16% 0.016 150);
-  --video-gradient-end: oklch(20% 0.018 145);
+  --video-bg: oklch(17% 0.006 95);
+  --video-bg-warm: oklch(19% 0.006 95);
+  --video-gradient-end: oklch(23% 0.007 95);
 
   --chat-bg: var(--muted);
   --participant-bg: var(--card);
-  --participant-speaking-bg: var(--success);
+  --participant-speaking-bg: var(--accent);
   --quality-row-bg: var(--muted);
 
-  --primary-subtle: color-mix(in oklch, var(--primary) 12%, var(--muted));
-  --secondary-subtle: color-mix(in oklch, var(--secondary) 14%, var(--muted));
+  --primary-subtle: color-mix(in oklch, var(--foreground) 10%, var(--muted));
+  --secondary-subtle: color-mix(in oklch, var(--foreground) 8%, var(--card));
   --accent-subtle: color-mix(in oklch, var(--accent) 12%, var(--muted));
-  --primary-muted: color-mix(in oklch, var(--primary) 20%, transparent);
-  --secondary-muted: color-mix(in oklch, var(--secondary) 18%, transparent);
-  --accent-glow: color-mix(in oklch, var(--secondary) 14%, transparent);
+  --primary-muted: color-mix(in oklch, var(--foreground) 22%, transparent);
+  --secondary-muted: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --accent-glow: color-mix(in oklch, var(--accent) 14%, transparent);
 
   --accent-soft: var(--primary-subtle);
   --secondary-soft: var(--secondary-subtle);
 
+  --tag-fg: var(--foreground-muted);
+  --tag-bg: var(--secondary-subtle);
+  --tag-sub-fg: var(--accent);
+  --tag-sub-bg: var(--accent-subtle);
+
+  --ring: 0 0 0 3px color-mix(in oklch, var(--foreground) 38%, transparent);
+  --focus-ring: var(--ring);
+
   --hero-wash: var(--background);
-  --hero-wash-secondary: var(--secondary-subtle);
+  --hero-wash-secondary: var(--muted);
   --section-emphasis: var(--muted);
-  --media-surface: oklch(17% 0.02 150);
-  --media-surface-end: oklch(20% 0.02 145);
+  --media-surface: oklch(20% 0.007 95);
+  --media-surface-end: oklch(24% 0.007 95);
   --shadow-media: var(--shadow-ambient);
 
-  --mesh-base: oklch(15% 0.016 150);
-  --mesh-base-end: oklch(18% 0.018 150);
+  --mesh-base: oklch(20% 0.006 95);
+  --mesh-base-end: oklch(23% 0.006 95);
 }

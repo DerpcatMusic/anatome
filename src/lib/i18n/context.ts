@@ -9,7 +9,7 @@ export type RouteKey =
   | "library"
   | "uProfile"
   | "iDashboard"
-  | "iLive"
+  | "iCalendar"
   | "iVideos"
   | "iOneOnOne"
   | "iProfile"
@@ -27,7 +27,7 @@ const routes: Record<RouteKey, string> = {
   library: "/library",
   uProfile: "/u/profile",
   iDashboard: "/i/dashboard",
-  iLive: "/i/live",
+  iCalendar: "/i/calendar",
   iVideos: "/i/videos",
   iOneOnOne: "/i/one-on-one",
   iProfile: "/i/profile",

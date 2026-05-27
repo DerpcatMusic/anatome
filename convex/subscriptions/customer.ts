@@ -11,6 +11,7 @@ import {
   MONTH_MS,
 } from "./lib";
 import { getCreditAccess, ensureUserWallet } from "../credits/lib";
+import { requireQueryNow } from "../lib/queryNow";
 import { DEFAULT_PLANS, planPayload } from "./plans";
 import { scheduleSubscriptionRenewal } from "./schedule";
 import { assertSubscriptionsEnabled } from "../lib/featureFlags";
@@ -42,10 +43,13 @@ export const listPlans = query({
 });
 
 export const getMine = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    const { subscription, wallet } = await getCreditAccess(ctx, userId);
+    const at = requireQueryNow(args.now);
+    const { subscription, wallet } = await getCreditAccess(ctx, userId, at);
     const plan = subscription ? await ctx.db.get(subscription.planId) : null;
     const pendingPlan = subscription?.pendingPlanId
       ? await ctx.db.get(subscription.pendingPlanId)

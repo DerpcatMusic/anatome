@@ -6,6 +6,7 @@ import { query } from "../_generated/server";
 import { availableVodCredits, getCreditAccess } from "../credits/lib";
 import { requireUserId } from "../lib/authz";
 import { LIMITS } from "../lib/constants";
+import { requireQueryNow } from "../lib/queryNow";
 
 type PublishedVideo = Doc<"videos">;
 
@@ -93,7 +94,7 @@ async function loadPublishedCatalog(ctx: QueryCtx) {
 
 async function buildCatalog(
   ctx: QueryCtx,
-  options: { userId: Id<"users"> | null },
+  options: { userId: Id<"users"> | null; at: number },
 ) {
   const guest = options.userId === null;
   const { categories, videos } = await loadPublishedCatalog(ctx);
@@ -115,7 +116,7 @@ async function buildCatalog(
       profile !== null &&
       (profile.role === "instructor" || profile.role === "admin");
 
-    const { subscription, wallet } = await getCreditAccess(ctx, userId);
+    const { subscription, wallet } = await getCreditAccess(ctx, userId, options.at);
     vodCredits = wallet === null ? 0 : availableVodCredits(wallet);
     hasActiveSubscription = subscription !== null;
 
@@ -130,15 +131,22 @@ async function buildCatalog(
     }
   }
 
+  const categoryVideoRows = await Promise.all(
+    categories.map((category) =>
+      ctx.db
+        .query("videoCategoryVideos")
+        .withIndex("by_categoryId_and_sortOrder", (q) =>
+          q.eq("categoryId", category._id),
+        )
+        .order("asc")
+        .take(LIMITS.CATEGORY_GROUP_SIZE),
+    ),
+  );
+
   const categoryGroups = [];
-  for (const category of categories) {
-    const rows = await ctx.db
-      .query("videoCategoryVideos")
-      .withIndex("by_categoryId_and_sortOrder", (q) =>
-        q.eq("categoryId", category._id),
-      )
-      .order("asc")
-      .take(LIMITS.CATEGORY_GROUP_SIZE);
+  for (let index = 0; index < categories.length; index += 1) {
+    const category = categories[index]!;
+    const rows = categoryVideoRows[index] ?? [];
 
     const items = rows
       .map((row) => videoById.get(row.videoId))
@@ -177,7 +185,9 @@ async function buildCatalog(
 
 /** Browse-safe catalog for guests and signed-in customers (no playbackId). */
 export const listCatalog = query({
-  args: {},
+  args: {
+    now: v.number(),
+  },
   returns: v.object({
     isStaff: v.boolean(),
     vodCredits: v.number(),
@@ -190,17 +200,21 @@ export const listCatalog = query({
       }),
     ),
   }),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    return await buildCatalog(ctx, { userId });
+    const at = requireQueryNow(args.now);
+    return await buildCatalog(ctx, { userId, at });
   },
 });
 
 /** @deprecated Prefer listCatalog — same shape, requires auth. */
 export const listLibrary = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    return await buildCatalog(ctx, { userId });
+    const at = requireQueryNow(args.now);
+    return await buildCatalog(ctx, { userId, at });
   },
 });

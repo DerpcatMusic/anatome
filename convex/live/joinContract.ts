@@ -38,7 +38,7 @@ export type PrepareJoinResult = Infer<typeof prepareJoinResultValidator>;
 
 /**
  * Stable client contract for `api.livekit.token.issueJoin`.
- * Do not rename or remove fields without updating `room.svelte.ts` (or split client).
+ * Do not rename or remove fields without updating the live session client (`live-session.svelte.ts`).
  */
 export const issueJoinResultValidator = v.object({
   wsUrl: v.string(),
@@ -53,3 +53,35 @@ export const issueJoinResultValidator = v.object({
 });
 
 export type IssueJoinResult = Infer<typeof issueJoinResultValidator>;
+
+/** Output of `api.live.class.getJoinAccess`. */
+export const joinAccessSnapshotValidator = v.object({
+  joinOpensAt: v.number(),
+  joinClosesAt: v.number(),
+  startsAt: v.number(),
+  status: v.union(
+    v.literal("draft"),
+    v.literal("scheduled"),
+    v.literal("live"),
+    v.literal("ended"),
+    v.literal("cancelled"),
+  ),
+  canEnter: v.boolean(),
+  minutesUntilOpen: v.union(v.number(), v.null()),
+  minutesUntilClose: v.union(v.number(), v.null()),
+  isInstructor: v.boolean(),
+  equipmentBlocked: v.boolean(),
+});
+
+export type JoinAccessSnapshot = Infer<typeof joinAccessSnapshotValidator>;
+
+/** Output of `api.live.session.getJoinContext` (access + display title). */
+export const joinContextValidator = v.union(
+  v.null(),
+  v.object({
+    ...joinAccessSnapshotValidator.fields,
+    classTitle: v.string(),
+  }),
+);
+
+export type JoinContext = Infer<typeof joinContextValidator>;

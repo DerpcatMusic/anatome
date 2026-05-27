@@ -29,11 +29,17 @@
     selectionTouchesPainted,
     type PaintedSlots,
   } from "$features/studio/lib/one-on-one-availability";
+  import { useI18n } from "$lib/i18n/runes.svelte";
 
   const QUICK_CREATE_PREVIEW_ID = "__quick_create_preview__";
   const AVAILABILITY_DOUBLE_CLICK_MS = 400;
+  const CALENDAR_SLOT_HEIGHT_MIN = 24;
+  const CALENDAR_SLOT_HEIGHT_MAX = 72;
+  const CALENDAR_WHEEL_DAY_THRESHOLD_PX = 180;
+  const { t } = useI18n();
 
   let lastAvailabilityClick = { eventId: "", at: 0 };
+  let wheelDayRemainder = 0;
 
   function startOfWeek(date: Date, firstDay = 0): Date {
     const d = new Date(date);
@@ -61,6 +67,7 @@
     availabilityPaintMode?: boolean;
     availabilityPainted?: PaintedSlots;
     onAvailabilityPaintChange?: (painted: PaintedSlots) => void;
+    onViewRangeChange?: (start: Date, end: Date) => void;
   }
 
   let {
@@ -76,25 +83,22 @@
     availabilityPaintMode = false,
     availabilityPainted,
     onAvailabilityPaintChange,
+    onViewRangeChange,
   }: Props = $props();
 
   const client = useConvexClient();
 
   let submitting = $state(false);
   let dragError = $state("");
+  let calendarSlotHeight = $state(36);
+  let panGesture = $state<{
+    pointerId: number;
+    anchorX: number;
+    threshold: number;
+  } | null>(null);
   type CalendarHandle = {
     unselect: () => void;
-    getEvents: () => Array<{
-      id: string;
-      start: Date;
-      end: Date;
-      title: string;
-      classNames?: string[];
-      extendedProps?: { originalClass?: { type?: string }; kind?: string };
-    }>;
-    updateEvent: (event: Record<string, unknown>) => unknown;
-    addEvent: (event: Record<string, unknown>) => unknown;
-    removeEventById: (id: string) => void;
+    setOption: (name: string, value: unknown) => CalendarHandle;
   };
 
   type CalendarEventInput = {
@@ -113,7 +117,7 @@
   let calendarRef = $state<CalendarHandle | undefined>();
   let containerEl = $state<HTMLElement | undefined>();
 
-  const weekStart = startOfWeek(new Date(), 0);
+  const weekStart = startOfWeek(toCalendarEventDate(Date.now()), 0);
   let viewStart = $state(new Date(weekStart));
   let viewEnd = $state(new Date(weekStart.getTime() + 7 * 86_400_000));
 
@@ -190,6 +194,93 @@
     );
   }
 
+  function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function calendarMainEl(): HTMLElement | null {
+    return containerEl?.querySelector(".ec-main") ?? null;
+  }
+
+  function shiftCalendarDate(days: number) {
+    if (days === 0) return;
+    clearCalendarSelection();
+    const next = new Date(viewStart);
+    next.setDate(next.getDate() + days);
+    calendarRef?.setOption("date", next);
+  }
+
+  function dayPanThreshold(): number {
+    const day = containerEl?.querySelector(".ec-time-grid .ec-body .ec-day");
+    if (!(day instanceof HTMLElement)) return CALENDAR_WHEEL_DAY_THRESHOLD_PX;
+    return Math.max(90, day.getBoundingClientRect().width * 0.55);
+  }
+
+  function handleCalendarWheel(event: WheelEvent) {
+    if (event.shiftKey) {
+      event.preventDefault();
+      const main = calendarMainEl();
+      const oldHeight = calendarSlotHeight;
+      const nextHeight = Math.round(
+        clamp(
+          oldHeight * Math.exp(-event.deltaY * 0.0025),
+          CALENDAR_SLOT_HEIGHT_MIN,
+          CALENDAR_SLOT_HEIGHT_MAX,
+        ),
+      );
+      if (nextHeight === oldHeight) return;
+
+      const rect = main?.getBoundingClientRect();
+      const y = rect ? clamp(event.clientY - rect.top, 0, rect.height) : 0;
+      const scrollTop = main?.scrollTop ?? 0;
+      calendarSlotHeight = nextHeight;
+
+      if (main) {
+        requestAnimationFrame(() => {
+          main.scrollTop = ((scrollTop + y) * nextHeight) / oldHeight - y;
+        });
+      }
+      return;
+    }
+
+    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) * 1.35) return;
+    event.preventDefault();
+    wheelDayRemainder += event.deltaX;
+    const days = Math.trunc(wheelDayRemainder / CALENDAR_WHEEL_DAY_THRESHOLD_PX);
+    if (days === 0) return;
+    wheelDayRemainder -= days * CALENDAR_WHEEL_DAY_THRESHOLD_PX;
+    shiftCalendarDate(days);
+  }
+
+  function handleCalendarPointerDown(event: PointerEvent) {
+    if (event.button !== 1 || !(event.currentTarget instanceof HTMLElement)) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    panGesture = {
+      pointerId: event.pointerId,
+      anchorX: event.clientX,
+      threshold: dayPanThreshold(),
+    };
+  }
+
+  function handleCalendarPointerMove(event: PointerEvent) {
+    if (!panGesture || event.pointerId !== panGesture.pointerId) return;
+    event.preventDefault();
+    const delta = panGesture.anchorX - event.clientX;
+    const days = Math.trunc(delta / panGesture.threshold);
+    if (days === 0) return;
+    panGesture = {
+      ...panGesture,
+      anchorX: panGesture.anchorX - days * panGesture.threshold,
+    };
+    shiftCalendarDate(days);
+  }
+
+  function clearPanGesture(event?: PointerEvent) {
+    if (event && panGesture && event.pointerId !== panGesture.pointerId) return;
+    panGesture = null;
+  }
+
   /** Clears drag selection highlight and quick-create preview chrome on the grid. */
   export function clearCalendarSelection() {
     calendarRef?.unselect();
@@ -241,7 +332,7 @@
         description: liveClass.description,
       });
     } catch (err) {
-      dragError = err instanceof Error ? err.message : "לא הצלחנו לתזמן מחדש את השיעור.";
+      dragError = err instanceof Error ? err.message : t.studio.live.rescheduleError();
       throw err;
     } finally {
       submitting = false;
@@ -275,10 +366,9 @@
         ? [
             {
               id: QUICK_CREATE_PREVIEW_ID,
-              title: "שיעור חדש",
+              title: t.studio.live.newClassPreview(),
               start: toCalendarEventDate(createPreview.startsAt),
               end: toCalendarEventDate(createPreview.endsAt),
-              display: "preview",
               editable: true,
               startEditable: true,
               durationEditable: true,
@@ -287,22 +377,6 @@
           ]
         : []),
     ];
-  }
-
-  function sameEventTimes(
-    a: { start: Date; end: Date },
-    b: { start: Date; end: Date },
-  ): boolean {
-    return a.start.getTime() === b.start.getTime() && a.end.getTime() === b.end.getTime();
-  }
-
-  function eventClassNamesKey(event: {
-    classNames?: string[];
-    extendedProps?: { originalClass?: { type?: string } };
-  }): string {
-    const names = event.classNames ?? [];
-    const type = event.extendedProps?.originalClass?.type ?? "";
-    return `${names.join(",")}|${type}`;
   }
 
   function handleAvailabilitySelect(start: Date, end: Date) {
@@ -315,43 +389,10 @@
 
   const plugins = [TimeGrid, Interaction];
 
-  $effect(() => {
-    const cal = calendarRef;
-    const liveClasses = calendarLiveClasses;
-    const nextEvents = buildCalendarEvents(availabilityPaintMode, liveClasses);
-    if (!cal) return;
-
-    const existing = cal.getEvents();
-    const existingById = new Map(existing.map((event) => [String(event.id), event]));
-    const desiredIds = new Set(nextEvents.map((event) => String(event.id)));
-
-    for (const event of nextEvents) {
-      const id = String(event.id);
-      const current = existingById.get(id);
-      if (!current) {
-        cal.addEvent(event);
-        continue;
-      }
-      if (
-        !sameEventTimes(current, event) ||
-        current.title !== event.title ||
-        eventClassNamesKey(current) !== eventClassNamesKey(event)
-      ) {
-        cal.updateEvent({ ...event, id });
-      }
-    }
-
-    for (const event of existing) {
-      const id = String(event.id);
-      if (!desiredIds.has(id)) {
-        cal.removeEventById(id);
-      }
-    }
-  });
-
   function handleDatesSet(info: { start: Date; end: Date }) {
     const nextStartMs = info.start.getTime();
     const nextEndMs = info.end.getTime();
+    onViewRangeChange?.(info.start, info.end);
     if (nextStartMs === viewStart.getTime() && nextEndMs === viewEnd.getTime()) {
       return;
     }
@@ -360,7 +401,15 @@
   }
 
   const calendarOptions = $derived({
-    view: "timeGridWeek",
+    view: "timeGridRollingWeek",
+    views: {
+      timeGridRollingWeek: {
+        type: "timeGridWeek",
+        duration: { days: 7 },
+        dateIncrement: { days: 1 },
+        buttonText: "שבוע",
+      },
+    },
     locale: "he",
     direction: "rtl" as const,
     firstDay: 0,
@@ -369,8 +418,8 @@
     slotDuration: "00:30:00",
     snapDuration: "00:15:00",
     slotLabelInterval: "01:00:00",
-    slotEventOverlap: true,
-    slotHeight: 36,
+    slotEventOverlap: false,
+    slotHeight: calendarSlotHeight,
 
     slotMinTime: "00:00:00",
     slotMaxTime: "24:00:00",
@@ -399,7 +448,7 @@
       end: "today prev,next",
     },
     buttonText: {
-      today: "היום",
+      today: t.studio.live.today(),
     },
 
     eventOrder(
@@ -423,7 +472,7 @@
       return a.start.getTime() - b.start.getTime();
     },
 
-    events: [],
+    events: buildCalendarEvents(availabilityPaintMode, calendarLiveClasses),
 
     datesSet: handleDatesSet,
 
@@ -575,6 +624,7 @@
         };
         start: Date;
         end: Date;
+        id?: string;
       };
     }) {
       if (info.event.extendedProps?.kind === "availability") {
@@ -585,7 +635,7 @@
 
       const c = info.event.extendedProps?.originalClass;
 
-      if (info.event.display === "preview") {
+      if (isQuickCreatePreview(info.event.id)) {
         const start = formatEventCalendarWallTime(info.event.start);
         const end = formatEventCalendarWallTime(info.event.end);
         const duration = Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60000);
@@ -623,7 +673,22 @@
   class="weekly-agenda-container"
   class:ec-dark={theme.isDark}
   class:weekly-agenda-container--availability-paint={availabilityPaintMode}
+  class:weekly-agenda-container--panning={panGesture !== null}
+  role="region"
+  aria-label="לוח שיעורי לייב"
+  onwheel={handleCalendarWheel}
+  onpointerdown={handleCalendarPointerDown}
+  onpointermove={handleCalendarPointerMove}
+  onpointerup={clearPanGesture}
+  onpointercancel={clearPanGesture}
+  onlostpointercapture={() => clearPanGesture()}
 >
+  {#if availabilityPaintMode}
+    <div class="availability-paint-strip" role="status">
+      <span class="material-symbols-rounded" aria-hidden="true">gesture</span>
+      <span>סימון זמינות 1:1</span>
+    </div>
+  {/if}
   {#if dragError}
     <div class="drag-error" role="alert">
       <span class="material-symbols-rounded">error</span>
@@ -681,34 +746,49 @@
     cursor: crosshair;
   }
 
-  /* 70/30 when availability overlaps a live class in the same column */
-  :global(
-    .weekly-agenda-container
-      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
-      .ec-event-type--availability
-  ) {
-    inline-size: 30% !important;
-    inset-inline-start: 0 !important;
-    z-index: 1 !important;
+  :global(.weekly-agenda-container--panning),
+  :global(.weekly-agenda-container--panning .ec),
+  :global(.weekly-agenda-container--panning .ec-body) {
+    cursor: grabbing;
+    user-select: none;
   }
 
-  :global(
-    .weekly-agenda-container
-      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
-      .ec-event-type--one_on_one
-  ) {
-    inline-size: 70% !important;
-    inset-inline-start: 30% !important;
-    z-index: 2 !important;
+  .availability-paint-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 32px;
+    padding: 0 var(--space-3);
+    border-bottom: 1px solid color-mix(in oklch, var(--primary) 30%, var(--line-light));
+    background: var(--primary);
+    color: var(--paper);
+    font-size: var(--step--1);
+    font-weight: 900;
+    letter-spacing: 0;
+    flex-shrink: 0;
   }
 
-  :global(
-    .weekly-agenda-container
-      .ec-day:has(.ec-event-type--availability):has(.ec-event-type--group_live, .ec-event-type--one_on_one:not(.ec-event-type--availability))
-      .ec-event-type--group_live
-  ) {
-    inline-size: 70% !important;
-    inset-inline-start: 30% !important;
-    z-index: 3 !important;
+  .availability-paint-strip .material-symbols-rounded {
+    font-size: 1rem;
   }
+
+  :global(.weekly-agenda-container--availability-paint .ec) {
+    box-shadow: inset 0 0 0 2px var(--primary);
+  }
+
+  :global(.weekly-agenda-container--availability-paint .ec-toolbar),
+  :global(.weekly-agenda-container--availability-paint .ec-header) {
+    background: color-mix(in oklch, var(--primary) 5%, var(--ec-bg-color));
+  }
+
+  :global(.weekly-agenda-container--availability-paint .ec-highlight) {
+    outline-color: var(--primary);
+    background: color-mix(in oklch, var(--primary) 16%, transparent);
+  }
+
+  :global(.weekly-agenda-container--availability-paint .ec-selecting .ec-day) {
+    outline-color: var(--primary);
+  }
+
 </style>

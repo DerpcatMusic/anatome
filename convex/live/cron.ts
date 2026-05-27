@@ -4,7 +4,7 @@ import { LIMITS } from "../lib/constants";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { roomNameForClass } from "../lib/live";
+import { ensureLiveRoomForClass } from "../lib/liveRoom";
 import { settleReservationsForClass } from "./settle";
 
 async function startLiveClass(
@@ -13,31 +13,7 @@ async function startLiveClass(
   now: number,
 ) {
   await ctx.db.patch(liveClass._id, { status: "live", updatedAt: now });
-
-  const existingRooms = await ctx.db
-    .query("liveRooms")
-    .withIndex("by_liveClassId", (q) =>
-      q.eq("liveClassId", liveClass._id),
-    )
-    .take(1);
-  const existingRoom = existingRooms[0] ?? null;
-
-  if (existingRoom === null) {
-    await ctx.db.insert("liveRooms", {
-      liveClassId: liveClass._id,
-      provider: "livekit",
-      roomName: roomNameForClass(liveClass._id),
-      status: "active",
-      startedAt: now,
-      updatedAt: now,
-    });
-  } else {
-    await ctx.db.patch(existingRoom._id, {
-      status: "active",
-      startedAt: existingRoom.startedAt ?? now,
-      updatedAt: now,
-    });
-  }
+  await ensureLiveRoomForClass(ctx, liveClass._id, now);
 }
 
 async function endLiveClass(

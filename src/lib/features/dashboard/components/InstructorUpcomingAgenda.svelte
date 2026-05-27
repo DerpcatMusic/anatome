@@ -4,6 +4,7 @@
   import { Button } from "bits-ui";
   import { useQuery } from "convex-svelte";
   import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { liveRoomHref, routePath } from "$lib/i18n/context";
   import { formatLiveStartsAt } from "../lib/format";
@@ -14,11 +15,12 @@
 
   const auth = initAuth();
   const { t } = useI18n();
+  const queryNow = useQueryNowMs();
   const classesQuery = useQuery(api.live.class.listMine, () =>
-    canRunAuthenticatedQuery() ? {} : "skip",
+    canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
   );
 
-  const now = Date.now();
+  const now = $derived(queryNow.nowMs);
 
   const upcoming = $derived.by((): DashboardLiveItem[] => {
     const rows = classesQuery.data ?? [];
@@ -38,7 +40,7 @@
         href:
           row.status === "live"
             ? liveRoomHref(row._id)
-            : `${routePath("iLive")}?classId=${row._id}`,
+            : `${routePath("iCalendar")}?classId=${row._id}`,
       }));
   });
 </script>
@@ -48,7 +50,7 @@
     <h3 id="instructor-agenda-title" class="dashboard-panel__title instructor-agenda__title">
       {t.dashboard.instructor.upcomingTitle()}
     </h3>
-    <a class="dashboard-link" href={routePath("iLive")}>{t.dashboard.instructor.openStudio()}</a>
+    <a class="dashboard-link" href={routePath("iCalendar")}>{t.dashboard.instructor.openStudio()}</a>
   </header>
 
   {#if classesQuery.isLoading}

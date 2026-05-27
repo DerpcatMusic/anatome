@@ -40,7 +40,7 @@
         : "videocam_off",
   );
 
-  const hasDeviceMenu = $derived(devices.length > 1);
+  const hasDeviceMenu = $derived(!disabled && devices.length > 1);
 </script>
 
 <div
@@ -61,7 +61,7 @@
       <button
         {...props}
         type="button"
-        class="lr-dock-btn lr-dock-btn--toggle"
+        class="lr-dock-btn lr-dock-btn--toggle lr-dock-btn--primary"
         class:lr-dock-btn--on={pressed}
         data-state={pressed ? "on" : "off"}
       >

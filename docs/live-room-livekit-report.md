@@ -2,7 +2,8 @@
 
 **Route:** `/חדר-לייב?classId=…` → [`src/routes/(app)/חדר-לייב/+page.svelte`](../src/routes/(app)/חדר-לייב/+page.svelte) → [`LiveRoomShell.svelte`](../src/lib/features/live/components/room/LiveRoomShell.svelte)
 
-**Date:** 2026-05-24
+**Date:** 2026-05-24  
+**Updated:** 2026-05-27 — Phase 2: `createLiveSession()`, `VideoConference`, dynamic route/shell imports. Superseded in part by `LIVEKIT_REFACTOR_PLAN.md` (historical) and `LIVEKIT_DELETION_CANDIDATES.md` (current).
 
 ---
 
@@ -30,14 +31,14 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Svelte UI (17 room components)                              │
-│  LiveRoomShell → RoomHeader, VideoStage, ControlBar, …       │
+│  LiveRoomShell → LiveKitRoom, VideoConference, LiveControlBar  │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  LiveRoom class — room.svelte.ts (~1,640 lines)              │
-│  • Convex action: api.livekit.token.issueJoin                │
-│  • livekit-client Room: connect, publish, tracks, chat       │
-│  • UI state: panels, pre-connect, instructor/customer        │
+│  createLiveSession() — live-session-*.svelte.ts (~2.3k LOC)  │
+│  • Convex: getJoinAccess + issueJoin on connect              │
+│  • livekit-client Room via live-session-connect.ts           │
+│  • UI: PreJoin prefab, panels, instructor/customer           │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐

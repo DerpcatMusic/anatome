@@ -13,14 +13,23 @@ import {
 import { LIMITS } from "../lib/constants";
 import { isInLiveJoinWindow } from "../lib/liveJoin";
 import { loadInstructorProfiles } from "../lib/instructorProfile";
+import {
+  isValidLiveReservation,
+  viewerCanSeeLiveClass,
+  viewerIsLiveStaff,
+} from "../lib/liveClassAccess";
+import { requireQueryNow } from "../lib/queryNow";
 
 export const listUpcoming = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const now = requireQueryNow(args.now);
     const scheduled = await ctx.db
       .query("liveClasses")
       .withIndex("by_status_and_startsAt", (q) =>
-        q.eq("status", "scheduled"),
+        q.eq("status", "scheduled").gte("startsAt", now),
       )
       .order("asc")
       .take(LIMITS.CALENDAR_UPCOMING);
@@ -31,21 +40,49 @@ export const listUpcoming = query({
       .take(LIMITS.CALENDAR_UPCOMING);
 
     const classes = [...live, ...scheduled]
+      .filter((liveClass) => liveClass.endsAt > now)
       .sort((a, b) => a.startsAt - b.startsAt)
       .slice(0, 50);
 
     const userId = await getAuthUserId(ctx);
-    if (userId === null) return classes;
+    const isStaff = userId === null ? false : await viewerIsLiveStaff(ctx, userId);
 
-    const memberProfiles = await ctx.db
-      .query("memberProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .take(1);
-    const memberEquipment = memberProfiles[0]?.equipment ?? [];
+    const viewerReservationClassIds = new Set<string>();
+    if (userId !== null) {
+      const viewerReservations = await ctx.db
+        .query("liveReservations")
+        .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
+        .take(LIMITS.CALENDAR_RESERVATIONS);
+      for (const reservation of viewerReservations) {
+        if (isValidLiveReservation(reservation)) {
+          viewerReservationClassIds.add(reservation.liveClassId);
+        }
+      }
+    }
 
-    return classes.filter((liveClass) =>
-      viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment),
-    );
+    let memberEquipment: string[] = [];
+    if (userId !== null) {
+      const memberProfiles = await ctx.db
+        .query("memberProfiles")
+        .withIndex("by_userId", (q) => q.eq("userId", userId))
+        .take(1);
+      memberEquipment = memberProfiles[0]?.equipment ?? [];
+    }
+
+    const visible = [];
+    for (const liveClass of classes) {
+      if (liveClass.type === "one_on_one") {
+        if (userId === null) continue;
+        if (!isStaff && !viewerReservationClassIds.has(liveClass._id)) continue;
+      }
+      if (!(await viewerCanSeeLiveClass(ctx, liveClass, userId))) continue;
+      if (!viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)) {
+        continue;
+      }
+      visible.push(liveClass);
+    }
+
+    return visible;
   },
 });
 
@@ -53,12 +90,14 @@ export const listRange = query({
   args: {
     from: v.number(),
     to: v.number(),
+    now: v.number(),
   },
   handler: async (ctx, args) => {
     if (args.from >= args.to) {
       throw new Error("Invalid calendar range");
     }
 
+    const now = requireQueryNow(args.now);
     const userId = await getAuthUserId(ctx);
     const classes = await ctx.db
       .query("liveClasses")
@@ -71,7 +110,7 @@ export const listRange = query({
     const { wallet } =
       userId === null
         ? { wallet: null }
-        : await getCreditAccess(ctx, userId);
+        : await getCreditAccess(ctx, userId, now);
 
     const viewerReservations =
       userId === null
@@ -105,10 +144,12 @@ export const listRange = query({
       [...new Set(classes.map((c) => c.instructorUserId))],
     );
 
-    const now = Date.now();
     const results = [];
     for (const liveClass of classes) {
       if (liveClass.status === "cancelled" || liveClass.status === "draft") {
+        continue;
+      }
+      if (!(await viewerCanSeeLiveClass(ctx, liveClass, userId))) {
         continue;
       }
       const seatsTaken = liveClass.seatsTaken ?? 0;
@@ -144,14 +185,6 @@ export const listRange = query({
         continue;
       }
       const inJoinWindow = isInLiveJoinWindow(liveClass, now);
-      const canWalkIn =
-        userId !== null &&
-        liveClass.status === "live" &&
-        inJoinWindow &&
-        seatsRemaining > 0 &&
-        available >= liveClass.creditCost &&
-        viewerMissingEquipment.length === 0;
-
       const instructor =
         instructorProfiles.get(liveClass.instructorUserId as string) ?? null;
 
@@ -176,8 +209,8 @@ export const listRange = query({
           liveClass.status === "live" &&
           inJoinWindow &&
           hasEquipmentAccess &&
-          (hasValidReservation || canWalkIn),
-        viewerIsWalkIn: !hasValidReservation && canWalkIn,
+          hasValidReservation,
+        viewerIsWalkIn: false,
         viewerAvailableCredits: available,
         viewerMissingEquipment,
         viewerRole: appProfile?.role ?? null,

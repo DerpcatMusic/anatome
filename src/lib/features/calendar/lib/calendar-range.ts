@@ -1,6 +1,6 @@
 import type { TypeFilter } from "./agenda";
+import { addAppDays } from "$lib/datetime/local";
 
-export const CALENDAR_DAY_MS = 24 * 60 * 60 * 1000;
 export const CALENDAR_INITIAL_DAYS = 14;
 export const CALENDAR_LOAD_MORE_DAYS = 14;
 export const CALENDAR_MAX_DAYS = 90;
@@ -13,7 +13,7 @@ export function maxAgendaDays(typeFilter: TypeFilter): number {
 
 export function initialAgendaRangeEnd(rangeStart: number, typeFilter: TypeFilter): number {
   const days = Math.min(CALENDAR_INITIAL_DAYS, maxAgendaDays(typeFilter));
-  return rangeStart + days * CALENDAR_DAY_MS;
+  return addAppDays(rangeStart, days);
 }
 
 export function nextAgendaRangeEnd(
@@ -22,7 +22,7 @@ export function nextAgendaRangeEnd(
   typeFilter: TypeFilter,
 ): number {
   const maxEnd = maxAgendaRangeEnd(rangeStart, typeFilter);
-  const next = currentEnd + CALENDAR_LOAD_MORE_DAYS * CALENDAR_DAY_MS;
+  const next = addAppDays(currentEnd, CALENDAR_LOAD_MORE_DAYS);
   return Math.min(next, maxEnd);
 }
 
@@ -36,7 +36,7 @@ export function canLoadMoreAgendaRange(
 
 /** Exclusive end timestamp for queries (`to` arg). */
 export function maxAgendaRangeEnd(rangeStart: number, typeFilter: TypeFilter): number {
-  return rangeStart + (maxAgendaDays(typeFilter) + 1) * CALENDAR_DAY_MS;
+  return addAppDays(rangeStart, maxAgendaDays(typeFilter) + 1);
 }
 
 export function clampAgendaRangeEnd(

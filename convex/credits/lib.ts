@@ -75,7 +75,7 @@ export async function ensureUserWallet(
 export async function getCreditAccess(
   ctx: QueryCtx | MutationCtx,
   userId: Id<"users">,
-  at: number = Date.now(),
+  at: number,
 ): Promise<CreditAccess> {
   const subscription = await getActiveSubscription(ctx, userId, at);
   const wallet = await getUserWallet(ctx, userId);

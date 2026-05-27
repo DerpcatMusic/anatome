@@ -9,6 +9,7 @@
   import { useConvexClient } from "convex-svelte";
   import { resource } from "runed";
   import { initAuth } from "$lib/auth/session.svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useI18n } from "$lib/i18n/runes";
   import CatalogBrowse from "./CatalogBrowse.svelte";
   import "../videos-feature.css";
@@ -16,10 +17,11 @@
   const auth = initAuth();
   const { t } = useI18n();
   const client = useConvexClient();
+  const queryNow = useQueryNowMs();
 
   const catalogResource = resource(
-    () => true,
-    async () => client.query(api.video.catalog.listCatalog, {}),
+    () => queryNow.nowMs,
+    async (now) => client.query(api.video.catalog.listCatalog, { now }),
   );
 
   const data = $derived(catalogResource.current ?? null);

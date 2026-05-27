@@ -9,6 +9,7 @@
 
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { useQuery } from "convex-svelte";
+  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
   import AppLocked from "$features/app/components/AppLocked.svelte";
   import Notice from "$components/ui/Notice.svelte";
@@ -17,7 +18,10 @@
   const auth = initAuth();
   const { t } = useI18n();
 
-  const dashboardQuery = useQuery(api.users.dashboard.get, () => canRunAuthenticatedQuery() ? {} : 'skip');
+  const queryNow = useQueryNowMs();
+  const dashboardQuery = useQuery(api.users.dashboard.get, () =>
+    canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
+  );
 
   let status = $state<"checking" | "locked" | "ready" | "done" | "error">("checking");
   let error = $state("");

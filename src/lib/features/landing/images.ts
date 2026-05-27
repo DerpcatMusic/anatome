@@ -1,14 +1,14 @@
 /**
  * Landing page photography — hosted under `/static/landing/`.
- * License: Unsplash License (https://unsplash.com/license) — free for commercial use, no attribution required.
+ * Hero: Yuval (proprietary). Other sections: Unsplash License.
  */
 export const LANDING_IMAGES = {
-  /** Wide reformer studio — calm environmental hero, not a face close-up */
+  /** Instructor hero — full-bleed background */
   hero: {
     src: "/landing/hero.webp",
-    width: 1920,
-    height: 1080,
-    credit: "Unsplash — photo-1518611012118 (Pilates reformer studio)",
+    width: 1025,
+    height: 895,
+    credit: "Yuval — AnatoMe",
   },
   aboutInstructor: {
     src: "/landing/about-instructor.webp",

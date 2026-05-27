@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { tick } from "svelte";
-  import { Calendar, TimeGrid, DayGrid } from "@event-calendar/core";
-  import "@event-calendar/core/index.css";
+  import { onMount, tick } from "svelte";
+  import {
+    loadEventCalendar,
+    type EventCalendarModule,
+  } from "../lib/event-calendar-load";
   import "$features/live/styles/calendar-theme.css";
   import "../styles/cal-time.css";
 
@@ -46,8 +48,15 @@
     extendedProps?: Record<string, unknown>;
   };
 
+  let eventCalendar = $state<EventCalendarModule | null>(null);
   let calendarRef = $state<CalendarHandle | undefined>();
   let calendarMounted = $state(false);
+
+  onMount(() => {
+    void loadEventCalendar().then((mod) => {
+      eventCalendar = mod;
+    });
+  });
   /** Set only after week grid DOM exists — avoids scrollToTime on null mainEl. */
   let weekScrollTime = $state<string | undefined>(undefined);
 
@@ -132,7 +141,13 @@
     onRangeChange(info.start.getTime(), info.end.getTime());
   }
 
-  const plugins = $derived(view === "month" ? [DayGrid] : [TimeGrid]);
+  const plugins = $derived(
+    !eventCalendar
+      ? []
+      : view === "month"
+        ? [eventCalendar.DayGrid]
+        : [eventCalendar.TimeGrid],
+  );
 
   const calendarOptions = $derived({
     view: view === "month" ? "dayGridMonth" : "timeGridWeek",
@@ -249,9 +264,10 @@
   class:ec-dark={theme.isDark}
   data-view={view}
 >
-  {#if calendarMounted}
+  {#if calendarMounted && eventCalendar}
     {#key view}
-      <Calendar bind:this={calendarRef} {plugins} options={calendarOptions} />
+      {@const EcCalendar = eventCalendar.Calendar}
+      <EcCalendar bind:this={calendarRef} {plugins} options={calendarOptions} />
     {/key}
   {/if}
 </div>
