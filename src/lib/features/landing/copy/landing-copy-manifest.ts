@@ -1,37 +1,28 @@
 /**
- * Canonical list of editable landing copy, in page order.
- * Slugs map to `landing.*` keys in `src/lib/i18n/generated/he/index.ts`, except:
- * - `landing.plans.*` → `landingPlans.ts`
- * - `landing.experience.scrollHint` → hardcoded in ExperienceSection (migrate to i18n when ready)
+ * Every user-visible string on the marketing landing page (scroll + navbar + footer + popups).
+ * Slugs are stable keys for importing edits back into the codebase.
  */
 
-import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+import { SITE } from "$lib/seo/config";
+import { FALLBACK_PLANS } from "$lib/features/subscriptions/plansCatalog";
 
-/** Format version for exports and round-trip parsing. */
-export const LANDING_COPY_FORMAT = "homebody-landing-copy/v1";
+export const LANDING_COPY_FORMAT = "homebody-landing-copy/v2";
 
 export type LandingCopyFieldDef = {
-  /** Stable id, e.g. `landing.hero.lead` — do not change when editing copy in Docs. */
   slug: string;
-  /** Human label in the export (Hebrew). */
+  /** What your editor sees — plain Hebrew, no jargon */
   label: string;
-  hint?: string;
 };
 
 export type LandingCopySectionDef = {
-  /** Section anchor, e.g. `hero` */
   id: string;
-  /** Section heading in the export */
   title: string;
-  /** Order on the marketing landing page (lower = higher on page) */
   order: number;
   fields: LandingCopyFieldDef[];
 };
 
 const faqFields = (): LandingCopyFieldDef[] => {
-  const items: LandingCopyFieldDef[] = [
-    { slug: "landing.faq.headline", label: "כותרת מדור" },
-  ];
+  const items: LandingCopyFieldDef[] = [{ slug: "landing.faq.headline", label: "כותרת המדור" }];
   for (let i = 1; i <= 7; i++) {
     items.push(
       { slug: `landing.faq.q${i}`, label: `שאלה ${i}` },
@@ -41,194 +32,252 @@ const faqFields = (): LandingCopyFieldDef[] => {
   return items;
 };
 
-const planDescriptionFields = (): LandingCopyFieldDef[] =>
-  Object.keys(PLAN_DESCRIPTIONS).map((planSlug) => ({
-    slug: `landing.plans.${planSlug}`,
-    label: `תיאור מסלול «${planSlug}» (Convex fallback)`,
-    hint: "מוצג כשאין תיאור מהשרת — עריכה ב-landingPlans.ts",
-  }));
+const planFields = (): LandingCopyFieldDef[] => {
+  const fields: LandingCopyFieldDef[] = [];
+  for (const plan of FALLBACK_PLANS) {
+    fields.push(
+      { slug: `landing.plans.${plan.slug}.name`, label: `שם המסלול «${plan.nameHe}»` },
+      {
+        slug: `landing.plans.${plan.slug}.description`,
+        label: `תיאור קצר למסלול «${plan.nameHe}»`,
+      },
+    );
+  }
+  return fields;
+};
 
-/** Single source of truth for landing copy export / import. */
 export const LANDING_COPY_SECTIONS: LandingCopySectionDef[] = [
   {
-    id: "seo",
-    title: "SEO (מטא)",
+    id: "site",
+    title: "שם האתר ותיאור כללי",
     order: 0,
     fields: [
-      { slug: "landing.seo.pageTitle", label: "כותרת דף (title)" },
-      { slug: "landing.seo.pageDescription", label: "תיאור מטא (description)" },
-      { slug: "landing.seo.breadcrumbHome", label: "פירור לחם — דף הבית" },
+      { slug: "site.name", label: "שם המותג (לוגו, כותרת דפדפן)" },
+      { slug: "site.tagline", label: "סלוגן קצר" },
+      { slug: "site.description", label: "תיאור האתר (משפט אחד)" },
+      { slug: "seo.site.description", label: "תיאור לגוגל (מטא — יכול להיות ארוך יותר)" },
+      { slug: "seo.site.keywords", label: "מילות מפתח לגוגל (מופרדות בפסיקים)" },
+    ],
+  },
+  {
+    id: "navbar",
+    title: "תפריט למעלה",
+    order: 10,
+    fields: [
+      { slug: "nav.library", label: "קישור «ספריית שיעורים»" },
+      { slug: "nav.login", label: "כפתור «כניסה» (לפני התחברות)" },
+      { slug: "nav.dashboard", label: "כפתור «אזור אישי» (אחרי התחברות)" },
+      { slug: "chrome.theme.light", label: "כפתור מעבר למצב בהיר (לנגישות)" },
+      { slug: "chrome.theme.dark", label: "כפתור מעבר למצב כהה" },
     ],
   },
   {
     id: "hero",
-    title: "גיבור (Hero)",
-    order: 10,
+    title: "פתיחה — המסך הראשון",
+    order: 20,
     fields: [
-      {
-        slug: "landing.hero.headlineBefore",
-        label: "כותרת ראשית — לפני הדגש",
-        hint: "מוצמד לפני span מודגש",
-      },
-      {
-        slug: "landing.hero.headlineAccent",
-        label: "כותרת ראשית — קטע מודגש",
-      },
-      {
-        slug: "landing.hero.headlineAfter",
-        label: "כותרת ראשית — אחרי הדגש",
-      },
-      { slug: "landing.hero.lead", label: "פסקת משנה" },
+      { slug: "landing.hero.headlineBefore", label: "כותרת גדולה — התחלה (לפני המילים המודגשות)" },
+      { slug: "landing.hero.headlineAccent", label: "כותרת גדולה — המילים המודגשות" },
+      { slug: "landing.hero.headlineAfter", label: "כותרת גדולה — סוף" },
+      { slug: "landing.hero.lead", label: "משפט מתחת לכותרת" },
       { slug: "landing.hero.ctaPrimary", label: "כפתור ראשי" },
-      { slug: "landing.hero.ctaSecondary", label: "כפתור משני (עוגן #about)" },
-      { slug: "landing.hero.note", label: "הערת שוליים מתחת לכפתורים" },
-      { slug: "landing.hero.scrollHint", label: "רמז גלילה (דקורטיבי)" },
+      { slug: "landing.hero.ctaSecondary", label: "כפתור משני («המאמנת שלך»)" },
+      { slug: "landing.hero.note", label: "שורה קטנה מתחת לכפתורים" },
+      { slug: "landing.hero.scrollHint", label: "רמז «גללי למטה»" },
     ],
   },
   {
     id: "about",
-    title: "על המאמנת (About)",
-    order: 20,
+    title: "על יובל — הביוגרפיה והסיפור",
+    order: 30,
     fields: [
-      { slug: "landing.instructor.sectionEyebrow", label: "מעל הכותרת (eyebrow)" },
-      { slug: "landing.instructor.sectionHeadline", label: "כותרת מדור" },
-      { slug: "landing.instructor.subtitle", label: "תת-כותרת / תפקיד" },
-      { slug: "landing.instructor.storyOrigin1", label: "סיפור — פסקה 1" },
-      { slug: "landing.instructor.storyOrigin2", label: "סיפור — פסקה 2" },
-      { slug: "landing.instructor.whyMeHeadline", label: "כותרת «למה איתי»" },
-      { slug: "landing.instructor.credTrainingTitle", label: "קרדיט 1 — כותרת" },
-      { slug: "landing.instructor.credTraining", label: "קרדיט 1 — גוף" },
-      { slug: "landing.instructor.credExperienceTitle", label: "קרדיט 2 — כותרת" },
-      { slug: "landing.instructor.credExperience", label: "קרדיט 2 — גוף" },
-      { slug: "landing.instructor.credMissionTitle", label: "קרדיט 3 — כותרת" },
-      { slug: "landing.instructor.credMission", label: "קרדיט 3 — גוף" },
-      { slug: "landing.instructor.storyClosing", label: "סיכום / סגירה (מודגש)" },
-      { slug: "landing.images.aboutAlt", label: "טקסט חלופי לתמונה" },
+      { slug: "landing.instructor.sectionEyebrow", label: "שורה קטנה מעל השם" },
+      { slug: "landing.instructor.sectionHeadline", label: "שם בכותרת המדור" },
+      { slug: "landing.instructor.name", label: "שם מלא (גם למנועי חיפוש)" },
+      { slug: "landing.instructor.subtitle", label: "משפט תיאור תחת השם" },
+      { slug: "landing.instructor.storyOrigin1", label: "הסיפור — פסקה ראשונה" },
+      { slug: "landing.instructor.storyOrigin2", label: "הסיפור — פסקה שנייה" },
+      { slug: "landing.instructor.whyMeHeadline", label: "כותרת «למה דווקא איתי»" },
+      { slug: "landing.instructor.credTrainingTitle", label: "נקודה 1 — כותרת" },
+      { slug: "landing.instructor.credTraining", label: "נקודה 1 — טקסט" },
+      { slug: "landing.instructor.credExperienceTitle", label: "נקודה 2 — כותרת" },
+      { slug: "landing.instructor.credExperience", label: "נקודה 2 — טקסט" },
+      { slug: "landing.instructor.credMissionTitle", label: "נקודה 3 — כותרת" },
+      { slug: "landing.instructor.credMission", label: "נקודה 3 — טקסט" },
+      { slug: "landing.instructor.storyClosing", label: "פסקת סיכום (מודגשת)" },
+      { slug: "landing.images.aboutAlt", label: "תיאור התמונה (לנגישות)" },
     ],
   },
   {
     id: "philosophy",
-    title: "למה מהבית (Philosophy)",
-    order: 30,
+    title: "למה מהבית",
+    order: 40,
     fields: [
-      { slug: "landing.philosophy.headline", label: "כותרת" },
-      {
-        slug: "landing.philosophy.bodyBefore",
-        label: "גוף — לפני קו חוצה (אם ריק, אין strike)",
-      },
-      {
-        slug: "landing.philosophy.bodyStrike",
-        label: "גוף — קטע עם קו חוצה",
-        hint: "מוצג רק אם לא ריק",
-      },
-      { slug: "landing.philosophy.bodyAfter", label: "גוף — אחרי קו חוצה" },
+      { slug: "landing.philosophy.headline", label: "כותרת המדור" },
+      { slug: "landing.philosophy.bodyBefore", label: "טקסט ראשי (המשפט המלא)" },
+      { slug: "landing.philosophy.bodyStrike", label: "קטע עם קו חוצה (רק אם צריך — אפשר להשאיר ריק)" },
+      { slug: "landing.philosophy.bodyAfter", label: "המשך אחרי קו חוצה (אם יש)" },
     ],
   },
   {
     id: "steps",
-    title: "איך מתחילים (Steps)",
-    order: 40,
+    title: "איך מתחילים — 4 שלבים",
+    order: 50,
     fields: [
-      { slug: "landing.steps.headline", label: "כותרת מדור" },
+      { slug: "landing.steps.headline", label: "כותרת המדור" },
       { slug: "landing.steps.step1Title", label: "שלב 1 — כותרת" },
-      { slug: "landing.steps.step1Desc", label: "שלב 1 — תיאור" },
+      { slug: "landing.steps.step1Desc", label: "שלב 1 — הסבר" },
       { slug: "landing.steps.step2Title", label: "שלב 2 — כותרת" },
-      { slug: "landing.steps.step2Desc", label: "שלב 2 — תיאור" },
+      { slug: "landing.steps.step2Desc", label: "שלב 2 — הסבר" },
       { slug: "landing.steps.step3Title", label: "שלב 3 — כותרת" },
-      { slug: "landing.steps.step3Desc", label: "שלב 3 — תיאור" },
+      { slug: "landing.steps.step3Desc", label: "שלב 3 — הסבר" },
       { slug: "landing.steps.step4Title", label: "שלב 4 — כותרת" },
-      { slug: "landing.steps.step4Desc", label: "שלב 4 — תיאור" },
+      { slug: "landing.steps.step4Desc", label: "שלב 4 — הסבר" },
     ],
   },
   {
     id: "experience",
-    title: "איך מתרגלים (Experience / Pillars)",
-    order: 50,
+    title: "איך מתרגלים — כרטיסים ושיטות",
+    order: 60,
     fields: [
-      { slug: "landing.pillars.headline", label: "כותרת מדור" },
-      { slug: "landing.pillars.lead", label: "פסקת משנה" },
-      {
-        slug: "landing.experience.scrollHint",
-        label: "רמז גלילה בבנטו",
-        hint: "כרגע קשיח ב-ExperienceSection.svelte",
-      },
-      { slug: "landing.preview.videoPlaceholderTitle", label: "כרטיס תצוגה — כותרת" },
-      { slug: "landing.preview.videoPlaceholderSubtitle", label: "כרטיס תצוגה — משנה" },
-      { slug: "landing.pillars.macroTitle", label: "עומק — כותרת" },
-      { slug: "landing.pillars.macroLead", label: "עומק — משנה" },
-      { slug: "landing.pillars.macroBody", label: "עומק — גוף" },
-      { slug: "landing.pillars.microTitle", label: "ממוקד — כותרת" },
-      { slug: "landing.pillars.microLead", label: "ממוקד — משנה" },
-      { slug: "landing.pillars.microBody", label: "ממוקד — גוף" },
+      { slug: "landing.pillars.headline", label: "כותרת המדור" },
+      { slug: "landing.pillars.lead", label: "משפט מבוא" },
+      { slug: "landing.experience.scrollHint", label: "רמז גלילה בין הכרטיסים" },
+      { slug: "landing.preview.videoPlaceholderTitle", label: "כרטיס «צפי בהצצה» — כותרת" },
+      { slug: "landing.preview.videoPlaceholderSubtitle", label: "כרטיס «צפי בהצצה» — שורה שנייה" },
+      { slug: "landing.pillars.macroTitle", label: "שיעורי עומק — כותרת" },
+      { slug: "landing.pillars.macroLead", label: "שיעורי עומק — שורה קצרה" },
+      { slug: "landing.pillars.macroBody", label: "שיעורי עומק — הסבר" },
+      { slug: "landing.pillars.microTitle", label: "תרגולים ממוקדים — כותרת" },
+      { slug: "landing.pillars.microLead", label: "תרגולים ממוקדים — שורה קצרה" },
+      { slug: "landing.pillars.microBody", label: "תרגולים ממוקדים — הסבר" },
       { slug: "landing.pillars.liveTitle", label: "לייב — כותרת" },
-      { slug: "landing.pillars.liveLead", label: "לייב — משנה" },
-      { slug: "landing.pillars.liveBody", label: "לייב — גוף" },
-      { slug: "landing.images.sessionAnatomyAlt", label: "alt — אנטומיה" },
-      { slug: "landing.images.sessionAdaptiveAlt", label: "alt — התאמה" },
-      { slug: "landing.images.sessionPaceAlt", label: "alt — קצב" },
-      { slug: "landing.images.pillarMicroAlt", label: "alt — ממוקד" },
-      { slug: "landing.images.pillarLiveAlt", label: "alt — לייב" },
+      { slug: "landing.pillars.liveLead", label: "לייב — שורה קצרה" },
+      { slug: "landing.pillars.liveBody", label: "לייב — הסבר" },
+      { slug: "landing.images.pillarMicroAlt", label: "תיאור תמונה — ממוקד" },
+      { slug: "landing.images.pillarLiveAlt", label: "תיאור תמונה — לייב" },
     ],
   },
   {
     id: "pricing",
-    title: "מחירים (Pricing)",
-    order: 60,
+    title: "מחירים ומסלולים",
+    order: 70,
     fields: [
-      { slug: "landing.pricing.headline", label: "כותרת" },
-      { slug: "landing.pricing.lead", label: "פסקת משנה" },
-      { slug: "landing.pricing.featuredBadge", label: "תג מסלול מומלץ" },
-      { slug: "landing.pricing.planNoteFallback", label: "תיאור ברירת מחדל למסלול" },
-      { slug: "landing.pricing.perMonth", label: "סיומת מחיר (לחודש)" },
-      { slug: "landing.pricing.ctaButton", label: "כפתור בחירת מסלול" },
-      { slug: "landing.pricing.guarantee", label: "שורת ערבות בתחתית" },
-      ...planDescriptionFields(),
+      { slug: "landing.pricing.headline", label: "כותרת המדור" },
+      { slug: "landing.pricing.lead", label: "משפט מבוא" },
+      { slug: "landing.pricing.featuredBadge", label: "תג על המסלול המומלץ" },
+      { slug: "landing.pricing.perMonth", label: "טקסט ליד המחיר (למשל «₪/חודש»)" },
+      { slug: "landing.pricing.ctaButton", label: "כפתור «בוחרים מסלול»" },
+      { slug: "landing.pricing.guarantee", label: "שורה בתחתית (ביטול / הקפאה)" },
+      { slug: "landing.pricing.planNoteFallback", label: "תיאור גיבוי אם חסר מהשרת" },
+      ...planFields(),
+      { slug: "landing.pricing.ui.loading", label: "בזמן טעינה: «טוענים מסלולים…»" },
+      { slug: "landing.pricing.ui.errorLoad", label: "שגיאת חיבור לשרת" },
+      { slug: "landing.pricing.ui.fallbackNotice", label: "הודעה: מחירים להמחשה" },
+      { slug: "landing.pricing.ui.noPlans", label: "אין מסלולים להצגה" },
     ],
   },
   {
     id: "faq",
-    title: "שאלות נפוצות (FAQ)",
-    order: 70,
+    title: "שאלות שכדאי לדעת",
+    order: 80,
     fields: faqFields(),
   },
   {
     id: "cta",
-    title: "קריאה לפעולה (CTA)",
-    order: 80,
+    title: "הצטרפות — טופס בסוף העמוד",
+    order: 90,
     fields: [
-      { slug: "landing.cta.headlineLine1", label: "כותרת — שורה 1" },
-      { slug: "landing.cta.headlineLine2", label: "כותרת — שורה 2" },
-      { slug: "landing.cta.subheadline", label: "פסקת משנה" },
+      { slug: "landing.cta.headlineLine1", label: "כותרת — שורה ראשונה" },
+      { slug: "landing.cta.headlineLine2", label: "כותרת — שורה שנייה" },
+      { slug: "landing.cta.subheadline", label: "משפט מתחת לכותרת" },
+      { slug: "auth.emailLabel", label: "שדה אימייל (תווית + placeholder)" },
       { slug: "landing.cta.button", label: "כפתור שליחה" },
-      { slug: "landing.cta.note", label: "הערה מתחת לטופס" },
-      {
-        slug: "auth.emailLabel",
-        label: "תווית שדה אימייל בטופס",
-        hint: "מפתח auth — לא landing, אך מוצג בדף הנחיתה",
-      },
+      { slug: "landing.cta.note", label: "שורה קטנה מתחת לטופס" },
     ],
   },
   {
-    id: "schema",
-    title: "Schema.org (JSON-LD, לא גלוי במסך)",
-    order: 90,
+    id: "footer",
+    title: "תחתית העמוד",
+    order: 100,
     fields: [
-      { slug: "landing.schema.howToTitle", label: "HowTo — כותרת" },
-      { slug: "landing.schema.howToDescription", label: "HowTo — תיאור" },
-      { slug: "landing.schema.step1Name", label: "HowTo שלב 1 — שם" },
-      { slug: "landing.schema.step1Text", label: "HowTo שלב 1 — טקסט" },
-      { slug: "landing.schema.step2Name", label: "HowTo שלב 2 — שם" },
-      { slug: "landing.schema.step2Text", label: "HowTo שלב 2 — טקסט" },
-      { slug: "landing.schema.step3Name", label: "HowTo שלב 3 — שם" },
-      { slug: "landing.schema.step3Text", label: "HowTo שלב 3 — טקסט" },
-      { slug: "landing.schema.instructorMentor", label: "Person — מנטור" },
+      { slug: "landing.footer.linkHome", label: "קישור: דף הבית" },
+      { slug: "landing.footer.linkConcept", label: "קישור: רעיון Spine" },
+      { slug: "landing.footer.linkTerms", label: "קישור: תנאי שימוש" },
+      { slug: "landing.footer.linkPrivacy", label: "קישור: פרטיות" },
+      { slug: "landing.footer.linkCancellations", label: "קישור: ביטולים" },
+      { slug: "landing.footer.linkAccessibility", label: "קישור: נגישות" },
+      { slug: "landing.footer.linkHealth", label: "קישור: הצהרת בריאות" },
+    ],
+  },
+  {
+    id: "auth",
+    title: "חלון כניסה (נפתח בלחיצה על «כניסה»)",
+    order: 110,
+    fields: [
+      { slug: "auth.title", label: "כותרת החלון" },
+      { slug: "auth.intro", label: "משפט הסבר" },
+      { slug: "auth.submitSendCode", label: "כפתור שליחת קוד" },
+      { slug: "auth.codeStepTitle", label: "כותרת אחרי שליחת קוד" },
+      { slug: "auth.codeLabel", label: "שדה קוד" },
+      { slug: "auth.submitEnter", label: "כפתור כניסה" },
+      { slug: "auth.statusCodeSent", label: "הודעה: הקוד נשלח" },
+      { slug: "auth.statusCodeError", label: "הודעה: קוד שגוי" },
+      { slug: "auth.switchEmail", label: "קישור «אימייל אחר»" },
+      { slug: "auth.validation.emailRequired", label: "שגיאה: חסר אימייל" },
+    ],
+  },
+  {
+    id: "subscription",
+    title: "חלון בחירת מסלול (נפתח ממחירים)",
+    order: 120,
+    fields: [
+      { slug: "overlay.subscription.title", label: "כותרת החלון" },
+      { slug: "overlay.subscription.description", label: "הסבר מתחת לכותרת" },
+      { slug: "overlay.subscription.instructorNotice", label: "הודעה למדריכות" },
+      { slug: "overlay.subscription.loading", label: "טוענים מסלולים…" },
+      { slug: "overlay.subscription.noPlans", label: "אין מסלולים" },
+      { slug: "overlay.subscription.close", label: "כפתור סגירה" },
+    ],
+  },
+  {
+    id: "seo-page",
+    title: "כותרת הדף בגוגל (מטא)",
+    order: 130,
+    fields: [
+      { slug: "landing.seo.pageTitle", label: "כותרת הטאב בדפדפן" },
+      { slug: "landing.seo.pageDescription", label: "תיאור שמופיע בגוגל" },
     ],
   },
 ];
 
-/** Hardcoded strings not yet in i18n — keyed by full slug. */
+/** Strings not in i18n yet — keyed by slug. */
 export const LANDING_COPY_STATIC_VALUES: Record<string, string> = {
   "landing.experience.scrollHint": "גללי לאט — כל כרטיס נפתח בזמן",
+  "seo.site.description": SITE.description,
+  "seo.site.keywords": SITE.keywords,
+  "chrome.theme.light": "מעבר למצב בהיר",
+  "chrome.theme.dark": "מעבר למצב כהה",
+  "landing.footer.linkHome": "דף הבית",
+  "landing.footer.linkConcept": "רעיון Spine",
+  "landing.footer.linkTerms": "תנאי שימוש",
+  "landing.footer.linkPrivacy": "פרטיות",
+  "landing.footer.linkCancellations": "ביטולים",
+  "landing.footer.linkAccessibility": "נגישות",
+  "landing.footer.linkHealth": "הצהרת בריאות",
+  "landing.pricing.ui.loading": "טוענים מסלולים…",
+  "landing.pricing.ui.errorLoad":
+    "לא הצלחנו לטעון מחירים מהשרת. בדקו ש־Convex מחובר (PUBLIC_CONVEX_CLIENT_URL).",
+  "landing.pricing.ui.fallbackNotice": "מחירים להמחשה — חיבור לשרת לא זמין כרגע.",
+  "landing.pricing.ui.noPlans": "אין מסלולים להצגה כרגע.",
+  "overlay.subscription.title": "בחרו מסלול",
+  "overlay.subscription.description":
+    "כל מסלול עם אופי משלו — ככל שהמסלול עשיר יותר, החוויה מורגשת יותר. שדרוג דורש תשלום; הורדת מסלול מתוזמנת לחידוש הבא.",
+  "overlay.subscription.instructorNotice":
+    "מנוי בתשלום מיועד למנויות בלבד. מדריכות משתמשות בלוח הבקרה המקצועי.",
+  "overlay.subscription.loading": "טוענים מסלולים…",
+  "overlay.subscription.noPlans": "אין מסלולים זמינים כרגע.",
+  "overlay.subscription.close": "סגירה",
 };
 
 export function allLandingCopyFields(): LandingCopyFieldDef[] {

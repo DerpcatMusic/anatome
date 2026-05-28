@@ -6,12 +6,15 @@ import { resolveLandingCopyValue } from "./landing-copy-resolve";
 describe("landing copy export", () => {
   test("markdown includes known slug and round-trips", () => {
     const md = buildLandingCopyMarkdown();
-    expect(md).toContain("@slug: landing.hero.lead");
-    expect(md).toContain("```copy");
+    expect(md).toContain("מזהה: `landing.hero.lead`");
+    expect(md).toContain("```text");
+    expect(md).toContain("על יובל — הביוגרפיה");
 
     const parsed = parseLandingCopyMarkdown(md);
     expect(parsed.entries.get("landing.hero.lead")).toBe(resolveLandingCopyValue("landing.hero.lead"));
-    expect(parsed.warnings).toEqual([]);
+    expect(parsed.entries.get("landing.instructor.storyOrigin1")).toBe(
+      resolveLandingCopyValue("landing.instructor.storyOrigin1"),
+    );
   });
 
   test("parses bracket alternate format", () => {

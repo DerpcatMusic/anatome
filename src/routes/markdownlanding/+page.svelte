@@ -10,55 +10,43 @@
     copied = true;
     setTimeout(() => {
       copied = false;
-    }, 2000);
+    }, 2500);
   }
 </script>
 
 <svelte:head>
-  <title>Landing copy export — AnatoMe</title>
+  <title>עריכת טקסטים — עמוד הבית</title>
   <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="copy-export">
   <header class="copy-export__header">
     <div>
-      <p class="copy-export__eyebrow">{LANDING_COPY_FORMAT}</p>
-      <h1>טקסטים — דף נחיתה</h1>
+      <h1>כל הטקסטים של עמוד הבית</h1>
       <p class="copy-export__meta">
-        {data.fieldCount} שדות · עודכן {new Date(data.generatedAt).toLocaleString("he-IL")}
+        {data.fieldCount} קטעי טקסט · לעריכה ב-Docs ושליחה חזרה
       </p>
     </div>
     <div class="copy-export__actions">
       <button type="button" class="copy-export__btn copy-export__btn--primary" onclick={copyAll}>
-        {copied ? "הועתק ✓" : "העתק הכל"}
+        {copied ? "הועתק ✓" : "העתיקי הכל"}
       </button>
-      <a class="copy-export__btn" href="/markdownlanding/export?download=1">הורד .md</a>
-      <a
-        class="copy-export__btn"
-        href="/markdownlanding/export?format=json"
-        target="_blank"
-        rel="noreferrer"
-      >
-        JSON
-      </a>
-      <a class="copy-export__btn" href="/">← דף נחיתה</a>
+      <a class="copy-export__btn" href="/markdownlanding/export?download=1">הורידי קובץ</a>
+      <a class="copy-export__btn" href="/">← לעמוד הבית</a>
     </div>
   </header>
 
   <aside class="copy-export__guide">
-    <strong>לעבודה עם Docs</strong>
+    <p><strong>לעריכה ב-Google Docs:</strong></p>
     <ol>
-      <li>לחצי «העתק הכל» או הורידי את קובץ ה-markdown.</li>
-      <li>ערכי רק את העברית בתוך בלוקים של <code>copy</code> — אל תשני שורות <code>@slug:</code>.</li>
-      <li>שלחי את הקובץ חזרה; נזהה כל שדה לפי ה-slug (למשל <code>landing.hero.lead</code>).</li>
+      <li>לחצי «העתיקי הכל» והדביקי במסמך חדש.</li>
+      <li>שני רק את העברית בתוך התיבות — לא את שורות «מזהה».</li>
+      <li>שלחי את המסמך (או הקובץ) כשסיימת.</li>
     </ol>
-    <p>
-      פורמט חלופי: <code>&lt;&lt;&lt;landing.hero.lead&gt;&gt;&gt;</code> טקסט
-      <code>&lt;&lt;&lt;&gt;&gt;&gt;</code>
-    </p>
+    <p class="copy-export__guide-note">{LANDING_COPY_FORMAT}</p>
   </aside>
 
-  <pre class="copy-export__body" dir="rtl" aria-label="Landing copy markdown">{data.markdown}</pre>
+  <pre class="copy-export__body" dir="rtl">{data.markdown}</pre>
 </div>
 
 <style>
@@ -78,22 +66,15 @@
     margin-bottom: 1.25rem;
   }
 
-  .copy-export__eyebrow {
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-    opacity: 0.65;
-    margin: 0 0 0.35rem;
-  }
-
   h1 {
     margin: 0;
-    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
   }
 
   .copy-export__meta {
     margin: 0.35rem 0 0;
-    font-size: 0.9rem;
-    opacity: 0.75;
+    font-size: 0.95rem;
+    opacity: 0.8;
   }
 
   .copy-export__actions {
@@ -105,7 +86,7 @@
   .copy-export__btn {
     display: inline-flex;
     align-items: center;
-    padding: 0.45rem 0.85rem;
+    padding: 0.5rem 1rem;
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
     background: #fff;
@@ -123,34 +104,37 @@
 
   .copy-export__guide {
     margin: 0 0 1rem;
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--hb-brand, #5c3d2e) 8%, #fff);
-    font-size: 0.92rem;
-    line-height: 1.5;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+    font-size: 1rem;
+    line-height: 1.6;
   }
 
   .copy-export__guide ol {
-    margin: 0.35rem 0 0;
-    padding-inline-start: 1.2rem;
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.25rem;
   }
 
-  .copy-export__guide code {
-    font-size: 0.85em;
+  .copy-export__guide-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    opacity: 0.5;
   }
 
   .copy-export__body {
     margin: 0;
-    padding: 1rem 1.1rem;
+    padding: 1.25rem;
     border-radius: 14px;
     background: #fff;
-    border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
-    font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-    font-size: 0.78rem;
-    line-height: 1.55;
+    border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+    font-family: ui-monospace, "Cascadia Code", monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
-    max-height: calc(100dvh - 14rem);
+    max-height: calc(100dvh - 15rem);
     overflow: auto;
   }
 </style>

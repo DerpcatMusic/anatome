@@ -1,5 +1,6 @@
 import he from "$lib/i18n/generated/he";
 import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
+import { FALLBACK_PLANS } from "$lib/features/subscriptions/plansCatalog";
 import { LANDING_COPY_STATIC_VALUES } from "./landing-copy-manifest";
 
 function getNestedString(root: unknown, path: string[]): string {
@@ -11,20 +12,53 @@ function getNestedString(root: unknown, path: string[]): string {
   return typeof cur === "string" ? cur : "";
 }
 
-/** Resolve current copy for a slug from live locale + static fallbacks. */
+function resolvePlanSlug(slug: string): string {
+  const match = /^landing\.plans\.([a-z]+)\.(name|description)$/.exec(slug);
+  if (!match) return "";
+  const [, planSlug, field] = match;
+  const plan = FALLBACK_PLANS.find((p) => p.slug === planSlug);
+  if (!plan) return "";
+  if (field === "name") return plan.nameHe;
+  return PLAN_DESCRIPTIONS[planSlug] ?? "";
+}
+
+/** Resolve current on-screen copy for a slug. */
 export function resolveLandingCopyValue(slug: string): string {
   if (slug in LANDING_COPY_STATIC_VALUES) {
     return LANDING_COPY_STATIC_VALUES[slug] ?? "";
   }
 
-  if (slug.startsWith("landing.plans.")) {
-    const planSlug = slug.slice("landing.plans.".length);
-    return PLAN_DESCRIPTIONS[planSlug] ?? "";
+  const planValue = resolvePlanSlug(slug);
+  if (planValue) return planValue;
+
+  if (slug.startsWith("seo.site.")) return LANDING_COPY_STATIC_VALUES[slug] ?? "";
+
+  if (slug.startsWith("site.")) {
+    return getNestedString(he.site, slug.slice("site.".length).split("."));
+  }
+
+  if (slug.startsWith("nav.")) {
+    return getNestedString(he.nav, slug.slice("nav.".length).split("."));
   }
 
   if (slug.startsWith("auth.")) {
-    const path = slug.slice("auth.".length).split(".");
-    return getNestedString(he.auth, path);
+    return getNestedString(he.auth, slug.slice("auth.".length).split("."));
+  }
+
+  if (slug.startsWith("overlay.")) {
+    return LANDING_COPY_STATIC_VALUES[slug] ?? "";
+  }
+
+  if (slug.startsWith("chrome.")) {
+    return LANDING_COPY_STATIC_VALUES[slug] ?? "";
+  }
+
+  if (slug.startsWith("landing.footer.")) {
+    return LANDING_COPY_STATIC_VALUES[slug] ?? "";
+  }
+
+  if (slug.startsWith("landing.pricing.ui.")) {
+    return LANDING_COPY_STATIC_VALUES[slug] ?? "";
   }
 
   if (!slug.startsWith("landing.")) return "";
