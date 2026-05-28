@@ -1,27 +1,31 @@
-import { normalizeEquipmentId } from "./equipmentCatalog";
+import {
+  normalizeEquipmentId,
+  normalizeEquipmentList,
+  type CanonicalEquipmentId,
+} from "./equipmentCatalog";
 
-function memberEquipmentSet(memberEquipment: readonly string[]): Set<string> {
-  const set = new Set<string>();
-  for (const id of memberEquipment) {
-    const normalized = normalizeEquipmentId(id);
-    if (normalized !== null) set.add(normalized);
-  }
-  return set;
+function memberEquipmentSet(memberEquipment: readonly string[]): Set<CanonicalEquipmentId> {
+  return new Set(normalizeEquipmentList(memberEquipment));
 }
 
-/** Equipment required by a class that the member profile does not include. */
+function classRequiredEquipment(requiredEquipment: readonly string[]): CanonicalEquipmentId[] {
+  return normalizeEquipmentList(requiredEquipment);
+}
+
+/**
+ * Class equipment gate (AND on required items):
+ * - Class requires [mat] → member needs mat; mat+reformer is OK.
+ * - Class requires [mat, reformer] → member needs both; mat-only is blocked.
+ */
 export function missingRequiredEquipment(
   memberEquipment: readonly string[],
   requiredEquipment: readonly string[],
-) {
+): CanonicalEquipmentId[] {
   const owned = memberEquipmentSet(memberEquipment);
-  return requiredEquipment.filter((item) => {
-    const required = normalizeEquipmentId(item) ?? item;
-    return !owned.has(required);
-  });
+  return classRequiredEquipment(requiredEquipment).filter((required) => !owned.has(required));
 }
 
-/** Whether the viewer's profile equipment satisfies class requirements. */
+/** Whether the member owns every item the class requires. */
 export function viewerCanAccessLiveClass(
   memberEquipment: readonly string[],
   requiredEquipment: readonly string[],

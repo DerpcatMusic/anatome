@@ -35,11 +35,12 @@
   {/if}
   <div class="equipment-grid" class:equipment-grid--compact={compact}>
     {#each equipmentOptions as [value, itemLabel]}
-      <Checkbox.Root class="hb-choice"
+      <Checkbox.Root
+        class="hb-choice"
         checked={selected.includes(value)}
         {readonly}
         {disabled}
-        onchange={() => toggle(value)}
+        onCheckedChange={() => toggle(value)}
       >
         <div class="equipment-choice-content" class:equipment-choice-content--compact={compact}>
           <div class="icon-wrapper" class:icon-wrapper--compact={compact}>

@@ -30,6 +30,7 @@ import type * as lib_adminVideoRow from "../lib/adminVideoRow.js";
 import type * as lib_appTime from "../lib/appTime.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_billingSandbox from "../lib/billingSandbox.js";
+import type * as lib_calendarRange from "../lib/calendarRange.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_displayName from "../lib/displayName.js";
 import type * as lib_email from "../lib/email.js";
@@ -173,6 +174,7 @@ declare const fullApi: ApiFromModules<{
   "lib/appTime": typeof lib_appTime;
   "lib/authz": typeof lib_authz;
   "lib/billingSandbox": typeof lib_billingSandbox;
+  "lib/calendarRange": typeof lib_calendarRange;
   "lib/constants": typeof lib_constants;
   "lib/displayName": typeof lib_displayName;
   "lib/email": typeof lib_email;

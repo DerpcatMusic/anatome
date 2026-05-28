@@ -100,6 +100,9 @@ function isUpcomingAvailableClass(item: CalendarClass, now: number): boolean {
   }
   if (lc.endsAt <= now) return false;
 
+  // Always list group lives in the agenda; reserve/join still gate on equipment.
+  if (lc.type === "group_live") return true;
+
   const hasReservation =
     item.viewerReservationStatus !== null &&
     ACTIVE_RESERVATION.has(item.viewerReservationStatus);

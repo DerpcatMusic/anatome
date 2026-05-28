@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import { query, type QueryCtx } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
   availableLiveCredits,
@@ -19,7 +19,35 @@ import {
   viewerIsLiveStaff,
 } from "../lib/liveClassAccess";
 import { requireQueryNow } from "../lib/queryNow";
+import { classOverlapsCalendarRange } from "../lib/calendarRange";
 import { broadcastMetaForClass, viewerIsInstructorForClass } from "./joinAccess";
+
+async function loadCalendarRangeClasses(
+  ctx: QueryCtx,
+  from: number,
+  to: number,
+  now: number,
+) {
+  const byStartsAt = await ctx.db
+    .query("liveClasses")
+    .withIndex("by_startsAt", (q) => q.gte("startsAt", from).lt("startsAt", to))
+    .order("asc")
+    .take(LIMITS.CALENDAR_RANGE_CLASSES);
+
+  const liveNow = await ctx.db
+    .query("liveClasses")
+    .withIndex("by_status_and_startsAt", (q) => q.eq("status", "live"))
+    .order("asc")
+    .take(LIMITS.CALENDAR_RANGE_CLASSES);
+
+  const byId = new Map(byStartsAt.map((row) => [row._id, row]));
+  for (const row of liveNow) {
+    if (!classOverlapsCalendarRange(row, from, to, now)) continue;
+    if (!byId.has(row._id)) byId.set(row._id, row);
+  }
+
+  return [...byId.values()].sort((a, b) => a.startsAt - b.startsAt);
+}
 
 export const listUpcoming = query({
   args: {
@@ -77,9 +105,6 @@ export const listUpcoming = query({
         if (!isStaff && !viewerReservationClassIds.has(liveClass._id)) continue;
       }
       if (!(await viewerCanSeeLiveClass(ctx, liveClass, userId))) continue;
-      if (!viewerCanAccessLiveClass(memberEquipment, liveClass.requiredEquipment)) {
-        continue;
-      }
       visible.push(liveClass);
     }
 
@@ -100,13 +125,7 @@ export const listRange = query({
 
     const now = requireQueryNow(args.now);
     const userId = await getAuthUserId(ctx);
-    const classes = await ctx.db
-      .query("liveClasses")
-      .withIndex("by_startsAt", (q) =>
-        q.gte("startsAt", args.from).lt("startsAt", args.to),
-      )
-      .order("asc")
-      .take(LIMITS.CALENDAR_RANGE_CLASSES);
+    const classes = await loadCalendarRangeClasses(ctx, args.from, args.to, now);
 
     const { wallet } =
       userId === null
@@ -179,12 +198,6 @@ export const listRange = query({
         viewerReservationStatus !== "refunded" &&
         viewerReservationStatus !== "no_show";
 
-      const isCustomerViewer =
-        userId !== null &&
-        (appProfile?.role === "customer" || appProfile?.role === undefined);
-      if (isCustomerViewer && !hasEquipmentAccess && !hasValidReservation) {
-        continue;
-      }
       const inJoinWindow = isInLiveJoinWindow(liveClass, now);
       const isInstructor =
         userId !== null && viewerIsInstructorForClass(appProfile, liveClass, userId);
