@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";
 
-  /** Theme-agnostic mark — tints via `currentColor` / parent `color`. */
+  /** Brand mark — fill follows `--foreground` (dark in light theme, light in dark). */
   type Props = HTMLAttributes<HTMLSpanElement> & {
     /** Logo height (width follows mark aspect ratio). */
     size?: number | string;
@@ -32,25 +32,22 @@
 ></span>
 
 <style>
-  /* Explicit ink/paper contrast — not inherited from link hover colors. */
   .anatome-logo {
     display: inline-block;
     flex-shrink: 0;
     width: var(--anatome-logo-w, 3.1rem);
     height: var(--anatome-logo-h, 2.5rem);
-    color: oklch(22% 0.04 155);
+    color: var(--foreground);
     background-color: currentColor;
     -webkit-mask-image: var(--anatome-logo-src);
     mask-image: var(--anatome-logo-src);
+    -webkit-mask-mode: alpha;
+    mask-mode: alpha;
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-  }
-
-  :global(html[data-theme="dark"]) .anatome-logo {
-    color: oklch(96% 0.006 95);
   }
 </style>
