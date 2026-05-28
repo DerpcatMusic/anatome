@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
+  import { onMount } from 'svelte';
   import { Tooltip } from "bits-ui";
   import CreditCostHint from "./CreditCostHint.svelte";
   import type { CreditPool } from "./types";
@@ -18,9 +20,20 @@
   } = $props();
 
   const show = $derived(enabled && cost > 0);
+  let coarsePointer = $state(false);
+
+  onMount(() => {
+    if (!browser) return;
+    coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  });
 </script>
 
-{#if show}
+{#if show && coarsePointer}
+  <div class="credit-cost-touch">
+    {@render triggerChild({ props: {} })}
+    <CreditCostHint {cost} {balance} {pool} />
+  </div>
+{:else if show}
   <Tooltip.Root>
     <Tooltip.Trigger>
       {#snippet child({ props })}
@@ -42,5 +55,14 @@
     padding: 6px 10px;
     border-radius: 8px;
     max-width: none;
+  }
+
+  .credit-cost-touch {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .credit-cost-touch :global(.credit-cost-hint) {
+    font-size: var(--step--2);
   }
 </style>

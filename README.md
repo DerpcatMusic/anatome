@@ -125,3 +125,17 @@ bunx convex env set RESEND_WEBHOOK_SECRET "<secret from Resend>"
 ```
 
 Local dev (test mode / `RESEND_SKIP_SEND`) logs the OTP and magic link to the Convex terminal; `RESEND_API_KEY` is optional there.
+
+### CardCom (subscription checkout)
+
+Set Convex deployment env vars (see `.env.example`). Register the webhook in CardCom:
+
+`https://<deployment>.convex.site/api/cardcom/webhook`
+
+**Local dev:** `vite dev` + `npx convex dev` enable subscriptions and CardCom sandbox checkout automatically (see `convex/lib/billingSandbox.ts`). Set Convex env: `FRONTEND_URL=http://localhost:5173`, CardCom test credentials (`.env.example`). CardCom webhooks hit your `*.convex.site` URL — not localhost — so fulfillment runs after payment on the hosted dev deployment.
+
+**Production:** keep `BILLING_SANDBOX_ENABLED` unset/false on prod; do not set `PUBLIC_BILLING_SANDBOX_ENABLED` on production builds until launch-ready.
+
+Admin comp grants remain via `subscriptions/admin.grantManualByEmail` (`provider: manual`).
+
+**Refunds / deferred charge (ops only — not on the website):** run from the [Convex Dashboard](https://dashboard.convex.dev) → Functions, e.g. `internal.payments.adminOps.refundOrder` with `{ orderId }`. List orders: `internal.payments.adminInternal.listOrdersInternal`.

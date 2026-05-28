@@ -2,6 +2,7 @@
   import type { FunctionReturnType } from "convex/server";
   import { Button, Dialog } from "bits-ui";
   import { api } from "$convex/_generated/api";
+  import SubscriptionPlanPicker from "$lib/features/subscriptions/components/SubscriptionPlanPicker.svelte";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<FunctionReturnType<typeof api.subscriptions.customer.listPlans>>[number];
@@ -14,7 +15,7 @@
     subscriptionPlan,
     pendingSubscriptionPlan,
     pending,
-    onChoosePlan,
+    onRequestPlanChange,
     onCancelAtPeriodEnd,
     onCancelPendingPlanChange,
     onResume,
@@ -25,7 +26,7 @@
     subscriptionPlan?: DashboardData["subscriptionPlan"];
     pendingSubscriptionPlan?: DashboardData["pendingSubscriptionPlan"];
     pending: string | null;
-    onChoosePlan: (slug: string) => void;
+    onRequestPlanChange: (slug: string) => void;
     onCancelAtPeriodEnd: () => void;
     onCancelPendingPlanChange: () => void;
     onResume: () => void;
@@ -41,49 +42,16 @@
     <Dialog.Content class="hb-dialog-content subscription-modal" aria-label="ניהול מנוי חודשי">
       <Dialog.Title class="subscription-modal__title">מסלולים</Dialog.Title>
       <Dialog.Description class="subscription-modal__desc">
-        שדרוג מידי. שנמוך — בסוף התקופה.
+        לפני אישור תראו סיכום מחיר והשפעה על החיוב. שדרוג — תשלום לפי ההפרש; הורדה — בתחילת מחזור החיוב הבא.
       </Dialog.Description>
 
-      <div class="plan-grid">
-        {#each plans as plan}
-          {@const isScheduled = plan.slug === pendingPlanSlug}
-          {@const isActive = plan.slug === activePlanSlug}
-          {@const isDowngrade = Boolean(
-            subscriptionPlan && plan.monthlyPriceIls < subscriptionPlan.monthlyPriceIls,
-          )}
-          <article class="plan-option" class:plan-option--active={isActive} class:plan-option--scheduled={isScheduled}>
-            <div class="plan-option__head">
-              <span class="plan-option__name">{plan.nameHe}</span>
-              <span class="plan-option__price">{plan.monthlyPriceIls} ₪</span>
-            </div>
-            <div class="plan-option__credits">
-              <span>{plan.vodCreditsPerMonth} מוקלט</span>
-              <span>{plan.liveCreditsPerMonth} לייב</span>
-              <span>{plan.oneOnOneCreditsPerMonth} פרטי</span>
-            </div>
-            <Button.Root
-              class="hb-button hb-button--paper hb-button--sm"
-              type="button"
-              disabled={pending !== null || isActive || isScheduled}
-              onclick={() => onChoosePlan(plan.slug)}
-            >
-              {#if isActive}
-                המסלול הנוכחי
-              {:else if isScheduled}
-                מתוזמן לחידוש
-              {:else if pending === plan.slug}
-                מעדכנים...
-              {:else if subscription && isDowngrade}
-                שינוי בסוף החודש
-              {:else if subscription}
-                שדרוג עכשיו
-              {:else}
-                הפעלת מסלול
-              {/if}
-            </Button.Root>
-          </article>
-        {/each}
-      </div>
+      <SubscriptionPlanPicker
+        {plans}
+        {activePlanSlug}
+        {pendingPlanSlug}
+        {pending}
+        onSelectPlan={onRequestPlanChange}
+      />
 
       {#if subscription}
         <div class="subscription-modal__actions">
@@ -113,7 +81,7 @@
               disabled={pending !== null}
               onclick={onCancelAtPeriodEnd}
             >
-              {pending === "cancel" ? "מבטלים..." : "ביטול בסוף התקופה"}
+              {pending === "cancel" ? "מבטלים..." : "ביטול מנוי…"}
             </Button.Root>
           {/if}
         </div>
@@ -130,7 +98,7 @@
   :global(.subscription-modal) {
     display: grid;
     gap: var(--space-5);
-    max-width: min(720px, calc(100vw - var(--space-8)));
+    max-width: min(960px, calc(100vw - var(--space-8)));
     max-height: min(90vh, 860px);
     overflow: auto;
   }
@@ -147,59 +115,6 @@
     line-height: 1.5;
   }
 
-  .plan-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  .plan-option {
-    display: grid;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border: var(--border);
-    background: var(--elevated);
-    min-width: 0;
-  }
-
-  .plan-option--active {
-    border-color: var(--primary);
-    background: var(--accent-soft);
-  }
-
-  .plan-option--scheduled {
-    border-color: var(--warning);
-    background: var(--surface);
-  }
-
-  .plan-option__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-
-  .plan-option__name {
-    font-weight: 800;
-    overflow-wrap: anywhere;
-  }
-
-  .plan-option__price {
-    flex: 0 0 auto;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--foreground-muted);
-  }
-
-  .plan-option__credits {
-    display: grid;
-    gap: var(--space-1);
-    color: var(--foreground-muted);
-    font-size: var(--step--1);
-    line-height: 1.45;
-  }
-
   .subscription-modal__actions {
     display: flex;
     flex-wrap: wrap;
@@ -212,11 +127,5 @@
   :global(.subscription-modal__close) {
     justify-self: end;
     margin-top: var(--space-2);
-  }
-
-  @media (max-width: 720px) {
-    .plan-grid {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

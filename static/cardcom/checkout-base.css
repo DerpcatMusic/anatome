@@ -1,0 +1,107 @@
+/* AnatoMe overrides for CardCom Low Profile (injected via UIDefinition.CSSUrl) */
+@import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap");
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  font-family: "Assistant", system-ui, sans-serif !important;
+  background: #fbf9f4 !important;
+  color: #18241b !important;
+  direction: rtl;
+  line-height: 1.45;
+}
+
+/* Hide wallet rails when custom CSS is active (terminal may still expose URLs) */
+iframe[src*="paypal"],
+iframe[src*="pay.google"],
+iframe[src*="bit"],
+a[href*="PayPal" i],
+a[href*="paypal" i],
+a[href*="bit" i],
+a[href*="LowProfileRedirectToPayPal" i],
+a[href*="LPC5/Bit" i],
+[id*="paypal" i],
+[class*="paypal" i],
+[class*="google-pay" i],
+[class*="GooglePay" i],
+[class*="bit-pay" i],
+[data-bind*="PayPal"],
+[data-bind*="Bit"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+input,
+select,
+textarea {
+  border-radius: 12px !important;
+  border: 1px solid #d8d2c8 !important;
+  padding: 0.65rem 0.85rem !important;
+  font-family: inherit !important;
+  background: #fff !important;
+  color: #18241b !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid color-mix(in oklch, #566342 55%, white) !important;
+  outline-offset: 1px !important;
+  border-color: #566342 !important;
+}
+
+button,
+input[type="submit"],
+input[type="button"],
+a.button {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  letter-spacing: 0.02em;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+  filter: brightness(1.05);
+}
+
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 0.5rem;
+}
+
+h1,
+h2,
+h3,
+.title,
+.label-title {
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+  color: #18241b !important;
+}
+
+/* Total amount emphasis */
+.total,
+.sum,
+.amount,
+[class*="Total"],
+[class*="amount"] {
+  color: #18241b !important;
+}
+
+label {
+  font-weight: 600 !important;
+  color: #3d4a42 !important;
+}

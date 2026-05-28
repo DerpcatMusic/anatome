@@ -6,6 +6,9 @@
   import { LANDING_IMAGES } from "$lib/features/landing/images";
   import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
   import { useActivePlans } from "$lib/features/subscriptions/activePlans.svelte";
+  import { openSubscriptionPicker } from "$lib/features/subscriptions/open-subscription-picker";
+  import { planTierTheme } from "$lib/features/subscriptions/planTierTheme";
+  import Notice from "$components/ui/Notice.svelte";
   import LandingFooter from "$lib/features/landing/components/LandingFooter.svelte";
   import "../concept.css";
   import {
@@ -51,10 +54,7 @@
     { question: t.landing.faq.q7(), answer: t.landing.faq.a7() },
   ]);
 
-  const { plans, isLoading: plansLoading } = useActivePlans();
-  const featuredSlug = "guided";
-  const featured = $derived(plans.find((p) => p.slug === featuredSlug));
-  const otherPlans = $derived(plans.filter((p) => p.slug !== featuredSlug));
+  const activePlans = useActivePlans();
 
   onMount(() => {
     hydrate3d = true;
@@ -196,23 +196,32 @@
       <StoryCard region="sacrum" sectionIndex={5} ariaLabel="מחירים">
         <h2 class="concept-section-title">{t.landing.pricing.headline()}</h2>
         <p class="concept-section-lead">{t.landing.pricing.lead()}</p>
-        {#if featured}
-          <div class="concept-pricing__featured">
+        {#if activePlans.error}
+          <Notice tone="danger">לא הצלחנו לטעון מחירים מהשרת.</Notice>
+        {:else if activePlans.usingFallback}
+          <Notice tone="caution">מחירים להמחשה — חיבור לשרת לא זמין כרגע.</Notice>
+        {/if}
+        {#if activePlans.isLoading}
+          <p class="concept-section-lead" aria-busy="true">טוענים מסלולים…</p>
+        {:else if activePlans.featured}
+          {@const featuredTheme = planTierTheme(activePlans.featured.slug)}
+          <div class="concept-pricing__featured {featuredTheme.cardClass}">
             <div>
               <p class="concept-pricing__badge">{t.landing.pricing.featuredBadge()}</p>
-              <h3>{featured.nameHe}</h3>
+              <h3>{activePlans.featured.nameHe}</h3>
               <p class="concept-body">
-                {PLAN_DESCRIPTIONS[featured.slug] ?? t.landing.pricing.planNoteFallback()}
+                {PLAN_DESCRIPTIONS[activePlans.featured.slug] ??
+                  t.landing.pricing.planNoteFallback()}
               </p>
             </div>
             <div>
               <p class="concept-pricing__price">
-                {featured.monthlyPriceIls} {t.landing.pricing.perMonth()}
+                {activePlans.featured.monthlyPriceIls} {t.landing.pricing.perMonth()}
               </p>
               <Button.Root
                 class="hb-button hb-button--brand hb-button--pill"
                 type="button"
-                onclick={() => openAuthOverlay()}
+                onclick={() => openSubscriptionPicker({ highlightSlug: activePlans.featured.slug })}
               >
                 {t.landing.pricing.ctaButton()}
               </Button.Root>
@@ -220,8 +229,13 @@
           </div>
         {/if}
         <div class="concept-pricing__grid">
-          {#each otherPlans as plan (plan.slug)}
-            <article class="concept-pricing__card">
+          {#each activePlans.otherPlans as plan (plan.slug)}
+            {@const theme = planTierTheme(plan.slug)}
+            <button
+              type="button"
+              class="concept-pricing__card {theme.cardClass}"
+              onclick={() => openSubscriptionPicker({ highlightSlug: plan.slug })}
+            >
               <h3>{plan.nameHe}</h3>
               <p class="concept-pricing__price">
                 {plan.monthlyPriceIls} {t.landing.pricing.perMonth()}
@@ -229,7 +243,8 @@
               <p class="concept-body">
                 {PLAN_DESCRIPTIONS[plan.slug] ?? t.landing.pricing.planNoteFallback()}
               </p>
-            </article>
+              <span class="hb-button hb-button--paper hb-button--sm">{t.landing.pricing.ctaButton()}</span>
+            </button>
           {/each}
         </div>
         <p class="concept-note">{t.landing.pricing.guarantee()}</p>

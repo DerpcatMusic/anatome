@@ -1235,6 +1235,21 @@ html[data-theme="dark"] .l-panel.section--about {
   }
 }
 
+.pricing__card.plan-tier--2,
+.pricing__featured.plan-tier--2 {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-ambient);
+}
+
+.pricing__card.plan-tier--3 {
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--line));
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--accent-subtle) 50%, var(--card)) 0%,
+    var(--card) 100%
+  );
+}
+
 .pricing__card {
   background: var(--card);
   border-radius: var(--radius-xl);

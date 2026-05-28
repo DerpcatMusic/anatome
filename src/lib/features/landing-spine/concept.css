@@ -553,6 +553,14 @@ html:has(.concept-page) {
   gap: 0.75rem;
 }
 
+button.concept-pricing__card {
+  width: 100%;
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+}
+
 .concept-pricing__card {
   padding: 1rem;
   border-radius: calc(var(--radius-xl, 24px) * 0.5);

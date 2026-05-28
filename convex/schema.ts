@@ -56,6 +56,121 @@ export default defineSchema({
     oneOnOneUsed: v.number(),
   }).index("by_user_period", ["userId", "periodStart"]),
 
+  /** CardCom checkout orders for plan subscribe / renew / upgrade. */
+  subscriptionOrders: defineTable({
+    userId: v.id("users"),
+    planId: v.id("plans"),
+    kind: v.union(
+      v.literal("subscribe"),
+      v.literal("renew"),
+      v.literal("upgrade"),
+    ),
+    amountIls: v.number(),
+    currency: v.literal("ILS"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("redirected"),
+      v.literal("paid"),
+      v.literal("failed_payment"),
+      v.literal("pending_charge"),
+      v.literal("refunded"),
+      v.literal("fulfilled"),
+    ),
+    idempotencyKey: v.string(),
+    creditGrantSnapshot: v.object({
+      vod: v.number(),
+      live: v.number(),
+      oneOnOne: v.number(),
+    }),
+    productDescription: v.string(),
+    buyerName: v.optional(v.string()),
+    buyerEmail: v.optional(v.string()),
+    buyerPhone: v.optional(v.string()),
+    buyerIdentityNumber: v.optional(v.string()),
+    subscriptionId: v.optional(v.id("userSubscriptions")),
+    redirectUrl: v.optional(v.string()),
+    cardcomLowProfileId: v.optional(v.string()),
+    cardcomOperation: v.optional(v.string()),
+    cardcomTranzactionId: v.optional(v.number()),
+    cardcomToken: v.optional(v.string()),
+    cardcomTokenCardYear: v.optional(v.number()),
+    cardcomTokenCardMonth: v.optional(v.number()),
+    cardcomTokenApprovalNumber: v.optional(v.string()),
+    cardcomTokenCardOwnerIdentityNumber: v.optional(v.string()),
+    cardcomResponseCode: v.optional(v.string()),
+    cardcomDescription: v.optional(v.string()),
+    cardcomDocumentType: v.optional(v.string()),
+    cardcomDocumentNumber: v.optional(v.number()),
+    fulfilledAt: v.optional(v.number()),
+    failedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId_and_createdAt", ["userId", "createdAt"])
+    .index("by_status_and_createdAt", ["status", "createdAt"])
+    .index("by_cardcomLowProfileId", ["cardcomLowProfileId"])
+    .index("by_idempotencyKey", ["idempotencyKey"]),
+
+  /** CardCom checkout for à-la-carte credit packs. */
+  creditOrders: defineTable({
+    userId: v.id("users"),
+    pool: v.union(v.literal("vod"), v.literal("live"), v.literal("oneOnOne")),
+    quantity: v.number(),
+    /** Multi-pool carts — source of truth when present. */
+    lines: v.optional(
+      v.array(
+        v.object({
+          pool: v.union(v.literal("vod"), v.literal("live"), v.literal("oneOnOne")),
+          quantity: v.number(),
+          unitListIls: v.number(),
+          unitEffectiveIls: v.number(),
+          discountPercent: v.number(),
+          discountIls: v.number(),
+          lineTotalIls: v.number(),
+        }),
+      ),
+    ),
+    unitListIls: v.number(),
+    unitEffectiveIls: v.number(),
+    discountPercent: v.number(),
+    discountIls: v.number(),
+    amountIls: v.number(),
+    currency: v.literal("ILS"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("redirected"),
+      v.literal("paid"),
+      v.literal("failed_payment"),
+      v.literal("pending_charge"),
+      v.literal("refunded"),
+      v.literal("fulfilled"),
+    ),
+    idempotencyKey: v.string(),
+    productDescription: v.string(),
+    buyerName: v.optional(v.string()),
+    buyerEmail: v.optional(v.string()),
+    redirectUrl: v.optional(v.string()),
+    cardcomLowProfileId: v.optional(v.string()),
+    cardcomOperation: v.optional(v.string()),
+    cardcomTranzactionId: v.optional(v.number()),
+    cardcomToken: v.optional(v.string()),
+    cardcomTokenCardYear: v.optional(v.number()),
+    cardcomTokenCardMonth: v.optional(v.number()),
+    cardcomTokenApprovalNumber: v.optional(v.string()),
+    cardcomTokenCardOwnerIdentityNumber: v.optional(v.string()),
+    cardcomResponseCode: v.optional(v.string()),
+    cardcomDescription: v.optional(v.string()),
+    cardcomDocumentType: v.optional(v.string()),
+    cardcomDocumentNumber: v.optional(v.number()),
+    fulfilledAt: v.optional(v.number()),
+    failedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId_and_createdAt", ["userId", "createdAt"])
+    .index("by_cardcomLowProfileId", ["cardcomLowProfileId"])
+    .index("by_idempotencyKey", ["idempotencyKey"]),
+
   userSubscriptions: defineTable({
     userId: v.id("users"),
     planId: v.id("plans"),
@@ -75,8 +190,13 @@ export default defineSchema({
     renewalScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     /** Prevents double-adding monthly plan credits for the same billing period. */
     lastCreditsGrantedPeriodStart: v.optional(v.number()),
-    provider: v.union(v.literal("manual"), v.literal("external")),
+    provider: v.union(
+      v.literal("manual"),
+      v.literal("cardcom"),
+      v.literal("external"),
+    ),
     externalSubscriptionId: v.optional(v.string()),
+    lastOrderId: v.optional(v.id("subscriptionOrders")),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

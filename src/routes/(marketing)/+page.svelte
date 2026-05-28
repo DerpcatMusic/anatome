@@ -131,7 +131,7 @@
     <PhilosophySection />
     <StepsSection />
     <ExperienceSection />
-    <PricingSection openAuthOverlay={() => openAuthOverlay()} />
+    <PricingSection />
     <FAQSection items={faqItems} />
 
     <section class="l-panel l-section section--cta" aria-label="התחילי עכשיו">

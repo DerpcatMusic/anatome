@@ -1,35 +1,80 @@
 <script lang="ts">
   import type { FunctionReturnType } from "convex/server";
+  import type { Id } from "$convex/_generated/dataModel";
   import { Button } from "bits-ui";
   import { api } from "$convex/_generated/api";
   import { useConvexClient, useQuery } from "convex-svelte";
   import Notice from "$components/ui/Notice.svelte";
   import { LOCAL_TIMEZONE } from "$lib/datetime/local";
-  import { SUBSCRIPTIONS_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import { walletBalances } from "$lib/features/credits/balances";
+  import { useBillingFlags } from "$lib/features/subscriptions/useBillingFlags.svelte";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
+  import BillingHistory from "$lib/features/subscriptions/components/BillingHistory.svelte";
+  import CancelSubscriptionDialog from "$lib/features/subscriptions/components/CancelSubscriptionDialog.svelte";
+  import PlanChangeConfirmDialog from "$lib/features/subscriptions/components/PlanChangeConfirmDialog.svelte";
+  import CardcomCheckoutModal from "$lib/features/subscriptions/components/CardcomCheckoutModal.svelte";
+  import { pollCheckoutRedirectUrl, runPlanCheckout } from "$lib/features/subscriptions/checkoutFlow";
+  import { useCardcomCheckoutChannel } from "$lib/features/subscriptions/useCardcomCheckoutChannel.svelte";
+  import { useSubscriptionAccess } from "$lib/features/subscriptions/useSubscriptionAccess.svelte";
   import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
-  type Plan = NonNullable<DashboardData["subscriptionPlan"]>;
+  type Plan = NonNullable<FunctionReturnType<typeof api.subscriptions.customer.listPlans>>[number];
   type Subscription = NonNullable<DashboardData["subscription"]>;
 
   let {
     subscription,
     subscriptionPlan,
     pendingSubscriptionPlan,
+    wallet,
   }: {
     subscription?: Subscription | null;
     subscriptionPlan?: Plan | null;
     pendingSubscriptionPlan?: Plan | null;
+    wallet?: DashboardData["wallet"] | null;
   } = $props();
+
+  const billing = useBillingFlags();
+  const access = useSubscriptionAccess();
+  const subscriptionsEnabled = $derived(billing.subscriptionsEnabled);
+  const checkoutEnabled = $derived(billing.checkoutEnabled);
+  const sandboxMode = $derived(billing.sandbox);
+  const canSubscribe = $derived(access.canSubscribe);
+
+  let cardcomOpen = $state(false);
+  let cardcomUrl = $state<string | null>(null);
+  let cardcomOrderId = $state<Id<"subscriptionOrders"> | null>(null);
+  let cardcomPlanSlug = $state("guided");
+  let cardcomAmountIls = $state<number | undefined>(undefined);
+  let success = $state("");
+
+  useCardcomCheckoutChannel({
+    getActiveOrderId: () => cardcomOrderId,
+    onResult: ({ status }) => {
+      cardcomOpen = false;
+      cardcomUrl = null;
+      cardcomOrderId = null;
+      cardcomAmountIls = undefined;
+      if (status === "success") {
+        success = "התשלום התקבל — המנוי והנקודות מתעדכנים.";
+      } else {
+        error = "התשלום לא הושלם. אפשר לנסות שוב.";
+      }
+    },
+  });
 
   const client = useConvexClient();
   const plansQuery = useQuery(api.subscriptions.customer.listPlans, () =>
-    SUBSCRIPTIONS_ENABLED ? {} : "skip",
+    subscriptionsEnabled ? {} : "skip",
   );
   let pending = $state<string | null>(null);
   let error = $state("");
   let planModalOpen = $state(false);
+  let cancelDialogOpen = $state(false);
+  let planConfirmOpen = $state(false);
+  let planToConfirm = $state<Plan | null>(null);
+
+  const balances = $derived(walletBalances(wallet));
 
   const renewalDate = $derived(
     subscription
@@ -41,7 +86,7 @@
   const hasPaidPlan = $derived(Boolean(subscription && subscriptionPlan));
 
   function statusLabel(row?: Subscription | null) {
-    if (!row) return "FREE";
+    if (!row) return "חינם";
     if (row.cancelAtPeriodEnd) return "מסתיים בקרוב";
     if (pendingSubscriptionPlan) return "שינוי מתוזמן";
     if (row.status === "trialing") return "ניסיון";
@@ -51,17 +96,47 @@
     return "פג תוקף";
   }
 
+  function requestPlanChange(slug: string) {
+    const plan = (plansQuery.data ?? []).find((row) => row.slug === slug);
+    if (!plan) return;
+    planToConfirm = plan;
+    planConfirmOpen = true;
+    planModalOpen = false;
+  }
+
+  async function openCardcomCheckout(orderId: Id<"subscriptionOrders">, slug: string) {
+    const plan = (plansQuery.data ?? []).find((row) => row.slug === slug);
+    cardcomPlanSlug = slug;
+    cardcomAmountIls = plan?.monthlyPriceIls;
+    cardcomOrderId = orderId;
+    cardcomUrl = await pollCheckoutRedirectUrl(client, orderId);
+    cardcomOpen = true;
+  }
+
   async function choosePlan(slug: string) {
-    if (!SUBSCRIPTIONS_ENABLED) return;
+    if (!subscriptionsEnabled || !canSubscribe) return;
     error = "";
+    success = "";
     pending = slug;
     try {
-      if (subscription) {
-        await client.mutation(api.subscriptions.customer.changePlan, { planSlug: slug });
-      } else {
-        await client.mutation(api.subscriptions.customer.activatePlan, { planSlug: slug });
-      }
+      const result = await runPlanCheckout(client, slug, {
+        hasSubscription: Boolean(subscription),
+        checkoutEnabled,
+      });
+      planConfirmOpen = false;
+      planToConfirm = null;
       planModalOpen = false;
+
+      if (result.mode === "checkout") {
+        await openCardcomCheckout(result.orderId, slug);
+      } else if (result.mode === "scheduled") {
+        success =
+          "המסלול יתעדכן בתחילת מחזור החיוב הבא — לא נדרש תשלום היום.";
+      } else if (result.mode === "unchanged") {
+        success = "כבר נמצאים במסלול הזה.";
+      } else {
+        success = "המנוי עודכן.";
+      }
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לעדכן מנוי כרגע.";
     } finally {
@@ -69,12 +144,18 @@
     }
   }
 
+  async function confirmPlanChange() {
+    if (!planToConfirm) return;
+    await choosePlan(planToConfirm.slug);
+  }
+
   async function cancelAtPeriodEnd() {
-    if (!SUBSCRIPTIONS_ENABLED) return;
+    if (!subscriptionsEnabled) return;
     error = "";
     pending = "cancel";
     try {
       await client.mutation(api.subscriptions.customer.cancelAtPeriodEnd, {});
+      cancelDialogOpen = false;
       planModalOpen = false;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : "לא הצלחנו לבטל מנוי כרגע.";
@@ -83,8 +164,13 @@
     }
   }
 
+  function openCancelDialog() {
+    cancelDialogOpen = true;
+    planModalOpen = false;
+  }
+
   async function cancelPendingPlanChange() {
-    if (!SUBSCRIPTIONS_ENABLED) return;
+    if (!subscriptionsEnabled) return;
     error = "";
     pending = "cancel-change";
     try {
@@ -97,7 +183,7 @@
   }
 
   async function resume() {
-    if (!SUBSCRIPTIONS_ENABLED) return;
+    if (!subscriptionsEnabled) return;
     error = "";
     pending = "resume";
     try {
@@ -112,9 +198,19 @@
 </script>
 
 <section class="subscription-panel" aria-labelledby="subscription-title">
+  {#if !canSubscribe}
+    <Notice tone="caution">
+      מנוי בתשלום מיועד למנויות בלבד. מדריכות וצוות משתמשים בלוח הבקרה המקצועי.
+    </Notice>
+  {:else if sandboxMode}
+    <p class="subscription-panel__sandbox" role="status">
+      מצב בדיקות — תשלום CardCom sandbox (CardTest1994). לא חיוב אמיתי.
+    </p>
+  {/if}
+
   <div class="subscription-panel__header">
     <div class="subscription-panel__identity">
-      <p class="subscription-panel__kicker">מנוי</p>
+      <p class="subscription-panel__kicker">מנוי וחיוב</p>
       <div class="subscription-panel__title-row">
         {#if subscriptionPlan}
           <h2 id="subscription-title">{subscriptionPlan.nameHe}</h2>
@@ -137,25 +233,60 @@
     </span>
   </div>
 
+  {#if subscriptionPlan}
+    <dl class="subscription-panel__facts">
+      <div>
+        <dt>חידוש / סיום תקופה</dt>
+        <dd>{renewalDate ?? "—"}</dd>
+      </div>
+      {#if subscriptionPlan}
+        <div>
+          <dt>מחיר חודשי</dt>
+          <dd>{subscriptionPlan.monthlyPriceIls} ₪</dd>
+        </div>
+      {/if}
+    </dl>
+  {/if}
+
   {#if subscription && renewalDate}
     <p class="subscription-panel__meta">
       {#if pendingSubscriptionPlan}
         פעיל עד {renewalDate}, ואז עוברים ל־{pendingSubscriptionPlan.nameHe}.
       {:else if subscription.cancelAtPeriodEnd}
-        המנוי פעיל עד {renewalDate}.
+        המנוי פעיל עד {renewalDate} — לא יחודש אוטומטית.
       {:else}
-        חידוש ב־{renewalDate}.
+        החיוב הבא ב־{renewalDate}, אלא אם תבטלו לפני כן.
       {/if}
     </p>
-  {:else if SUBSCRIPTIONS_ENABLED}
+  {:else if canSubscribe && subscriptionsEnabled && checkoutEnabled}
     <p class="subscription-panel__meta">
-      אין מנוי בתשלום — אפשר לבחור מסלול ולהתחיל כשמוכנות.
+      אין מנוי בתשלום — בחרו מסלול, ראו את הסכום לפני אישור, ותשלמו בדף מאובטח.
     </p>
+  {:else if subscriptionsEnabled}
+    <p class="subscription-panel__meta">תשלום מקוון בקרוב — לשינוי מסלול פנו לצוות AnatoMe.</p>
+  {:else if billing.error}
+    <Notice tone="danger">
+      לא התחברנו לשרת. ודאו ש־<code>npx convex dev</code> רץ ו־PUBLIC_CONVEX_CLIENT_URL מוגדר.
+    </Notice>
   {:else}
     <p class="subscription-panel__meta">לשינוי מסלול — צרו קשר עם צוות AnatoMe.</p>
   {/if}
 
-  {#if SUBSCRIPTIONS_ENABLED}
+  {#if hasPaidPlan && wallet}
+    <div class="subscription-panel__usage" aria-label="יתרת נקודות">
+      <span>{balances.vod} מוקלט</span>
+      <span>{balances.live} לייב</span>
+      <span>{balances.oneOnOne} אישי</span>
+    </div>
+  {/if}
+
+  {#if canSubscribe && billing.creditsPurchaseEnabled}
+    <div class="subscription-panel__cta">
+      <a class="hb-button hb-button--paper hb-button--sm" href="/u/credits">רכישת קרדיטים</a>
+    </div>
+  {/if}
+
+  {#if canSubscribe && subscriptionsEnabled && checkoutEnabled}
     {#if plansQuery.error}
       <Notice tone="danger">לא הצלחנו לטעון מסלולים. נסו שוב בעוד רגע.</Notice>
     {:else if plansQuery.isLoading}
@@ -180,18 +311,64 @@
         {subscriptionPlan}
         {pendingSubscriptionPlan}
         {pending}
-        onChoosePlan={choosePlan}
-        onCancelAtPeriodEnd={cancelAtPeriodEnd}
+        onRequestPlanChange={requestPlanChange}
+        onCancelAtPeriodEnd={openCancelDialog}
         onCancelPendingPlanChange={cancelPendingPlanChange}
         onResume={resume}
       />
+
+      <PlanChangeConfirmDialog
+        bind:open={planConfirmOpen}
+        targetPlan={planToConfirm}
+        currentPlan={subscriptionPlan}
+        {renewalDate}
+        pending={pending !== null && pending !== "cancel" && pending !== "cancel-change" && pending !== "resume"}
+        onConfirm={confirmPlanChange}
+      />
+
+      {#if subscription && subscriptionPlan && renewalDate}
+        <CancelSubscriptionDialog
+          bind:open={cancelDialogOpen}
+          {renewalDate}
+          planName={subscriptionPlan.nameHe}
+          pending={pending === "cancel"}
+          onConfirm={cancelAtPeriodEnd}
+        />
+      {/if}
     {/if}
+
+    <BillingHistory enabled={subscriptionsEnabled} />
+  {/if}
+
+  <footer class="subscription-panel__support">
+    <p>שאלות על חיוב או קבלות?</p>
+    <a href="mailto:hello@anatome.co.il">hello@anatome.co.il</a>
+    <span aria-hidden="true">·</span>
+    <a href="/legal/cancellations">מדיניות ביטולים</a>
+  </footer>
+
+  {#if success}
+    <Notice tone="success">{success}</Notice>
   {/if}
 
   {#if error}
     <Notice tone="danger">{error}</Notice>
   {/if}
 </section>
+
+<CardcomCheckoutModal
+  bind:open={cardcomOpen}
+  checkoutUrl={cardcomUrl}
+  planSlug={cardcomPlanSlug}
+  kind="subscription"
+  amountIls={cardcomAmountIls}
+  onClose={() => {
+    cardcomOpen = false;
+    cardcomUrl = null;
+    cardcomOrderId = null;
+    cardcomAmountIls = undefined;
+  }}
+/>
 
 <style>
   .subscription-panel {
@@ -201,6 +378,16 @@
     border: var(--border);
     background: var(--elevated);
     min-width: 0;
+  }
+
+  .subscription-panel__sandbox {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px dashed var(--warning);
+    background: color-mix(in oklch, var(--warning) 10%, var(--elevated));
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--ink-secondary);
   }
 
   .subscription-panel__header {
@@ -237,10 +424,45 @@
     overflow-wrap: anywhere;
   }
 
+  .subscription-panel__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .subscription-panel__facts div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .subscription-panel__facts dt {
+    margin: 0;
+    font-size: var(--step--2);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--foreground-muted);
+  }
+
+  .subscription-panel__facts dd {
+    margin: 0;
+    font-weight: 800;
+  }
+
   .subscription-panel__meta {
     margin: 0;
     color: var(--foreground-muted);
     line-height: 1.5;
+  }
+
+  .subscription-panel__usage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--step--1);
+    font-family: var(--font-mono);
+    color: var(--foreground-muted);
   }
 
   .subscription-badge {
@@ -279,10 +501,36 @@
     justify-content: flex-end;
   }
 
+  .subscription-panel__support {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: var(--border);
+    font-size: var(--step--1);
+    color: var(--foreground-muted);
+  }
+
+  .subscription-panel__support p {
+    margin: 0;
+    width: 100%;
+  }
+
+  .subscription-panel__support a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   @media (max-width: 640px) {
     .subscription-panel__header {
       align-items: stretch;
       flex-direction: column;
+    }
+
+    .subscription-panel__facts {
+      grid-template-columns: 1fr;
     }
   }
 </style>

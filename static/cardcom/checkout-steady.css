@@ -1,0 +1,12 @@
+@import url("/cardcom/checkout-base.css");
+
+body {
+  background: linear-gradient(165deg, #fbf9f4 0%, #eef3e8 100%) !important;
+}
+
+button,
+input[type="submit"] {
+  background: #3f5233 !important;
+  border-color: #3f5233 !important;
+  color: #fbf9f4 !important;
+}

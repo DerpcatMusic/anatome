@@ -2,19 +2,21 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
-import { requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
+import { isStaff, requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
 import type { Id } from "../_generated/dataModel";
-import {
-  getActiveSubscription,
-  grantSubscriptionPeriodCredits,
-  grantPlanUpgradeDelta,
-  MONTH_MS,
-} from "./lib";
+import { getActiveSubscription } from "./lib";
 import { getCreditAccess, ensureUserWallet } from "../credits/lib";
 import { requireQueryNow } from "../lib/queryNow";
 import { DEFAULT_PLANS, planPayload } from "./plans";
-import { scheduleSubscriptionRenewal } from "./schedule";
-import { assertSubscriptionsEnabled } from "../lib/featureFlags";
+import {
+  assertCheckoutEnabled,
+  assertSubscriptionsEnabled,
+  CHECKOUT_ENABLED,
+  CREDITS_PURCHASE_ENABLED,
+  SUBSCRIPTIONS_ENABLED,
+} from "../lib/featureFlags";
+import { isBillingSandboxEnabled } from "../lib/billingSandbox";
+import { beginCheckout } from "./checkout";
 
 async function assertSelfServeSubscriptionCustomer(
   ctx: MutationCtx,
@@ -22,8 +24,51 @@ async function assertSelfServeSubscriptionCustomer(
 ) {
   assertSubscriptionsEnabled();
   const profile = await requireAppProfile(ctx, userId);
+  if (isStaff(profile)) {
+    throw new Error("מנוי בתשלום זמין למנויות בלבד, לא למדריכות.");
+  }
   requireCustomer(profile);
 }
+
+const PAID_CHECKOUT_REQUIRED =
+  "נדרש תשלום להפעלת מנוי. השתמשו בתהליך התשלום או פנו לצוות.";
+
+/** Public billing gates — UI should follow this (matches Convex deployment sandbox). */
+export const getBillingFlags = query({
+  args: {},
+  returns: v.object({
+    sandbox: v.boolean(),
+    subscriptionsEnabled: v.boolean(),
+    checkoutEnabled: v.boolean(),
+    creditsPurchaseEnabled: v.boolean(),
+  }),
+  handler: async () => {
+    const sandbox = isBillingSandboxEnabled();
+    return {
+      sandbox,
+      subscriptionsEnabled: SUBSCRIPTIONS_ENABLED,
+      checkoutEnabled: CHECKOUT_ENABLED,
+      creditsPurchaseEnabled: CREDITS_PURCHASE_ENABLED && CHECKOUT_ENABLED,
+    };
+  },
+});
+
+/** Whether the signed-in user may self-serve subscribe (customers only). */
+export const getSubscriptionAccess = query({
+  args: {},
+  returns: v.object({
+    canSubscribe: v.boolean(),
+    role: v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin")),
+  }),
+  handler: async (ctx) => {
+    const userId = await requireUserId(ctx);
+    const profile = await requireAppProfile(ctx, userId);
+    return {
+      canSubscribe: !isStaff(profile),
+      role: profile.role,
+    };
+  },
+});
 
 export const listPlans = query({
   args: {},
@@ -77,49 +122,14 @@ export const activatePlan = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     await assertSelfServeSubscriptionCustomer(ctx, userId);
-    const planSlug = args.planSlug.trim().toLowerCase();
-
-    let plan = await getActivePlanBySlug(ctx, planSlug);
-
-    if (plan === null) {
-      const fallback = DEFAULT_PLANS.find((item) => item.slug === planSlug);
-      if (fallback === undefined) throw new Error("Plan is not available");
-      const planId = await ctx.db.insert("plans", planPayload(fallback));
-      plan = await ctx.db.get(planId);
+    if (!CHECKOUT_ENABLED) {
+      throw new Error(PAID_CHECKOUT_REQUIRED);
     }
-
-    if (plan === null || !plan.isActive) throw new Error("Plan is not available");
-
-    const active = await getActiveSubscription(ctx, userId);
-    if (active !== null) {
-      const wallet = await ensureUserWallet(ctx, userId);
-      return { subscriptionId: active._id, walletId: wallet._id };
-    }
-
-    const now = Date.now();
-    const subscriptionId = await ctx.db.insert("userSubscriptions", {
-      userId,
-      planId: plan._id,
-      status: "active",
-      currentPeriodStart: now,
-      currentPeriodEnd: now + MONTH_MS,
-      cancelAtPeriodEnd: false,
-      provider: "manual",
-      createdAt: now,
-      updatedAt: now,
+    assertCheckoutEnabled();
+    return await beginCheckout(ctx, userId, {
+      planSlug: args.planSlug,
+      kind: "subscribe",
     });
-    const renewalScheduledFunctionId = await scheduleSubscriptionRenewal(
-      ctx,
-      subscriptionId,
-      now + MONTH_MS,
-    );
-    await ctx.db.patch(subscriptionId, { renewalScheduledFunctionId });
-
-    const subscription = await ctx.db.get(subscriptionId);
-    if (subscription === null) throw new Error("Subscription creation failed");
-    const walletId = await grantSubscriptionPeriodCredits(ctx, subscription, plan);
-
-    return { subscriptionId, walletId };
   },
 });
 
@@ -155,6 +165,18 @@ export const changePlan = mutation({
       };
     }
 
+    if (plan.monthlyPriceIls > currentPlan.monthlyPriceIls) {
+      if (!CHECKOUT_ENABLED) throw new Error(PAID_CHECKOUT_REQUIRED);
+      assertCheckoutEnabled();
+      return {
+        ...(await beginCheckout(ctx, userId, {
+          planSlug: args.planSlug,
+          kind: "upgrade",
+        })),
+        mode: "checkout" as const,
+      };
+    }
+
     if (plan.monthlyPriceIls < currentPlan.monthlyPriceIls) {
       await ctx.db.patch(subscription._id, {
         pendingPlanId: plan._id,
@@ -171,20 +193,7 @@ export const changePlan = mutation({
       };
     }
 
-    await ctx.db.patch(subscription._id, {
-      planId: plan._id,
-      pendingPlanId: null,
-      pendingPlanChangeAt: null,
-      pendingPlanChangeKind: null,
-      cancelAtPeriodEnd: false,
-      updatedAt: Date.now(),
-    });
-
-    const updated = await ctx.db.get(subscription._id);
-    if (updated === null) throw new Error("Subscription update failed");
-    const walletId = await grantPlanUpgradeDelta(ctx, userId, plan, currentPlan);
-
-    return { subscriptionId: subscription._id, walletId, mode: "immediate" as const };
+    throw new Error(PAID_CHECKOUT_REQUIRED);
   },
 });
 

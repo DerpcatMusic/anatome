@@ -19,6 +19,14 @@ async function renewSubscription(
     return "cancelled" as const;
   }
 
+  if (subscription.provider !== "manual") {
+    await ctx.db.patch(subscription._id, {
+      status: "past_due",
+      updatedAt: now,
+    });
+    return "past_due" as const;
+  }
+
   const currentPlan = await ctx.db.get(subscription.planId);
   const pendingPlan = subscription.pendingPlanId
     ? await ctx.db.get(subscription.pendingPlanId)

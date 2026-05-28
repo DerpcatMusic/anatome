@@ -1,0 +1,8 @@
+@import url("/cardcom/checkout-base.css");
+
+button,
+input[type="submit"] {
+  background: #566342 !important;
+  border-color: #566342 !important;
+  color: #fbf9f4 !important;
+}

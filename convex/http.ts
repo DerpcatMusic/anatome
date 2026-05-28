@@ -4,11 +4,13 @@ import { internal } from "./_generated/api";
 import { auth } from "./auth";
 import { resend } from "./email/resend";
 import { registerMuxHttpRoutes } from "./muxHttp";
+import { registerCardcomHttpRoutes } from "./payments/cardcomHttp";
 
 const http = httpRouter();
 
 auth.addHttpRoutes(http);
 registerMuxHttpRoutes(http);
+registerCardcomHttpRoutes(http);
 
 http.route({
   path: "/resend-webhook",

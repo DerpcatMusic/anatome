@@ -1,0 +1,120 @@
+.plan-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .plan-picker-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.plan-picker-card {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  min-width: 0;
+  text-align: start;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.plan-picker-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.plan-picker-card:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.plan-picker-card--highlight {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.plan-picker-card__tier {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.plan-picker-card__name {
+  margin: 0;
+  font-size: var(--step-0);
+  line-height: 1.15;
+}
+
+.plan-picker-card__price {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-weight: 800;
+}
+
+.plan-picker-card__tagline {
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: var(--step--1);
+  line-height: 1.45;
+}
+
+.plan-picker-card__credits {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--step--2);
+  color: var(--foreground-muted);
+}
+
+.plan-tier--0 .plan-picker-card__tier {
+  color: var(--secondary);
+}
+
+.plan-tier--1 .plan-picker-card {
+  background: color-mix(in oklch, var(--secondary-subtle) 40%, var(--card));
+}
+
+.plan-tier--2.plan-picker-card {
+  border-color: var(--primary);
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklch, var(--primary-subtle) 70%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  box-shadow: var(--shadow-ambient);
+}
+
+.plan-tier--2 .plan-picker-card__tier {
+  color: var(--primary);
+}
+
+.plan-tier--3.plan-picker-card {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--line));
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklch, var(--accent-subtle) 80%, var(--card)) 0%,
+    var(--card) 55%
+  );
+}
+
+.plan-tier--3 .plan-picker-card__tier {
+  color: var(--accent);
+}
+
+.plan-tier--premium::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent) 25%, transparent);
+}

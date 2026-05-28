@@ -1,0 +1,191 @@
+:global(.cardcom-checkout-overlay) {
+  z-index: 200;
+  background: color-mix(in oklch, var(--foreground) 55%, transparent);
+}
+
+:global(.cardcom-checkout-modal.hb-dialog-content) {
+  z-index: 201;
+  left: 50%;
+  top: 50%;
+  right: auto;
+  inset-inline: auto;
+  transform: translate(-50%, -50%);
+  max-width: min(920px, 96vw);
+  width: min(920px, 96vw);
+  max-height: min(94vh, 900px);
+  margin: 0;
+  animation: cardcom-modal-in 0.22s ease-out;
+}
+
+@keyframes cardcom-modal-in {
+  from {
+    transform: translate(-50%, -48%) scale(0.98);
+    opacity: 0.7;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+:global(.cardcom-checkout-modal) {
+  z-index: 91;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-3);
+  width: min(920px, calc(100vw - var(--space-3)));
+  max-height: min(98vh, 960px);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-radius: var(--radius-xl);
+}
+
+:global(.cardcom-checkout-modal--immersive) {
+  width: min(960px, 100vw - var(--space-2));
+  max-height: 98vh;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.cardcom-checkout-modal__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardcom-checkout-modal__head {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cardcom-checkout-modal__eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground-muted);
+}
+
+:global(.cardcom-checkout-modal__title) {
+  margin: 0;
+  font-size: var(--step-1);
+  line-height: 1.2;
+}
+
+:global(.cardcom-checkout-modal__desc) {
+  margin: 0;
+  color: var(--foreground-muted);
+  line-height: 1.45;
+  font-size: var(--step--1);
+}
+
+.cardcom-checkout-modal__amount {
+  margin: 0;
+  font-size: var(--step-2);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.cardcom-checkout-modal__sandbox {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--step--2);
+  font-family: var(--font-mono);
+  background: color-mix(in oklch, var(--warning) 22%, var(--card));
+  color: var(--foreground);
+}
+
+.cardcom-checkout-modal__summary {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.cardcom-checkout-modal__frame-wrap {
+  position: relative;
+  min-height: min(76vh, 720px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--elevated);
+}
+
+.cardcom-checkout-modal__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  border: 0;
+  background: var(--background);
+}
+
+.cardcom-checkout-modal__loading {
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  min-height: min(76vh, 720px);
+  margin: 0;
+  color: var(--foreground-muted);
+  text-align: center;
+}
+
+.cardcom-checkout-modal__spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid color-mix(in oklch, var(--primary) 18%, transparent);
+  border-top-color: var(--primary);
+  animation: cardcom-checkout-spin 0.75s linear infinite;
+}
+
+@keyframes cardcom-checkout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cardcom-checkout-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardcom-checkout-modal__secure {
+  margin: 0;
+  font-size: var(--step--2);
+  color: var(--foreground-muted);
+}
+
+:global(.cardcom-checkout-modal.plan-tier--2) {
+  box-shadow: 0 24px 48px -28px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+:global(.cardcom-checkout-modal.plan-tier--3) {
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--line));
+  background: linear-gradient(
+    165deg,
+    var(--card) 0%,
+    color-mix(in oklch, var(--accent-subtle) 55%, var(--card)) 100%
+  );
+}
+
+@media (max-width: 640px) {
+  :global(.cardcom-checkout-modal) {
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-block-end: 0;
+  }
+
+  .cardcom-checkout-modal__amount {
+    font-size: var(--step-1);
+  }
+
+  .cardcom-checkout-modal__frame-wrap {
+    min-height: min(70vh, 640px);
+  }
+}

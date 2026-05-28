@@ -59,6 +59,7 @@
               subscription={subscription ?? null}
               subscriptionPlan={subscriptionPlan ?? null}
               pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
+              wallet={wallet ?? null}
             />
             {#if profile}
               <ProfileSummary isStaff={false} {profile} showEditLink />
