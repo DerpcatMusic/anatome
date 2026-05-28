@@ -657,6 +657,20 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+@media (max-width: 767px) {
+  .hb-input,
+  .hb-textarea,
+  .hb-select__trigger {
+    font-size: 1rem;
+  }
+
+  .hb-button--icon,
+  .hb-button--icon-danger {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 .hb-select__trigger {
   position: relative;
   display: inline-grid;

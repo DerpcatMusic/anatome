@@ -2,6 +2,7 @@
   import { Button } from "bits-ui";
   import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
+  import type { FunctionReturnType } from "convex/server";
   import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import AppSkeleton from "$features/app/components/AppSkeleton.svelte";
@@ -18,6 +19,17 @@
   import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
 
   const { t } = useI18n();
+
+  type ViewerProfile = NonNullable<FunctionReturnType<typeof api.profiles.viewer.get>>;
+  type StaffViewerProfile = ViewerProfile & {
+    certificateDocument?: string;
+    insuranceDocument?: string;
+  };
+
+  function staffViewerProfile(profile: ViewerProfile | null | undefined): StaffViewerProfile | null {
+    if (!profile || (profile.role !== "instructor" && profile.role !== "admin")) return null;
+    return profile as StaffViewerProfile;
+  }
 
   let {
     audience,
@@ -81,12 +93,13 @@
   }
 
   $effect(() => {
-    if (appProfileResource.current) {
+    const staff = staffViewerProfile(appProfileResource.current);
+    if (staff) {
       instructorName = nameParts[0] ?? "";
       instructorSurname = nameParts.slice(1).join(" ") ?? "";
-      instructorCredentials = appProfileResource.current.credentials ?? "";
-      certificateDataUrl = appProfileResource.current.certificateDocument ?? "";
-      insuranceDataUrl = appProfileResource.current.insuranceDocument ?? "";
+      instructorCredentials = staff.credentials ?? "";
+      certificateDataUrl = staff.certificateDocument ?? "";
+      insuranceDataUrl = staff.insuranceDocument ?? "";
     }
   });
 
@@ -338,10 +351,10 @@
       </div>
     {:else}
       <InstructorProfileView
-        displayName={appProfileResource.current?.displayName}
-        credentials={appProfileResource.current?.credentials}
-        certificateDocument={appProfileResource.current?.certificateDocument}
-        insuranceDocument={appProfileResource.current?.insuranceDocument}
+        displayName={staffViewerProfile(appProfileResource.current)?.displayName}
+        credentials={staffViewerProfile(appProfileResource.current)?.credentials}
+        certificateDocument={staffViewerProfile(appProfileResource.current)?.certificateDocument}
+        insuranceDocument={staffViewerProfile(appProfileResource.current)?.insuranceDocument}
       />
     {/if}
   </PageShell>
@@ -372,6 +385,7 @@
         subscription={dashboard?.subscription ?? null}
         subscriptionPlan={dashboard?.subscriptionPlan ?? null}
         pendingSubscriptionPlan={dashboard?.pendingSubscriptionPlan ?? null}
+        wallet={dashboard?.wallet ?? null}
       />
 
       <NotificationSettings />

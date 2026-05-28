@@ -78,7 +78,7 @@
 
 <style>
   .app-frame {
-    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
     display: grid;
     place-items: center;
     padding: var(--space-6);

@@ -52,7 +52,7 @@
 .h-full { height: 100%; }
 .min-h-0 { min-height: 0; }
 .min-h-full { min-height: 100%; }
-.min-h-screen { min-height: 100vh; }
+.min-h-screen { min-height: 100dvh; }
 
 /* ── Position ── */
 .relative { position: relative; }

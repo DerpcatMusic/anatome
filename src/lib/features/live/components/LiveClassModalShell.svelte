@@ -87,7 +87,7 @@
     border-radius: 6px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     width: min(480px, 92vw);
-    max-height: min(720px, 88vh);
+    max-height: min(720px, 88dvh);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -133,13 +133,17 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: var(--space-1);
+    padding: 0;
     color: var(--foreground-muted);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     border-radius: 4px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     transition: color 0.15s ease, background 0.15s ease;
   }
 
@@ -164,7 +168,7 @@
   @media (max-width: 860px) {
     :global(.calendar-modal-content) {
       width: 96vw;
-      max-height: 90vh;
+      max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
     }
 
     .modal-body {

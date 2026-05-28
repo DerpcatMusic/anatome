@@ -61,10 +61,10 @@
 <style>
   .catalog-rail {
     position: sticky;
-    top: 56px;
+    top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
     align-self: stretch;
-    height: calc(100dvh - 56px);
-    max-height: calc(100dvh - 56px);
+    height: calc(100dvh - var(--space-4) - env(safe-area-inset-top, 0px));
+    max-height: calc(100dvh - var(--space-4) - env(safe-area-inset-top, 0px));
     overflow-y: auto;
     padding: var(--space-2) 0;
     border-inline-start: var(--border);

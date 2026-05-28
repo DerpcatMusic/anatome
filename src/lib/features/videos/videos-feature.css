@@ -175,12 +175,12 @@
   flex-direction: column;
   gap: var(--space-3);
   padding-block: var(--space-4);
-  scroll-margin-top: calc(56px + var(--space-2));
+  scroll-margin-top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
 }
 
 .catalog-page--app .catalog-page__zone,
 .catalog-page--app .catalog-page__category {
-  scroll-margin-top: var(--space-2);
+  scroll-margin-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
 }
 
 .catalog-page__zone-title {
@@ -204,7 +204,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding-block: var(--space-3);
-  scroll-margin-top: calc(56px + var(--space-2));
+  scroll-margin-top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
 }
 
 .catalog-page__category:not(:first-child) {

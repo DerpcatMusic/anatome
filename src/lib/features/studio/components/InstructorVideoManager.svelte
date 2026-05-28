@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from "$convex/_generated/api";
   import type { Id } from "$convex/_generated/dataModel";
-  import type { Equipment } from "$lib/labels";
+  import type { AdminVideoRow } from "$convex/contracts/video";
   import { Button } from "bits-ui";
   import { resource } from "runed";
   import { authQuery, initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
@@ -14,20 +14,7 @@
   import VideoEditModal from "./VideoEditModal.svelte";
   import "./InstructorVideoStudio.css";
 
-  type AccessKind = "macroflow" | "microflow";
-
-  interface Video {
-    _id: Id<"videos">;
-    title: string;
-    description: string;
-    durationSeconds?: number;
-    accessKind: AccessKind;
-    muxVideoQuality: string;
-    muxMaxResolutionTier: string;
-    requiredEquipment: Equipment[];
-    status: "published" | "draft" | "archived";
-    thumbnailUrl?: string;
-  }
+  type Video = AdminVideoRow;
 
   const auth = initAuth();
 

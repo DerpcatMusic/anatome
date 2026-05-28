@@ -65,7 +65,7 @@
   >
     <div class="library-video-card__thumb">
       {#if thumbnailUrl}
-        <img src={thumbnailUrl} alt="" loading="lazy" />
+        <img src={thumbnailUrl} alt="" width="320" height="180" loading="lazy" decoding="async" />
       {:else}
         <span class="library-video-card__placeholder">{durationLabel(durationSeconds)}</span>
       {/if}

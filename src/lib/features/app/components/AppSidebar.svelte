@@ -8,24 +8,24 @@
   import { useQuery } from "convex-svelte";
   import PlanBadge from "$lib/features/subscriptions/components/PlanBadge.svelte";
   import { getAppContext } from "$features/app/context/appContext";
-  import { liveRoomHref, routePath } from "$lib/i18n/context";
-  import { isLiveRoomPath } from "$lib/features/live/dock/live-dock-paths";
+  import {
+    baseAppNavItems,
+    buildLiveNavItem,
+    isAppNavCurrent,
+    mergeAppNavItems,
+    resolveAppNavPrefix,
+    type AppNavItem,
+  } from "$features/app/nav/app-nav";
   import { theme } from "$features/app/theme.svelte";
   import { sidebar } from "$features/app/sidebar.svelte";
   import { useI18n } from "$lib/i18n/runes";
   import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
   import { walletBalances } from "$lib/features/credits/balances";
   import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
-  import SidebarNavLink, { type SidebarNavTone } from "./SidebarNavLink.svelte";
+  import SidebarNavLink from "./SidebarNavLink.svelte";
   import "./AppSidebar.css";
 
-  type NavItem = {
-    href: string;
-    label: string;
-    icon: string;
-    tone: SidebarNavTone;
-    isLive?: boolean;
-  };
+  type NavItem = AppNavItem;
 
   const auth = initAuth();
   const ctx = getAppContext();
@@ -33,33 +33,8 @@
 
   const siteInitial = $derived(t.site.name().trim().slice(0, 1) || "A");
 
-  const prefix = $derived.by(() => {
-    const path = page.url.pathname;
-    if (path.startsWith("/i/")) return "/i";
-    if (path.startsWith("/u/")) return "/u";
-    return ctx.role === "instructor" || ctx.role === "admin" ? "/i" : "/u";
-  });
+  const prefix = $derived(resolveAppNavPrefix(page.url.pathname, ctx.role));
   const isInstructorPrefix = $derived(prefix === "/i");
-
-  const navMap: Record<string, NavItem[]> = {
-    "/u": [
-      { href: "/u/dashboard", label: "סקירה", icon: "dashboard", tone: "dashboard" },
-      { href: "/u/calendar", label: "לייבים", icon: "calendar_month", tone: "calendar" },
-      { href: "/u/library", label: "וידאו", icon: "play_lesson", tone: "video" },
-      { href: "/u/profile", label: "פרופיל", icon: "account_circle", tone: "profile" },
-    ],
-    "/i": [
-      { href: "/i/dashboard", label: "סקירה", icon: "dashboard", tone: "dashboard" },
-      {
-        href: routePath("iCalendar"),
-        label: "לוח שנה",
-        icon: "calendar_month",
-        tone: "calendar",
-      },
-      { href: "/i/videos", label: "וידאו", icon: "video_library", tone: "video" },
-      { href: "/i/profile", label: "פרופיל", icon: "account_circle", tone: "profile" },
-    ],
-  };
 
   const profile = $derived(ctx.viewer);
 
@@ -94,6 +69,9 @@
   const showCreditStrip = $derived(
     auth.isAuthenticated && !isInstructorPrefix && !sidebar.isCollapsed,
   );
+  const creditStripPending = $derived(
+    auth.isAuthenticated && !isInstructorPrefix && !sidebar.isCollapsed && !subscriptionReady,
+  );
   const userLabel = $derived.by(() => {
     if (!auth.isAuthenticated) return null;
     const name = profile?.displayName?.trim();
@@ -107,41 +85,25 @@
     canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
   );
   const nextLive = $derived(nextLiveQuery.data ?? null);
-  const showLiveTab = $derived(nextLive !== null);
+  const liveNavPending = $derived(
+    canRunAuthenticatedQuery() && nextLiveQuery.isLoading && nextLive === null,
+  );
 
-  const baseNav = $derived(navMap[prefix] ?? navMap["/u"]);
+  const baseNav = $derived(baseAppNavItems(prefix));
   const liveNavItem = $derived.by((): NavItem | null => {
     if (!nextLive) return null;
-    const isBroadcastLive = nextLive.status === "live";
-    if (isInstructorPrefix) {
-      return {
-        href: liveRoomHref(nextLive.classId),
-        label: isBroadcastLive ? t.live.preConnect.enterRoom() : t.live.preConnect.title(),
-        icon: isBroadcastLive ? "sensors" : "video_settings",
-        tone: isBroadcastLive ? ("live" as const) : ("calendar" as const),
-        isLive: isBroadcastLive,
-      };
-    }
-    return {
-      href: liveRoomHref(nextLive.classId),
-      label: t.live.preConnect.enterRoom(),
-      icon: "sensors",
-      tone: "live" as const,
-      isLive: true,
-    };
+    return buildLiveNavItem(nextLive, isInstructorPrefix, {
+      enterRoom: t.live.preConnect.enterRoom(),
+      preConnectTitle: t.live.preConnect.title(),
+    });
   });
 
-  const navItems = $derived(
-    liveNavItem ? [liveNavItem, ...baseNav] : baseNav,
-  );
+  const navItems = $derived(mergeAppNavItems(baseNav, liveNavItem));
 
   const currentPath = $derived(page.url.pathname);
 
   function isCurrent(href: string) {
-    if (href.includes("classId=")) {
-      return isLiveRoomPath(currentPath);
-    }
-    return currentPath === href;
+    return isAppNavCurrent(currentPath, href);
   }
 
   const themeLabel = $derived(theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה");
@@ -195,6 +157,9 @@
   </header>
 
   <nav class="sidebar__nav" aria-label="ניווט פנימי">
+    {#if liveNavPending}
+      <span class="sidebar__nav-skeleton" aria-hidden="true"></span>
+    {/if}
     {#each navItems as item (item.href)}
       <SidebarNavLink
         href={item.href}
@@ -217,6 +182,8 @@
         variant="minimal"
       />
     </div>
+  {:else if creditStripPending}
+    <div class="sidebar__credits sidebar__credits--skeleton" aria-hidden="true"></div>
   {/if}
 
   <footer class="sidebar__footer">

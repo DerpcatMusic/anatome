@@ -15,8 +15,8 @@
   type StaffProfile = {
     displayName?: string | null;
     credentials?: string | null;
-    certificateDocument?: string | null;
-    insuranceDocument?: string | null;
+    hasCertificate?: boolean;
+    hasInsurance?: boolean;
   };
 
   type CustomerProfile = {
@@ -75,12 +75,12 @@
     </div>
 
     <div class="compliance-bar">
-      <div class="compliance-item" class:compliance--ok={appProfile.certificateDocument}>
-        <span class="compliance-dot">{appProfile.certificateDocument ? "●" : "○"}</span>
+      <div class="compliance-item" class:compliance--ok={appProfile.hasCertificate}>
+        <span class="compliance-dot">{appProfile.hasCertificate ? "●" : "○"}</span>
         <span>{t.dashboard.staffProfile.certificate()}</span>
       </div>
-      <div class="compliance-item" class:compliance--ok={appProfile.insuranceDocument}>
-        <span class="compliance-dot">{appProfile.insuranceDocument ? "●" : "○"}</span>
+      <div class="compliance-item" class:compliance--ok={appProfile.hasInsurance}>
+        <span class="compliance-dot">{appProfile.hasInsurance ? "●" : "○"}</span>
         <span>{t.dashboard.staffProfile.insurance()}</span>
       </div>
     </div>

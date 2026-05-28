@@ -18,7 +18,7 @@
   }: {
     window: DayAvailability;
     onOpenRequest?: (dayStart: number) => void;
-    onBuyCredits?: () => void;
+    onBuyCredits?: (pool?: import("$lib/features/credits/types").CreditPool) => void;
   } = $props();
 
   const { t } = useI18n();
@@ -64,7 +64,11 @@
           {t.calendar.class.pickTime()}
         </Button.Root>
       {:else if CREDITS_PURCHASE_ENABLED && onBuyCredits}
-        <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={onBuyCredits}>
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--sm"
+          type="button"
+          onclick={() => onBuyCredits?.("oneOnOne")}
+        >
           {t.calendar.class.noCredits()}
         </Button.Root>
       {:else}

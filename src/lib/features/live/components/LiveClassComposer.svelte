@@ -602,7 +602,7 @@
   }
 
   .live-composer--popover {
-    max-height: min(calc(100vh - 24px), 720px);
+    max-height: min(calc(100dvh - 24px), 720px);
     padding: 0;
     gap: 0;
   }
@@ -610,7 +610,7 @@
   .live-composer__scroll {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: min(calc(100vh - 200px), 520px);
+    max-height: min(calc(100dvh - 200px), 520px);
     padding: 0;
   }
 

@@ -209,9 +209,10 @@
     }
   }
 
-  function goBuyCredits() {
+  function goBuyCredits(pool?: "vod" | "live" | "oneOnOne") {
     if (!CREDITS_PURCHASE_ENABLED) return;
-    void goto("/u/dashboard");
+    const query = pool ? `?pool=${pool}` : "";
+    void goto(`/u/credits${query}`);
   }
 
   const errorMessage = $derived(

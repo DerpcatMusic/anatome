@@ -168,6 +168,18 @@
   width: 100%;
 }
 
+.sidebar__credits--skeleton {
+  min-height: 2.75rem;
+  margin: 0 clamp(16px, 3vw, 24px);
+  border-radius: 10px;
+  background: var(--line-light);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.sidebar__nav-skeleton {
+  display: none;
+}
+
 /* ─── Navigation ─── */
 .sidebar__nav {
   display: flex;
@@ -543,6 +555,11 @@
     flex-shrink: 0;
   }
 
+  .sidebar__ghost-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
   .sidebar__signout-text--link {
     width: auto;
   }
@@ -590,5 +607,43 @@
   .sidebar--collapsed .live-pulse {
     position: static;
     margin-inline-end: var(--space-2);
+  }
+
+  .sidebar__nav-skeleton {
+    display: inline-flex;
+    width: 5.5rem;
+    height: 2rem;
+    margin-inline: var(--space-1);
+    border-radius: 999px;
+    background: var(--line-light);
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+}
+
+/* Phone: bottom tab bar handles primary nav — compact top chrome only */
+@media (max-width: 767px) {
+  .sidebar__nav {
+    display: none;
+  }
+
+  .sidebar__brand {
+    padding-block: var(--space-2);
+  }
+
+  .sidebar__footer {
+    padding-block: var(--space-2);
+  }
+
+  .sidebar__ghost-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .sidebar__signout-text {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: var(--space-2);
   }
 }

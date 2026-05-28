@@ -1,53 +1,405 @@
+$ svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
 Loading svelte-check in workspace: /home/derpcat/projects/homebody
 Getting Svelte diagnostics...
 
-/home/derpcat/projects/homebody/src/lib/features/credits/CreditCostTooltip.svelte:27:18
-Error: Cannot invoke an object which is possibly 'undefined'. (ts)
-      {#snippet child({ props })}
-        {@render child({ props })}
-      {/snippet}
+/home/derpcat/projects/homebody/convex/users/dashboard.ts:14:3
+Error: Type '(ctx: import("/home/derpcat/projects/homebody/node_modules/convex/dist/esm-types/server/registration").GenericQueryCtx<{ plans: { document: { _id: import("/home/derpcat/projects/homebody/node_modules/convex/dist/esm-types/values/value").Id<"plans">; _creationTime: number; platformFeeIls?: number | undefined; ... 9 m...' is not assignable to type '(ctx: import("/home/derpcat/projects/homebody/node_modules/convex/dist/esm-types/server/registration").GenericQueryCtx<{ plans: { document: { _id: import("/home/derpcat/projects/homebody/node_modules/convex/dist/esm-types/values/value").Id<"plans">; _creationTime: number; platformFeeIls?: number | undefined; ... 9 m...'. Two different types with this name exist, but they are unrelated.
+  Type 'Promise<{ user: { name: string | null; }; profile: { experience: "some" | "new" | "steady"; equipment: EquipmentStorageId[]; goals: GoalId[]; pathologies: ("back_pain" | ... 16 more ... | "prolapse")[] | undefined; notes: string; healthDeclarationAnswers: { ...; } | undefined; healthDeclarationAcceptedAt: number | u...' is not assignable to type 'ValidatorTypeToReturnType<{ role: "customer" | "instructor" | "admin"; profile: { pathologies?: ("back_pain" | "disc_herniation" | "neck_pain" | "sciatica" | "pregnancy" | "postpartum" | "osteoporosis" | ... 10 more ... | "prolapse")[] | undefined; ... 6 more ...; notes: string; } | null; ... 7 more ...; pendingSubs...'.
+    Type 'Promise<{ user: { name: string | null; }; profile: { experience: "some" | "new" | "steady"; equipment: EquipmentStorageId[]; goals: GoalId[]; pathologies: ("back_pain" | ... 16 more ... | "prolapse")[] | undefined; notes: string; healthDeclarationAnswers: { ...; } | undefined; healthDeclarationAcceptedAt: number | u...' is not assignable to type 'Promise<void | { role: "customer" | "instructor" | "admin"; profile: { pathologies?: ("back_pain" | "disc_herniation" | "neck_pain" | "sciatica" | "pregnancy" | "postpartum" | "osteoporosis" | ... 10 more ... | "prolapse")[] | undefined; ... 6 more ...; notes: string; } | null; ... 7 more ...; pendingSubscriptionPla...'.
+      Type '{ user: { name: string | null; }; profile: { experience: "some" | "new" | "steady"; equipment: EquipmentStorageId[]; goals: GoalId[]; pathologies: ("back_pain" | ... 16 more ... | "prolapse")[] | undefined; notes: string; healthDeclarationAnswers: { ...; } | undefined; healthDeclarationAcceptedAt: number | undefined...' is not assignable to type 'void | { role: "customer" | "instructor" | "admin"; profile: { pathologies?: ("back_pain" | "disc_herniation" | "neck_pain" | "sciatica" | "pregnancy" | "postpartum" | "osteoporosis" | ... 10 more ... | "prolapse")[] | undefined; ... 6 more ...; notes: string; } | null; ... 7 more ...; pendingSubscriptionPlan: { ......'.
+        Type '{ user: { name: string | null; }; profile: { experience: "some" | "new" | "steady"; equipment: EquipmentStorageId[]; goals: GoalId[]; pathologies: ("back_pain" | ... 16 more ... | "prolapse")[] | undefined; notes: string; healthDeclarationAnswers: { ...; } | undefined; healthDeclarationAcceptedAt: number | undefined...' is not assignable to type 'void | { role: "customer" | "instructor" | "admin"; profile: { pathologies?: ("back_pain" | "disc_herniation" | "neck_pain" | "sciatica" | "pregnancy" | "postpartum" | "osteoporosis" | ... 10 more ... | "prolapse")[] | undefined; ... 6 more ...; notes: string; } | null; ... 7 more ...; pendingSubscriptionPlan: { ......'.
+          Type '{ user: { name: string | null; }; profile: { experience: "some" | "new" | "steady"; equipment: EquipmentStorageId[]; goals: GoalId[]; pathologies: ("back_pain" | ... 16 more ... | "prolapse")[] | undefined; notes: string; healthDeclarationAnswers: { ...; } | undefined; healthDeclarationAcceptedAt: number | undefined...' is not assignable to type '{ role: "customer" | "instructor" | "admin"; profile: { pathologies?: ("back_pain" | "disc_herniation" | "neck_pain" | "sciatica" | "pregnancy" | "postpartum" | "osteoporosis" | ... 10 more ... | "prolapse")[] | undefined; ... 6 more ...; notes: string; } | null; ... 7 more ...; pendingSubscriptionPlan: { ...; } | n...'.
+            Types of property 'liveAlert' are incompatible.
+              Type '{ liveClassId: string; title: string; startsAt: number; } | null' is not assignable to type '{ title: string; startsAt: number; liveClassId: Id<"liveClasses">; } | null'.
+                Type '{ liveClassId: string; title: string; startsAt: number; }' is not assignable to type '{ title: string; startsAt: number; liveClassId: Id<"liveClasses">; }'.
+                  Types of property 'liveClassId' are incompatible.
+                    Type 'string' is not assignable to type 'Id<"liveClasses">'.
+                      Type 'string' is not assignable to type '{ __tableName: "liveClasses"; }'. 
+  returns: dashboardGetReturns,
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
 
-/home/derpcat/projects/homebody/src/lib/features/dashboard/components/InstructorQuickUpload.svelte:79:3
-Warn: Unused CSS selector ".instructor-upload__hint"
-https://svelte.dev/e/css_unused_selector (svelte)
+/home/derpcat/projects/homebody/src/lib/features/live/live-session-media.svelte.ts:141:26
+Error: Property 'effectiveClassId' does not exist on type 'LiveSessionMedia'. 
+  async persistSubscriberReceivePreset() {
+    const classId = this.effectiveClassId;
+    if (classId === null || !this.isInstructorRoom) return;
 
-  .instructor-upload__hint {
-    margin: 0;
+/home/derpcat/projects/homebody/src/lib/features/live/lib/preconnect-ui.test.ts:1:40
+Error: Cannot find module 'bun:test' or its corresponding type declarations. 
+import { describe, expect, test } from "bun:test";
+import {
 
-/home/derpcat/projects/homebody/src/lib/features/app/components/AppShell.svelte:98:3
-Warn: Unused CSS selector ".locked__kicker"
-https://svelte.dev/e/css_unused_selector (svelte)
+/home/derpcat/projects/homebody/src/lib/features/live/lib/preconnect-ui.test.ts:9:7
+Error: Property 'status' is missing in type '{ joinOpensAt: number; joinClosesAt: number; startsAt: number; canEnter: true; minutesUntilOpen: null; minutesUntilClose: null; isInstructor: true; equipmentBlocked: false; isBroadcastLive: false; subscriberReceivePreset: "medium"; }' but required in type '{ broadcastStartedByUserId?: Id<"users"> | undefined; status: "live" | "ended" | "cancelled" | "draft" | "scheduled"; startsAt: number; joinOpensAt: number; joinClosesAt: number; ... 6 more ...; isBroadcastLive: boolean; }'. 
 
-  .locked__kicker {
-    font-family: var(--font-mono);
+const baseAccess: JoinAccessSnapshot = {
+  joinOpensAt: 0,
 
-/home/derpcat/projects/homebody/src/lib/features/app/components/AppShell.svelte:35:26
-Error: Type '"customer" | "instructor" | "admin" | null' is not assignable to type '"customer" | "instructor" | "admin"'.
-  Type 'null' is not assignable to type '"customer" | "instructor" | "admin"'. (ts)
-{:else if showDashboardSkeleton}
-  <DashboardLoadingShell role={knownRole} />
-{:else if !auth.isAuthenticated}
-
-/home/derpcat/projects/homebody/src/lib/features/auth/components/AuthPanel.svelte:25:22
-Warn: This reference only captures the initial value of `initialEmail`. Did you mean to reference it inside a derived instead?
+/home/derpcat/projects/homebody/src/lib/livekit/components/LayoutContextProvider.svelte:19:24
+Warn: This reference only captures the initial value of `value`. Did you mean to reference it inside a closure instead?
 https://svelte.dev/e/state_referenced_locally (svelte)
-  let method = $state<Method | null>(null);
-  let email = $state(initialEmail?.trim().toLowerCase() ?? "");
-  let code = $state("");
 
-/home/derpcat/projects/homebody/src/lib/features/calendar/components/CalendarShell.svelte:419:3
-Warn: Unused CSS selector ".calendar-shell__lead"
+	const layoutContext = value ?? useCreateLayoutContext();
+	setLayoutContext(layoutContext);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/LiveKitRoom.svelte:26:15
+Warn: This reference only captures the initial value of `externalRoom`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const room = externalRoom ?? new RoomCtor(options);
+	const layoutContext = new LayoutContext();
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/LiveKitRoom.svelte:26:44
+Warn: This reference only captures the initial value of `options`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const room = externalRoom ?? new RoomCtor(options);
+	const layoutContext = new LayoutContext();
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/TrackLoopItem.svelte:15:21
+Warn: This reference only captures the initial value of `trackReference`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	setTrackRefContext(trackReference);
+	setParticipantContext(trackReference.participant);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/TrackLoopItem.svelte:16:24
+Warn: This reference only captures the initial value of `trackReference`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	setTrackRefContext(trackReference);
+	setParticipantContext(trackReference.participant);
+</script>
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/VideoTrack.svelte:23:43
+Warn: This reference only captures the initial value of `trackRef`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const trackReference = useEnsureTrackRef(trackRef);
+	let mediaEl = $state<HTMLVideoElement | null>(null);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/AudioTrack.svelte:22:43
+Warn: This reference only captures the initial value of `trackRef`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const trackReference = useEnsureTrackRef(trackRef);
+	let mediaEl = $state<HTMLAudioElement | null>(null);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantName.svelte:16:12
+Warn: This reference only captures the initial value of `participant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const p = participant ?? getMaybeParticipantContext();
+	const { name, identity } = useParticipantInfo({ participant: p });
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/TrackMutedIndicator.svelte:16:71
+Warn: This reference only captures the initial value of `trackRef`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const { isMuted, className: hookClassName } = useTrackMutedIndicator(trackRef as Parameters<typeof useTrackMutedIndicator>[0]);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/FocusToggle.svelte:22:13
+Warn: This reference only captures the initial value of `trackRef`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	const { mergedProps, inFocus } = useFocusToggle({
+		trackRef: trackRef ?? trackRefFromContext,
+		props: { class: className },
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/FocusToggle.svelte:23:19
+Warn: This reference only captures the initial value of `className`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		trackRef: trackRef ?? trackRefFromContext,
+		props: { class: className },
+	});
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/FocusToggle.svelte:26:23
+Warn: This reference only captures the initial value of `children`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const userChildren = children;
+</script>
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantTile.svelte:36:24
+Warn: This reference only captures the initial value of `trackRef`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const maybeTrackRef = trackRef ?? getMaybeTrackRefContext();
+	if (!maybeTrackRef) {
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantTile.svelte:52:3
+Warn: This reference only captures the initial value of `disableSpeakingIndicator`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		trackRef: trackReference,
+		disableSpeakingIndicator,
+		onParticipantClick,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantTile.svelte:53:3
+Warn: This reference only captures the initial value of `onParticipantClick`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		disableSpeakingIndicator,
+		onParticipantClick,
+		htmlProps: { class: className },
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantTile.svelte:54:23
+Warn: This reference only captures the initial value of `className`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		onParticipantClick,
+		htmlProps: { class: className },
+	});
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/participant/ParticipantTile.svelte:111:5
+Error: Object literal may only specify known properties, and '"src"' does not exist in type '$$ComponentProps'. (ts)
+			<ParticipantPlaceholder
+				src={trackReference.participant.attributes?.avatar ?? ""}
+				alt={trackReference.participant.name || trackReference.participant.identity}
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/layout/CarouselLayout.svelte:63:44
+Warn: This reference only captures the initial value of `tracks`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const sortedTiles = useVisualStableUpdate(tracks, maxVisibleTiles);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/layout/CarouselLayout.svelte:63:52
+Warn: This reference only captures the initial value of `maxVisibleTiles`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const sortedTiles = useVisualStableUpdate(tracks, maxVisibleTiles);
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:30:3
+Warn: This reference only captures the initial value of `source`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	const { enabled, pending, buttonProps } = useTrackToggle({
+		source,
+		initialState,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:31:3
+Warn: This reference only captures the initial value of `initialState`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		source,
+		initialState,
+		onChange,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:32:3
+Warn: This reference only captures the initial value of `onChange`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		initialState,
+		onChange,
+		captureOptions,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:33:3
+Warn: This reference only captures the initial value of `captureOptions`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		onChange,
+		captureOptions,
+		publishOptions,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:34:3
+Warn: This reference only captures the initial value of `publishOptions`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		captureOptions,
+		publishOptions,
+		onDeviceError,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:35:3
+Warn: This reference only captures the initial value of `onDeviceError`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		publishOptions,
+		onDeviceError,
+	});
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/TrackToggle.svelte:38:23
+Warn: This reference only captures the initial value of `children`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const userChildren = children;
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/StartAudio.svelte:15:56
+Warn: This reference only captures the initial value of `room`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	const { canPlayAudio, buttonProps } = useStartAudio({ room });
+</script>
+
+/home/derpcat/projects/homebody/src/lib/livekit/prefabs/PreJoin.svelte:51:3
+Warn: This reference only captures the initial value of `defaults`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	} = usePersistentUserChoices({
+		defaults,
+		preventSave: !persistUserChoices,
+
+/home/derpcat/projects/homebody/src/lib/livekit/prefabs/PreJoin.svelte:52:17
+Warn: This reference only captures the initial value of `persistUserChoices`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		defaults,
+		preventSave: !persistUserChoices,
+		preventLoad: !persistUserChoices,
+
+/home/derpcat/projects/homebody/src/lib/livekit/prefabs/PreJoin.svelte:53:17
+Warn: This reference only captures the initial value of `persistUserChoices`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		preventSave: !persistUserChoices,
+		preventLoad: !persistUserChoices,
+	});
+
+/home/derpcat/projects/homebody/src/lib/pwa/push-subscribe.ts:3:10
+Error: Module '"$env/static/public"' has no exported member 'PUBLIC_VAPID_PUBLIC_KEY'. 
+import type { ConvexClient } from "convex/browser";
+import { PUBLIC_VAPID_PUBLIC_KEY } from "$env/static/public";
+import { canPromptForPushOnThisPlatform } from "./platform";
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/LivePublishSettingsFields.svelte:28:29
+Warn: This reference only captures the initial value of `mode`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  let showAdvanced = $state(mode === "prep");
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/LiveControlBar.svelte:180:3
+Warn: Unused CSS selector ".lr-control-bar__toolbar"
 https://svelte.dev/e/css_unused_selector (svelte)
+<style>
+  .lr-control-bar__toolbar {
+    flex-wrap: nowrap;
 
-  .calendar-shell__lead {
-    margin: 0;
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/LiveRoomAudioUnlock.svelte:7:44
+Warn: This reference only captures the initial value of `room`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
 
-/home/derpcat/projects/homebody/src/lib/features/live/components/room/PreConnectOverlay.svelte:24:19
-Error: Type 'boolean | null' is not assignable to type 'boolean'.
-  Type 'null' is not assignable to type 'boolean'. (ts)
-  const deviceLists = createLiveKitDeviceLists({
-    active: () => showSetup,
-    // After preview getUserMedia succeeds — avoids duplicate permission prompts (components-core guidance).
+  const { canPlayAudio } = useStartAudio({ room });
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/ParticipantSidebarItem.svelte:15:36
+Warn: This reference only captures the initial value of `participant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  const isSpeaking = useIsSpeaking(participant);
+  const media = useParticipantMedia(participant);
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/ParticipantSidebarItem.svelte:16:37
+Warn: This reference only captures the initial value of `participant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+  const isSpeaking = useIsSpeaking(participant);
+  const media = useParticipantMedia(participant);
+
+/home/derpcat/projects/homebody/src/lib/features/live/components/room/RoomInfoContent.svelte:165:3
+Warn: Unused CSS selector ".lr-info-content"
+https://svelte.dev/e/css_unused_selector (svelte)
+<style>
+  .lr-info-content {
+    flex: 1 1 auto;
+
+/home/derpcat/projects/homebody/src/lib/features/live/dock/LivePip.svelte:110:5
+Warn: Elements with the 'toolbar' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus (svelte)
+  >
+    <div
+      class="live-pip__drag"
+      role="toolbar"
+      aria-label={session.classTitle || t.live.room.instructor()}
+      onpointerdown={onDragPointerDown}
+      onpointermove={onDragPointerMove}
+      onpointerup={onDragPointerUp}
+      onpointercancel={onDragPointerUp}
+    >
+      <span class="live-pip__title">{session.classTitle || t.live.room.instructor()}</span>
+      <span class="live-pip__live-dot" aria-hidden="true"></span>
+    </div>
+
+/home/derpcat/projects/homebody/src/lib/features/settings/components/NotificationSettings.svelte:15:12
+Error: Module '"$env/static/public"' has no exported member 'PUBLIC_VAPID_PUBLIC_KEY'. (ts)
+  import { canPromptForPushOnThisPlatform, isIosSafari, isStandaloneDisplayMode } from "$lib/pwa/platform";
+  import { PUBLIC_VAPID_PUBLIC_KEY } from "$env/static/public";
+
+/home/derpcat/projects/homebody/src/lib/features/profile/components/ProfileShell.svelte:88:55
+Error: Property 'certificateDocument' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; }'. (ts)
+      instructorCredentials = appProfileResource.current.credentials ?? "";
+      certificateDataUrl = appProfileResource.current.certificateDocument ?? "";
+      insuranceDataUrl = appProfileResource.current.insuranceDocument ?? "";
+
+/home/derpcat/projects/homebody/src/lib/features/profile/components/ProfileShell.svelte:89:53
+Error: Property 'insuranceDocument' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; }'. (ts)
+      certificateDataUrl = appProfileResource.current.certificateDocument ?? "";
+      insuranceDataUrl = appProfileResource.current.insuranceDocument ?? "";
+    }
+
+/home/derpcat/projects/homebody/src/lib/features/profile/components/ProfileShell.svelte:343:58
+Error: Property 'certificateDocument' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; }'. (ts)
+        credentials={appProfileResource.current?.credentials}
+        certificateDocument={appProfileResource.current?.certificateDocument}
+        insuranceDocument={appProfileResource.current?.insuranceDocument}
+
+/home/derpcat/projects/homebody/src/lib/features/profile/components/ProfileShell.svelte:344:56
+Error: Property 'insuranceDocument' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; }'. (ts)
+        certificateDocument={appProfileResource.current?.certificateDocument}
+        insuranceDocument={appProfileResource.current?.insuranceDocument}
+      />
+
+/home/derpcat/projects/homebody/src/lib/features/studio/components/InstructorVideoManager.svelte:131:10
+Error: Type '{ published: { thumbnailUrl?: string | undefined; durationSeconds?: number | undefined; description: string; updatedAt: number; status: "draft" | "published" | "archived"; createdAt: number; ... 5 more ...; _id: Id<...>; }[]; drafts: { ...; }[]; archived: { ...; }[]; } | null' is not assignable to type '{ published: Video[]; drafts: Video[]; } | null'.
+  Type '{ published: { thumbnailUrl?: string | undefined; durationSeconds?: number | undefined; description: string; updatedAt: number; status: "draft" | "published" | "archived"; createdAt: number; ... 5 more ...; _id: Id<...>; }[]; drafts: { thumbnailUrl?: string | undefined; durationSeconds?: number | undefined; descript...' is not assignable to type '{ published: Video[]; drafts: Video[]; }'.
+    Types of property 'published' are incompatible.
+      Type '{ thumbnailUrl?: string | undefined; durationSeconds?: number | undefined; description: string; updatedAt: number; status: "draft" | "published" | "archived"; createdAt: number; requiredEquipment: EquipmentStorageId[]; ... 4 more ...; _id: Id<...>; }[]' is not assignable to type 'Video[]'.
+        Type '{ thumbnailUrl?: string | undefined; durationSeconds?: number | undefined; description: string; updatedAt: number; status: "draft" | "published" | "archived"; createdAt: number; requiredEquipment: EquipmentStorageId[]; ... 4 more ...; _id: Id<...>; }' is not assignable to type 'Video'.
+          Types of property 'requiredEquipment' are incompatible.
+            Type 'EquipmentStorageId[]' is not assignable to type '("mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls")[]'.
+              Type 'EquipmentStorageId' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'.
+                Type '"barrel"' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'. (ts)
+      <VideoList
+        {library}
+        {actionId}
+
+/home/derpcat/projects/homebody/src/lib/features/studio/components/LiveStudioShell.svelte:171:5
+Error: Type 'EquipmentStorageId[]' is not assignable to type '("mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls")[]'.
+  Type 'EquipmentStorageId' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'.
+    Type '"barrel"' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'. (ts)
+    capacity = liveClass.capacity;
+    requiredEquipment =
+      liveClass.requiredEquipment.length > 0 ? [...liveClass.requiredEquipment] : ["mat"];
+
+/home/derpcat/projects/homebody/src/lib/features/studio/components/LiveStudioShell.svelte:553:3
+Error: Type '{ _id: Id<"liveClasses">; _creationTime: number; seatsTaken?: number | undefined; startScheduledFunctionId?: Id<"_scheduled_functions"> | undefined; endScheduledFunctionId?: Id<...> | undefined; ... 15 more ...; creditCost: number; } | null' is not assignable to type 'LiveClass | null | undefined'.
+  Type '{ _id: Id<"liveClasses">; _creationTime: number; seatsTaken?: number | undefined; startScheduledFunctionId?: Id<"_scheduled_functions"> | undefined; endScheduledFunctionId?: Id<...> | undefined; ... 15 more ...; creditCost: number; }' is not assignable to type 'LiveClass'.
+    Types of property 'requiredEquipment' are incompatible.
+      Type 'EquipmentStorageId[]' is not assignable to type '("mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls")[]'.
+        Type 'EquipmentStorageId' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'.
+          Type '"barrel"' is not assignable to type '"mat" | "reformer" | "cadillac" | "chair" | "spine_corrector" | "small_ball" | "resistance_band" | "roller" | "light_weights" | "magic_circle" | "spiky_balls"'. (ts)
+  anchor={popoverAnchor}
+  liveClass={popoverEditClass}
+  bind:title
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/MediaDeviceSelect.svelte:44:4
+Warn: This reference only captures the initial value of `kind`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		useMediaDeviceSelect({
+			kind,
+			track,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/MediaDeviceSelect.svelte:45:4
+Warn: This reference only captures the initial value of `track`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			kind,
+			track,
+			requestPermissions,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/MediaDeviceSelect.svelte:46:4
+Warn: This reference only captures the initial value of `requestPermissions`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			track,
+			requestPermissions,
+			onError: handleError,
+
+/home/derpcat/projects/homebody/src/lib/livekit/components/controls/MediaDeviceSelect.svelte:88:72
+Warn: The attribute 'aria-disabled' is not supported by the role 'list'. This role is implicit on the element `<ul>`
+https://svelte.dev/e/a11y_role_supports_aria_props_implicit (svelte)
+
+<ul class="lk-list lk-media-device-select {hookClassName} {className}" aria-disabled={disabled}>
+	{#each devices as device, index (device.deviceId)}
+
+/home/derpcat/projects/homebody/src/routes/(app)/+layout.svelte:75:21
+Error: Property 'email' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; } | { ...; }'.
+  Property 'email' does not exist on type '{ _id: Id<"appProfiles">; userId: Id<"users">; displayName: string; role: "customer" | "instructor" | "admin"; avatarUrl: string | null; credentials: string | undefined; }'. (ts)
+					displayName: profile.displayName ?? null,
+					email: profile.email ?? null,
+					avatarUrl: profile.avatarUrl ?? null,
 
 ====================================
-svelte-check found 3 errors and 4 warnings in 6 files
+svelte-check found 15 errors and 40 warnings in 29 files
+error: script "check" exited with code 1

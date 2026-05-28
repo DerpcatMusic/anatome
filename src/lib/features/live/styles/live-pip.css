@@ -123,9 +123,14 @@
 }
 
 @media (max-width: 860px) {
+  .live-pip__btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
   .live-pip__resize {
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
   }
 }
 

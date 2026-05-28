@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/state";
   import AppSidebar from "./AppSidebar.svelte";
+  import AppBottomNav from "./AppBottomNav.svelte";
   import { sidebar } from "$features/app/sidebar.svelte";
   import { clearStuckPageSurfaceStyles } from "$lib/navigation/app-shell-transition";
   import { isLiveRoomPath } from "$lib/features/live/dock/live-dock-paths";
@@ -43,6 +44,7 @@
   class="app-layout"
   class:app-layout--sidebar-collapsed={sidebar.isCollapsed}
   class:app-layout--live-room={isFullbleed && isLiveRoomPath(pathname)}
+  class:app-layout--bottom-nav={!isLiveRoomPath(pathname)}
   data-sidebar-collapsed={sidebar.isCollapsed ? "" : undefined}
 >
   <AppSidebar />
@@ -53,6 +55,9 @@
       </div>
     {/key}
   </main>
+  {#if !isLiveRoomPath(pathname)}
+    <AppBottomNav />
+  {/if}
 </div>
 
 <style>
@@ -138,6 +143,18 @@
 
     .app-main[data-fullbleed] {
       padding: 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .app-layout--bottom-nav .app-main {
+      padding-bottom: calc(
+        var(--app-bottom-nav-height) + max(var(--space-5), env(safe-area-inset-bottom))
+      );
+    }
+
+    .app-layout--bottom-nav .app-main[data-fullbleed] {
+      padding-bottom: var(--app-bottom-nav-height);
     }
   }
 </style>

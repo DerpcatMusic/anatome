@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import MarketingNavbar from '$components/layout/MarketingNavbar.svelte';
 	import LandingAuthHost from '$lib/features/marketing/LandingAuthHost.svelte';
+	import LandingSubscriptionHost from '$lib/features/marketing/LandingSubscriptionHost.svelte';
 	import { useThemeMedia } from '$features/app/themeMedia.svelte';
 	import '@fontsource/secular-one/hebrew-400.css';
 
@@ -15,3 +16,4 @@
 <MarketingNavbar />
 {@render children()}
 <LandingAuthHost />
+<LandingSubscriptionHost />

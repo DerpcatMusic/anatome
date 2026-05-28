@@ -83,6 +83,34 @@ html.pwa-standalone body {
   display: none;
 }
 
+#pwa-offline-banner {
+  position: fixed;
+  inset-inline: max(var(--space-4), env(safe-area-inset-left))
+    max(var(--space-4), env(safe-area-inset-right));
+  top: max(var(--space-4), env(safe-area-inset-top));
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-ambient);
+  font-size: var(--text-sm);
+  color: var(--foreground-muted);
+}
+
+#pwa-offline-banner[hidden] {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  #pwa-update-banner {
+    bottom: calc(var(--app-bottom-nav-height) + var(--space-3));
+  }
+}
+
 ::selection {
   background: var(--secondary-subtle);
   color: var(--ink);
@@ -362,7 +390,7 @@ h3 {
   z-index: 101;
   width: 100%;
   max-width: 420px;
-  max-height: calc(100vh - var(--space-6));
+  max-height: min(90dvh, calc(100dvh - var(--space-6) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
   overflow-y: auto;
   background: var(--white);
   padding: var(--space-6);
@@ -400,7 +428,7 @@ h3 {
 .app-frame {
   border: 0;
   background: var(--white);
-  min-height: calc(100vh - 60px);
+  min-height: calc(100dvh - 60px);
 }
 
 /* ─── Locked State ─── */

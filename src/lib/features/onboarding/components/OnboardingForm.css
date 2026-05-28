@@ -2,14 +2,14 @@
 .onboarding {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100dvh - 56px);
   align-items: stretch;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100dvh - 56px);
   contain: layout;
 }
 

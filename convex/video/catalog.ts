@@ -1,5 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { query } from "../_generated/server";
@@ -29,18 +30,7 @@ const catalogCategoryValidator = v.object({
   description: v.optional(v.string()),
 });
 
-export type CatalogVideoRow = {
-  _id: Id<"videos">;
-  title: string;
-  description: string;
-  thumbnailUrl: string | null;
-  durationSeconds: number | null;
-  accessKind: "macroflow" | "microflow";
-  owned: boolean;
-  accessible: boolean;
-  locked: boolean;
-  createdAt: number;
-};
+export type CatalogVideoRow = Infer<typeof catalogVideoValidator>;
 
 const DESCRIPTION_PREVIEW_MAX = 480;
 
@@ -212,6 +202,18 @@ export const listLibrary = query({
   args: {
     now: v.number(),
   },
+  returns: v.object({
+    isStaff: v.boolean(),
+    vodCredits: v.number(),
+    hasActiveSubscription: v.boolean(),
+    macroflowVideos: v.array(catalogVideoValidator),
+    categoryGroups: v.array(
+      v.object({
+        category: catalogCategoryValidator,
+        items: v.array(catalogVideoValidator),
+      }),
+    ),
+  }),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const at = requireQueryNow(args.now);

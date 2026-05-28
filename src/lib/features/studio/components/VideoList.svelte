@@ -1,22 +1,10 @@
 <script lang="ts">
   import type { Id } from "$convex/_generated/dataModel";
-  import type { Equipment } from "$lib/labels";
+  import type { AdminVideoRow } from "$convex/contracts/video";
   import VideoCard from "./VideoCard.svelte";
 
   type AccessKind = "macroflow" | "microflow";
-
-  interface Video {
-    _id: Id<"videos">;
-    title: string;
-    description: string;
-    durationSeconds?: number;
-    accessKind: AccessKind;
-    muxVideoQuality: string;
-    muxMaxResolutionTier: string;
-    requiredEquipment: Equipment[];
-    status: "published" | "draft" | "archived";
-    thumbnailUrl?: string;
-  }
+  type Video = AdminVideoRow;
 
   interface Props {
     library: {

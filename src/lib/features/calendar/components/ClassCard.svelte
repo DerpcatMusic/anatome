@@ -32,7 +32,7 @@
     nowMs: number;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
     onCancel: (liveClassId: Id<"liveClasses">) => void;
-    onBuyCredits?: () => void;
+    onBuyCredits?: (pool?: CreditPool) => void;
   } = $props();
 
   const { t } = useI18n();
@@ -196,7 +196,11 @@
           {t.calendar.class.cancel()}
         </Button.Root>
       {:else if lacksCredits && CREDITS_PURCHASE_ENABLED && onBuyCredits}
-        <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={onBuyCredits}>
+        <Button.Root
+          class="hb-button hb-button--ink hb-button--sm"
+          type="button"
+          onclick={() => onBuyCredits?.("live")}
+        >
           רכישת קרדיטים
         </Button.Root>
       {:else if isPrivateCreditBlocked}

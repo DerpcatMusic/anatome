@@ -35,7 +35,10 @@
 		</a>
 
 		<div class="navbar__actions">
-			<a class="navbar__link" href="/library">{t.nav.library()}</a>
+			<a class="navbar__link navbar__link--library" href="/library" aria-label={t.nav.library()}>
+				<span class="navbar__link-label">{t.nav.library()}</span>
+				<span class="material-symbols-rounded navbar__link-icon" aria-hidden="true">play_lesson</span>
+			</a>
 
 			<Button.Root
 				class="hb-button hb-button--icon navbar__theme"
@@ -178,6 +181,18 @@
 		flex-shrink: 0;
 	}
 
+	@media (max-width: 767px) {
+		.navbar :global(.navbar__theme) {
+			width: 44px;
+			height: 44px;
+			min-height: 44px;
+		}
+
+		.navbar :global(.navbar__cta) {
+			min-height: 44px;
+		}
+	}
+
 	.navbar__theme-icon {
 		font-size: 1rem;
 		line-height: 1;
@@ -193,9 +208,36 @@
 	}
 
 	@media (max-width: 22rem) {
-		.navbar__link {
-			display: none;
+		.navbar__link--library .navbar__link-label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
 		}
+
+		.navbar__link--library {
+			display: inline-grid;
+			place-items: center;
+			width: 44px;
+			height: 44px;
+			padding: 0;
+			border-radius: 50%;
+			background: color-mix(in oklch, var(--glass-bg) 60%, transparent);
+		}
+
+		.navbar__link-icon {
+			display: inline;
+			font-size: 1.25rem;
+		}
+	}
+
+	.navbar__link-icon {
+		display: none;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

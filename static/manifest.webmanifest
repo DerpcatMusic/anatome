@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "AnatoMe — פילאטיס שיקומי בבית",
   "short_name": "AnatoMe",
   "description": "שיעורי פילאטיס שיקומי בבית — וידאו ולייב",
@@ -7,8 +8,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#18241b",
+  "orientation": "any",
+  "theme_color": "#fbf9f4",
   "background_color": "#fbf9f4",
   "categories": ["health", "fitness"],
   "icons": [

@@ -122,6 +122,12 @@ html[data-theme="light"] {
   --space-8: 64px;
   --space-9: 96px;
 
+  /* App shell — mobile bottom nav (phone ≤767px) */
+  --breakpoint-app-tablet: 860px;
+  --breakpoint-app-phone: 767px;
+  --app-bottom-nav-bar-height: 3.5rem;
+  --app-bottom-nav-height: calc(var(--app-bottom-nav-bar-height) + env(safe-area-inset-bottom, 0px));
+
   --border: 1px solid var(--border-color);
 
   --shadow-sm: 0 2px 8px oklch(22% 0.04 155 / 0.04);

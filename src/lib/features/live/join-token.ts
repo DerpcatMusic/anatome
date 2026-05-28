@@ -5,6 +5,11 @@
  * Connect: `issueJoinCredentials` mints JWT via `api.livekit.token.issueJoin`.
  */
 import { api } from "$convex/_generated/api";
+import type {
+  JoinAccessSnapshot,
+  JoinContext,
+  IssueJoinResult,
+} from "$convex/contracts";
 import type { ConvexClient } from "convex/browser";
 import type { Id } from "$convex/_generated/dataModel";
 import { getCachedRole } from "$lib/auth/session.svelte";
@@ -13,69 +18,16 @@ import { assertIssueJoinMatchesClass } from "$lib/live/join-guard";
 import { isEquipmentJoinError, i18n } from "./live-room-shared";
 import type { RoomStatus } from "./types";
 
+export type { JoinAccessSnapshot };
+
 /** Mirrors reference `useToken` phases; `token` means JWT is minted and ready to connect. */
 export type JoinTokenPhase = "idle" | "loading" | "error" | "token";
 
-export type JoinInfo = {
-  wsUrl: string;
-  token: string;
-  roomName: string;
+export type JoinInfo = IssueJoinResult & {
   liveClassId?: Id<"liveClasses">;
-  participantRole: import("./types").ParticipantRole;
-  joinClosesAt: number;
-  classTitle: string;
-  instructorName: string;
-  liveClassType: import("./types").LiveClassType;
 };
 
-export type JoinAccessSnapshot = {
-  joinOpensAt: number;
-  joinClosesAt: number;
-  startsAt: number;
-  status: "draft" | "scheduled" | "live" | "ended" | "cancelled";
-  canEnter: boolean;
-  minutesUntilOpen: number | null;
-  minutesUntilClose: number | null;
-  isInstructor: boolean;
-  equipmentBlocked: boolean;
-  isBroadcastLive: boolean;
-  broadcastStartedByUserId?: import("$convex/_generated/dataModel").Id<"users">;
-  subscriberReceivePreset: "low" | "medium" | "high";
-};
-
-export type JoinContextSnapshot = JoinAccessSnapshot & {
-  classTitle: string;
-};
-
-/** Value equality for join access (avoids `$state` proxy `!==` mismatches). */
-export function joinAccessSnapshotsEqual(
-  a: JoinAccessSnapshot | null,
-  b: JoinAccessSnapshot | null,
-): boolean {
-  if (a === null && b === null) return true;
-  if (a === null || b === null) return false;
-  return (
-    a.joinOpensAt === b.joinOpensAt &&
-    a.joinClosesAt === b.joinClosesAt &&
-    a.startsAt === b.startsAt &&
-    a.status === b.status &&
-    a.canEnter === b.canEnter &&
-    a.minutesUntilOpen === b.minutesUntilOpen &&
-    a.minutesUntilClose === b.minutesUntilClose &&
-    a.isInstructor === b.isInstructor &&
-    a.equipmentBlocked === b.equipmentBlocked &&
-    a.isBroadcastLive === b.isBroadcastLive &&
-    a.broadcastStartedByUserId === b.broadcastStartedByUserId &&
-    a.subscriberReceivePreset === b.subscriberReceivePreset
-  );
-}
-
-/** Value equality for minted JWT join payloads. */
-export function joinInfoEqual(a: JoinInfo | null, b: JoinInfo | null): boolean {
-  if (a === null && b === null) return true;
-  if (a === null || b === null) return false;
-  return a.token === b.token && a.roomName === b.roomName;
-}
+export type JoinContextSnapshot = NonNullable<JoinContext>;
 
 export type JoinTokenSnapshot = {
   phase: JoinTokenPhase;
@@ -125,6 +77,36 @@ function mapAccessToStatus(
       (access.status === "live" && !access.isBroadcastLive));
   const status: RoomStatus = hostMustStartBroadcast ? "prep" : "ready";
   return { status, error: "", phase: "idle" };
+}
+
+/** Value equality for join access (avoids `$state` proxy `!==` mismatches). */
+export function joinAccessSnapshotsEqual(
+  a: JoinAccessSnapshot | null,
+  b: JoinAccessSnapshot | null,
+): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return (
+    a.joinOpensAt === b.joinOpensAt &&
+    a.joinClosesAt === b.joinClosesAt &&
+    a.startsAt === b.startsAt &&
+    a.status === b.status &&
+    a.canEnter === b.canEnter &&
+    a.minutesUntilOpen === b.minutesUntilOpen &&
+    a.minutesUntilClose === b.minutesUntilClose &&
+    a.isInstructor === b.isInstructor &&
+    a.equipmentBlocked === b.equipmentBlocked &&
+    a.isBroadcastLive === b.isBroadcastLive &&
+    a.broadcastStartedByUserId === b.broadcastStartedByUserId &&
+    a.subscriberReceivePreset === b.subscriberReceivePreset
+  );
+}
+
+/** Value equality for minted JWT join payloads. */
+export function joinInfoEqual(a: JoinInfo | null, b: JoinInfo | null): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return a.token === b.token && a.roomName === b.roomName;
 }
 
 /** Access-only preflight (no JWT). */
