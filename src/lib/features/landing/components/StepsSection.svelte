@@ -34,6 +34,13 @@
           <p>{t.landing.steps.step3Desc()}</p>
         </div>
       </li>
+      <li class="step l-in l-in--3">
+        <span class="step__index" aria-hidden="true">4</span>
+        <div>
+          <h3>{t.landing.steps.step4Title()}</h3>
+          <p>{t.landing.steps.step4Desc()}</p>
+        </div>
+      </li>
       </ol>
     </div>
   </div>

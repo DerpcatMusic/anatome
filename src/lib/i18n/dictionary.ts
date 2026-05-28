@@ -184,7 +184,7 @@ export const dictionary: Dictionary = {
     "onboarding.goals.subtitle": "",
     "onboarding.goals.emptyWarning": "בחרי לפחות מטרה אחת.",
     "onboarding.notes.title": "משהו חשוב שנדע",
-    "onboarding.notes.subtitle": "",
+    "onboarding.notes.subtitle": "דילגתם על ההתאמות? פספסתם את הליווי המקצועי שמגיע לגוף שלכם.",
     "onboarding.notes.placeholder": "כאבים, מגבלות, העדפות…",
     "onboarding.summary.title": "סיכום ההתאמה",
     "onboarding.summary.name": "שם",

@@ -149,20 +149,14 @@ type RootTranslation = {
 		}
 		philosophy: {
 			/**
-			 * כ​ש​ל​א​ ​י​ו​צ​א​י​ם​ ​מ​ה​ב​י​ת
+			 * כ​ש​ל​א​ ​י​ו​צ​א​י​ם​ ​מ​ה​ב​י​ת​ ​–​ ​נ​כ​נ​ס​י​ם​ ​ל​כ​ו​ש​ר​ ​ש​י​א​!
 			 */
 			headline: string
 			/**
-			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​מ​ד​ו​י​ק​ ​—​ 
+			 * פ​י​ל​א​ט​י​ס​ ​ש​י​ק​ו​מ​י​ ​ו​מ​ד​ו​י​ק​ ​—​ ​ב​ל​י​ ​פ​ק​ק​י​ם​,​ ​ב​ל​י​ ​ח​י​פ​ו​ש​י​ ​ח​נ​י​ה​ ​ו​ב​ל​י​ ​ת​י​ר​ו​צ​י​ם​.
 			 */
 			bodyBefore: string
-			/**
-			 * ב​ל​י​ ​פ​ק​ק​י​ם​,​ ​ב​ל​י​ ​ד​י​ל​ו​ג​ ​ע​ל​ ​ה​ת​א​מ​ו​ת
-			 */
 			bodyStrike: string
-			/**
-			 * ,​ ​ע​ם​ ​ל​י​ו​ו​י​ ​מ​ק​צ​ו​ע​י​ ​ל​ג​ו​ף​ ​ש​ל​ך​.
-			 */
 			bodyAfter: string
 		}
 		instructor: {
@@ -294,29 +288,37 @@ type RootTranslation = {
 			 */
 			headline: string
 			/**
-			 * נ​ר​ש​מ​י​ם
+			 * ה​ר​ש​מ​ה​ ​ל​ל​א​ ​ס​י​ס​מ​ה
 			 */
 			step1Title: string
 			/**
-			 * א​י​מ​י​י​ל​ ​ו​ק​ו​ד​ ​ח​ד​ ​פ​ע​מ​י​.​ ​ב​ל​י​ ​ס​י​ס​מ​ה​.
+			 * נ​כ​נ​ס​י​ם​ ​ב​ק​ל​ו​ת​ ​ו​ב​מ​ה​י​ר​ו​ת​ ​ר​ק​ ​ע​ם​ ​כ​ת​ו​ב​ת​ ​ה​א​י​מ​י​י​ל​ ​ו​ק​ו​ד​.
 			 */
 			step1Desc: string
 			/**
-			 * מ​ס​פ​ר​י​ם​ ​ל​נ​ו​ ​ע​ל​ ​ה​ג​ו​ף
+			 * ה​ג​ד​ר​ה​ ​מ​ו​ת​א​מ​ת​ ​א​י​ש​י​ת
 			 */
 			step2Title: string
 			/**
-			 * כ​א​ב​י​ם​,​ ​מ​ט​ר​ו​ת​,​ ​ו​א​י​ז​ה​ ​צ​י​ו​ד​ ​י​ש​ ​ל​ך​ ​ב​ב​י​ת​.
+			 * מ​ס​פ​ר​י​ם​ ​ל​נ​ו​ ​ע​ל​י​ך​ ​ו​ע​ל​ ​ה​צ​י​ו​ד​ ​ש​ל​ך​,​ ​כ​ד​י​ ​ש​נ​ת​א​י​ם​ ​ל​ך​ ​א​ת​ ​ה​א​י​מ​ו​ן​ ​ה​מ​ד​ו​י​ק​ ​ב​י​ו​ת​ר​.
 			 */
 			step2Desc: string
 			/**
-			 * ב​ו​ח​ר​י​ם​ ​ש​י​ע​ו​ר​ ​ו​מ​ת​ח​י​ל​י​ם
+			 * כ​נ​י​ס​ה​ ​מ​י​י​ד​י​ת​ ​ל​ש​י​ע​ו​ר
 			 */
 			step3Title: string
 			/**
-			 * מ​ו​ק​ל​ט​ ​א​ו​ ​ל​י​י​ב​.​ ​ל​ו​ח​צ​י​ם​ ​ה​צ​ט​ר​פ​ו​ת​ ​ו​ז​ה​ו​.
+			 * מ​ג​ו​ו​ן​ ​ש​י​ע​ו​ר​י​ם​ ​מ​ו​ק​ל​ט​י​ם​ ​מ​ח​כ​י​ם​ ​ל​ך​ ​ב​מ​ר​ח​ק​ ​ק​ל​י​ק​ ​א​ח​ד​.
 			 */
 			step3Desc: string
+			/**
+			 * ש​י​ע​ו​ר​י​ ​ל​י​י​ב
+			 */
+			step4Title: string
+			/**
+			 * ל​י​י​ב​ ​א​ח​ד​ ​ע​ל​ ​א​ח​ד​ ​א​ו​ ​ב​ק​ב​ו​צ​ה​ ​ב​מ​ר​ח​ק​ ​ש​ל​ ​3​ ​צ​ע​ד​י​ם​ ​מ​ה​ס​פ​ה​.
+			 */
+			step4Desc: string
 		}
 		pricing: {
 			/**
@@ -846,6 +848,9 @@ type RootTranslation = {
 			 * מ​ש​ה​ו​ ​ח​ש​ו​ב​ ​ש​נ​ד​ע
 			 */
 			title: string
+			/**
+			 * ד​י​ל​ג​ת​ם​ ​ע​ל​ ​ה​ה​ת​א​מ​ו​ת​?​ ​פ​ס​פ​ס​ת​ם​ ​א​ת​ ​ה​ל​י​ו​ו​י​ ​ה​מ​ק​צ​ו​ע​י​ ​ש​מ​ג​י​ע​ ​ל​ג​ו​ף​ ​ש​ל​כ​ם​.
+			 */
 			subtitle: string
 			/**
 			 * פ​ר​ט​י​ם​ ​נ​ו​ס​פ​י​ם​,​ ​מ​ג​ב​ל​ו​ת​ ​א​ו​ ​ה​ע​ד​פ​ו​ת​…
@@ -1837,6 +1842,9 @@ type RootTranslation = {
 			 * ה​ש​י​ע​ו​ר​ ​ע​ד​י​י​ן​ ​ל​א​ ​ה​ת​ח​י​ל​.​ ​ר​ק​ ​מ​ד​ר​י​כ​ה​ ​א​ו​ ​א​ד​מ​י​ן​ ​י​כ​ו​ל​י​ם​ ​ל​ה​ת​ח​י​ל​ ​א​ו​ת​ו​ ​מ​כ​א​ן​.
 			 */
 			prepNoticeInstructor: string
+			/**
+			 * מ​א​ר​ח​ת​ ​ה​ש​י​ע​ו​ר
+			 */
 			hostBadge: string
 			/**
 			 * ק​ו​ל​ ​ה​מ​ד​ר​י​כ​ה
@@ -1914,21 +1922,69 @@ type RootTranslation = {
 			 * ב​ד​י​ק​ת​ ​מ​כ​ש​י​ר​י​ם
 			 */
 			devicesCheckTitle: string
+			/**
+			 * ה​ג​ד​ר​ו​ת​ ​מ​ת​ק​ד​מ​ו​ת
+			 */
 			advancedSettingsLabel: string
+			/**
+			 * ב​ו​ח​ר​י​ם​ ​פ​ר​י​ס​ט​ ​א​ח​ד​ ​—​ ​ה​ו​א​ ​ק​ו​ב​ע​ ​א​ת​ ​א​י​כ​ו​ת​ ​ה​ש​י​ד​ו​ר​ ​ש​ל​ך​.
+			 */
 			publishPrepHint: string
+			/**
+			 * מ​ש​ת​ת​פ​ו​ת​ ​י​ר​א​ו​ ​א​ו​ת​ך​ ​ב​א​י​כ​ו​ת​ ​ה​פ​ר​י​ס​ט​.​ ​ז​ו​ו​י​ת​ ​צ​ד​ ​ב​י​ן​ ​מ​ש​ת​ת​פ​ו​ת​ ​ת​מ​י​ד​ ​3​6​0​p​.​ ​א​ת​ ​ר​ו​א​ה​ ​א​ו​ת​ן​ ​ד​ר​ג​ה​ ​א​ח​ת​ ​מ​ת​ח​ת​ ​ל​ש​ל​ך​.
+			 */
 			presetAudienceNote: string
+			/**
+			 * ש​י​נ​ו​י​ ​ק​ו​ד​ק​ ​א​ו​ ​ר​ז​ו​ל​ו​צ​י​ה​ ​ע​ש​ו​י​ ​ל​ד​ר​ו​ש​ ​כ​י​ב​ו​י​ ​ו​ה​ד​ל​ק​ת​ ​מ​צ​ל​מ​ה​ ​מ​ח​ד​ש​.
+			 */
 			publishInRoomHint: string
+			/**
+			 * מ​מ​ת​י​ן​ ​ל​ה​ת​ח​ל​ת​ ​ש​י​ד​ו​ר
+			 */
 			statusAwaitingStart: string
+			/**
+			 * ל​ה​ת​ח​י​ל​ ​א​ת​ ​ה​ש​י​ע​ו​ר​ ​—​ ​ל​ח​צ​י​ ​ע​ל​ ​ה​כ​פ​ת​ו​ר​ ​ל​מ​ט​ה
+			 */
 			prepCalloutTitle: string
+			/**
+			 * ה​ש​י​ע​ו​ר​ ​כ​ב​ר​ ​ב​ש​י​ד​ו​ר​.​ ​א​פ​ש​ר​ ​ל​ה​י​כ​נ​ס​ ​ל​ח​ד​ר​ ​ב​ל​י​ ​ל​ה​ת​ח​י​ל​ ​ש​ו​ב​.
+			 */
 			reenterLiveNotice: string
+			/**
+			 * H​.​2​6​5​ ​(​H​E​V​C​)​ ​א​י​נ​ו​ ​נ​ת​מ​ך​ ​ב​ד​פ​ד​פ​ן​ ​ד​ר​ך​ ​L​i​v​e​K​i​t​ ​—​ ​ה​ש​ת​מ​ש​י​ ​ב​-​H​.​2​6​4​ ​ל​ת​א​י​מ​ו​ת​ ​מ​ר​ב​י​ת​.
+			 */
 			codecHevcNote: string
+			/**
+			 * א​י​ך​ ​ה​מ​ש​ת​ת​פ​ו​ת​ ​ר​ו​א​ו​ת​ ​א​ו​ת​ך
+			 */
 			subscriberReceiveTitle: string
+			/**
+			 * ש​ו​ל​ט​ ​ב​ר​ז​ו​ל​ו​צ​י​ה​ ​ש​ה​ן​ ​מ​ו​ר​י​ד​ו​ת​ ​מ​ה​ש​י​ד​ו​ר​ ​ש​ל​ך​ ​—​ ​ח​ו​ס​ך​ ​ר​ו​ח​ב​ ​פ​ס​ ​כ​ש​מ​ג​ד​י​ר​י​ם​ ​נ​מ​ו​ך​.
+			 */
 			subscriberReceiveHint: string
+			/**
+			 * 3​6​0​p
+			 */
 			subscriberReceiveLow: string
+			/**
+			 * 7​2​0​p
+			 */
 			subscriberReceiveMedium: string
+			/**
+			 * 1​0​8​0​p
+			 */
 			subscriberReceiveHigh: string
+			/**
+			 * ח​ו​ס​ך​ ​ר​ו​ח​ב​ ​פ​ס
+			 */
 			subscriberReceiveLowDesc: string
+			/**
+			 * מ​א​ו​ז​ן
+			 */
 			subscriberReceiveMediumDesc: string
+			/**
+			 * א​י​כ​ו​ת​ ​מ​ל​א​ה
+			 */
 			subscriberReceiveHighDesc: string
 		}
 		room: {
@@ -1980,14 +2036,29 @@ type RootTranslation = {
 			 * ש​י​ת​ו​ף​ ​מ​ס​ך
 			 */
 			screenShare: string
+			/**
+			 * ה​פ​ע​ל​ת​ ​ש​מ​ע
+			 */
 			allowAudioPlayback: string
+			/**
+			 * ש​י​ד​ו​ר​ ​ח​י
+			 */
 			classStatusLive: string
+			/**
+			 * מ​ת​ו​ז​מ​ן
+			 */
 			classStatusScheduled: string
+			/**
+			 * ה​ס​ת​י​י​ם
+			 */
 			classStatusEnded: string
 			/**
 			 * א​י​ן​ ​ו​י​ד​א​ו
 			 */
 			noVideo: string
+			/**
+			 * ל​א​ ​ז​ו​ה​ת​ה​ ​מ​צ​ל​מ​ה
+			 */
 			noCameraDetected: string
 			/**
 			 * מ​ח​כ​י​ם​ ​ש​ה​מ​ד​ר​י​כ​ה​ ​ת​ת​ח​ב​ר​.​.​.
@@ -1998,7 +2069,13 @@ type RootTranslation = {
 			 * @param {unknown} instructor
 			 */
 			waitingForInstructorNamed: RequiredParams<'instructor'>
+			/**
+			 * ה​ש​י​ד​ו​ר​ ​ע​ד​י​י​ן​ ​ל​א​ ​ה​ת​ח​י​ל
+			 */
 			waitingForBroadcastTitle: string
+			/**
+			 * מ​מ​ת​י​נ​י​ם​ ​ש​ה​מ​ד​ר​י​כ​ה​ ​ת​ת​ח​י​ל​ ​א​ת​ ​ה​ש​י​ד​ו​ר​.​ ​נ​ע​ד​כ​ן​ ​כ​ש​ה​ח​ד​ר​ ​י​י​פ​ת​ח​.
+			 */
 			waitingForBroadcastStart: string
 			/**
 			 * {​t​i​t​l​e​}
@@ -2296,11 +2373,29 @@ type RootTranslation = {
 			 * ח​י​ב​ו​ר
 			 */
 			sidebarConnection: string
+			/**
+			 * א​י​כ​ו​ת​ ​ח​י​ב​ו​ר
+			 */
 			sidebarQuality: string
+			/**
+			 * פ​ר​ו​פ​י​ל​ ​ש​י​ד​ו​ר
+			 */
 			sidebarPublish: string
+			/**
+			 * מ​ס​ל​ו​ל​י​ם​ ​פ​ע​י​ל​י​ם
+			 */
 			sidebarTracks: string
+			/**
+			 * מ​ד​י​ד​ה​ ​ח​י​ה
+			 */
 			sidebarLiveStats: string
+			/**
+			 * פ​ע​י​ל
+			 */
 			sidebarOn: string
+			/**
+			 * כ​ב​ו​י
+			 */
 			sidebarOff: string
 			/**
 			 * מ​י​ק​ר​ו​פ​ו​ן​ ​פ​ע​י​ל
@@ -2913,20 +3008,14 @@ export type TranslationFunctions = {
 		}
 		philosophy: {
 			/**
-			 * כשלא יוצאים מהבית
+			 * כשלא יוצאים מהבית – נכנסים לכושר שיא!
 			 */
 			headline: () => LocalizedString
 			/**
-			 * פילאטיס שיקומי מדויק — 
+			 * פילאטיס שיקומי ומדויק — בלי פקקים, בלי חיפושי חניה ובלי תירוצים.
 			 */
 			bodyBefore: () => LocalizedString
-			/**
-			 * בלי פקקים, בלי דילוג על התאמות
-			 */
 			bodyStrike: () => LocalizedString
-			/**
-			 * , עם ליווי מקצועי לגוף שלך.
-			 */
 			bodyAfter: () => LocalizedString
 		}
 		instructor: {
@@ -3058,29 +3147,37 @@ export type TranslationFunctions = {
 			 */
 			headline: () => LocalizedString
 			/**
-			 * נרשמים
+			 * הרשמה ללא סיסמה
 			 */
 			step1Title: () => LocalizedString
 			/**
-			 * אימייל וקוד חד פעמי. בלי סיסמה.
+			 * נכנסים בקלות ובמהירות רק עם כתובת האימייל וקוד.
 			 */
 			step1Desc: () => LocalizedString
 			/**
-			 * מספרים לנו על הגוף
+			 * הגדרה מותאמת אישית
 			 */
 			step2Title: () => LocalizedString
 			/**
-			 * כאבים, מטרות, ואיזה ציוד יש לך בבית.
+			 * מספרים לנו עליך ועל הציוד שלך, כדי שנתאים לך את האימון המדויק ביותר.
 			 */
 			step2Desc: () => LocalizedString
 			/**
-			 * בוחרים שיעור ומתחילים
+			 * כניסה מיידית לשיעור
 			 */
 			step3Title: () => LocalizedString
 			/**
-			 * מוקלט או לייב. לוחצים הצטרפות וזהו.
+			 * מגוון שיעורים מוקלטים מחכים לך במרחק קליק אחד.
 			 */
 			step3Desc: () => LocalizedString
+			/**
+			 * שיעורי לייב
+			 */
+			step4Title: () => LocalizedString
+			/**
+			 * לייב אחד על אחד או בקבוצה במרחק של 3 צעדים מהספה.
+			 */
+			step4Desc: () => LocalizedString
 		}
 		pricing: {
 			/**
@@ -3608,6 +3705,9 @@ export type TranslationFunctions = {
 			 * משהו חשוב שנדע
 			 */
 			title: () => LocalizedString
+			/**
+			 * דילגתם על ההתאמות? פספסתם את הליווי המקצועי שמגיע לגוף שלכם.
+			 */
 			subtitle: () => LocalizedString
 			/**
 			 * פרטים נוספים, מגבלות או העדפות…
@@ -4590,6 +4690,9 @@ export type TranslationFunctions = {
 			 * השיעור עדיין לא התחיל. רק מדריכה או אדמין יכולים להתחיל אותו מכאן.
 			 */
 			prepNoticeInstructor: () => LocalizedString
+			/**
+			 * מארחת השיעור
+			 */
 			hostBadge: () => LocalizedString
 			/**
 			 * קול המדריכה
@@ -4667,21 +4770,69 @@ export type TranslationFunctions = {
 			 * בדיקת מכשירים
 			 */
 			devicesCheckTitle: () => LocalizedString
+			/**
+			 * הגדרות מתקדמות
+			 */
 			advancedSettingsLabel: () => LocalizedString
+			/**
+			 * בוחרים פריסט אחד — הוא קובע את איכות השידור שלך.
+			 */
 			publishPrepHint: () => LocalizedString
+			/**
+			 * משתתפות יראו אותך באיכות הפריסט. זווית צד בין משתתפות תמיד 360p. את רואה אותן דרגה אחת מתחת לשלך.
+			 */
 			presetAudienceNote: () => LocalizedString
+			/**
+			 * שינוי קודק או רזולוציה עשוי לדרוש כיבוי והדלקת מצלמה מחדש.
+			 */
 			publishInRoomHint: () => LocalizedString
+			/**
+			 * ממתין להתחלת שידור
+			 */
 			statusAwaitingStart: () => LocalizedString
+			/**
+			 * להתחיל את השיעור — לחצי על הכפתור למטה
+			 */
 			prepCalloutTitle: () => LocalizedString
+			/**
+			 * השיעור כבר בשידור. אפשר להיכנס לחדר בלי להתחיל שוב.
+			 */
 			reenterLiveNotice: () => LocalizedString
+			/**
+			 * H.265 (HEVC) אינו נתמך בדפדפן דרך LiveKit — השתמשי ב-H.264 לתאימות מרבית.
+			 */
 			codecHevcNote: () => LocalizedString
+			/**
+			 * איך המשתתפות רואות אותך
+			 */
 			subscriberReceiveTitle: () => LocalizedString
+			/**
+			 * שולט ברזולוציה שהן מורידות מהשידור שלך — חוסך רוחב פס כשמגדירים נמוך.
+			 */
 			subscriberReceiveHint: () => LocalizedString
+			/**
+			 * 360p
+			 */
 			subscriberReceiveLow: () => LocalizedString
+			/**
+			 * 720p
+			 */
 			subscriberReceiveMedium: () => LocalizedString
+			/**
+			 * 1080p
+			 */
 			subscriberReceiveHigh: () => LocalizedString
+			/**
+			 * חוסך רוחב פס
+			 */
 			subscriberReceiveLowDesc: () => LocalizedString
+			/**
+			 * מאוזן
+			 */
 			subscriberReceiveMediumDesc: () => LocalizedString
+			/**
+			 * איכות מלאה
+			 */
 			subscriberReceiveHighDesc: () => LocalizedString
 		}
 		room: {
@@ -4733,14 +4884,29 @@ export type TranslationFunctions = {
 			 * שיתוף מסך
 			 */
 			screenShare: () => LocalizedString
+			/**
+			 * הפעלת שמע
+			 */
 			allowAudioPlayback: () => LocalizedString
+			/**
+			 * שידור חי
+			 */
 			classStatusLive: () => LocalizedString
+			/**
+			 * מתוזמן
+			 */
 			classStatusScheduled: () => LocalizedString
+			/**
+			 * הסתיים
+			 */
 			classStatusEnded: () => LocalizedString
 			/**
 			 * אין וידאו
 			 */
 			noVideo: () => LocalizedString
+			/**
+			 * לא זוהתה מצלמה
+			 */
 			noCameraDetected: () => LocalizedString
 			/**
 			 * מחכים שהמדריכה תתחבר...
@@ -4750,7 +4916,13 @@ export type TranslationFunctions = {
 			 * מחכים ל{instructor}…
 			 */
 			waitingForInstructorNamed: (arg: { instructor: unknown }) => LocalizedString
+			/**
+			 * השידור עדיין לא התחיל
+			 */
 			waitingForBroadcastTitle: () => LocalizedString
+			/**
+			 * ממתינים שהמדריכה תתחיל את השידור. נעדכן כשהחדר ייפתח.
+			 */
 			waitingForBroadcastStart: () => LocalizedString
 			/**
 			 * {title}
@@ -5044,11 +5216,29 @@ export type TranslationFunctions = {
 			 * חיבור
 			 */
 			sidebarConnection: () => LocalizedString
+			/**
+			 * איכות חיבור
+			 */
 			sidebarQuality: () => LocalizedString
+			/**
+			 * פרופיל שידור
+			 */
 			sidebarPublish: () => LocalizedString
+			/**
+			 * מסלולים פעילים
+			 */
 			sidebarTracks: () => LocalizedString
+			/**
+			 * מדידה חיה
+			 */
 			sidebarLiveStats: () => LocalizedString
+			/**
+			 * פעיל
+			 */
 			sidebarOn: () => LocalizedString
+			/**
+			 * כבוי
+			 */
 			sidebarOff: () => LocalizedString
 			/**
 			 * מיקרופון פעיל

@@ -58,7 +58,7 @@
     { id: "experience" as const, title: t.onboarding.experience.title(), subtitle: t.onboarding.experience.subtitle() },
     { id: "equipment" as const, title: t.onboarding.equipment.title(), subtitle: t.onboarding.equipment.subtitle() },
     { id: "goals" as const, title: t.onboarding.goals.title(), subtitle: t.onboarding.goals.subtitle() },
-    { id: "notes" as const, title: t.onboarding.notes.title(), subtitle: "" },
+    { id: "notes" as const, title: t.onboarding.notes.title(), subtitle: t.onboarding.notes.subtitle() },
     { id: "health-declaration" as const, title: t.onboarding.healthDeclaration.title(), subtitle: t.onboarding.healthDeclaration.subtitle() },
     { id: "summary" as const, title: t.onboarding.summary.title(), subtitle: t.onboarding.summary.subtitle() },
   ] as const;

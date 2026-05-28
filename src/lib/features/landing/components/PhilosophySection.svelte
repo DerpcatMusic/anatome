@@ -8,9 +8,9 @@
   <div class="l-shell philosophy">
     <h2 class="section-title l-in">{t.landing.philosophy.headline()}</h2>
     <p class="philosophy__body l-in l-in--1">
-      {t.landing.philosophy.bodyBefore()}<span class="philosophy__strike"
-        >{t.landing.philosophy.bodyStrike()}</span
-      >{t.landing.philosophy.bodyAfter()}
+      {t.landing.philosophy.bodyBefore()}{#if t.landing.philosophy.bodyStrike()}<span
+          class="philosophy__strike">{t.landing.philosophy.bodyStrike()}</span
+        >{/if}{t.landing.philosophy.bodyAfter()}
     </p>
   </div>
 </section>

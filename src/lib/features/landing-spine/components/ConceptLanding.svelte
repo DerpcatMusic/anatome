@@ -138,9 +138,9 @@
       <StoryCard region="thoracic" sectionIndex={2} ariaLabel="למה מהבית">
         <h2 class="concept-section-title">{t.landing.philosophy.headline()}</h2>
         <p class="concept-body">
-          {t.landing.philosophy.bodyBefore()}<span class="concept-strike"
-            >{t.landing.philosophy.bodyStrike()}</span
-          >{t.landing.philosophy.bodyAfter()}
+          {t.landing.philosophy.bodyBefore()}{#if t.landing.philosophy.bodyStrike()}<span
+              class="concept-strike">{t.landing.philosophy.bodyStrike()}</span
+            >{/if}{t.landing.philosophy.bodyAfter()}
         </p>
       </StoryCard>
 
@@ -166,6 +166,13 @@
             <div>
               <h3>{t.landing.steps.step3Title()}</h3>
               <p>{t.landing.steps.step3Desc()}</p>
+            </div>
+          </li>
+          <li class="concept-step">
+            <span class="concept-step__index" aria-hidden="true">4</span>
+            <div>
+              <h3>{t.landing.steps.step4Title()}</h3>
+              <p>{t.landing.steps.step4Desc()}</p>
             </div>
           </li>
         </ol>
