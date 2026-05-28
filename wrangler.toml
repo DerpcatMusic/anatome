@@ -1,6 +1,14 @@
 # Static SvelteKit (@sveltejs/adapter-static → build/). Convex stays off Cloudflare.
 #
-# CI: build = bun run build, deploy = bun run deploy
+# Workers Builds (Dashboard → Settings → Build):
+#   Build variable: SKIP_DEPENDENCY_INSTALL = true
+#   Build command:  bun run ci:build
+#   (optional) BUN_VERSION = 1.2.15  — matches .bun-version
+#
+# Cloudflare's default `bun install --frozen-lockfile` fails when bun.lock drifts;
+# ci:build runs `bun install` (updates lock in CI) then vite build.
+#
+# GitHub Actions: .github/workflows/deploy-cloudflare.yml uses the same ci:build.
 #
 # Custom domains: anatome.co.il + www.anatome.co.il (delete apex A to old host first).
 

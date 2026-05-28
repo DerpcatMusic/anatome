@@ -75,8 +75,12 @@ You do **not** need `@sveltejs/adapter-cloudflare` or SSR on Cloudflare. Convex 
 
 | Setting | Value |
 |---------|--------|
-| **Build command** | `bun run build` |
+| **Build variable** | `SKIP_DEPENDENCY_INSTALL` = `true` (disables Cloudflare’s frozen `bun install`) |
+| **Build variable** (optional) | `BUN_VERSION` = `1.2.15` (matches `.bun-version`) |
+| **Build command** | `bun run ci:build` (`bun install` then `vite build` — lockfile may refresh in CI) |
 | **Deploy command** | `bun run deploy` (`wrangler deploy` — uses `[assets]` in `wrangler.toml`) |
+
+Without `SKIP_DEPENDENCY_INSTALL`, Workers Builds runs `bun install --frozen-lockfile` before your build command and often fails when `bun.lock` is slightly out of sync with `package.json`.
 
 `wrangler.toml` deploys `build/` as static assets plus a tiny `worker/index.ts` that serves `app.html` on 404 (SPA shell). Do **not** use `/* /app.html 200` in `_redirects` on Workers — it breaks `/_app/*` assets and `html_handling` turns `.html` into 307 redirects (`/200`, `/app`, …), causing **522** timeouts.
 

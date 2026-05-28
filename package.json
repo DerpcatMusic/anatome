@@ -5,10 +5,13 @@
   "engines": {
     "node": ">=22.12.0"
   },
+  "packageManager": "bun@1.2.15",
   "scripts": {
     "dev": "vite dev",
     "dev:reset": "rm -rf node_modules/.vite && vite dev",
     "dev:convex": "convex dev",
+    "ci:install": "bun install",
+    "ci:build": "bun run ci:install && bun run build",
     "build": "vite build",
     "deploy": "bunx wrangler deploy",
     "pages:deploy": "vite build && bun run deploy",

@@ -23,13 +23,10 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version-file: package.json
+          bun-version-file: .bun-version
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build static site
-        run: bun run build
+      - name: Install and build static site
+        run: bun run ci:build
         env:
           PUBLIC_CONVEX_CLIENT_URL: ${{ secrets.PUBLIC_CONVEX_CLIENT_URL }}
           PUBLIC_MUX_ENV_KEY: ${{ secrets.PUBLIC_MUX_ENV_KEY }}
