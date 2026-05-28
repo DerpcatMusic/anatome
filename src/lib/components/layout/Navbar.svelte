@@ -2,6 +2,7 @@
   import { Button } from "bits-ui";
   import { initAuth, signOut } from "$lib/auth/session.svelte";
   import { theme } from "$features/app/theme.svelte";
+  import AnatoMeLogo from "$lib/components/brand/AnatoMeLogo.svelte";
   import { useI18n } from "$lib/i18n/runes";
 
   const auth = initAuth();
@@ -14,8 +15,8 @@
 
 <nav class="navbar" aria-label="ניווט ראשי">
   <div class="navbar__inner">
-    <a class="navbar__brand" href="/">
-      <span class="navbar__logo">{t.site.name()}</span>
+    <a class="navbar__brand" href="/" aria-label={t.site.name()}>
+      <AnatoMeLogo class="navbar__logo" size={40} />
       <span class="navbar__divider">/</span>
       <span class="navbar__tagline">{t.site.tagline()}</span>
     </a>
@@ -73,9 +74,8 @@
   }
 
   .navbar__logo {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: var(--step-1);
+    flex-shrink: 0;
+    align-self: center;
   }
 
   .navbar__divider {

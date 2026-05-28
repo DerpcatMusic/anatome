@@ -1,11 +1,16 @@
 <script lang="ts">
+  import AnatoMeLogo from "$lib/components/brand/AnatoMeLogo.svelte";
+  import { useI18n } from "$lib/i18n/runes";
+
+  const { t } = useI18n();
+
   let {
-    kicker = "AnatoMe",
+    showLogo = true,
     title,
     subtitle,
     actions,
   }: {
-    kicker?: string;
+    showLogo?: boolean;
     title: string;
     subtitle: string;
     actions?: import("svelte").Snippet;
@@ -13,7 +18,9 @@
 </script>
 
 <div class="locked">
-  <p class="kicker">{kicker}</p>
+  {#if showLogo}
+    <AnatoMeLogo class="locked__logo" size={52} aria-label={t.site.name()} role="img" />
+  {/if}
   <h1>{title}</h1>
   <p>{subtitle}</p>
   {#if actions}
@@ -34,6 +41,10 @@
     padding: var(--space-7) var(--space-6);
     border: var(--border);
     background: var(--elevated);
+  }
+
+  .locked__logo {
+    margin-inline: auto;
   }
 
   .kicker {

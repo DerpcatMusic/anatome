@@ -1,3 +1,5 @@
+import { syncFavicon } from "$lib/components/brand/syncFavicon";
+
 type Theme = "light" | "dark" | "system";
 
 const STORAGE_KEY = "homebody-theme";
@@ -34,6 +36,7 @@ function applyResolvedTheme(isDark: boolean, options?: { instant?: boolean }) {
   const apply = () => {
     html.setAttribute("data-theme", next);
     html.style.colorScheme = next;
+    syncFavicon(isDark);
   };
 
   const instant = options?.instant === true || !themeTransitionsEnabled || prefersReducedMotion();

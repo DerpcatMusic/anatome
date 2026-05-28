@@ -20,7 +20,7 @@
 			<a href="/legal/health">הצהרת בריאות</a>
 		</nav>
 		<p class="legal-footer__meta">
-			<span>© {year} {t.site.name()}</span>
+			<span>© {year}</span>
 			<a href="/">דף הבית</a>
 		</p>
 	</footer>

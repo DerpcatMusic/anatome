@@ -4,5 +4,5 @@
       <image href="/brand/anatome-mark.png" width="221" height="174" preserveAspectRatio="xMidYMid meet" />
     </mask>
   </defs>
-  <rect width="221" height="174" fill="#18241b" mask="url(#mark)" />
+  <rect width="221" height="174" fill="#fbf9f4" mask="url(#mark)" />
 </svg>

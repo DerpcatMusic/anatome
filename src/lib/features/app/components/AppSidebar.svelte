@@ -18,6 +18,7 @@
   } from "$features/app/nav/app-nav";
   import { theme } from "$features/app/theme.svelte";
   import { sidebar } from "$features/app/sidebar.svelte";
+  import AnatoMeLogo from "$lib/components/brand/AnatoMeLogo.svelte";
   import { useI18n } from "$lib/i18n/runes";
   import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
   import { walletBalances } from "$lib/features/credits/balances";
@@ -31,7 +32,6 @@
   const ctx = getAppContext();
   const { t } = useI18n();
 
-  const siteInitial = $derived(t.site.name().trim().slice(0, 1) || "A");
 
   const prefix = $derived(resolveAppNavPrefix(page.url.pathname, ctx.role));
   const isInstructorPrefix = $derived(prefix === "/i");
@@ -125,11 +125,7 @@
   <header class="sidebar__brand">
     <div class="sidebar__brand-row">
       <a class="sidebar__home" href="/" aria-label="{t.site.name()} — {t.site.tagline()}">
-        {#if sidebar.isCollapsed}
-          <span class="sidebar__logo-mark" aria-hidden="true">{siteInitial}</span>
-        {:else}
-          <span class="sidebar__logo">{t.site.name()}</span>
-        {/if}
+        <AnatoMeLogo class="sidebar__logo-mark" size={38} />
       </a>
       <button
         type="button"

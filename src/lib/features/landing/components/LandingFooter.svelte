@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AnatoMeLogo from "$lib/components/brand/AnatoMeLogo.svelte";
   import { useI18n } from "$lib/i18n/runes";
 
   const { t } = useI18n();
@@ -7,7 +8,7 @@
 
 <footer class="landing-footer">
   <div class="l-shell landing-footer__inner">
-    <span class="landing-footer__logo">{t.site.name()}</span>
+    <AnatoMeLogo class="landing-footer__logo" size={36} aria-label={t.site.name()} role="img" />
 
     <nav class="landing-footer__nav" aria-label="קישורים">
       <a href="/">דף הבית</a>

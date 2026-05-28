@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AnatoMeLogo from "$lib/components/brand/AnatoMeLogo.svelte";
   import { useI18n } from "$lib/i18n/runes";
   const { t } = useI18n();
   const year = new Date().getFullYear();
@@ -7,7 +8,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <span class="footer-logo">{t.site.name()}</span>
+      <AnatoMeLogo class="footer-logo" size={36} aria-label={t.site.name()} role="img" />
       <span class="footer-tagline">{t.site.tagline()}</span>
     </div>
 
@@ -28,7 +29,7 @@
   </div>
 
   <div class="footer-legal">
-    <span>© {year} {t.site.name()}</span>
+    <span>© {year}</span>
     <a href="/legal/health">הצהרת בריאות</a>
     <a href="/legal/privacy">פרטיות</a>
   </div>
@@ -56,9 +57,7 @@
   }
 
   .footer-logo {
-    font-family: var(--font-display);
-    font-size: var(--step-1);
-    font-weight: 400;
+    flex-shrink: 0;
   }
 
   .footer-tagline {

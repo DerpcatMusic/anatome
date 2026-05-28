@@ -1,0 +1,68 @@
+/**
+ * Gentler launch than stock svelte-confetti (peaks ~30% not 16% of timeline).
+ * Keeps linear fall afterward — matches official “spray” feel on large screens.
+ */
+
+.celebration-burst :global(.confetti-holder:not(.no-gravity) .confetti) {
+  animation-name: hb-confetti-translate !important;
+  animation-timing-function: linear !important;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.celebration-burst :global(.confetti-holder:not(.no-gravity) .confetti::before) {
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+@keyframes hb-confetti-translate {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  8% {
+    opacity: 1;
+    transform: translate3d(
+      calc(var(--translate-x) * var(--x-spread) * 0.28),
+      calc(var(--translate-y) * 0.28),
+      0
+    );
+  }
+
+  16% {
+    opacity: 1;
+    transform: translate3d(
+      calc(var(--translate-x) * var(--x-spread) * 0.55),
+      calc(var(--translate-y) * 0.55),
+      0
+    );
+  }
+
+  26% {
+    opacity: 1;
+    transform: translate3d(
+      calc(var(--translate-x) * var(--x-spread) * 0.82),
+      calc(var(--translate-y) * 0.84),
+      0
+    );
+  }
+
+  32% {
+    opacity: 1;
+    transform: translate3d(
+      calc(var(--translate-x) * var(--x-spread)),
+      var(--translate-y),
+      0
+    );
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(
+      var(--translate-x),
+      calc(var(--translate-y) + var(--fall-distance)),
+      0
+    );
+  }
+}

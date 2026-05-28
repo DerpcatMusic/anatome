@@ -5,6 +5,7 @@
 	import { dashboardPathFromCachedRole } from '$lib/auth/post-sign-in';
 	import { openAuthOverlay } from '$lib/auth/open-overlay';
 	import { getCachedRole, initAuth } from '$lib/auth/session.svelte';
+	import AnatoMeLogo from '$lib/components/brand/AnatoMeLogo.svelte';
 	import { useI18n } from '$lib/i18n/runes';
 
 	const { t } = useI18n();
@@ -30,8 +31,8 @@
 
 <nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
 	<div class="navbar__shell">
-		<a class="navbar__brand" href="/">
-			<span class="navbar__logo">{t.site.name()}</span>
+		<a class="navbar__brand" href="/" aria-label={t.site.name()}>
+			<AnatoMeLogo class="navbar__logo" size={44} />
 		</a>
 
 		<div class="navbar__actions">
@@ -140,10 +141,7 @@
 	}
 
 	.navbar__logo {
-		font-family: var(--font-display);
-		font-weight: 400;
-		font-size: var(--step-1);
-		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.navbar__actions {

@@ -10,7 +10,10 @@
   import { useCardcomCheckoutChannel } from "$lib/features/subscriptions/useCardcomCheckoutChannel.svelte";
   import { pollCreditCheckoutUrl } from "$lib/features/credits/credit-checkout";
   import CreditDisc from "$lib/features/credits/CreditDisc.svelte";
-  import { fireCreditNudge, firePaymentTriumph } from "$lib/features/celebration/celebration.svelte";
+  import {
+    fireCreditCartCelebration,
+    fireCreditNudge,
+  } from "$lib/features/celebration/celebration.svelte";
   import type { CreditPool } from "$lib/features/credits/types";
   import {
     CREDIT_MAX_VOLUME_DISCOUNT_PERCENT,
@@ -84,7 +87,7 @@
     const next = cartQty[pool] + delta;
     setPoolQty(pool, next);
     if (delta > 0 && next > 0) {
-      fireCreditNudge(pool);
+      fireCreditNudge(pool, next);
     }
   }
 
@@ -101,13 +104,16 @@
   useCardcomCheckoutChannel({
     getActiveOrderId: () => checkoutOrderId,
     onResult: ({ status }) => {
+      const paidCart = checkoutCart;
       checkoutOpen = false;
       checkoutUrl = null;
       checkoutOrderId = null;
       checkoutCart = null;
       if (status === "success") {
-        const pools = POOLS.filter((pool) => cartQty[pool] > 0);
-        firePaymentTriumph({ kind: "credit", creditPools: pools });
+        const lines =
+          paidCart?.lines.map((line) => ({ pool: line.pool, quantity: line.quantity })) ??
+          cartInputs.map((row) => ({ pool: row.pool, quantity: row.quantity }));
+        fireCreditCartCelebration(lines);
         success = "התשלום התקבל — הקרדיטים נוספו לארנק.";
         cartQty = { vod: 0, live: 0, oneOnOne: 0 };
       } else {

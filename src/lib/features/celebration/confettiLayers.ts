@@ -1,7 +1,13 @@
 import type { CreditPool } from "$lib/features/credits/types";
-import type { CelebrationKind, CelebrationMagnitude } from "./celebration.svelte";
+import { creditPoolPrestige } from "$lib/features/credits/creditPoolTheme";
+import { creditExcitementLevel } from "./creditCelebration";
+import type {
+  CelebrationBurstSource,
+  CelebrationKind,
+  CelebrationMagnitude,
+} from "./celebration.svelte";
 
-/** Props for one `svelte-confetti` layer. */
+/** Props for one `svelte-confetti` layer — tuned for library-native linear physics. */
 export type ConfettiLayer = {
   amount?: number;
   x?: [number, number];
@@ -33,6 +39,8 @@ export type BurstProfile = {
   kind: CelebrationKind;
   intensity: number;
   pool?: CreditPool;
+  quantity?: number;
+  source?: CelebrationBurstSource;
 };
 
 const GOLD_SPECULAR: string[] = [
@@ -40,7 +48,6 @@ const GOLD_SPECULAR: string[] = [
   "linear-gradient(160deg, #ffffff 0%, #fff4c4 35%, #ffd700 65%, #b8860b 100%)",
   "#ffd700",
   "#fff8dc",
-  "#f5e6a8",
 ];
 
 const PARTY_MIX: string[] = [
@@ -49,38 +56,21 @@ const PARTY_MIX: string[] = [
   "#ffbe0b",
   "#8338ec",
   "#3a86ff",
-  "#06d6a0",
   "#ffd700",
-  "#ffffff",
   "var(--primary)",
   "var(--secondary)",
   "var(--accent)",
 ];
 
-const LEARN_VIOLET: string[] = [
-  "var(--credit-vod)",
-  "oklch(68% 0.16 285)",
-  "oklch(78% 0.1 300)",
-  "#c4b5fd",
-  "#ffffff",
-];
-
-const TOGETHER_BLUE: string[] = [
-  "var(--credit-live)",
-  "oklch(62% 0.2 245)",
-  "oklch(75% 0.14 230)",
-  "#7dd3fc",
-  "#ffffff",
-];
-
+const LEARN_VIOLET: string[] = ["var(--credit-vod)", "#c4b5fd", "#e9d5ff", "#ffffff"];
+const TOGETHER_BLUE: string[] = ["var(--credit-live)", "#7dd3fc", "#38bdf8", "#ffffff"];
 const PREMIUM_GOLD: string[] = [...GOLD_SPECULAR, "var(--credit-private)", "#fffef2"];
 
-/** Aim vectors — multipliers × viewport reach (see CelebrationConfettiHost CSS). */
 const AIM = {
-  topLeft: { x: [0.9, 3.4] as [number, number], y: [-2.8, -0.15] as [number, number] },
-  topRight: { x: [-3.4, -0.9] as [number, number], y: [-2.8, -0.15] as [number, number] },
-  bottomLeft: { x: [1, 3.6] as [number, number], y: [0.85, 2.4] as [number, number] },
-  bottomRight: { x: [-3.6, -1] as [number, number], y: [0.85, 2.4] as [number, number] },
+  topLeft: { x: [0.6, 2.8] as [number, number], y: [-2.2, -0.1] as [number, number] },
+  topRight: { x: [-2.8, -0.6] as [number, number], y: [-2.2, -0.1] as [number, number] },
+  bottomLeft: { x: [0.7, 2.9] as [number, number], y: [0.5, 1.8] as [number, number] },
+  bottomRight: { x: [-2.9, -0.7] as [number, number], y: [0.5, 1.8] as [number, number] },
 } as const;
 
 function accentPalette(profile: BurstProfile): string[] {
@@ -104,172 +94,389 @@ function aimFor(corner: CelebrationPlacement) {
   }
 }
 
-function cornerCannon(
+/**
+ * Official “feathered cone” pattern — main blast + two side sprays per corner.
+ * @see https://mitcheljager.github.io/svelte-confetti/
+ */
+function featheredCorner(
+  corner: CelebrationPlacement,
+  colors: string[],
+  mainAmount: number,
+  opts: {
+    duration?: number;
+    delay?: [number, number];
+    size?: number;
+    rounded?: boolean;
+    wings?: boolean;
+  } = {},
+): CelebrationScene {
+  const aim = aimFor(corner);
+  const isLeft = corner.includes("left");
+  const duration = opts.duration ?? 3200;
+  const delay = opts.delay ?? [0, 950];
+  const size = opts.size ?? 10;
+  const wing = Math.max(14, Math.round(mainAmount * 0.28));
+  const withWings = opts.wings !== false;
+
+  const wingA = isLeft
+    ? { x: [-0.85, -0.2] as [number, number], y: [0.2, 0.9] as [number, number] }
+    : { x: [0.2, 0.85] as [number, number], y: [0.2, 0.9] as [number, number] };
+  const wingB = isLeft
+    ? { x: [0.25, 1.05] as [number, number], y: [0.15, 0.8] as [number, number] }
+    : { x: [-1.05, -0.25] as [number, number], y: [0.15, 0.8] as [number, number] };
+
+  const layers: ConfettiLayer[] = [
+    {
+      amount: mainAmount,
+      cone: true,
+      rounded: opts.rounded,
+      colorArray: colors,
+      size,
+      duration,
+      delay,
+      xSpread: 0.15,
+      ...aim,
+    },
+  ];
+
+  if (withWings) {
+    layers.push(
+      {
+        amount: wing,
+        cone: true,
+        colorArray: colors,
+        size: size - 1,
+        duration: duration + 150,
+        delay: [30, delay[1] + 80],
+        xSpread: 0.15,
+        ...wingA,
+      },
+      {
+        amount: wing,
+        cone: true,
+        colorArray: colors,
+        size: size - 1,
+        duration: duration + 250,
+        delay: [60, delay[1] + 160],
+        xSpread: 0.15,
+        ...wingB,
+      },
+    );
+  }
+
+  return { placement: corner, layers };
+}
+
+function sparkCorner(
   corner: CelebrationPlacement,
   colors: string[],
   amount: number,
-  opts: Partial<ConfettiLayer> = {},
+  opts: {
+    duration?: number;
+    delay?: [number, number];
+    size?: number;
+  } = {},
 ): CelebrationScene {
+  const aim = aimFor(corner);
   return {
     placement: corner,
     layers: [
       {
         amount,
         cone: true,
-        size: 9,
-        delay: [0, 720],
-        duration: 3800,
-        xSpread: 0.55,
         colorArray: colors,
-        ...aimFor(corner),
-        ...opts,
+        size: opts.size ?? 6,
+        duration: opts.duration ?? 2400,
+        delay: opts.delay ?? [0, 320],
+        xSpread: 0.12,
+        ...aim,
       },
     ],
   };
 }
 
-/** Four corners + optional second volley per corner. */
-function edgeCannonShow(
+function creditPalette(pool: CreditPool): string[] {
+  switch (pool) {
+    case "vod":
+      return LEARN_VIOLET;
+    case "live":
+      return TOGETHER_BLUE;
+    case "oneOnOne":
+      return PREMIUM_GOLD;
+  }
+}
+
+const CORNERS: CelebrationPlacement[] = [
+  "edge-top-left",
+  "edge-top-right",
+  "edge-bottom-left",
+  "edge-bottom-right",
+];
+
+function edgeFeatheredShow(
   colors: string[],
-  stream: number,
+  mainAmount: number,
   tier: number,
-  power: "ribbon" | "triumph" = "ribbon",
+  power: "ribbon" | "triumph",
 ): CelebrationScene[] {
-  const stagger = tier * 120;
-  const secondVolley = Math.round(stream * (power === "triumph" ? 0.85 : 0.55));
-  const size = power === "triumph" ? 11 : 8;
+  const delaySpread = power === "triumph" ? 1400 : 1050;
+  const duration = power === "triumph" ? 3600 : 3200;
+  const size = power === "triumph" ? 11 : 9;
 
-  const corners: CelebrationPlacement[] = [
-    "edge-top-left",
-    "edge-top-right",
-    "edge-bottom-left",
-    "edge-bottom-right",
-  ];
+  const scenes = CORNERS.map((corner, index) =>
+    featheredCorner(corner, colors, mainAmount + tier * 8, {
+      duration: duration + index * 80,
+      delay: [index * 40, delaySpread + tier * 60],
+      size,
+      rounded: power === "triumph",
+    }),
+  );
 
-  const scenes: CelebrationScene[] = [];
-
-  for (const corner of corners) {
-    const isBottom = corner.includes("bottom");
-    scenes.push(
-      cornerCannon(corner, colors, stream, {
-        delay: [0, 550 + stagger],
-        duration: 3600 + tier * 200,
-        size,
-        xSpread: power === "triumph" ? 0.62 : 0.52,
-      }),
-      cornerCannon(corner, colors, secondVolley, {
-        delay: [280 + stagger, 1100 + stagger],
-        duration: 4200 + tier * 150,
-        size: size - 1,
-        xSpread: 0.58,
-        ...(isBottom ? { y: [1.1, 2.6] as [number, number] } : { y: [-3.2, -0.4] as [number, number] }),
-      }),
-    );
+  if (power === "triumph") {
+    for (const corner of CORNERS) {
+      const aim = aimFor(corner);
+      scenes.push({
+        placement: corner,
+        layers: [
+          {
+            amount: 35 + tier * 10,
+            cone: true,
+            colorArray: colors,
+            size: 8,
+            duration: 2200,
+            delay: [0, 500],
+            xSpread: 0.2,
+            x: [aim.x[0] * 0.6, aim.x[1] * 0.85],
+            y: [aim.y[0] * 0.5, aim.y[1] * 0.7],
+          },
+        ],
+      });
+    }
   }
 
   return scenes;
 }
 
-function nudgeScenes(profile: BurstProfile): CelebrationScene[] {
-  const colors =
-    profile.pool === "vod"
-      ? LEARN_VIOLET
-      : profile.pool === "live"
-        ? TOGETHER_BLUE
-        : profile.pool === "oneOnOne"
-          ? PREMIUM_GOLD
-          : PARTY_MIX;
+function creditNudgeScenes(profile: BurstProfile): CelebrationScene[] {
+  const pool = profile.pool ?? "vod";
+  const qty = profile.quantity ?? 1;
+  const level = creditExcitementLevel(pool, qty);
+  const colors = creditPalette(pool);
 
-  return [
-    cornerCannon("edge-bottom-left", colors, 28, {
-      size: 8,
-      delay: [0, 200],
-      duration: 3000,
-      x: [0.6, 2.2],
-      y: [0.7, 1.8],
+  if (level === 0) {
+    return [
+      sparkCorner("edge-bottom-left", colors, 8 + Math.min(4, qty - 1), {
+        duration: 2200,
+        delay: [0, 280],
+        size: 5,
+      }),
+    ];
+  }
+
+  if (level === 1) {
+    const amount = 14 + Math.min(8, qty);
+    return [
+      sparkCorner("edge-bottom-left", colors, amount, { duration: 2500, delay: [0, 420], size: 6 }),
+      sparkCorner("edge-bottom-right", colors, amount, {
+        duration: 2500,
+        delay: [40, 480],
+        size: 6,
+      }),
+    ];
+  }
+
+  const main = level === 2 ? 22 + Math.min(12, qty * 2) : 34 + Math.min(18, qty * 2);
+  const corners: CelebrationPlacement[] =
+    level === 3
+      ? ["edge-bottom-left", "edge-bottom-right", "edge-top-left", "edge-top-right"]
+      : ["edge-bottom-left", "edge-bottom-right"];
+
+  return corners.map((corner, i) =>
+    featheredCorner(corner, colors, main, {
+      duration: level === 3 ? 3000 : 2700,
+      delay: [i * 25, level === 3 ? 900 : 620],
+      size: level === 3 ? 9 : 7,
+      wings: level >= 2,
+      rounded: level === 3,
     }),
-    cornerCannon("edge-bottom-right", colors, 28, {
-      size: 8,
-      delay: [40, 240],
-      duration: 3000,
-      x: [-2.2, -0.6],
-      y: [0.7, 1.8],
-    }),
-  ];
+  );
+}
+
+function nudgeScenes(profile: BurstProfile): CelebrationScene[] {
+  if (profile.kind === "credit" && profile.pool) {
+    return creditNudgeScenes(profile);
+  }
+  return creditNudgeScenes({ ...profile, pool: "live", quantity: 1 });
 }
 
 function pickScenes(profile: BurstProfile): CelebrationScene[] {
   const tier = Math.min(3, Math.max(0, profile.intensity)) as 0 | 1 | 2 | 3;
-  const colors = accentPalette(profile);
-  const stream = 55 + tier * 25;
-  return edgeCannonShow(colors, stream, tier, "ribbon");
-}
-
-function triumphScenes(profile: BurstProfile): CelebrationScene[] {
-  const colors = accentPalette(profile);
-  const goldHeavy = profile.intensity >= 2 || profile.pool === "oneOnOne";
-  const mainColors = goldHeavy ? [...PARTY_MIX, ...PREMIUM_GOLD] : colors;
-  const heavy = 110 + profile.intensity * 35;
-
-  return [
-    ...edgeCannonShow(mainColors, heavy, profile.intensity, "triumph"),
-    cornerCannon("edge-bottom-left", mainColors, Math.round(heavy * 0.7), {
-      size: 14,
-      delay: [0, 400],
-      duration: 4200,
-      x: [1.2, 4],
-      y: [1, 2.8],
-      xSpread: 0.68,
-    }),
-    cornerCannon("edge-bottom-right", mainColors, Math.round(heavy * 0.7), {
-      size: 14,
-      delay: [80, 480],
-      duration: 4200,
-      x: [-4, -1.2],
-      y: [1, 2.8],
-      xSpread: 0.68,
-    }),
-    {
-      placement: "edge-top-left",
-      layers: [
-        {
-          amount: 90,
-          noGravity: true,
-          duration: 2800,
-          x: [1, 3.2],
-          y: [-1.2, 0.8],
-          size: 10,
-          delay: [60, 320],
-          colorArray: mainColors,
-        },
-      ],
-    },
-    {
-      placement: "edge-top-right",
-      layers: [
-        {
-          amount: 90,
-          noGravity: true,
-          duration: 3000,
-          x: [-3.2, -1],
-          y: [-1.2, 0.8],
-          size: 10,
-          delay: [100, 360],
-          colorArray: mainColors,
-        },
-      ],
-    },
-  ];
+  return edgeFeatheredShow(accentPalette(profile), 42, tier, "ribbon");
 }
 
 function subscriptionRibbonScenes(profile: BurstProfile): CelebrationScene[] {
   const tier = Math.min(3, Math.max(0, profile.intensity)) as 0 | 1 | 2 | 3;
+  return edgeFeatheredShow(accentPalette(profile), 58, tier, "ribbon");
+}
+
+function creditPurchaseScenes(profile: BurstProfile): CelebrationScene[] {
+  const pool = profile.pool ?? "vod";
+  const qty = profile.quantity ?? 1;
+  const level = creditExcitementLevel(pool, qty);
+  const colors = creditPalette(pool);
+  const prestige = creditPoolPrestige(pool);
+
+  if (level === 0) {
+    return [
+      sparkCorner("edge-bottom-left", colors, 12 + Math.min(6, qty), {
+        duration: 2600,
+        delay: [0, 400],
+        size: 6,
+      }),
+      sparkCorner("edge-bottom-right", colors, 10, { duration: 2600, delay: [80, 520], size: 6 }),
+    ];
+  }
+
+  if (level === 1) {
+    return [
+      featheredCorner("edge-bottom-left", colors, 28 + qty, {
+        duration: 3000,
+        delay: [0, 700],
+        size: 8,
+        wings: false,
+      }),
+      featheredCorner("edge-bottom-right", colors, 28 + qty, {
+        duration: 3000,
+        delay: [60, 760],
+        size: 8,
+        wings: false,
+      }),
+    ];
+  }
+
+  if (level === 2) {
+    return edgeFeatheredShow(
+      [...PARTY_MIX, ...colors],
+      48 + prestige * 10 + Math.min(20, qty * 2),
+      prestige,
+      "ribbon",
+    );
+  }
+
+  const mainColors = [...PARTY_MIX, ...PREMIUM_GOLD];
+  const tier = Math.max(prestige, profile.intensity);
+  const scenes = edgeFeatheredShow(mainColors, 72 + Math.min(30, qty * 3), tier, "triumph");
+
+  for (const corner of CORNERS) {
+    scenes.push(
+      featheredCorner(corner, mainColors, 55 + tier * 12 + Math.min(15, qty), {
+        duration: 3800,
+        delay: [180, 1200],
+        size: 12,
+        rounded: true,
+      }),
+    );
+  }
+
+  scenes.push({
+    placement: "edge-bottom-left",
+    layers: [
+      {
+        amount: 36 + Math.min(24, qty * 4),
+        noGravity: true,
+        duration: 1400,
+        x: [-0.45, 0.45],
+        y: [-0.45, 0.45],
+        size: 7,
+        delay: [0, 200],
+        colorArray: mainColors,
+      },
+    ],
+  });
+  scenes.push({
+    placement: "edge-bottom-right",
+    layers: [
+      {
+        amount: 36 + Math.min(24, qty * 4),
+        noGravity: true,
+        duration: 1400,
+        x: [-0.45, 0.45],
+        y: [-0.45, 0.45],
+        size: 7,
+        delay: [60, 260],
+        colorArray: mainColors,
+      },
+    ],
+  });
+
+  return scenes;
+}
+
+function triumphScenes(profile: BurstProfile): CelebrationScene[] {
+  if (profile.kind === "credit" && profile.pool) {
+    return creditPurchaseScenes(profile);
+  }
+
   const colors = accentPalette(profile);
-  const stream = 65 + tier * 28;
-  return edgeCannonShow(colors, stream, tier, "ribbon");
+  const goldHeavy = profile.intensity >= 2;
+  const mainColors = goldHeavy ? [...PARTY_MIX, ...PREMIUM_GOLD] : colors;
+  const tier = profile.intensity;
+
+  const scenes = edgeFeatheredShow(mainColors, 85, tier, "triumph");
+
+  for (const corner of CORNERS) {
+    scenes.push(
+      featheredCorner(corner, mainColors, 70 + tier * 15, {
+        duration: 3800,
+        delay: [200, 1300],
+        size: 12,
+        rounded: true,
+      }),
+    );
+  }
+
+  scenes.push({
+    placement: "edge-bottom-left",
+    layers: [
+      {
+        amount: 50,
+        noGravity: true,
+        duration: 1400,
+        x: [-0.45, 0.45],
+        y: [-0.45, 0.45],
+        size: 7,
+        delay: [0, 200],
+        colorArray: mainColors,
+      },
+    ],
+  });
+  scenes.push({
+    placement: "edge-bottom-right",
+    layers: [
+      {
+        amount: 50,
+        noGravity: true,
+        duration: 1400,
+        x: [-0.45, 0.45],
+        y: [-0.45, 0.45],
+        size: 7,
+        delay: [60, 260],
+        colorArray: mainColors,
+      },
+    ],
+  });
+
+  return scenes;
 }
 
 export function celebrationScenes(profile: BurstProfile): CelebrationScene[] {
+  if (profile.kind === "credit" && profile.pool) {
+    if (profile.source === "checkout") {
+      return creditPurchaseScenes(profile);
+    }
+    return creditNudgeScenes(profile);
+  }
+
   switch (profile.magnitude) {
     case "nudge":
       return nudgeScenes(profile);
@@ -282,15 +489,39 @@ export function celebrationScenes(profile: BurstProfile): CelebrationScene[] {
   }
 }
 
-export function fallDistanceForMagnitude(magnitude: CelebrationMagnitude): string {
+export function celebrationBurstLifetimeMs(profile: BurstProfile): number {
+  const scenes = celebrationScenes(profile);
+  let maxMs = 2800;
+  for (const scene of scenes) {
+    for (const layer of scene.layers) {
+      const delayMax = layer.delay?.[1] ?? 50;
+      const duration = layer.duration ?? 2000;
+      maxMs = Math.max(maxMs, delayMax + duration + 300);
+    }
+  }
+  return maxMs;
+}
+
+export function fallDistanceForMagnitude(
+  magnitude: CelebrationMagnitude,
+  profile?: BurstProfile,
+): string {
+  if (profile?.kind === "credit" && profile.pool) {
+    const level = creditExcitementLevel(profile.pool, profile.quantity ?? 1);
+    if (level === 0) return "55vh";
+    if (level === 1) return "70vh";
+    if (level === 2) return "88vh";
+    return "100vh";
+  }
+
   switch (magnitude) {
     case "triumph":
-      return "140vh";
+      return "100vh";
     case "ribbon":
     case "pick":
-      return "125vh";
+      return "100vh";
     default:
-      return "110vh";
+      return "85vh";
   }
 }
 
@@ -299,11 +530,15 @@ export function burstProfileFromBurst(burst: {
   kind: CelebrationKind;
   intensity: number;
   pool?: CreditPool;
+  quantity?: number;
+  source?: CelebrationBurstSource;
 }): BurstProfile {
   return {
     magnitude: burst.magnitude,
     kind: burst.kind,
     intensity: burst.intensity,
     pool: burst.pool,
+    quantity: burst.quantity,
+    source: burst.source,
   };
 }

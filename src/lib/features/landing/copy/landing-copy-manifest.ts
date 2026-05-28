@@ -52,7 +52,7 @@ export const LANDING_COPY_SECTIONS: LandingCopySectionDef[] = [
     title: "שם האתר ותיאור כללי",
     order: 0,
     fields: [
-      { slug: "site.name", label: "שם המותג (לוגו, כותרת דפדפן)" },
+      { slug: "site.name", label: "שם המותג (נגישות, כותרות, SEO)" },
       { slug: "site.tagline", label: "סלוגן קצר" },
       { slug: "site.description", label: "תיאור האתר (משפט אחד)" },
       { slug: "seo.site.description", label: "תיאור לגוגל (מטא — יכול להיות ארוך יותר)" },

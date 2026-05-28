@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { dev } from "$app/environment";
   import type { FunctionReturnType } from "convex/server";
   import type { Id } from "$convex/_generated/dataModel";
   import { Button } from "bits-ui";
@@ -286,7 +287,7 @@
     {/if}
   </div>
 
-  {#if billing.error}
+  {#if billing.error && dev}
     <Notice tone="danger">
       לא התחברנו לשרת — ודאו ש־<code>npx convex dev</code> רץ.
     </Notice>
