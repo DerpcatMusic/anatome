@@ -3,7 +3,6 @@
  * Slugs are stable keys for importing edits back into the codebase.
  */
 
-import { SITE } from "$lib/seo/config";
 import { FALLBACK_PLANS } from "$lib/features/subscriptions/plansCatalog";
 
 export const LANDING_COPY_FORMAT = "homebody-landing-copy/v2";
@@ -253,9 +252,10 @@ export const LANDING_COPY_SECTIONS: LandingCopySectionDef[] = [
 
 /** Strings not in i18n yet — keyed by slug. */
 export const LANDING_COPY_STATIC_VALUES: Record<string, string> = {
-  "landing.experience.scrollHint": "גללי לאט — כל כרטיס נפתח בזמן",
-  "seo.site.description": SITE.description,
-  "seo.site.keywords": SITE.keywords,
+  "seo.site.description":
+    "פילאטיס שיקומי בבית, טיפול פתולוגיות בעזרת תנועה. פילאטיס קלאסי לכל הרמות.",
+  "seo.site.keywords":
+    "פילאטיס אונליין, שיעורי פילאטיס אונליין, פילאטיס שיקומי, פילאטיס לכאבי גב, פילאטיס בבית, פילאטיס בעברית, שיעורים חיים פילאטיס, פילאטיס פרטי אונליין, פילאטיס לכתף קפואה, פילאטיס לברכיים, פילאטיס אחרי ניתוח, פילאטיס רפואי, פילאטיס קליני, פילאטיס עם מגבלות, פילאטיס לנשים, שיעור פילאטיס בזום, Pilates online Israel, Online pilates Hebrew, Rehabilitative pilates online, פילאטיס קלאסי",
   "chrome.theme.light": "מעבר למצב בהיר",
   "chrome.theme.dark": "מעבר למצב כהה",
   "landing.footer.linkHome": "דף הבית",

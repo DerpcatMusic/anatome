@@ -58,7 +58,7 @@
         <img
           class="about__photo-img"
           src={LANDING_IMAGES.aboutInstructor.src}
-          alt={t.landing.images.aboutAlt()}
+          alt={t.landing.images.aboutAlt() || ""}
           width={LANDING_IMAGES.aboutInstructor.width}
           height={LANDING_IMAGES.aboutInstructor.height}
           loading="lazy"

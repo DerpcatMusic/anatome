@@ -138,7 +138,8 @@
       <div class="l-shell">
         <div class="cta-panel l-in">
           <h2 class="cta-panel__title">
-            {t.landing.cta.headlineLine1()}<br />{t.landing.cta.headlineLine2()}
+            {t.landing.cta.headlineLine1()}{#if t.landing.cta.headlineLine2()}<br />{t.landing.cta
+                .headlineLine2()}{/if}
           </h2>
           <p class="cta-panel__lead">{t.landing.cta.subheadline()}</p>
           <form

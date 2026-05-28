@@ -34,7 +34,9 @@
       </Button.Root>
     </div>
 
-    <p class="hero__note l-in l-in--3">{t.landing.hero.note()}</p>
+    {#if t.landing.hero.note()}
+      <p class="hero__note l-in l-in--3">{t.landing.hero.note()}</p>
+    {/if}
   </div>
 
   <div class="hero__scroll" aria-hidden="true">

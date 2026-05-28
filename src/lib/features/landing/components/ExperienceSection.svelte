@@ -56,7 +56,9 @@
       <header class="experience-intro l-in">
         <h2 class="section-title section-title--center">{t.landing.pillars.headline()}</h2>
         <p class="section-lead section-lead--center">{t.landing.pillars.lead()}</p>
-        <p class="experience-intro__hint">גללי לאט — כל כרטיס נפתח בזמן</p>
+        {#if t.landing.experience.scrollHint()}
+          <p class="experience-intro__hint">{t.landing.experience.scrollHint()}</p>
+        {/if}
       </header>
 
       <div class="experience-bento">
@@ -97,7 +99,9 @@
                 </span>
                 <h3>{cell.title}</h3>
                 <p class="pillar__lead">{cell.lead}</p>
-                <p class="pillar__body">{cell.body}</p>
+                {#if cell.body}
+                  <p class="pillar__body">{cell.body}</p>
+                {/if}
               </div>
             {:else if cell.variant === "micro"}
               <div class="experience-bento__split">
@@ -135,7 +139,9 @@
                   </span>
                   <h3>{cell.title}</h3>
                   <p class="pillar__lead">{cell.lead}</p>
-                  <p class="pillar__body">{cell.body}</p>
+                  {#if cell.body}
+                    <p class="pillar__body">{cell.body}</p>
+                  {/if}
                 </div>
               </div>
             {/if}
