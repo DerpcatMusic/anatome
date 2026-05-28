@@ -43,15 +43,36 @@ function sectionToExport(section: LandingCopySectionDef): LandingCopyExportSecti
   };
 }
 
-export function buildLandingCopyDocument(): LandingCopyExportDocument {
+export function buildLandingCopyDocument(
+  values: Record<string, string> = {},
+): LandingCopyExportDocument {
   return {
     format: LANDING_COPY_FORMAT,
     locale: "he",
     generatedAt: new Date().toISOString(),
     sections: [...LANDING_COPY_SECTIONS]
       .sort((a, b) => a.order - b.order)
-      .map(sectionToExport),
+      .map((section) => ({
+        id: section.id,
+        title: section.title,
+        order: section.order,
+        fields: section.fields.map((field) => ({
+          slug: field.slug,
+          label: field.label,
+          value: values[field.slug] ?? resolveLandingCopyValue(field.slug),
+        })),
+      })),
   };
+}
+
+export function baselineLandingCopyValues(): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const section of LANDING_COPY_SECTIONS) {
+    for (const field of section.fields) {
+      values[field.slug] = resolveLandingCopyValue(field.slug);
+    }
+  }
+  return values;
 }
 
 function escapeFence(text: string): string {
@@ -70,8 +91,15 @@ ${body}
 \`\`\`${emptyNote}`;
 }
 
+export function buildLandingCopyMarkdownFromValues(
+  values: Record<string, string>,
+): string {
+  return buildLandingCopyMarkdown(buildLandingCopyDocument(values));
+}
+
 /** Plain-Hebrew markdown for copywriters — send back after editing. */
-export function buildLandingCopyMarkdown(doc = buildLandingCopyDocument()): string {
+export function buildLandingCopyMarkdown(doc?: LandingCopyExportDocument): string {
+  const document = doc ?? buildLandingCopyDocument();
   const lines: string[] = [
     "# עמוד הבית — כל הטקסטים",
     "",
@@ -88,7 +116,7 @@ export function buildLandingCopyMarkdown(doc = buildLandingCopyDocument()): stri
     "",
   ];
 
-  for (const section of doc.sections) {
+  for (const section of document.sections) {
     lines.push(`## ${section.title}`, "");
     for (const field of section.fields) {
       lines.push(formatField(field), "");

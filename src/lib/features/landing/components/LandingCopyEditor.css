@@ -1,0 +1,343 @@
+.lcp {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #ece7df;
+  color: #1a1410;
+}
+
+.lcp__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #faf8f3;
+  border-bottom: 1px solid rgb(26 20 16 / 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.lcp__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.lcp__meta,
+.lcp__save {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.lcp__save--active {
+  opacity: 1;
+  color: #2d6a4f;
+  font-weight: 600;
+}
+
+.lcp__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.lcp__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgb(26 20 16 / 0.14);
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lcp__btn--primary {
+  background: #5c3d2e;
+  color: #fff;
+  border-color: transparent;
+}
+
+.lcp__btn--ghost {
+  background: transparent;
+}
+
+.lcp__mobile-tabs {
+  display: none;
+  border-radius: 999px;
+  padding: 0.2rem;
+  background: rgb(26 20 16 / 0.06);
+}
+
+.lcp__mobile-tab {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.lcp__mobile-tab[aria-selected="true"] {
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(26 20 16 / 0.1);
+}
+
+.lcp__hint {
+  margin: 0;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+  background: rgb(92 61 46 / 0.08);
+  border-bottom: 1px solid rgb(26 20 16 / 0.06);
+  direction: rtl;
+}
+
+/* Physical layout: [ לפני | עריכה | אחרי ] left → right */
+.lcp__split {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+  min-height: 0;
+}
+
+.lcp__preview-chrome,
+.lcp__edit-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgb(26 20 16 / 0.08);
+}
+
+.lcp__preview-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.lcp__preview-badge--before {
+  background: rgb(26 20 16 / 0.08);
+  color: rgb(26 20 16 / 0.7);
+}
+
+.lcp__preview-badge--edit {
+  background: rgb(92 61 46 / 0.15);
+  color: #5c3d2e;
+}
+
+.lcp__preview-badge--after {
+  background: rgb(45 106 79 / 0.15);
+  color: #2d6a4f;
+}
+
+.lcp__preview--before {
+  overflow: auto;
+  background: #e8e4dc;
+  border-inline-end: 1px solid rgb(26 20 16 / 0.08);
+}
+
+.lcp__preview--before .lcp__preview-chrome {
+  background: #e8e4dc;
+}
+
+.lcp__preview--after {
+  overflow: auto;
+  background: #fff;
+  border-inline-start: 1px solid rgb(26 20 16 / 0.08);
+}
+
+.lcp__preview--after .lcp__preview-chrome {
+  background: #fff;
+}
+
+.lcp__edit {
+  overflow: auto;
+  padding: 0 1rem 3rem;
+  background: #faf8f3;
+  border-inline: 1px solid rgb(26 20 16 / 0.1);
+}
+
+.lcp__edit-chrome {
+  background: #faf8f3;
+}
+
+.lcp__section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding: 0 0 0.5rem;
+}
+
+.lcp__section-link {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgb(26 20 16 / 0.1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.lcp__section {
+  margin-bottom: 2rem;
+}
+
+.lcp__section-title {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid rgb(92 61 46 / 0.25);
+}
+
+.lcp__field {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.lcp__field-label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: rgb(26 20 16 / 0.85);
+}
+
+.lcp__field-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgb(26 20 16 / 0.14);
+  background: #fff;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 2.75rem;
+}
+
+.lcp__field-input:focus {
+  outline: 2px solid rgb(92 61 46 / 0.35);
+  outline-offset: 1px;
+}
+
+.lcp__preview-inner {
+  padding: 0.75rem 1.25rem 3rem;
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+.lcp-preview__page-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.lcp-preview__note {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.lcp-preview__article--before .lcp-preview__field-body {
+  opacity: 0.92;
+}
+
+.lcp-preview__article--after .lcp-preview__section-title {
+  color: #2d6a4f;
+}
+
+.lcp-preview__section {
+  margin-bottom: 2rem;
+}
+
+.lcp-preview__section-title {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  color: #5c3d2e;
+}
+
+.lcp-preview__field {
+  margin-bottom: 1.1rem;
+}
+
+.lcp-preview__field-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.55;
+}
+
+.lcp-preview__field-body {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.lcp-preview__field-body--empty {
+  opacity: 0.4;
+  font-style: italic;
+}
+
+@media (max-width: 1100px) {
+  .lcp__split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-rows: minmax(14rem, 28vh) 1fr;
+    grid-template-areas:
+      "before after"
+      "edit edit";
+  }
+
+  .lcp__preview--before {
+    grid-area: before;
+  }
+
+  .lcp__edit {
+    grid-area: edit;
+  }
+
+  .lcp__preview--after {
+    grid-area: after;
+  }
+}
+
+@media (max-width: 900px) {
+  .lcp__split {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: none;
+  }
+
+  .lcp__mobile-tabs {
+    display: inline-flex;
+  }
+
+  .lcp__pane--hidden {
+    display: none !important;
+  }
+
+  .lcp__preview--before,
+  .lcp__preview--after,
+  .lcp__edit {
+    border: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .lcp__pane--hidden {
+    display: block;
+  }
+}
