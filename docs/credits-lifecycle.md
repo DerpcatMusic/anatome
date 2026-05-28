@@ -31,7 +31,7 @@ Grant ──► vodBalance
 ```text
 Grant ──► liveBalance
               │
-              ▼ live/reservation.reserve (active subscription required)
+              ▼ live/reservation.reserve (wallet balance only; no active subscription required)
          liveBalance -= cost ; liveReserved += cost
               │
               ├─ cancel ──► releaseCredits ──► liveBalance += cost ; liveReserved -= cost
@@ -40,7 +40,8 @@ Grant ──► liveBalance
               └─ LiveKit join (reserved) ──► consumeCredits ──► liveReserved -= cost (spent)
 ```
 
-- **Grant / membership gate:** `requireWalletForMember` (`trialing` | `active` only; `past_due` blocked)
+- **Spend (live / 1:1):** `requireWallet` — credits from subscription grants or credit packs are spendable without an active subscription
+- **Subscription-only:** microflow catalog access (`video/catalog`) still requires active subscription; macroflow uses VOD credits via `ensureUserWallet`
 - **Reserve:** `convex/live/reservation.ts`
 - **Spend:** `convex/livekitAttendance/events.ts` on first customer join
 - **Refund:** `reservation.cancel`, `live/settle`, class cancel wallet loop

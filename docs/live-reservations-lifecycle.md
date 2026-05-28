@@ -40,10 +40,11 @@ stateDiagram-v2
 ## Reserve (`api.live.reservation.reserve`)
 
 1. Auth + rate limit + equipment check.
-2. Class must be `scheduled` or `live`; `now <= joinClosesAt`.
-3. No overlapping `reserved`/`joined` reservation for another class.
-4. `reserveCredits` + `reserveClassSeat` + insert/patch reservation.
-5. `createReminderEventsForReservation` schedules `liveReminderEvents`.
+2. Wallet with enough credits (`requireWallet` — no active subscription required).
+3. Class must be `scheduled` or `live`; `now <= joinClosesAt`.
+4. No overlapping `reserved`/`joined` reservation for another class.
+5. `reserveCredits` + `reserveClassSeat` + insert/patch reservation.
+6. `createReminderEventsForReservation` schedules `liveReminderEvents`.
 
 ## Join window & access
 

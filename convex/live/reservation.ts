@@ -2,9 +2,9 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
-import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
+import { getOrCreateAppProfile, requireRole, requireUserId } from "../lib/authz";
 import {
-  requireWalletForMember,
+  requireWallet,
   availableLiveCredits,
   availableOneOnOneCredits,
   reserveCredits,
@@ -88,7 +88,7 @@ export const reserve = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     await checkRateLimit(ctx, userId, "reservation");
-    const profile = await requireAppProfile(ctx, userId);
+    const profile = await getOrCreateAppProfile(ctx, userId);
     requireRole(profile, ["customer", "instructor", "admin"]);
 
     const liveClass = await ctx.db.get(args.liveClassId);
@@ -118,7 +118,7 @@ export const reserve = mutation({
       return existing._id;
     }
 
-    const { wallet } = await requireWalletForMember(ctx, userId);
+    const wallet = await requireWallet(ctx, userId);
     const creditKind: LiveCreditPool =
       liveClass.creditKind === "live" ? "live" : "oneOnOne";
     const available =
@@ -173,13 +173,21 @@ export const reserve = mutation({
       throw error;
     }
 
-    await createReminderEventsForReservation(
-      ctx,
-      args.liveClassId,
-      reservationId,
-      userId,
-      liveClass.startsAt,
-    );
+    try {
+      await createReminderEventsForReservation(
+        ctx,
+        args.liveClassId,
+        reservationId,
+        userId,
+        liveClass.startsAt,
+      );
+    } catch (reminderError) {
+      console.error("live/reservation.reserve: reminder scheduling failed", {
+        liveClassId: args.liveClassId,
+        reservationId,
+        reminderError,
+      });
+    }
     return reservationId;
   },
 });

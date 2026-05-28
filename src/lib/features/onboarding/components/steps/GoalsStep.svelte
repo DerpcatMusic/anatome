@@ -6,8 +6,10 @@
 
   let {
     goals = $bindable(),
+    showWarning = false,
   }: {
     goals: string[];
+    showWarning?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -30,7 +32,7 @@
     </Checkbox.Root>
   {/each}
 </div>
-{#if goals.length === 0}
+{#if goals.length === 0 && showWarning}
   <Notice tone="neutral">{t.onboarding.goals.emptyWarning()}</Notice>
 {/if}
 

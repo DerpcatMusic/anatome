@@ -5,17 +5,20 @@
     type HealthDeclarationAnswers,
   } from "$lib/features/onboarding/health-declaration";
   import { Checkbox, RadioGroup } from "bits-ui";
+  import Notice from "$components/ui/Notice.svelte";
 
   let {
     answers = $bindable(),
     healthInfoConsent = $bindable(),
     healthDeclarationAccepted = $bindable(),
     needsHealthConsent = false,
+    showValidation = false,
   }: {
     answers: HealthDeclarationAnswers;
     healthInfoConsent: boolean;
     healthDeclarationAccepted: boolean;
     needsHealthConsent?: boolean;
+    showValidation?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -30,7 +33,10 @@
 
   <div class="health-step__questions">
     {#each healthDeclarationQuestionIds as questionId (questionId)}
-      <fieldset class="health-question">
+      <fieldset
+        class="health-question"
+        class:health-question--incomplete={showValidation && answers[questionId] === null}
+      >
         <legend>{questionLabel(questionId)}</legend>
         <RadioGroup.Root
           value={answers[questionId] ?? undefined}
@@ -61,10 +67,16 @@
     <p>{t.onboarding.healthDeclaration.disclaimer()}</p>
   </div>
 
-  <div class="health-consent-row">
+  <div
+    class="health-consent-row"
+    class:health-consent-row--incomplete={showValidation && !healthDeclarationAccepted}
+  >
     <Checkbox.Root
       class="health-consent-check"
-      bind:checked={healthDeclarationAccepted}
+      checked={healthDeclarationAccepted}
+      onCheckedChange={(value) => {
+        healthDeclarationAccepted = value === true;
+      }}
     >
       {#snippet children({ checked })}
         <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
@@ -74,20 +86,32 @@
   </div>
 
   {#if needsHealthConsent}
-  <div class="health-step__consent" data-active="true">
-    <p>{t.onboarding.healthDeclaration.consentIntro()}</p>
-    <div class="health-consent-row">
-      <Checkbox.Root
-        class="health-consent-check"
-        bind:checked={healthInfoConsent}
+    <div class="health-step__consent" data-active="true">
+      <p>{t.onboarding.healthDeclaration.consentIntro()}</p>
+      <div
+        class="health-consent-row"
+        class:health-consent-row--incomplete={showValidation && !healthInfoConsent}
       >
-        {#snippet children({ checked })}
-          <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
-          <span>{t.onboarding.healthDeclaration.consentLabel()}</span>
-        {/snippet}
-      </Checkbox.Root>
+        <Checkbox.Root
+          class="health-consent-check"
+          checked={healthInfoConsent}
+          onCheckedChange={(value) => {
+            healthInfoConsent = value === true;
+          }}
+        >
+          {#snippet children({ checked })}
+            <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
+            <span>{t.onboarding.healthDeclaration.consentLabel()}</span>
+          {/snippet}
+        </Checkbox.Root>
+      </div>
     </div>
-  </div>
+  {/if}
+
+  {#if showValidation && (!healthDeclarationAccepted || (needsHealthConsent && !healthInfoConsent))}
+    <Notice tone="neutral">
+      יש לסמן את שתי ההצהרות בתחתית העמוד לפני המשך.
+    </Notice>
   {/if}
 </div>
 
@@ -122,6 +146,11 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+  }
+
+  .health-question--incomplete {
+    border-color: var(--danger, #b42318);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger, #b42318) 35%, transparent);
   }
 
   .health-question legend {
@@ -183,6 +212,11 @@
   .health-step :global(.health-consent-check[data-disabled]) {
     cursor: default;
     opacity: 0.55;
+  }
+
+  .health-consent-row--incomplete :global(.health-consent-check__box) {
+    border-color: var(--danger, #b42318);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger, #b42318) 25%, transparent);
   }
 
   .health-consent-check__box {

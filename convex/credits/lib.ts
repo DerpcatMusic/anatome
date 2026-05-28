@@ -89,7 +89,7 @@ export async function requireWallet(
   return await ensureUserWallet(ctx, userId);
 }
 
-/** Active subscription required for live/1:1 booking (platform membership). */
+/** Active subscription required for subscription-gated product surfaces (not credit spend). */
 export async function requireWalletForMember(
   ctx: MutationCtx,
   userId: Id<"users">,

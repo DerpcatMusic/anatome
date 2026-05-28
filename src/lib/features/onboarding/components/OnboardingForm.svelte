@@ -28,6 +28,13 @@
   import SummaryStep from "./steps/SummaryStep.svelte";
   import NameStep from "./steps/NameStep.svelte";
   import { displayNameForOnboardingPrefill } from "$lib/features/onboarding/display-name";
+  import {
+    clearOnboardingDraft,
+    loadOnboardingDraft,
+    saveOnboardingDraft,
+  } from "$lib/features/onboarding/draft";
+  import { convexMutationErrorMessage } from "$lib/convex/errors";
+  import { browser } from "$app/environment";
   import "./OnboardingForm.css";
 
   let {
@@ -78,6 +85,8 @@
   let pending = $state(false);
   let error = $state("");
   let submitted = $state(false);
+  let stepValidationAttempted = $state(false);
+  let draftHydrated = $state(false);
 
   function isKnownGoal(value: string): value is Goal {
     return goalOptions.some(([id]) => id === value);
@@ -137,6 +146,46 @@
   let profileHydrationKey = $state<string | null>(null);
   let displayNameHydrated = $state(false);
 
+  /** Restore in-progress onboarding from localStorage (no server draft yet). */
+  $effect(() => {
+    if (mode !== "onboarding" || draftHydrated || initialProfile) return;
+    draftHydrated = true;
+    const draft = loadOnboardingDraft();
+    if (draft === null) return;
+    stepIndex = draft.stepIndex;
+    firstName = draft.firstName;
+    lastName = draft.lastName;
+    equipment = draft.equipment as Equipment[];
+    goals = draft.goals.filter(isKnownGoal) as Goal[];
+    if (equipment.length === 0) equipment = ["mat"];
+    if (goals.length === 0) goals = ["pelvic_floor_rehab"];
+    experience = draft.experience;
+    pathologies = draft.pathologies.filter(isKnownPathology);
+    notes = draft.notes;
+    healthDeclarationAnswers = draft.healthDeclarationAnswers;
+    healthInfoConsent = draft.healthInfoConsent;
+    healthDeclarationAccepted = draft.healthDeclarationAccepted;
+  });
+
+  $effect(() => {
+    if (!browser || mode !== "onboarding" || submitted) return;
+    const snapshot = {
+      stepIndex,
+      firstName,
+      lastName,
+      equipment,
+      goals,
+      experience,
+      pathologies,
+      notes,
+      healthDeclarationAnswers,
+      healthInfoConsent,
+      healthDeclarationAccepted,
+    };
+    const handle = setTimeout(() => saveOnboardingDraft(snapshot), 400);
+    return () => clearTimeout(handle);
+  });
+
   /** Edit mode: hydrate once per profile snapshot — never reset mid-flow. */
   $effect(() => {
     if (!initialProfile) return;
@@ -179,6 +228,11 @@
 
   const nameComplete = $derived(firstName.trim().length > 0 && lastName.trim().length > 0);
 
+  const healthComplete = $derived(isHealthDeclarationComplete(healthDeclarationAnswers));
+  const healthConsentsComplete = $derived(
+    healthDeclarationAccepted && healthInfoConsent,
+  );
+
   const canProceed = $derived(
     currentStep.id === "name"
       ? nameComplete
@@ -187,13 +241,71 @@
         : currentStep.id === "goals"
           ? goals.length > 0
           : currentStep.id === "health-declaration"
-            ? isHealthDeclarationComplete(healthDeclarationAnswers) &&
-              healthDeclarationAccepted &&
-              (!needsHealthConsent || healthInfoConsent)
+            ? healthComplete && healthConsentsComplete
             : true,
   );
 
+  const readyToSubmit = $derived(
+    nameComplete &&
+      equipment.length > 0 &&
+      goals.length > 0 &&
+      healthComplete &&
+      healthDeclarationAccepted &&
+      healthInfoConsent,
+  );
+
+  function stepIsIncomplete(stepId: (typeof steps)[number]["id"]): boolean {
+    switch (stepId) {
+      case "name":
+        return !nameComplete;
+      case "equipment":
+        return equipment.length === 0;
+      case "goals":
+        return goals.length === 0;
+      case "health-declaration":
+        return !healthComplete || !healthConsentsComplete;
+      default:
+        return false;
+    }
+  }
+
+  function stepBlockReason(stepId: (typeof steps)[number]["id"]): string | null {
+    switch (stepId) {
+      case "name":
+        return nameComplete ? null : t.onboarding.name.emptyWarning();
+      case "equipment":
+        return equipment.length > 0 ? null : t.onboarding.equipment.emptyWarning();
+      case "goals":
+        return goals.length > 0 ? null : t.onboarding.goals.emptyWarning();
+      case "health-declaration":
+        if (!healthComplete) return t.onboarding.healthDeclaration.incompleteError();
+        if (!healthDeclarationAccepted) {
+          return "יש לאשר את הצהרת נכונות המידע.";
+        }
+        if (!healthInfoConsent) {
+          return "יש לאשר את הסכמת שמירת המידע הבריאותי.";
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  const footerBlockReason = $derived.by(() => {
+    if (!stepValidationAttempted || canProceed) return null;
+    return stepBlockReason(currentStep.id);
+  });
+
+  function goToStep(index: number) {
+    if (index < 0 || index >= steps.length) return;
+    stepIndex = index;
+    stepValidationAttempted = false;
+    error = "";
+    nameWarning = false;
+  }
+
   function next() {
+    stepValidationAttempted = true;
     if (currentStep.id === "name" && !nameComplete) {
       nameWarning = true;
       return;
@@ -201,11 +313,13 @@
     if (!canProceed) return;
     error = "";
     nameWarning = false;
+    stepValidationAttempted = false;
     if (!isLast) stepIndex++;
   }
 
   function back() {
     error = "";
+    stepValidationAttempted = false;
     if (!isFirst) stepIndex--;
   }
 
@@ -213,28 +327,36 @@
 
   async function submit() {
     if (pending || submitted) return;
+    stepValidationAttempted = true;
 
     if (!nameComplete) {
       nameWarning = true;
-      stepIndex = 0;
+      goToStep(0);
+      return;
+    }
+
+    if (equipment.length === 0) {
+      error = t.onboarding.equipment.emptyWarning();
+      goToStep(steps.findIndex((s) => s.id === "equipment"));
+      return;
+    }
+
+    if (goals.length === 0) {
+      error = t.onboarding.goals.emptyWarning();
+      goToStep(steps.findIndex((s) => s.id === "goals"));
       return;
     }
 
     const normalizedAnswers = normalizeHealthDeclarationAnswers(healthDeclarationAnswers);
     if (normalizedAnswers === null) {
       error = t.onboarding.healthDeclaration.incompleteError();
-      if (healthDeclarationStepIndex >= 0) stepIndex = healthDeclarationStepIndex;
+      if (healthDeclarationStepIndex >= 0) goToStep(healthDeclarationStepIndex);
       return;
     }
 
     if (!healthDeclarationAccepted || !healthInfoConsent) {
       error = "נדרשת הסכמה לשמירת מידע בריאותי והצהרת בריאות.";
-      if (healthDeclarationStepIndex >= 0) stepIndex = healthDeclarationStepIndex;
-      return;
-    }
-
-    if (equipment.length === 0 || goals.length === 0) {
-      error = t.onboarding.saveError();
+      if (healthDeclarationStepIndex >= 0) goToStep(healthDeclarationStepIndex);
       return;
     }
 
@@ -258,11 +380,12 @@
         pending = false;
         return;
       }
+      clearOnboardingDraft();
       submitted = true;
       const target = redirectTo ?? "/u/dashboard";
       setTimeout(() => window.location.assign(target), 800);
     } catch (reason) {
-      error = reason instanceof Error ? reason.message : t.onboarding.saveError();
+      error = convexMutationErrorMessage(reason, t.onboarding.saveError());
       pending = false;
     }
   }
@@ -294,6 +417,21 @@
             <div class="progress-bar__fill" style="width: {progressPercent}%"></div>
           </div>
           <div class="progress-label">{t.onboarding.step()} {stepIndex + 1} {t.onboarding.stepCount()}</div>
+          <nav class="step-nav" aria-label="שלבי ההרשמה">
+            {#each steps as step, index (step.id)}
+              <button
+                type="button"
+                class="step-nav__item"
+                class:step-nav__item--current={index === stepIndex}
+                class:step-nav__item--incomplete={stepIsIncomplete(step.id)}
+                aria-current={index === stepIndex ? "step" : undefined}
+                onclick={() => goToStep(index)}
+              >
+                <span class="step-nav__index">{index + 1}</span>
+                <span class="step-nav__label">{step.title}</span>
+              </button>
+            {/each}
+          </nav>
         {/if}
 
         <div class="form-body">
@@ -302,9 +440,9 @@
           {:else if currentStep.id === "experience"}
             <ExperienceStep bind:experience />
           {:else if currentStep.id === "equipment"}
-            <EquipmentStep bind:equipment />
+            <EquipmentStep bind:equipment showWarning={stepValidationAttempted && equipment.length === 0} />
           {:else if currentStep.id === "goals"}
-            <GoalsStep bind:goals />
+            <GoalsStep bind:goals showWarning={stepValidationAttempted && goals.length === 0} />
           {:else if currentStep.id === "notes"}
             <NotesStep bind:pathologies bind:notes />
           {:else if currentStep.id === "health-declaration"}
@@ -313,8 +451,56 @@
               bind:healthInfoConsent
               bind:healthDeclarationAccepted
               {needsHealthConsent}
+              showValidation={stepValidationAttempted && !canProceed}
             />
           {:else if currentStep.id === "summary"}
+            {#if stepValidationAttempted && !readyToSubmit}
+              <Notice tone="neutral">
+                <p>לפני שמירה, יש להשלים:</p>
+                <ul class="onboarding-missing-list">
+                  {#if !nameComplete}
+                    <li>
+                      <button type="button" class="onboarding-missing-link" onclick={() => goToStep(0)}>
+                        שם מלא
+                      </button>
+                    </li>
+                  {/if}
+                  {#if equipment.length === 0}
+                    <li>
+                      <button
+                        type="button"
+                        class="onboarding-missing-link"
+                        onclick={() => goToStep(steps.findIndex((s) => s.id === "equipment"))}
+                      >
+                        בחירת ציוד
+                      </button>
+                    </li>
+                  {/if}
+                  {#if goals.length === 0}
+                    <li>
+                      <button
+                        type="button"
+                        class="onboarding-missing-link"
+                        onclick={() => goToStep(steps.findIndex((s) => s.id === "goals"))}
+                      >
+                        בחירת מטרות
+                      </button>
+                    </li>
+                  {/if}
+                  {#if !healthComplete || !healthConsentsComplete}
+                    <li>
+                      <button
+                        type="button"
+                        class="onboarding-missing-link"
+                        onclick={() => goToStep(healthDeclarationStepIndex)}
+                      >
+                        הצהרת בריאות והסכמות
+                      </button>
+                    </li>
+                  {/if}
+                </ul>
+              </Notice>
+            {/if}
             <SummaryStep
               {firstName}
               {lastName}
@@ -327,6 +513,10 @@
               {healthDeclarationAccepted}
               {healthInfoConsent}
             />
+          {/if}
+
+          {#if footerBlockReason}
+            <Notice tone="neutral">{footerBlockReason}</Notice>
           {/if}
 
           {#if error}
@@ -342,7 +532,7 @@
           {/if}
 
           {#if isLast}
-            <Button.Root class="hb-button hb-button--ink" type="button" disabled={pending || !canProceed || !nameComplete} onclick={submit}>
+            <Button.Root class="hb-button hb-button--ink" type="button" disabled={pending} onclick={submit}>
               {pending ? t.onboarding.nav.submitPending() : mode === "edit" ? t.onboarding.nav.submitEdit() : t.onboarding.nav.submit()}
             </Button.Root>
           {:else}

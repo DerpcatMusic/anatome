@@ -28,6 +28,7 @@
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
+  import { convexMutationErrorMessage } from "$lib/convex/errors";
   import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
 
   const agendaRangeStart = $derived(startOfLocalDay());
@@ -157,7 +158,7 @@
     try {
       await client.mutation(api.live.reservation.reserve, { liveClassId });
     } catch (reason) {
-      actionError = reason instanceof Error ? reason.message : t.calendar.error.reserve();
+      actionError = convexMutationErrorMessage(reason, t.calendar.error.reserve());
     } finally {
       actionId = null;
     }
@@ -169,7 +170,7 @@
     try {
       await client.mutation(api.live.reservation.cancel, { liveClassId });
     } catch (reason) {
-      actionError = reason instanceof Error ? reason.message : t.calendar.error.cancel();
+      actionError = convexMutationErrorMessage(reason, t.calendar.error.cancel());
     } finally {
       actionId = null;
     }

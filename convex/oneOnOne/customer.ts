@@ -4,7 +4,7 @@ import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import {
   getCreditAccess,
-  requireWalletForMember,
+  requireWallet,
   availableOneOnOneCredits,
   reserveOneOnOneCredits,
   releaseOneOnOneCredits,
@@ -144,7 +144,7 @@ export const requestSlot = mutation({
       throw new Error("יותר מדי בקשות 1:1 בהמתנה");
     }
 
-    const { wallet } = await requireWalletForMember(ctx, userId);
+    const wallet = await requireWallet(ctx, userId);
     if (availableOneOnOneCredits(wallet) < 1) {
       throw new Error("אין נקודות 1:1 זמינות");
     }

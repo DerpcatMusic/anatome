@@ -7,8 +7,10 @@
 
   let {
     equipment = $bindable(),
+    showWarning = false,
   }: {
     equipment: string[];
+    showWarning?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -32,7 +34,7 @@
     </Checkbox.Root>
   {/each}
 </div>
-{#if equipment.length === 0}
+{#if equipment.length === 0 && showWarning}
   <Notice tone="neutral">{t.onboarding.equipment.emptyWarning()}</Notice>
 {/if}
 
