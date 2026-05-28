@@ -1,13 +1,14 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 import { getOrCreateAppProfile } from "../lib/authz";
 import { promoteUserToInstructor } from "../lib/promoteInstructor";
 
 const roleValidator = v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin"));
 
 /**
- * Dev/staging role promotion — requires `DEV_SECRET` and is blocked on production-like
- * deployments unless `ALLOW_DEV_PROMOTE=true` is set explicitly for a controlled operation.
+ * Ops-only dev/staging role promotion — requires `DEV_SECRET`. Run from Convex Dashboard
+ * or `npx convex run profiles/dev:promote`. Blocked on production-like deployments unless
+ * `ALLOW_DEV_PROMOTE=true` is set explicitly for a controlled operation.
  */
 function assertDevPromoteAllowed() {
   if (process.env.ALLOW_DEV_PROMOTE === "true") return;
@@ -18,12 +19,12 @@ function assertDevPromoteAllowed() {
   const looksNonDev = !/(^dev$|dev[-_]|[-_]dev|staging|preview|local|sandbox)/i.test(deployment);
   if (looksNonDev) {
     throw new Error(
-      "profiles/dev.promote is disabled on this deployment. Set ALLOW_DEV_PROMOTE=true only for a controlled operation.",
+      "internal profiles/dev.promote is disabled on this deployment. Set ALLOW_DEV_PROMOTE=true only for a controlled operation.",
     );
   }
 }
 
-export const promote = mutation({
+export const promote = internalMutation({
   args: {
     email: v.string(),
     role: roleValidator,

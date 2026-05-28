@@ -5,7 +5,7 @@
 
 <PageShell
   title="קניית קרדיטים"
-  description="בוחרים סוגים וכמויות — הנחת כמות עד 10% לכל סוג בנפרד."
+  description="10+ קרדיטים מאותו סוג — 10% הנחה."
 >
   <CreditPurchaser />
 </PageShell>

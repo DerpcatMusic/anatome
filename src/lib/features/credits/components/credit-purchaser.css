@@ -37,30 +37,16 @@
   background: color-mix(in oklch, var(--primary-subtle) 22%, var(--card));
 }
 
-.credit-type-row--vod.credit-type-row--in-cart {
-  background: color-mix(in oklch, var(--secondary) 14%, var(--card));
+.credit-type-row[data-pool="vod"].credit-type-row--in-cart {
+  background: color-mix(in oklch, var(--credit-vod) 12%, var(--card));
 }
 
-.credit-type-row--live.credit-type-row--in-cart {
-  background: color-mix(in oklch, var(--accent) 14%, var(--card));
+.credit-type-row[data-pool="live"].credit-type-row--in-cart {
+  background: color-mix(in oklch, var(--credit-live) 12%, var(--card));
 }
 
-.credit-type-row--oneOnOne.credit-type-row--in-cart {
-  background: color-mix(in oklch, var(--primary-subtle) 20%, var(--card));
-}
-
-.credit-type-row__icon {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-  background: color-mix(in oklch, var(--foreground) 6%, var(--elevated));
-}
-
-.credit-type-row__icon :global(svg) {
-  width: 1.35rem;
-  height: 1.35rem;
+.credit-type-row[data-pool="oneOnOne"].credit-type-row--in-cart {
+  background: color-mix(in oklch, var(--credit-private) 14%, var(--card));
 }
 
 .credit-type-row__info {
@@ -131,24 +117,6 @@
   background: var(--elevated);
   position: sticky;
   top: var(--space-4);
-}
-
-.credit-purchaser__wallet {
-  display: grid;
-  gap: var(--space-2);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
-}
-
-.credit-purchaser__wallet-title {
-  margin: 0;
-  font-size: var(--step--1);
-  font-weight: 700;
-  color: var(--foreground-muted);
-}
-
-.credit-purchaser__cart :global(.wallet-credit-strip--minimal) {
-  width: 100%;
 }
 
 .credit-purchaser__cart-title {

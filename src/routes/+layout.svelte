@@ -8,6 +8,7 @@
 	import { wireConvexAuth } from '$lib/auth/session.svelte';
 	import { registerPwaClient } from '$lib/pwa/register-pwa';
 	import { useI18n } from '$lib/i18n/runes';
+	import CelebrationConfettiHost from '$lib/features/celebration/CelebrationConfettiHost.svelte';
 
 	let { children } = $props();
 	const { t } = useI18n();
@@ -63,3 +64,5 @@
 <Tooltip.Provider delayDuration={160}>
 	{@render children()}
 </Tooltip.Provider>
+
+<CelebrationConfettiHost />

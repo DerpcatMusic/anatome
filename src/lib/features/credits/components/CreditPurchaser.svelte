@@ -4,32 +4,26 @@
   import { useConvexClient, useQuery } from "convex-svelte";
   import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
-  import { initAuth, canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useBillingFlags } from "$lib/features/subscriptions/useBillingFlags.svelte";
   import { useSubscriptionAccess } from "$lib/features/subscriptions/useSubscriptionAccess.svelte";
   import CardcomCheckoutModal from "$lib/features/subscriptions/components/CardcomCheckoutModal.svelte";
   import { useCardcomCheckoutChannel } from "$lib/features/subscriptions/useCardcomCheckoutChannel.svelte";
   import { pollCreditCheckoutUrl } from "$lib/features/credits/credit-checkout";
-  import { walletBalances } from "$lib/features/credits/balances";
-  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
-  import CreditIconVod from "$lib/features/credits/icons/CreditIconVod.svelte";
-  import CreditIconLive from "$lib/features/credits/icons/CreditIconLive.svelte";
-  import CreditIconOneOnOne from "$lib/features/credits/icons/CreditIconOneOnOne.svelte";
+  import CreditDisc from "$lib/features/credits/CreditDisc.svelte";
+  import { fireCreditNudge, firePaymentTriumph } from "$lib/features/celebration/celebration.svelte";
   import type { CreditPool } from "$lib/features/credits/types";
   import {
     CREDIT_MAX_VOLUME_DISCOUNT_PERCENT,
+    CREDIT_VOLUME_DISCOUNT_MIN_QTY,
     CREDIT_UNIT_PRICE_ILS,
     formatIls,
     poolLabelHe,
     quoteCreditCart,
   } from "$lib/features/credits/pricing";
-  import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import "./credit-purchaser.css";
 
   const POOLS: CreditPool[] = ["vod", "live", "oneOnOne"];
 
-  const auth = initAuth();
-  const queryNow = useQueryNowMs();
   const client = useConvexClient();
   const billing = useBillingFlags();
   const access = useSubscriptionAccess();
@@ -51,19 +45,9 @@
   let checkoutOrderId = $state<Id<"creditOrders"> | null>(null);
   let checkoutCart = $state<ReturnType<typeof quoteCreditCart> | null>(null);
 
-  const walletQuery = useQuery(api.subscriptions.customer.getMine, () =>
-    auth.isAuthenticated && canRunAuthenticatedQuery()
-      ? { now: queryNow.nowMs }
-      : "skip",
-  );
-
   const maxQuantity = $derived(catalogQuery.data?.maxQuantity ?? 50);
   const enabled = $derived(billing.creditsPurchaseEnabled && catalogQuery.data?.enabled !== false);
   const canBuy = $derived(enabled && access.canSubscribe);
-
-  const walletBalancesSnapshot = $derived(
-    walletQuery.data?.wallet ? walletBalances(walletQuery.data.wallet) : null,
-  );
 
   const poolLabels = $derived(
     catalogQuery.data?.poolLabelsHe ?? {
@@ -97,7 +81,11 @@
   }
 
   function adjustPool(pool: CreditPool, delta: number) {
-    setPoolQty(pool, cartQty[pool] + delta);
+    const next = cartQty[pool] + delta;
+    setPoolQty(pool, next);
+    if (delta > 0 && next > 0) {
+      fireCreditNudge(pool);
+    }
   }
 
   function onQtyInput(pool: CreditPool, raw: string) {
@@ -118,6 +106,8 @@
       checkoutOrderId = null;
       checkoutCart = null;
       if (status === "success") {
+        const pools = POOLS.filter((pool) => cartQty[pool] > 0);
+        firePaymentTriumph({ kind: "credit", creditPools: pools });
         success = "התשלום התקבל — הקרדיטים נוספו לארנק.";
         cartQty = { vod: 0, live: 0, oneOnOne: 0 };
       } else {
@@ -162,16 +152,9 @@
           <article
             class="credit-type-row credit-type-row--{pool}"
             class:credit-type-row--in-cart={qty > 0}
+            data-pool={pool}
           >
-            <span class="credit-type-row__icon credit-type-row__icon--{pool}" aria-hidden="true">
-              {#if pool === "vod"}
-                <CreditIconVod />
-              {:else if pool === "live"}
-                <CreditIconLive />
-              {:else}
-                <CreditIconOneOnOne />
-              {/if}
-            </span>
+            <CreditDisc {pool} size="sm" />
             <div class="credit-type-row__info">
               <h2 class="credit-type-row__name">{poolLabels[pool]}</h2>
               <p class="credit-type-row__price">{formatIls(listPrice)} ₪ ליחידה</p>
@@ -212,18 +195,6 @@
       </div>
 
       <aside class="credit-purchaser__cart" aria-labelledby="credit-cart-title">
-        {#if walletBalancesSnapshot}
-          <div class="credit-purchaser__wallet">
-            <h2 class="credit-purchaser__wallet-title">יתרה בארנק</h2>
-            <WalletCreditStrip
-              balances={walletBalancesSnapshot}
-              pools={POOLS}
-              layout="stack"
-              variant="minimal"
-            />
-          </div>
-        {/if}
-
         <h2 id="credit-cart-title" class="credit-purchaser__cart-title">סיכום הזמנה</h2>
 
         {#if !cart}
@@ -263,7 +234,9 @@
           </dl>
         {/if}
 
-        <p class="credit-purchaser__hint">5+ מאותו סוג — עד {CREDIT_MAX_VOLUME_DISCOUNT_PERCENT}% הנחה.</p>
+        <p class="credit-purchaser__hint">
+          {CREDIT_VOLUME_DISCOUNT_MIN_QTY}+ מאותו סוג — {CREDIT_MAX_VOLUME_DISCOUNT_PERCENT}% הנחה.
+        </p>
 
         <Button.Root
           class="hb-button hb-button--ink hb-button--pill credit-purchaser__buy"

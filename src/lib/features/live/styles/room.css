@@ -333,15 +333,6 @@
   width: 6.25rem;
 }
 
-.lr-header__credits :global(.wallet-credit-strip--pill) {
-  background: color-mix(in oklch, var(--foreground) 6%, var(--muted));
-  box-shadow: var(--shadow-sm);
-}
-
-.lr-header__credits :global(.credit-coin--embedded) {
-  border-top-color: var(--border-color);
-}
-
 .lr-header__credits :global(.credit-coin__amount) {
   color: var(--lr-text);
 }

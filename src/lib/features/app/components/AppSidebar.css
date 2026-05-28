@@ -161,7 +161,7 @@
 .sidebar__credits {
   flex-shrink: 0;
   padding: var(--space-2) clamp(16px, 3vw, 24px);
-  border-top: var(--border);
+  border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
 }
 
 .sidebar__credits :global(.wallet-credit-strip) {

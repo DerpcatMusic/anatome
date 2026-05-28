@@ -5,19 +5,12 @@
   import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { routePath } from "$lib/i18n/context";
-  import type { WalletLike } from "$lib/features/credits/balances";
   import ContinueWatchingHero from "./ContinueWatchingHero.svelte";
   import DashboardLiveStrip from "./DashboardLiveStrip.svelte";
   import type { DashboardLiveItem } from "./DashboardLiveStrip.svelte";
   import "../dashboard.css";
 
-  let {
-    memberName,
-    wallet = null,
-  }: {
-    memberName?: string | null;
-    wallet?: WalletLike | null;
-  } = $props();
+  let { memberName }: { memberName?: string | null } = $props();
 
   const { t } = useI18n();
 
@@ -44,7 +37,7 @@
 </script>
 
 <div class="dashboard-home">
-  <ContinueWatchingHero displayName={memberName} {wallet} />
+  <ContinueWatchingHero displayName={memberName} />
 
   <DashboardLiveStrip
     lives={upcomingLives}

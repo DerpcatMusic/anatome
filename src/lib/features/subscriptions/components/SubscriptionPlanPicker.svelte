@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FunctionReturnType } from "convex/server";
   import { api } from "$convex/_generated/api";
+  import CreditPoolChip from "$lib/features/credits/CreditPoolChip.svelte";
   import { planTierTheme } from "../planTierTheme";
   import "./plan-picker.css";
 
@@ -25,6 +26,7 @@
   const sortedPlans = $derived(
     [...plans].sort((a, b) => planTierTheme(a.slug).tier - planTierTheme(b.slug).tier),
   );
+
 </script>
 
 <div class="plan-picker-grid" role="list">
@@ -46,9 +48,9 @@
       <p class="plan-picker-card__price">{plan.monthlyPriceIls} ₪<span aria-hidden="true">/חודש</span></p>
       <p class="plan-picker-card__tagline">{theme.tagline}</p>
       <div class="plan-picker-card__credits">
-        <span>{plan.vodCreditsPerMonth} מוקלט</span>
-        <span>{plan.liveCreditsPerMonth} לייב</span>
-        <span>{plan.oneOnOneCreditsPerMonth} פרטי</span>
+        <CreditPoolChip pool="vod" count={plan.vodCreditsPerMonth} label="מוקלט" size="xs" />
+        <CreditPoolChip pool="live" count={plan.liveCreditsPerMonth} label="לייב" size="xs" />
+        <CreditPoolChip pool="oneOnOne" count={plan.oneOnOneCreditsPerMonth} label="פרטי" size="xs" />
       </div>
       <span class="hb-button hb-button--paper hb-button--sm plan-picker-card__cta">
         {#if isActive}

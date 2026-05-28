@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Tooltip } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
-  import CreditIconVod from "./icons/CreditIconVod.svelte";
-  import CreditIconLive from "./icons/CreditIconLive.svelte";
-  import CreditIconOneOnOne from "./icons/CreditIconOneOnOne.svelte";
+  import CreditDisc from "./CreditDisc.svelte";
   import type { CreditPool } from "./types";
   import "./credits.css";
 
@@ -11,16 +9,13 @@
     pool,
     balance,
     size = "sm",
-    embedded = false,
-    minimal = false,
+    amountFirst = false,
   }: {
     pool: CreditPool;
     balance: number;
     size?: "sm" | "md";
-    /** Row inside a shared pill — no per-row outer chrome */
-    embedded?: boolean;
-    /** Flat row for sidebar — no track shadow, compact disc */
-    minimal?: boolean;
+    /** Number before disc (sidebar) */
+    amountFirst?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -49,6 +44,7 @@
   });
 
   const ariaLabel = $derived(`${copy.title}: ${copy.available}`);
+  const discSize = $derived(size === "md" ? "md" : "sm");
 </script>
 
 <Tooltip.Root>
@@ -58,27 +54,28 @@
         {...props}
         type="button"
         class="credit-coin credit-coin--{size}"
-        class:credit-coin--embedded={embedded}
-        class:credit-coin--minimal={minimal}
-        data-pool={pool}
+        class:credit-coin--amount-first={amountFirst}
         aria-label={ariaLabel}
       >
-        <span class="credit-coin__disc" aria-hidden="true">
-          {#if pool === "vod"}
-            <CreditIconVod />
-          {:else if pool === "live"}
-            <CreditIconLive />
-          {:else}
-            <CreditIconOneOnOne />
-          {/if}
-        </span>
-        <span
-          class="credit-coin__amount"
-          class:credit-coin__amount--zero={balance === 0}
-          aria-hidden="true"
-        >
-          {balance}
-        </span>
+        {#if amountFirst}
+          <span
+            class="credit-coin__amount"
+            class:credit-coin__amount--zero={balance === 0}
+            aria-hidden="true"
+          >
+            {balance}
+          </span>
+          <CreditDisc {pool} size={discSize} />
+        {:else}
+          <CreditDisc {pool} size={discSize} />
+          <span
+            class="credit-coin__amount"
+            class:credit-coin__amount--zero={balance === 0}
+            aria-hidden="true"
+          >
+            {balance}
+          </span>
+        {/if}
       </button>
     {/snippet}
   </Tooltip.Trigger>

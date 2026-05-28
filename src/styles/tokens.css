@@ -48,34 +48,39 @@ html[data-theme="light"] {
   --secondary-cool: var(--accent);
   --danger: var(--destructive);
 
-  /* Credit coins — tied to global hues */
-  --credit-vod: var(--secondary);
+  /* Credit coins — psychology: learn (violet) · together (blue) · premium 1:1 (gold) */
+  --credit-vod: oklch(52% 0.14 285);
   --credit-vod-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--secondary) 75%, var(--card)) 0%,
-    var(--credit-vod) 48%,
-    color-mix(in oklch, var(--secondary) 85%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-vod) 55%, white) 0%,
+    var(--credit-vod) 46%,
+    color-mix(in oklch, var(--credit-vod) 75%, var(--foreground)) 100%
   );
-  --credit-vod-rim: color-mix(in oklch, var(--secondary) 80%, var(--foreground));
-  --credit-vod-icon: oklch(98% 0.02 95);
-  --credit-live: var(--accent);
+  --credit-vod-rim: color-mix(in oklch, var(--credit-vod) 72%, var(--foreground));
+  --credit-vod-icon: oklch(99% 0.02 285);
+  --credit-live: oklch(58% 0.16 245);
   --credit-live-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--accent) 70%, var(--card)) 0%,
+    color-mix(in oklch, var(--credit-live) 50%, white) 0%,
     var(--credit-live) 48%,
-    color-mix(in oklch, var(--accent) 85%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-live) 78%, var(--foreground)) 100%
   );
-  --credit-live-rim: color-mix(in oklch, var(--accent) 75%, var(--foreground));
-  --credit-live-icon: oklch(98% 0.01 85);
-  --credit-private: var(--primary);
+  --credit-live-rim: color-mix(in oklch, var(--credit-live) 70%, var(--foreground));
+  --credit-live-icon: oklch(99% 0.02 245);
+  --credit-private: oklch(76% 0.14 88);
   --credit-private-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--primary) 65%, var(--card)) 0%,
-    var(--credit-private) 48%,
-    color-mix(in oklch, var(--primary) 80%, var(--foreground)) 100%
+    oklch(96% 0.04 95) 0%,
+    var(--credit-private) 42%,
+    color-mix(in oklch, var(--credit-private) 82%, oklch(45% 0.08 75)) 100%
   );
-  --credit-private-rim: color-mix(in oklch, var(--primary) 75%, var(--foreground));
-  --credit-private-icon: oklch(98% 0.008 95);
+  --credit-private-rim: color-mix(in oklch, var(--credit-private) 65%, oklch(42% 0.1 75));
+  --credit-private-icon: oklch(99% 0.03 95);
+  --credit-private-shine: linear-gradient(
+    120deg,
+    oklch(100% 0 0 / 0.65) 0%,
+    oklch(100% 0 0 / 0) 42%
+  );
   --credit-neu-radius: 12px;
   --credit-neu-track: var(--background);
   --credit-neu-highlight: oklch(100% 0.005 var(--neutral-hue) / 0.9);
@@ -270,33 +275,38 @@ html[data-theme="dark"] {
   --secondary-cool: var(--accent);
   --danger: var(--destructive);
 
-  --credit-vod: oklch(68% 0.06 135);
+  --credit-vod: oklch(72% 0.12 285);
   --credit-vod-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--credit-vod) 70%, var(--card)) 0%,
+    color-mix(in oklch, var(--credit-vod) 45%, var(--card)) 0%,
     var(--credit-vod) 48%,
-    color-mix(in oklch, var(--credit-vod) 80%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-vod) 70%, var(--foreground)) 100%
   );
-  --credit-vod-rim: color-mix(in oklch, var(--credit-vod) 75%, var(--foreground));
-  --credit-vod-icon: oklch(98% 0.02 95);
-  --credit-live: var(--accent);
+  --credit-vod-rim: color-mix(in oklch, var(--credit-vod) 68%, var(--foreground));
+  --credit-vod-icon: oklch(98% 0.02 285);
+  --credit-live: oklch(74% 0.14 245);
   --credit-live-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--accent) 65%, var(--card)) 0%,
+    color-mix(in oklch, var(--credit-live) 42%, var(--card)) 0%,
     var(--credit-live) 48%,
-    color-mix(in oklch, var(--accent) 80%, var(--foreground)) 100%
+    color-mix(in oklch, var(--credit-live) 72%, var(--foreground)) 100%
   );
-  --credit-live-rim: color-mix(in oklch, var(--accent) 70%, var(--foreground));
-  --credit-live-icon: oklch(98% 0.01 85);
-  --credit-private: oklch(78% 0.06 140);
+  --credit-live-rim: color-mix(in oklch, var(--credit-live) 65%, var(--foreground));
+  --credit-live-icon: oklch(98% 0.02 245);
+  --credit-private: oklch(82% 0.13 88);
   --credit-private-surface: linear-gradient(
     145deg,
-    color-mix(in oklch, var(--credit-private) 60%, var(--card)) 0%,
-    var(--credit-private) 48%,
-    color-mix(in oklch, var(--credit-private) 75%, var(--foreground)) 100%
+    oklch(42% 0.04 95) 0%,
+    var(--credit-private) 44%,
+    color-mix(in oklch, var(--credit-private) 75%, oklch(55% 0.1 75)) 100%
   );
-  --credit-private-rim: color-mix(in oklch, var(--credit-private) 70%, var(--foreground));
-  --credit-private-icon: oklch(98% 0.008 95);
+  --credit-private-rim: color-mix(in oklch, var(--credit-private) 60%, oklch(70% 0.08 88));
+  --credit-private-icon: oklch(98% 0.03 95);
+  --credit-private-shine: linear-gradient(
+    120deg,
+    oklch(100% 0 0 / 0.22) 0%,
+    oklch(100% 0 0 / 0) 45%
+  );
   --credit-neu-radius: 12px;
   --credit-neu-track: var(--muted);
   --credit-neu-highlight: oklch(34% 0.012 var(--neutral-hue) / 0.7);

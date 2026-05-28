@@ -53,13 +53,12 @@
     {:else}
       <div class="dashboard-shell--member">
         <div class="dashboard-home__grid dashboard-home__grid--member">
-          <MemberDashboardHome {memberName} wallet={wallet ?? null} />
+          <MemberDashboardHome {memberName} />
           <aside class="dashboard-shell__aside">
             <SubscriptionManager
               subscription={subscription ?? null}
               subscriptionPlan={subscriptionPlan ?? null}
               pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
-              wallet={wallet ?? null}
             />
             {#if profile}
               <ProfileSummary isStaff={false} {profile} showEditLink />

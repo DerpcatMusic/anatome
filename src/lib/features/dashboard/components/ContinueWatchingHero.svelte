@@ -6,22 +6,13 @@
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { watchHref, routePath } from "$lib/i18n/context";
-  import WalletCreditStrip from "$lib/features/credits/WalletCreditStrip.svelte";
-  import { walletBalances, type WalletLike } from "$lib/features/credits/balances";
-  import { poolsForSidebar } from "$lib/features/credits/pools-for-context";
   import { formatProgressLabel } from "../lib/format";
   import "../dashboard.css";
 
   type ContinueItem = NonNullable<
     FunctionReturnType<typeof api.video.playback.getContinueWatching>
   >;
-  let {
-    displayName,
-    wallet = null,
-  }: {
-    displayName?: string | null;
-    wallet?: WalletLike | null;
-  } = $props();
+  let { displayName }: { displayName?: string | null } = $props();
 
   const { t } = useI18n();
   const progressQuery = useQuery(api.video.playback.getContinueWatching, () =>
@@ -31,8 +22,6 @@
   const item = $derived(progressQuery.data ?? null);
   const loading = $derived(progressQuery.isLoading);
   const error = $derived(progressQuery.error?.message ?? null);
-  const creditBalances = $derived(walletBalances(wallet));
-
   const friendlyName = $derived.by(() => {
     const raw = displayName?.trim();
     if (!raw || raw.includes("@")) return null;
@@ -96,18 +85,8 @@
   {:else}
     <div class="continue-hero__welcome dashboard-panel">
       <div class="continue-hero__welcome-head">
-        <div class="continue-hero__welcome-copy">
-          <h2 id="continue-hero-title" class="continue-hero__welcome-title">{greeting}</h2>
-          <p class="continue-hero__welcome-text">{t.dashboard.member.welcomeBody()}</p>
-        </div>
-        <WalletCreditStrip
-          balances={creditBalances}
-          pools={poolsForSidebar()}
-          size="sm"
-          layout="row"
-          variant="loose"
-          class="continue-hero__credits"
-        />
+        <h2 id="continue-hero-title" class="continue-hero__welcome-title">{greeting}</h2>
+        <p class="continue-hero__welcome-text">{t.dashboard.member.welcomeBody()}</p>
       </div>
       <div class="continue-hero__welcome-actions">
         <Button.Root
@@ -234,21 +213,8 @@
   }
 
   .continue-hero__welcome-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .continue-hero__welcome-copy {
-    flex: 1 1 16rem;
-    min-width: 0;
-  }
-
-  .continue-hero :global(.continue-hero__credits) {
-    flex: 0 1 auto;
-    justify-content: flex-end;
+    display: grid;
+    gap: var(--space-2);
   }
 
   .continue-hero__eyebrow {
@@ -298,9 +264,5 @@
       aspect-ratio: 16 / 9;
     }
 
-    .continue-hero :global(.continue-hero__credits) {
-      width: 100%;
-      justify-content: flex-start;
-    }
   }
 </style>

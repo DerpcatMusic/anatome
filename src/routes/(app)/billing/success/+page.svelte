@@ -7,7 +7,10 @@
   import { useQuery } from "convex-svelte";
   import { Button } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
+  import { fireBillingSuccessCelebration } from "$lib/features/celebration/celebration.svelte";
   import { notifyCardcomCheckoutParent } from "$lib/features/subscriptions/cardcomEmbed";
+
+  let celebratedFulfillment = $state(false);
 
   const orderKind = $derived(
     page.url.searchParams.get("orderKind") === "credit" ? "credit" : "subscription",
@@ -55,6 +58,10 @@
     if (!browser) return;
     const orderId = orderKind === "credit" ? creditOrderId : subscriptionOrderId;
     if (!orderId) return;
+    if (isFulfilled && !celebratedFulfillment) {
+      celebratedFulfillment = true;
+      fireBillingSuccessCelebration(orderKind);
+    }
     if (embed && isFulfilled) {
       notifyCardcomCheckoutParent("success", orderId);
       return;

@@ -11,20 +11,17 @@
     pools,
     size = "sm",
     layout = "stack",
-    variant = "pill",
+    amountFirst = false,
     class: className = "",
   }: {
     balances?: CreditBalances;
     pools: CreditPool[];
     size?: "sm" | "md";
     layout?: "row" | "stack";
-    /** `pill` = shared container; `loose` = row chrome; `minimal` = flat rows (sidebar) */
-    variant?: "pill" | "loose" | "minimal";
+    /** Number before disc on each row (sidebar) */
+    amountFirst?: boolean;
     class?: string;
   } = $props();
-
-  const isEmbedded = $derived(variant === "pill");
-  const isMinimal = $derived(variant === "minimal");
 
   const { t } = useI18n();
 
@@ -34,19 +31,13 @@
 {#if visiblePools.length > 0}
   <Tooltip.Provider delayDuration={160}>
     <div
-      class="wallet-credit-strip wallet-credit-strip--{layout} wallet-credit-strip--{size} wallet-credit-strip--{variant} {className}"
+      class="wallet-credit-strip wallet-credit-strip--{layout} wallet-credit-strip--{size} {className}"
       role="group"
       aria-label={t.app.wallet.creditsAria()}
       dir="ltr"
     >
       {#each visiblePools as pool (pool)}
-        <CreditCoin
-          pool={pool}
-          balance={balances[pool]}
-          {size}
-          embedded={isEmbedded}
-          minimal={isMinimal}
-        />
+        <CreditCoin {pool} balance={balances[pool]} {size} {amountFirst} />
       {/each}
     </div>
   </Tooltip.Provider>

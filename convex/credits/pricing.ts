@@ -9,10 +9,11 @@ export const CREDIT_UNIT_PRICE_ILS: Record<CreditPool, number> = {
 
 export const CREDIT_MAX_VOLUME_DISCOUNT_PERCENT = 10;
 
-/** Highest `minQty` first — first match wins. Max discount capped at 10%. */
+/** Highest `minQty` first — first match wins. 10% only from 10 units of the same pool. */
+export const CREDIT_VOLUME_DISCOUNT_MIN_QTY = 10;
+
 export const CREDIT_VOLUME_TIERS = [
-  { minQty: 5, discountPercent: 10 },
-  { minQty: 3, discountPercent: 5 },
+  { minQty: CREDIT_VOLUME_DISCOUNT_MIN_QTY, discountPercent: 10 },
   { minQty: 1, discountPercent: 0 },
 ] as const;
 

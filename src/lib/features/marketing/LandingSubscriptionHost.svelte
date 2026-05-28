@@ -24,7 +24,9 @@
     stashPendingPlanSlug,
     takePendingPlanSlug,
   } from "$lib/features/subscriptions/open-subscription-picker";
+  import { fireSubscriptionAccepted } from "$lib/features/celebration/celebration.svelte";
   import type { FunctionReturnType } from "convex/server";
+  import { planTierTheme } from "$lib/features/subscriptions/planTierTheme";
 
   type Plan = NonNullable<FunctionReturnType<typeof api.subscriptions.customer.listPlans>>[number];
 
@@ -91,6 +93,7 @@
       cardcomOrderId = null;
       cardcomAmountIls = undefined;
       if (status === "success") {
+        fireSubscriptionAccepted(planTierTheme(cardcomPlanSlug).tier);
         window.location.assign("/u/dashboard");
       } else {
         error = "התשלום לא הושלם. אפשר לנסות שוב.";
@@ -152,8 +155,10 @@
         cardcomUrl = await pollCheckoutRedirectUrl(client, result.orderId);
         cardcomOpen = true;
       } else if (result.mode === "scheduled") {
+        fireSubscriptionAccepted(planTierTheme(slug).tier);
         success = "המסלול יתעדכן בתחילת מחזור החיוב הבא — ללא תשלום היום.";
       } else {
+        fireSubscriptionAccepted(planTierTheme(slug).tier);
         success = "המנוי עודכן.";
       }
     } catch (reason) {

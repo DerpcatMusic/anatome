@@ -52,6 +52,7 @@
     "@types/node": "^25.9.1",
     "@types/web-push": "^3.6.4",
     "svelte-check": "^4.4.8",
+    "svelte-confetti": "^2.3.2",
     "vite": "^8.0.14",
     "vite-plugin-pwa": "^1.3.0"
   }

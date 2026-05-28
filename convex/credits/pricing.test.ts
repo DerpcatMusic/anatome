@@ -9,20 +9,20 @@ describe("credit purchase pricing", () => {
     expect(q.discountPercent).toBe(0);
   });
 
-  test("5 group credits get 10% off (max tier)", () => {
-    const q = quoteCreditPurchase("live", 5);
-    expect(q.listSubtotalIls).toBe(roundMoneyIls(44.9 * 5));
+  test("9 credits — no volume discount", () => {
+    const q = quoteCreditPurchase("live", 9);
+    expect(q.discountPercent).toBe(0);
+    expect(q.totalIls).toBe(roundMoneyIls(44.9 * 9));
+  });
+
+  test("10+ credits get 10% off per pool", () => {
+    const q = quoteCreditPurchase("live", 10);
+    expect(q.listSubtotalIls).toBe(roundMoneyIls(44.9 * 10));
     expect(q.discountPercent).toBe(10);
     expect(q.totalIls).toBe(roundMoneyIls(q.listSubtotalIls * 0.9));
   });
 
-  test("10 private credits capped at 10% off", () => {
-    const q = quoteCreditPurchase("oneOnOne", 10);
-    expect(q.discountPercent).toBe(10);
-    expect(q.unitEffectiveIls).toBeLessThan(q.unitListIls);
-  });
-
-  test("20 macroflow still capped at 10% off", () => {
+  test("20 macroflow at 10% off", () => {
     const q = quoteCreditPurchase("vod", 20);
     expect(q.discountPercent).toBe(10);
     expect(q.totalIls).toBe(roundMoneyIls(9.9 * 20 * 0.9));

@@ -17,7 +17,7 @@
     return new Date(ts).toLocaleDateString("he-IL", {
       timeZone: LOCAL_TIMEZONE,
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
     });
   }
@@ -28,17 +28,14 @@
 </script>
 
 <section class="billing-history" aria-labelledby="billing-history-title">
-  <div class="billing-history__head">
-    <h3 id="billing-history-title">היסטוריית חיובים</h3>
-    <p class="billing-history__lead">חשבוניות ותשלומים אחרונים על המנוי.</p>
-  </div>
+  <h3 id="billing-history-title">חיובים אחרונים</h3>
 
   {#if historyQuery.isLoading}
-    <p class="billing-history__empty">טוענים היסטוריה…</p>
+    <p class="billing-history__empty">טוען…</p>
   {:else if historyQuery.error}
-    <p class="billing-history__empty">לא הצלחנו לטעון היסטוריה. נסו שוב בעוד רגע.</p>
+    <p class="billing-history__empty">לא נטען — נסו שוב.</p>
   {:else if (historyQuery.data ?? []).length === 0}
-    <p class="billing-history__empty">עדיין אין חיובים להצגה.</p>
+    <p class="billing-history__empty">אין חיובים עדיין.</p>
   {:else}
     <ul class="billing-history__list">
       {#each historyQuery.data ?? [] as row (row._id)}
@@ -59,32 +56,22 @@
         </li>
       {/each}
     </ul>
-    <p class="billing-history__note">
-      צריכים קבלה במייל?
-      <a href="mailto:hello@anatome.co.il?subject=בקשת%20קבלה">hello@anatome.co.il</a>
-    </p>
   {/if}
 </section>
 
 <style>
   .billing-history {
     display: grid;
-    gap: var(--space-3);
-    padding-top: var(--space-4);
-    border-top: var(--border);
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
   }
 
-  .billing-history__head h3 {
+  .billing-history h3 {
     margin: 0;
-    font-size: var(--step-0);
-    font-weight: 800;
-  }
-
-  .billing-history__lead {
-    margin: var(--space-1) 0 0;
     font-size: var(--step--1);
+    font-weight: 700;
     color: var(--foreground-muted);
-    line-height: 1.45;
   }
 
   .billing-history__empty {
@@ -98,51 +85,54 @@
     margin: 0;
     padding: 0;
     display: grid;
-    gap: var(--space-2);
+    gap: var(--space-1);
   }
 
   .billing-history__row {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    border: var(--border);
-    background: var(--surface);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--foreground) 4%, var(--elevated));
     min-width: 0;
   }
 
   .billing-history__row-main {
     display: grid;
-    gap: var(--space-1);
+    gap: 0.1rem;
     min-width: 0;
   }
 
   .billing-history__desc {
-    font-weight: 700;
+    font-size: var(--step--1);
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
 
   .billing-history__date {
-    font-size: var(--step--1);
+    font-size: var(--step--2);
     color: var(--foreground-muted);
   }
 
   .billing-history__row-side {
-    display: grid;
-    justify-items: end;
-    gap: var(--space-1);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
     text-align: end;
   }
 
   .billing-history__amount {
     font-family: var(--font-mono);
-    font-weight: 800;
+    font-size: var(--step--1);
+    font-weight: 700;
   }
 
   .billing-history__status {
-    font-size: var(--step--1);
+    font-size: var(--step--2);
     font-family: var(--font-mono);
     color: var(--foreground-muted);
   }
@@ -159,18 +149,5 @@
   .billing-history__invoice {
     font-size: var(--step--2);
     color: var(--foreground-muted);
-  }
-
-  .billing-history__note {
-    margin: 0;
-    font-size: var(--step--1);
-    color: var(--foreground-muted);
-    line-height: 1.5;
-  }
-
-  .billing-history__note a {
-    color: var(--primary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
   }
 </style>

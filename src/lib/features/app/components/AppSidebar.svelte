@@ -179,7 +179,7 @@
         pools={poolsForSidebar()}
         size="sm"
         layout="stack"
-        variant="minimal"
+        amountFirst
       />
     </div>
   {:else if creditStripPending}

@@ -1,7 +1,7 @@
 "use node";
 
 import Mux from "@mux/mux-node";
-import { action } from "./_generated/server";
+import { internalAction } from "./_generated/server";
 import { components } from "./_generated/api";
 import { v } from "convex/values";
 
@@ -64,12 +64,19 @@ function parseMetadataPassthrough(passthrough: unknown): {
   }
 }
 
-export const backfillMux = action({
+/** Ops-only: run from Convex Dashboard or `npx convex run migrations:backfillMux`. */
+export const backfillMux = internalAction({
   args: {
     maxAssets: v.optional(v.number()),
     defaultUserId: v.optional(v.string()),
     includeVideoMetadata: v.optional(v.boolean()),
   },
+  returns: v.object({
+    scanned: v.number(),
+    syncedAssets: v.number(),
+    metadataUpserts: v.number(),
+    missingUserId: v.number(),
+  }),
   handler: async (ctx, args) => {
     const mux = new Mux({
       tokenId: requiredEnv("MUX_TOKEN_ID", process.env.MUX_TOKEN_ID),

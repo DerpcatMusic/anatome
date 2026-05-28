@@ -26,7 +26,7 @@ Earthy, grounded luxury inspired by sage/forest/clay tones. Soft minimalism: ton
 - **Glass:** `--glass-bg` / `--glass-blur` (40px) for nav and overlays
 - **Shape:** `--radius-xl` (24px) cards, `--radius-pill` CTAs on marketing
 - **Typography:** Secular One display, Assistant body, Gveret Levin sparingly. Editorial eyebrows: mono, uppercase, tracked, `--secondary` color (`.l-eyebrow`)
-- **Credit coins:** vod → `--secondary`, live → `--accent`, private → `--primary` — do not break this mapping
+- **Credit coins (psychology):** vod → violet (learning/recorded), live → blue (together/live group), 1:1 → gold (premium/private). Prestige scales with unit price — richer rim/glow on `oneOnOne`.
 - **Anti-patterns:** dual warm+cool gradients on one surface, emoji clutter, MacroFlow jargon in headlines, generic AI loading copy, bounce/elastic motion on marketing UI, pink/coral legacy brand hues.
 - Light + dark theme (dark = cool forest neutrals); RTL-first layout.
 

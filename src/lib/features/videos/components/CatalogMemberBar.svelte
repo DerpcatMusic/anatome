@@ -12,7 +12,7 @@
 
 <div class="catalog-member-bar">
   <a class="catalog-member-bar__home" href="/u/dashboard">אזור אישי</a>
-  <WalletCreditStrip balances={balances} pools={["vod"]} size="sm" layout="stack" variant="pill" />
+  <WalletCreditStrip balances={balances} pools={["vod"]} size="sm" layout="row" />
 </div>
 
 <style>
