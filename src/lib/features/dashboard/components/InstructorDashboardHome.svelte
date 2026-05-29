@@ -4,7 +4,7 @@
   import InstructorQuickUpload from "./InstructorQuickUpload.svelte";
   import InstructorUpcomingAgenda from "./InstructorUpcomingAgenda.svelte";
   import InstructorCreateLiveCard from "./InstructorCreateLiveCard.svelte";
-  import ProfileSummary from "./ProfileSummary.svelte";
+  import InstructorComplianceBar from "./InstructorComplianceBar.svelte";
   import "../dashboard.css";
 
   type StaffProfile = NonNullable<
@@ -15,11 +15,8 @@
 </script>
 
 <div class="dashboard-home dashboard-home--instructor">
+  <InstructorComplianceBar {appProfile} />
   <InstructorCreateLiveCard />
   <InstructorUpcomingAgenda />
   <InstructorQuickUpload />
-
-  {#if appProfile}
-    <ProfileSummary isStaff={true} {appProfile} showEditLink />
-  {/if}
 </div>

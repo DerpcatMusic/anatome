@@ -75,8 +75,8 @@
       {#each upcoming as item (item._id)}
         <li>
           <a class="instructor-agenda__row" href={item.href}>
-            <span class="instructor-agenda__when">{formatLiveStartsAt(item.startsAt)}</span>
             <span class="instructor-agenda__title">{item.title}</span>
+            <span class="instructor-agenda__when">{formatLiveStartsAt(item.startsAt)}</span>
             <span class="instructor-agenda__badge" data-status={item.status}>
               {item.status === "live"
                 ? t.dashboard.liveStatus.live()
@@ -110,7 +110,7 @@
 
   .instructor-agenda__row {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: var(--space-2) var(--space-3);
     align-items: center;
     padding: var(--space-3) var(--space-4);

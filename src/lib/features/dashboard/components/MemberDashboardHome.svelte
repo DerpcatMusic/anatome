@@ -3,16 +3,12 @@
   import { useQuery } from "convex-svelte";
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
   import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
-  import { useI18n } from "$lib/i18n/runes.svelte";
-  import { routePath } from "$lib/i18n/context";
   import ContinueWatchingHero from "./ContinueWatchingHero.svelte";
-  import DashboardLiveStrip from "./DashboardLiveStrip.svelte";
+  import DashboardLiveBoard from "./DashboardLiveBoard.svelte";
   import type { DashboardLiveItem } from "./DashboardLiveStrip.svelte";
   import "../dashboard.css";
 
   let { memberName }: { memberName?: string | null } = $props();
-
-  const { t } = useI18n();
 
   const queryNow = useQueryNowMs();
   const upcomingQuery = useQuery(api.live.calendar.listUpcoming, () =>
@@ -25,7 +21,7 @@
     const rows = upcomingQuery.data ?? [];
     return rows
       .filter((row) => row.status !== "cancelled" && row.status !== "draft" && row.startsAt >= now)
-      .slice(0, 8)
+      .slice(0, 24)
       .map((row) => ({
         _id: row._id,
         title: row.title,
@@ -39,12 +35,11 @@
 <div class="dashboard-home">
   <ContinueWatchingHero displayName={memberName} />
 
-  <DashboardLiveStrip
+  <DashboardLiveBoard
     lives={upcomingLives}
     loading={upcomingQuery.isLoading}
     error={upcomingQuery.error?.message ?? null}
-    emptyText={t.dashboard.member.upcomingLivesEmpty()}
-    viewAllHref={routePath("uCalendar")}
+    {nowMs}
     onRetry={() => window.location.reload()}
   />
 </div>

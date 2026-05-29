@@ -123,7 +123,8 @@
   }
 
   .dashboard-latest :global(.video-row__track--carousel) {
-    padding-inline: 0 var(--space-5);
+    padding-inline: var(--space-1) var(--space-5);
     margin-inline: 0;
+    scroll-padding-inline: var(--space-5);
   }
 </style>

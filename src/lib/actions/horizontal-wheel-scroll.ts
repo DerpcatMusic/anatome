@@ -1,3 +1,11 @@
+function horizontalScrollSign(node: HTMLElement): number {
+  const dir =
+    getComputedStyle(node).direction ||
+    getComputedStyle(document.documentElement).direction ||
+    "ltr";
+  return dir === "rtl" ? -1 : 1;
+}
+
 /** Map vertical wheel delta to horizontal scroll (trackpad or mouse wheel over a carousel). */
 export function horizontalWheelScroll(node: HTMLElement, enabled = true) {
   if (!enabled) {
@@ -10,7 +18,7 @@ export function horizontalWheelScroll(node: HTMLElement, enabled = true) {
     const maxScroll = node.scrollWidth - node.clientWidth;
     if (maxScroll <= 0) return;
     event.preventDefault();
-    node.scrollLeft += event.deltaY;
+    node.scrollLeft += event.deltaY * horizontalScrollSign(node);
   };
 
   node.addEventListener("wheel", onWheel, { passive: false });

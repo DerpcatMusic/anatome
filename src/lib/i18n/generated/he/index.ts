@@ -331,7 +331,7 @@ const he = {
     error: 'לא הצלחנו לטעון אונבורדינג.',
   },
   dashboard: {
-    title: 'סקירה',
+    title: 'הבית שלי',
     titleStaff: 'סטודיו',
     kicker: 'AnatoMe',
     description: {
@@ -413,6 +413,13 @@ const he = {
       upcomingLives: 'לייבים קרובים',
       upcomingLivesAria: 'שיעורי לייב קרובים',
       upcomingLivesEmpty: 'אין לייבים מתוזמנים. ראי את כל התאריכים בלוח.',
+      liveBoardWeek: 'השבוע',
+      liveBoardMonth: 'החודש',
+      walletTitle: 'קרדיטים',
+      buyCredits: 'רכישת קרדיטים',
+      quickOneOnOne: 'אחד על אחד',
+      quickLinksAria: 'קיצורי דרך',
+      accountSectionTitle: 'חשבון והגדרות',
     },
     instructor: {
       uploadKicker: 'וידאו',
@@ -431,6 +438,7 @@ const he = {
       createCta: 'ליצור',
       createModalTitle: 'לייב חדש',
       createError: 'לא הצלחנו ליצור. נסי שוב.',
+      complianceLead: 'מסמכים לסטודיו',
     },
   },
   calendar: {

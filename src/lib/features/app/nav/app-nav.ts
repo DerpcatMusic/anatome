@@ -37,13 +37,6 @@ const NAV_BY_PREFIX: Record<"/u" | "/i", AppNavItem[]> = {
       icon: "play_lesson",
       tone: "video",
     },
-    {
-      href: "/u/profile",
-      label: "פרופיל",
-      tabLabel: "פרופיל",
-      icon: "account_circle",
-      tone: "profile",
-    },
   ],
   "/i": [
     {
@@ -66,13 +59,6 @@ const NAV_BY_PREFIX: Record<"/u" | "/i", AppNavItem[]> = {
       tabLabel: "וידאו",
       icon: "video_library",
       tone: "video",
-    },
-    {
-      href: "/i/profile",
-      label: "פרופיל",
-      tabLabel: "פרופיל",
-      icon: "account_circle",
-      tone: "profile",
     },
   ],
 };

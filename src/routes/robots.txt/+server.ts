@@ -10,7 +10,6 @@ const DISALLOWED = [
   "/u/videos",
   "/i/calendar",
   routePath("liveRoom"),
-  "/u/profile",
   routePath("watch"),
   routePath("onboarding"),
   "/callback",

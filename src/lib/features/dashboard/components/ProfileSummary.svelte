@@ -85,7 +85,7 @@
         {t.dashboard.staffProfile.title()}
       </p>
       {#if showEditLink}
-        <a href="/i/profile" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
+        <a href="/i/dashboard?panel=account" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
       {/if}
     </div>
 
@@ -124,7 +124,7 @@
         {t.dashboard.customerProfile.title()}
       </p>
       {#if showEditLink}
-        <a href="/u/profile?edit=1" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
+        <a href="/u/dashboard?panel=account&edit=1" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
       {/if}
     </div>
 

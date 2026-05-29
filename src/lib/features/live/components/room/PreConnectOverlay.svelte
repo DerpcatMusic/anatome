@@ -41,7 +41,9 @@
   const liveClassId = $derived(session.getClassId());
 
   const backHref = $derived(session.isInstructorRoom ? "/i/calendar" : "/u/calendar");
-  const profileHref = $derived(session.isInstructorRoom ? "/i/profile" : "/u/profile");
+  const profileHref = $derived(
+    session.isInstructorRoom ? "/i/dashboard?panel=account" : "/u/dashboard?panel=account",
+  );
   const canStartBroadcast = $derived(
     canHostStartBroadcast(
       session.isClassHost,

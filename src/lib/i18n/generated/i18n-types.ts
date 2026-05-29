@@ -1324,6 +1324,13 @@ type RootTranslation = {
 			 * א​י​ן​ ​ל​י​י​ב​י​ם​ ​מ​ת​ו​ז​מ​נ​י​ם​ ​כ​ר​ג​ע​.​ ​ב​ל​ו​ח​ ​ה​ל​י​י​ב​י​ם​ ​א​פ​ש​ר​ ​ל​ר​א​ו​ת​ ​א​ת​ ​כ​ל​ ​ה​ת​א​ר​י​כ​י​ם​.
 			 */
 			upcomingLivesEmpty: string
+			liveBoardWeek: string
+			liveBoardMonth: string
+			walletTitle: string
+			buyCredits: string
+			quickOneOnOne: string
+			quickLinksAria: string
+			accountSectionTitle: string
 		}
 		instructor: {
 			/**
@@ -1390,6 +1397,7 @@ type RootTranslation = {
 			 * ל​א​ ​ה​צ​ל​ח​נ​ו​ ​ל​י​צ​ו​ר​.​ ​נ​ס​י​ ​ש​ו​ב​.
 			 */
 			createError: string
+			complianceLead: string
 		}
 	}
 	calendar: {
@@ -4183,6 +4191,13 @@ export type TranslationFunctions = {
 			 * אין לייבים מתוזמנים כרגע. בלוח הלייבים אפשר לראות את כל התאריכים.
 			 */
 			upcomingLivesEmpty: () => LocalizedString
+			liveBoardWeek: () => LocalizedString
+			liveBoardMonth: () => LocalizedString
+			walletTitle: () => LocalizedString
+			buyCredits: () => LocalizedString
+			quickOneOnOne: () => LocalizedString
+			quickLinksAria: () => LocalizedString
+			accountSectionTitle: () => LocalizedString
 		}
 		instructor: {
 			/**
@@ -4249,6 +4264,7 @@ export type TranslationFunctions = {
 			 * לא הצלחנו ליצור. נסי שוב.
 			 */
 			createError: () => LocalizedString
+			complianceLead: () => LocalizedString
 		}
 	}
 	calendar: {

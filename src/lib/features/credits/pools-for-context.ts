@@ -20,6 +20,8 @@ export function poolsForAppRoute(pathname: string): CreditPool[] | null {
 
   if (pathname.startsWith("/u/calendar")) return ["live", "oneOnOne"];
 
+  if (pathname.startsWith("/u/dashboard")) return ["vod", "live", "oneOnOne"];
+
   return null;
 }
 
