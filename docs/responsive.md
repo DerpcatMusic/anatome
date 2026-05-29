@@ -13,4 +13,4 @@ Legacy one-off breakpoints still exist in older CSS (520, 640, 720, 860px). **Ne
 
 App shell mobile cutoff: **860px** (sidebar stacks / live room hides chrome).
 
-Live room v2 is the default engine at **≤860px** unless `?roomEngine=v1`.
+Live room uses `LiveRoomShell` on all viewports.

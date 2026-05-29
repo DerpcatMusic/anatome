@@ -7,14 +7,17 @@ import { sanitizeMediaDeviceId } from "$lib/media/device-id";
 import {
   getMediaErrorMessage,
   mediaErrorFromReason,
-  isInstructorIdentity,
   participantIdentity,
   participantIsLocal,
 } from "./live-room-shared";
+import { shouldSubscribeToRemoteParticipant } from "./live-subscribe-policy";
 import type { JoinInfo } from "./join-token";
 import type { ConnectionState } from "./types";
+import { applyMotionContentHint, shouldEnableDynacast } from "./live-publish-profile";
+import type { PublishProfileInput } from "./live-publish-profile";
 import {
   remoteVideoQualityForParticipant,
+  shouldApplySimulcastQuality,
   type SessionSubscribePolicy,
 } from "./live-subscribe-policy";
 
@@ -38,6 +41,7 @@ export type SessionCaptureOptions = {
     VideoPreset: typeof import("livekit-client").VideoPreset,
     AudioPresets: typeof import("livekit-client").AudioPresets,
   ) => TrackPublishDefaults;
+  publishProfileInput: (isInstructor: boolean) => PublishProfileInput;
 };
 
 export type SessionPublishIntent = {
@@ -49,6 +53,8 @@ export type SessionConnectHandlers = {
   onConnectionState: (state: ConnectionState) => void;
   onDisconnected: (reason?: number) => void;
   onReconnected?: () => void;
+  /** Fires after signal connect — before camera/mic publish (fast room entry). */
+  onRoomReady?: (room: Room) => void;
 };
 
 export type ConnectLiveSessionInput = {
@@ -59,7 +65,28 @@ export type ConnectLiveSessionInput = {
   publish: SessionPublishIntent;
   subscribe: SessionSubscribePolicy;
   handlers: SessionConnectHandlers;
+  /** Skip when {@link prepareJoinConnection} already warmed this URL. */
+  skipPrepareConnection?: boolean;
 };
+
+/** Cap gUM/publish stalls (Firefox can hang tens of seconds before NotFoundError). */
+const MEDIA_PUBLISH_TIMEOUT_MS = 10_000;
+
+async function withMediaPublishTimeout<T>(label: string, work: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new DOMException(`${label} timed out after ${MEDIA_PUBLISH_TIMEOUT_MS}ms`, "TimeoutError"));
+        }, MEDIA_PUBLISH_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
 
 export type ConnectLiveSessionResult = {
   room: Room;
@@ -72,8 +99,7 @@ function shouldSubscribeToPublication(
   policy: SessionSubscribePolicy,
   participant: unknown,
 ): boolean {
-  if (policy.isInstructorRoom) return true;
-  return isInstructorIdentity(participantIdentity(participant));
+  return shouldSubscribeToRemoteParticipant(policy, participantIdentity(participant));
 }
 
 function subscribeIfAllowed(
@@ -90,7 +116,12 @@ function subscribeIfAllowed(
   if (participantIsLocal(participant)) return;
   const shouldSubscribe = shouldSubscribeToPublication(policy, participant);
   pub.setSubscribed(shouldSubscribe);
-  if (shouldSubscribe && pub.kind === "video" && typeof pub.setVideoQuality === "function") {
+  if (
+    shouldSubscribe &&
+    pub.kind === "video" &&
+    typeof pub.setVideoQuality === "function" &&
+    shouldApplySimulcastQuality(publication)
+  ) {
     pub.setVideoQuality(
       remoteVideoQualityForParticipant(policy, participantIdentity(participant)),
     );
@@ -128,8 +159,10 @@ async function publishCameraWithFallback(
   devices: SessionDeviceSelection,
   capture: SessionCaptureOptions,
 ): Promise<void> {
+  const enable = () =>
+    lkRoom.localParticipant.setCameraEnabled(true, capture.cameraCaptureOptions(isInstructor));
   try {
-    await lkRoom.localParticipant.setCameraEnabled(true, capture.cameraCaptureOptions(isInstructor));
+    await withMediaPublishTimeout("Camera", enable());
     return;
   } catch (reason) {
     if (!sanitizeMediaDeviceId(devices.selectedVideoDevice)) throw reason;
@@ -141,7 +174,7 @@ async function publishCameraWithFallback(
   clearPersistedDevice("lk-video-device");
   clearPersistedDevice("hb-live-video-device");
   try {
-    await lkRoom.localParticipant.setCameraEnabled(true, capture.cameraCaptureOptions(isInstructor));
+    await withMediaPublishTimeout("Camera (default device)", enable());
   } catch (reason) {
     devices.selectedVideoDevice = previousDevice;
     throw reason;
@@ -153,8 +186,10 @@ async function publishMicrophoneWithFallback(
   devices: SessionDeviceSelection,
   capture: SessionCaptureOptions,
 ): Promise<void> {
+  const enable = () =>
+    lkRoom.localParticipant.setMicrophoneEnabled(true, capture.microphoneCaptureOptions());
   try {
-    await lkRoom.localParticipant.setMicrophoneEnabled(true, capture.microphoneCaptureOptions());
+    await withMediaPublishTimeout("Microphone", enable());
     return;
   } catch (reason) {
     if (!sanitizeMediaDeviceId(devices.selectedAudioDevice)) throw reason;
@@ -166,11 +201,73 @@ async function publishMicrophoneWithFallback(
   clearPersistedDevice("lk-audio-device");
   clearPersistedDevice("hb-live-audio-device");
   try {
-    await lkRoom.localParticipant.setMicrophoneEnabled(true, capture.microphoneCaptureOptions());
+    await withMediaPublishTimeout("Microphone (default device)", enable());
   } catch (reason) {
     devices.selectedAudioDevice = previousDevice;
     throw reason;
   }
+}
+
+async function publishLocalSessionMedia(
+  lkRoom: Room,
+  isInstructor: boolean,
+  devices: SessionDeviceSelection,
+  capture: SessionCaptureOptions,
+  publish: SessionPublishIntent,
+): Promise<{ cameraEnabled: boolean; micEnabled: boolean; mediaError: string }> {
+  let cameraEnabled = false;
+  let micEnabled = false;
+  let mediaError = "";
+
+  const cameraWork = publish.publishCamera
+    ? publishCameraWithFallback(lkRoom, isInstructor, devices, capture)
+        .then(() => {
+          cameraEnabled = true;
+        })
+        .catch((cameraReason) => {
+          cameraEnabled = false;
+          console.warn("[LiveSession] Camera failed:", cameraReason);
+          const cameraMsg = mediaErrorFromReason("camera", cameraReason);
+          if (cameraMsg) mediaError = cameraMsg;
+        })
+    : Promise.resolve();
+
+  const micWork = publish.publishMic
+    ? publishMicrophoneWithFallback(lkRoom, devices, capture)
+        .then(() => {
+          micEnabled = true;
+        })
+        .catch((micReason) => {
+          micEnabled = false;
+          console.warn("[LiveSession] Microphone failed:", micReason);
+          const micMsg = getMediaErrorMessage("microphone", micReason);
+          mediaError = [mediaError, micMsg].filter(Boolean).join(" ");
+        })
+    : Promise.resolve();
+
+  await Promise.all([cameraWork, micWork]);
+
+  if (cameraEnabled) {
+    const { Track } = await import("livekit-client");
+    const camPub = lkRoom.localParticipant.getTrackPublication(Track.Source.Camera);
+    applyMotionContentHint(camPub?.track?.mediaStreamTrack);
+  }
+
+  if (isInstructor && !micEnabled && publish.publishMic) {
+    try {
+      await publishMicrophoneWithFallback(lkRoom, devices, capture);
+      micEnabled = true;
+      if (mediaError) {
+        const parts = mediaError.split(" ").filter(Boolean);
+        mediaError = parts.length > 1 ? parts.slice(1).join(" ") : "";
+      }
+    } catch (micReason) {
+      console.warn("[LiveSession] Instructor mic failed:", micReason);
+      mediaError = getMediaErrorMessage("microphone", micReason);
+    }
+  }
+
+  return { cameraEnabled, micEnabled, mediaError };
 }
 
 /** Warm DNS/TLS before PreJoin connect. */
@@ -211,23 +308,32 @@ export async function teardownLiveSessionRoom(room: Room | null): Promise<void> 
 export async function connectLiveSessionRoom(
   input: ConnectLiveSessionInput,
 ): Promise<ConnectLiveSessionResult> {
-  const { joinInfo, previousRoom, devices, capture, publish, subscribe, handlers } = input;
+  const {
+    joinInfo,
+    previousRoom,
+    devices,
+    capture,
+    publish,
+    subscribe,
+    handlers,
+    skipPrepareConnection = false,
+  } = input;
   handlers.onConnectionState("connecting");
   await teardownLiveSessionRoom(previousRoom);
 
   let lkRoom: Room | null = null;
-  let cameraEnabled = false;
-  let micEnabled = false;
-  let mediaError = "";
 
   try {
     const { Room, RoomEvent, VideoPreset, AudioPresets } = await import("livekit-client");
     const isInstructor =
       joinInfo.participantRole === "instructor" || joinInfo.participantRole === "admin";
 
+    const dynacast = shouldEnableDynacast(capture.publishProfileInput(isInstructor));
+
     lkRoom = new Room({
-      adaptiveStream: true,
-      dynacast: true,
+      // We set simulcast layers explicitly via setVideoQuality; avoid auto-downgrade.
+      adaptiveStream: false,
+      dynacast,
       disconnectOnPageLeave: false,
       stopLocalTrackOnUnpublish: false,
       reconnectPolicy: {
@@ -262,50 +368,31 @@ export async function connectLiveSessionRoom(
       })
       .on(RoomEvent.TrackPublished, (publication: unknown, participant: unknown) => {
         subscribeIfAllowed(subscribe, publication, participant);
+      })
+      .on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        void track;
+        subscribeIfAllowed(subscribe, publication, participant);
       });
 
-    await lkRoom.prepareConnection(joinInfo.wsUrl, joinInfo.token);
+    if (!skipPrepareConnection) {
+      await lkRoom.prepareConnection(joinInfo.wsUrl, joinInfo.token);
+    }
     await lkRoom.connect(joinInfo.wsUrl, joinInfo.token, {
       autoSubscribe: subscribe.isInstructorRoom,
     });
 
-    if (publish.publishCamera) {
-      try {
-        await publishCameraWithFallback(lkRoom, isInstructor, devices, capture);
-        cameraEnabled = true;
-      } catch (cameraReason) {
-        cameraEnabled = false;
-        console.warn("[LiveSession] Camera failed:", cameraReason);
-        const cameraMsg = mediaErrorFromReason("camera", cameraReason);
-        if (cameraMsg) mediaError = cameraMsg;
-      }
-    }
-
-    if (publish.publishMic) {
-      try {
-        await publishMicrophoneWithFallback(lkRoom, devices, capture);
-        micEnabled = true;
-      } catch (micReason) {
-        micEnabled = false;
-        console.warn("[LiveSession] Microphone failed:", micReason);
-        const micMsg = getMediaErrorMessage("microphone", micReason);
-        mediaError = [mediaError, micMsg].filter(Boolean).join(" ");
-      }
-    }
-
-    if (isInstructor && !micEnabled) {
-      try {
-        await publishMicrophoneWithFallback(lkRoom, devices, capture);
-        micEnabled = true;
-      } catch (micReason) {
-        console.warn("[LiveSession] Instructor mic failed:", micReason);
-        mediaError = getMediaErrorMessage("microphone", micReason);
-      }
-    }
-
     handlers.onConnectionState("connected");
     lkRoom.remoteParticipants.forEach((participant) =>
       attachParticipantListeners(subscribe, participant),
+    );
+    handlers.onRoomReady?.(lkRoom);
+
+    const { cameraEnabled, micEnabled, mediaError } = await publishLocalSessionMedia(
+      lkRoom,
+      isInstructor,
+      devices,
+      capture,
+      publish,
     );
 
     return { room: lkRoom, cameraEnabled, micEnabled, mediaError };

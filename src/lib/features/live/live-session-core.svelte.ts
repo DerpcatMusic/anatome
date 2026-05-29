@@ -30,6 +30,9 @@ export class LiveSessionCore {
   /** Instructor leave-without-end: navigate in-app (PiP) instead of tearing down WebRTC. */
   onInstructorLeaveInApp: (() => void) | null = null;
 
+  /** Wired by LiveDockProvider — tear down dock + client navigate after session ended / exit. */
+  onExitAfterDisconnect: (() => void) | null = null;
+
   /** Wired by LiveDockProvider to keep the join-token hook in sync with the session. */
   onJoinInfoMinted: ((info: JoinInfo | null) => void) | null = null;
 

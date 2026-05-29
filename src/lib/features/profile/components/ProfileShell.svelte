@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
   import { Button } from "bits-ui";
   import { resource, TextareaAutosize } from "runed";
   import { api } from "$convex/_generated/api";
@@ -61,7 +63,7 @@
   const nameParts = $derived(displayName.split(" "));
 
   let instructorEditing = $state(false);
-  let memberEditing = $state(false);
+  let memberEditing = $state(page.url.searchParams.get("edit") === "1");
   let instructorName = $state("");
   let instructorSurname = $state("");
   let instructorCredentials = $state("");
@@ -358,9 +360,9 @@
       />
     {/if}
   </PageShell>
-{:else if profile}
+{:else}
   <PageShell title={t.profile.title()}>
-    {#if !memberEditing}
+    {#if profile && !memberEditing}
       <div class="profile-toolbar">
         <Button.Root
           class="hb-button hb-button--ink hb-button--sm"
@@ -391,32 +393,42 @@
       <NotificationSettings />
     {:else}
       <div class="profile-toolbar">
-        <Button.Root
-          class="hb-button hb-button--ghost hb-button--sm"
-          type="button"
-          onclick={() => { memberEditing = false; }}
-        >
-          חזרה לתצוגה
-        </Button.Root>
+        {#if profile}
+          <Button.Root
+            class="hb-button hb-button--ghost hb-button--sm"
+            type="button"
+            onclick={() => {
+              memberEditing = false;
+              if (page.url.searchParams.has("edit")) {
+                void goto("/u/profile", { replaceState: true });
+              }
+            }}
+          >
+            חזרה לתצוגה
+          </Button.Root>
+        {/if}
       </div>
+
+      {#if !profile}
+        <Notice tone="neutral">{t.app.needsOnboarding.subtitle()}</Notice>
+      {/if}
+
+      <section class="profile-avatar-section" aria-label="תמונת פרופיל">
+        <AvatarUpload
+          avatarUrl={viewerAvatarUrl}
+          displayName={viewerDisplayName}
+          onUpdated={refreshViewerProfile}
+        />
+      </section>
+
       <OnboardingForm
         mode="edit"
-        initialProfile={profile}
+        initialProfile={profile ?? undefined}
         initialDisplayName={dashboardResource.current?.appProfile?.displayName}
         onSaved={onMemberProfileSaved}
       />
     {/if}
   </PageShell>
-{:else}
-  <AppLocked
-    title={t.app.needsOnboarding.title()}
-    subtitle={t.app.needsOnboarding.subtitle()}
-  >
-    {#snippet actions()}
-      <a href="/onboarding" class="locked__action">{t.app.needsOnboarding.cta()}</a>
-      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={retryDashboard}>רענון</Button.Root>
-    {/snippet}
-  </AppLocked>
 {/if}
 
 <style>

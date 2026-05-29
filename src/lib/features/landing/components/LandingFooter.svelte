@@ -8,7 +8,7 @@
 
 <footer class="landing-footer">
   <div class="l-shell landing-footer__inner">
-    <AnatoMeLogo class="landing-footer__logo" size={36} aria-label={t.site.name()} role="img" />
+    <AnatoMeLogo class="landing-footer__logo" size={44} aria-label={t.site.name()} role="img" />
 
     <nav class="landing-footer__nav" aria-label="קישורים">
       <a href="/">דף הבית</a>

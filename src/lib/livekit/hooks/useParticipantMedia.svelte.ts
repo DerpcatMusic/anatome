@@ -8,16 +8,25 @@ import { useEnsureParticipant } from "$lib/livekit/contexts";
  *
  * @public
  */
-export function useParticipantMedia(explicitParticipant?: Participant): ParticipantMedia {
+type ParticipantSource = Participant | (() => Participant);
+
+function resolveParticipant(source: ParticipantSource | undefined): Participant {
+	if (source === undefined) {
+		return useEnsureParticipant();
+	}
+	return typeof source === "function" ? source() : source;
+}
+
+export function useParticipantMedia(explicitParticipant?: ParticipantSource): ParticipantMedia {
 	let media = $state<ParticipantMedia>({
 		isCameraEnabled: false,
 		isMicrophoneEnabled: false,
 		isScreenShareEnabled: false,
-		participant: explicitParticipant ?? ({} as Participant),
+		participant: {} as Participant,
 	});
 
 	$effect(() => {
-		const participant = explicitParticipant ?? useEnsureParticipant();
+		const participant = resolveParticipant(explicitParticipant);
 		const subscription = observeParticipantMedia(participant).subscribe((next) => {
 			media = next;
 		});

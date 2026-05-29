@@ -61,5 +61,7 @@
       decoding="async"
     />
   {/if}
+  <div class="hero-bg__filter" aria-hidden="true"></div>
+  <div class="hero-bg__vignette" aria-hidden="true"></div>
   <div class="hero-bg__scrim" aria-hidden="true"></div>
 </div>

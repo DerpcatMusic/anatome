@@ -19,6 +19,7 @@
   import { fireSubscriptionAccepted } from "$lib/features/celebration/celebration.svelte";
   import { planTierTheme } from "$lib/features/subscriptions/planTierTheme";
   import SubscriptionPlanModal from "./SubscriptionPlanModal.svelte";
+  import "../dashboard.css";
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
   type Plan = NonNullable<FunctionReturnType<typeof api.subscriptions.customer.listPlans>>[number];
@@ -97,23 +98,27 @@
 
   const subline = $derived.by(() => {
     if (!subscriptionPlan) {
-      if (canSubscribe && subscriptionsEnabled && checkoutEnabled) {
-        return "אין מנוי בתשלום — בוחרים מסלול ומשלמים בדף מאובטח.";
-      }
       if (subscriptionsEnabled && !checkoutEnabled) {
         return "תשלום מקוון בקרוב.";
       }
       return null;
     }
-    const price = `${subscriptionPlan.monthlyPriceIls} ₪/חודש`;
-    if (!renewalDate) return price;
+    return null;
+  });
+
+  const priceLine = $derived(
+    subscriptionPlan ? `${subscriptionPlan.monthlyPriceIls} ₪/חודש` : null,
+  );
+
+  const renewalLine = $derived.by(() => {
+    if (!subscriptionPlan || !renewalDate) return null;
     if (pendingSubscriptionPlan) {
-      return `${price} · פעיל עד ${renewalDate} → ${pendingSubscriptionPlan.nameHe}`;
+      return `עד ${renewalDate} → ${pendingSubscriptionPlan.nameHe}`;
     }
     if (subscription?.cancelAtPeriodEnd) {
-      return `${price} · פעיל עד ${renewalDate}, ללא חידוש`;
+      return `פעיל עד ${renewalDate} · ללא חידוש`;
     }
-    return `${price} · חידוש ${renewalDate}`;
+    return `חידוש ${renewalDate}`;
   });
 
   function requestPlanChange(slug: string) {
@@ -218,7 +223,7 @@
   }
 </script>
 
-<section class="subscription-panel" aria-labelledby="subscription-title">
+<section class="subscription-panel dashboard-panel dashboard-panel--member-aside" aria-labelledby="subscription-title">
   {#if !canSubscribe}
     <Notice tone="caution">מנוי בתשלום למנויות בלבד.</Notice>
   {:else if sandboxMode}
@@ -247,8 +252,14 @@
         </span>
       </div>
 
+      {#if priceLine}
+        <p class="subscription-panel__price">{priceLine}</p>
+      {/if}
+      {#if renewalLine}
+        <p class="subscription-panel__renewal">{renewalLine}</p>
+      {/if}
       {#if subline}
-        <p class="subscription-panel__subline">{subline}</p>
+        <p class="subscription-panel__hint">{subline}</p>
       {/if}
 
     </div>
@@ -256,7 +267,7 @@
   {#if canSubscribe && (billing.creditsPurchaseEnabled || (subscriptionsEnabled && checkoutEnabled))}
       <div class="subscription-panel__actions">
         {#if billing.creditsPurchaseEnabled}
-          <a class="hb-button hb-button--ghost hb-button--sm" href="/u/credits">קרדיטים</a>
+          <a class="hb-button hb-button--ghost hb-button--sm" href="/u/credits">רכישת קרדיטים</a>
         {/if}
         {#if subscriptionsEnabled && checkoutEnabled}
           {#if plansQuery.error}
@@ -326,7 +337,10 @@
       />
     {/if}
 
-    <BillingHistory enabled={subscriptionsEnabled} />
+    <details class="subscription-panel__billing">
+      <summary class="subscription-panel__billing-summary">צפייה בחיובים</summary>
+      <BillingHistory enabled={subscriptionsEnabled} hideTitle />
+    </details>
   {/if}
 
   <footer class="subscription-panel__foot">
@@ -360,10 +374,7 @@
 <style>
   .subscription-panel {
     display: grid;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    background: var(--elevated);
-    border-radius: var(--radius-lg);
+    gap: var(--space-2);
     min-width: 0;
   }
 
@@ -372,7 +383,7 @@
     padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-md);
     background: color-mix(in oklch, var(--warning) 12%, var(--elevated));
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     color: var(--foreground-muted);
   }
 
@@ -381,15 +392,15 @@
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2);
     min-width: 0;
   }
 
   .subscription-panel__main {
     display: grid;
-    gap: var(--space-1);
+    gap: 0.15rem;
     min-width: 0;
-    flex: 1 1 12rem;
+    flex: 1 1 10rem;
   }
 
   .subscription-panel__title-row {
@@ -401,24 +412,36 @@
 
   .subscription-panel h2 {
     margin: 0;
-    font-size: var(--step-1);
-    line-height: 1.2;
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
     overflow-wrap: anywhere;
   }
 
-  .subscription-panel__subline {
+  .subscription-panel__price {
     margin: 0;
-    font-size: var(--step--1);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .subscription-panel__renewal,
+  .subscription-panel__hint {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
     color: var(--foreground-muted);
-    line-height: 1.4;
+    line-height: var(--leading-snug);
   }
 
   .subscription-badge {
     flex: 0 0 auto;
     padding: 0.1rem var(--space-2);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     font-weight: 700;
     white-space: nowrap;
   }
@@ -448,19 +471,56 @@
   }
 
   .subscription-panel__actions-hint {
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     color: var(--destructive);
+  }
+
+  .subscription-panel__billing {
+    margin-top: var(--space-1);
+    border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  .subscription-panel__billing-summary {
+    padding: var(--space-2) 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--foreground-muted);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .subscription-panel__billing-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .subscription-panel__billing-summary::before {
+    content: "";
+    display: inline-block;
+    width: 0.35em;
+    height: 0.35em;
+    margin-inline-end: 0.35em;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    vertical-align: 0.08em;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .subscription-panel__billing[open] .subscription-panel__billing-summary::before {
+    transform: rotate(45deg);
   }
 
   .subscription-panel__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1) var(--space-2);
     padding-top: var(--space-2);
     margin-top: var(--space-1);
     border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     color: var(--foreground-muted);
   }
 
@@ -481,6 +541,12 @@
     .subscription-panel__actions {
       width: 100%;
       justify-content: flex-start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .subscription-panel__billing-summary::before {
+      transition: none;
     }
   }
 </style>

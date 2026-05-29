@@ -74,6 +74,7 @@
 
 .sidebar__logo-mark {
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .sidebar__home {
@@ -181,31 +182,47 @@
 }
 
 .sidebar__link[data-tone="dashboard"] .sidebar__link-icon {
-  color: var(--primary);
+  color: var(--nav-icon-dashboard);
 }
 
 .sidebar__link[data-tone="calendar"] .sidebar__link-icon {
-  color: var(--secondary);
+  color: var(--nav-icon-calendar);
 }
 
 .sidebar__link[data-tone="video"] .sidebar__link-icon {
-  color: var(--accent);
+  color: var(--nav-icon-video);
 }
 
 .sidebar__link[data-tone="profile"] .sidebar__link-icon {
-  color: var(--foreground-muted);
+  color: var(--nav-icon-profile);
 }
 
 .sidebar__link[data-tone="live"] .sidebar__link-icon {
-  color: var(--danger);
+  color: var(--nav-icon-live);
 }
 
-.sidebar__link[aria-current="page"][data-tone="dashboard"] .sidebar__link-icon,
-.sidebar__link[aria-current="page"][data-tone="calendar"] .sidebar__link-icon,
-.sidebar__link[aria-current="page"][data-tone="video"] .sidebar__link-icon,
-.sidebar__link[aria-current="page"][data-tone="profile"] .sidebar__link-icon,
-.sidebar__link[aria-current="page"][data-tone="live"] .sidebar__link-icon {
-  color: inherit;
+.sidebar__link[aria-current="page"][data-tone="dashboard"] .sidebar__link-icon {
+  color: var(--nav-icon-dashboard-active);
+}
+
+.sidebar__link[aria-current="page"][data-tone="calendar"] .sidebar__link-icon {
+  color: var(--nav-icon-calendar-active);
+}
+
+.sidebar__link[aria-current="page"][data-tone="video"] .sidebar__link-icon {
+  color: var(--nav-icon-video-active);
+}
+
+.sidebar__link[aria-current="page"][data-tone="profile"] .sidebar__link-icon {
+  color: var(--nav-icon-profile-active);
+}
+
+.sidebar__link[aria-current="page"][data-tone="live"]:not(.sidebar__link--live) .sidebar__link-icon {
+  color: var(--nav-icon-live-active);
+}
+
+.sidebar__link--live[aria-current="page"] .sidebar__link-icon {
+  color: var(--nav-icon-live-on);
 }
 
 .sidebar__link-label {

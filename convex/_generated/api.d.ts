@@ -132,6 +132,7 @@ import type * as users_backfill from "../users/backfill.js";
 import type * as users_bootstrap from "../users/bootstrap.js";
 import type * as users_dashboard from "../users/dashboard.js";
 import type * as users_onboarding from "../users/onboarding.js";
+import type * as users_profile from "../users/profile.js";
 import type * as users_session from "../users/session.js";
 import type * as users_viewer from "../users/viewer.js";
 import type * as video_admin from "../video/admin.js";
@@ -280,6 +281,7 @@ declare const fullApi: ApiFromModules<{
   "users/bootstrap": typeof users_bootstrap;
   "users/dashboard": typeof users_dashboard;
   "users/onboarding": typeof users_onboarding;
+  "users/profile": typeof users_profile;
   "users/session": typeof users_session;
   "users/viewer": typeof users_viewer;
   "video/admin": typeof video_admin;

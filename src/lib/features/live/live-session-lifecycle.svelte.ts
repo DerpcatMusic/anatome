@@ -14,7 +14,6 @@ import {
   teardownLiveSessionRoom,
 } from "./live-session-connect";
 import { LiveSessionMedia } from "./live-session-media.svelte";
-import { tryGetLiveDockContext } from "./dock/live-dock.svelte";
 import type { ConnectionState } from "./types";
 
 /** Token lifecycle, session connect sync, timers, and browser stability. */
@@ -63,15 +62,17 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
   private applySessionEnded(message: string) {
     if (this.sessionEndedByHost) return;
     this.sessionEndedByHost = true;
+    this.sessionConnect = false;
+    this.joiningLive = false;
     this.needsManualReconnect = false;
     this.showJoinExpiryModal = false;
+    this.keepAliveAcrossNavigation = false;
     this.mediaError = message;
     this.inRoom = false;
     this.stopStatsTimer();
     this.stopTokenRefreshTimer();
     this.releaseWakeLock();
-    this._room?.disconnect();
-    this._room = null;
+    void this.teardownActiveRoom();
   }
 
   private async fetchJoinAccessSnapshot() {
@@ -102,19 +103,25 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
   }
 
   protected handleDisconnected(reason: number | undefined) {
-    this.stopTokenRefreshTimer();
-    this.releaseWakeLock();
     if (this.isInstructorRoom) {
       this.instructorMicBeforeDrop = true;
     } else if (this.micEnabled) {
       this.instructorMicBeforeDrop = true;
     }
-    if (
-      this.sessionConnect &&
-      reason !== LK_DISCONNECT.DUPLICATE_IDENTITY &&
-      !this.keepAliveAcrossNavigation
-    ) {
+
+    if (reason === LK_DISCONNECT.DUPLICATE_IDENTITY) {
+      this.stopTokenRefreshTimer();
+      this.releaseWakeLock();
       this.sessionConnect = false;
+      void this.resolveDisconnectOutcome(reason);
+      return;
+    }
+
+    // Do not clear sessionConnect — that triggers syncSessionConnect teardown while LiveKit
+    // is still auto-reconnecting (common on screen-share websocket blips, code 1001).
+    if (!this.sessionConnect || !this.inRoom) {
+      this.stopTokenRefreshTimer();
+      this.releaseWakeLock();
     }
     void this.resolveDisconnectOutcome(reason);
   }
@@ -168,9 +175,14 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     }
   }
 
+  /** Last wsUrl warmed via {@link prepareJoinConnection} (skip duplicate prepare on connect). */
+  protected joinPrepareWsUrl: string | null = null;
+
   private async prepareJoinConnection() {
-    if (!this.joinInfo || this.inRoom) return;
+    if (!this.joinInfo || this.inRoom || this.sessionSyncInFlight) return;
+    if (this.joinPrepareWsUrl === this.joinInfo.wsUrl) return;
     await warmJoinConnection(this.joinInfo);
+    this.joinPrepareWsUrl = this.joinInfo.wsUrl;
   }
 
   async acquireWakeLock() {
@@ -318,22 +330,22 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     );
   }
 
+  /**
+   * Keep join credentials fresh for manual reconnect / join window.
+   * LiveKit Cloud pushes refreshed JWTs over the signal channel while connected;
+   * calling room.connect() when already Connected is a no-op (see livekit-client Room.connect).
+   */
   private async refreshJoinToken() {
     const liveClassId = this.getClassId();
     if (liveClassId === null || !this.inRoom) return;
     try {
+      const previousJoinInfo = this.joinInfo;
       const joinInfo = await issueJoinCredentials(this.client, liveClassId);
-      this.setJoinInfo(joinInfo);
-      const lkRoom = this._room;
-      if (lkRoom) {
-        const { ConnectionState } = await import("livekit-client");
-        if (
-          lkRoom.state === ConnectionState.Connected ||
-          lkRoom.state === ConnectionState.Reconnecting
-        ) {
-          await lkRoom.connect(joinInfo.wsUrl, joinInfo.token);
-        }
+      if (previousJoinInfo !== null && joinInfoEqual(previousJoinInfo, joinInfo)) {
+        this.startTokenRefreshTimer();
+        return;
       }
+      this.setJoinInfo(joinInfo);
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.startTokenRefreshTimer();
     } catch (reason) {
@@ -367,6 +379,8 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     try {
       if (!(await this.ensureJoinCredentials())) return;
       await this.prepareJoinConnection();
+      this.inRoom = false;
+      await this.teardownActiveRoom();
       this.sessionConnect = true;
       await this.syncSessionConnect();
     } catch (reason) {
@@ -379,14 +393,18 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
   }
 
   exitAfterDisconnect() {
-    const isInstructor = this.isInstructorRoom;
-    const dock = tryGetLiveDockContext();
-    if (dock) {
-      dock.finishSession();
-    } else {
-      this.destroy();
+    this.sessionConnect = false;
+    this.joiningLive = false;
+    this.keepAliveAcrossNavigation = false;
+    if (this.onExitAfterDisconnect) {
+      this.onExitAfterDisconnect();
+      return;
     }
-    window.location.assign(isInstructor ? "/i/calendar" : "/u/calendar");
+    const isInstructor = this.isInstructorRoom;
+    void this.requestSessionEnd().finally(() => {
+      this.destroy();
+      window.location.assign(isInstructor ? "/i/calendar" : "/u/calendar");
+    });
   }
 
   applyPreJoinChoices(choices: {
@@ -410,7 +428,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     const isFirefox =
       typeof navigator !== "undefined" && navigator.userAgent.includes("Firefox");
     if (isFirefox) {
-      await new Promise((r) => setTimeout(r, 350));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     }
   }
 
@@ -449,7 +467,9 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     try {
       await this.client.mutation(api.live.class.start, { liveClassId });
       if (await this.ensureJoinCredentials()) {
-        await this.requestSessionStart(publishAvailableDevices);
+        await this.releasePreConnectMedia();
+        await this.prepareJoinConnection();
+        await this.beginSessionConnect(publishAvailableDevices);
       }
     } catch (reason) {
       console.error("[LiveKit] Start live failed:", reason);
@@ -465,12 +485,13 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       await this.client.mutation(api.live.class.end, { liveClassId });
       this.keepAliveAcrossNavigation = false;
       this.pinnedClassId = null;
+      this.sessionConnect = false;
+      await this.requestSessionEnd();
       if (onFinished) {
         onFinished();
-      } else {
-        this.destroy();
-        window.location.assign("/i/calendar");
+        return;
       }
+      this.exitAfterDisconnect();
     } catch (reason) {
       console.error("[LiveKit] End live failed:", reason);
       this.mediaError = reason instanceof Error ? reason.message : i18n.t.live.room.endLiveError();
@@ -580,12 +601,6 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
 
       if (!this.joinInfo || this.inRoom) return;
 
-      const isFirefox =
-        typeof navigator !== "undefined" && navigator.userAgent.includes("Firefox");
-      if (isFirefox) {
-        await new Promise((r) => setTimeout(r, 500));
-      }
-
       await this.connectRoom(this.joinInfo);
     } catch (reason) {
       console.error("[LiveKit] Session connect failed:", reason);
@@ -605,7 +620,11 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       this.isInstructorRoom || (publishAvailableDevices && this.wantsMicOnJoin);
     this.mediaError = "";
     if (!(await this.ensureJoinCredentials())) return;
-    await this.releasePreConnectMedia();
+    await Promise.all([this.releasePreConnectMedia(), this.prepareJoinConnection()]);
+    await this.beginSessionConnect(publishAvailableDevices);
+  }
+
+  private async beginSessionConnect(_publishAvailableDevices: boolean) {
     this.sessionConnect = true;
     await this.syncSessionConnect();
   }
@@ -635,6 +654,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     this.browserOffline = false;
     this.connectionQuality = "unknown";
     this.joinTokenPhase = "idle";
+    this.joinPrepareWsUrl = null;
     void this.teardownActiveRoom();
   }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import AgendaPane from "./AgendaPane.svelte";
   import type { Id } from "$convex/_generated/dataModel";
-  import type { DayAgendaGroup } from "../lib/agenda";
+  import type { DayAgendaGroup, CalendarClass } from "../lib/agenda";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import "../styles/agenda-list.css";
 
@@ -32,7 +32,7 @@
     nowMs: number;
     onLoadMore?: () => void;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
-    onCancel: (liveClassId: Id<"liveClasses">) => void;
+    onCancel: (item: CalendarClass) => void;
     onOpenOneOnOneRequest?: (dayStart: number) => void;
     onBuyCredits?: () => void;
   } = $props();
@@ -49,11 +49,21 @@
 
   $effect(() => {
     const node = loadMoreSentinel;
+    const isLoading = loading;
     if (!node || !onLoadMore || !canLoadMore) return;
+
+    let armed = false;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) onLoadMore();
+        const visible = entries.some((e) => e.isIntersecting);
+        if (!visible) {
+          armed = true;
+          return;
+        }
+        if (!armed || isLoading) return;
+        armed = false;
+        onLoadMore();
       },
       { rootMargin: "200px 0px" },
     );
@@ -65,7 +75,7 @@
 {#if isEmpty}
   <p class="booking-agenda__empty">{t.calendar.empty.upcomingText()}</p>
 {:else if split}
-  <div class="booking-agenda booking-agenda--split">
+  <div class="booking-agenda booking-agenda--split" class:booking-agenda--refreshing={loading}>
     <AgendaPane
       paneTitle={t.calendar.panes.groupTitle()}
       paneVariant="group"
@@ -102,7 +112,7 @@
     </div>
   </div>
 {:else}
-  <div class="booking-agenda">
+  <div class="booking-agenda" class:booking-agenda--refreshing={loading}>
     <AgendaPane
       paneTitle={typeFilter === "group_live"
         ? t.calendar.panes.groupTitle()
@@ -137,6 +147,17 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .booking-agenda--refreshing {
+    opacity: 0.92;
+    transition: opacity 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .booking-agenda--refreshing {
+      transition: none;
+    }
   }
 
   .booking-agenda--split {

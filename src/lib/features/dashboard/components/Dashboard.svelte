@@ -61,7 +61,7 @@
               pendingSubscriptionPlan={pendingSubscriptionPlan ?? null}
             />
             {#if profile}
-              <ProfileSummary isStaff={false} {profile} showEditLink />
+              <ProfileSummary isStaff={false} {profile} showEditLink panelVariant="aside" />
             {/if}
           </aside>
         </div>
@@ -70,27 +70,3 @@
     {/if}
   </div>
 </PageShell>
-
-<style>
-  .dashboard-shell {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    min-width: 0;
-  }
-
-  .dashboard-shell__aside {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    min-width: 0;
-  }
-
-  .dashboard-shell--member {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    min-width: 0;
-  }
-
-</style>

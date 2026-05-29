@@ -6,6 +6,7 @@ import { requireAppProfile, requireUserId } from "../lib/authz";
 import { prepareJoinResultValidator } from "./joinContract";
 import type { LiveParticipantRole } from "./joinContract";
 import { ensureLiveRoomForClass } from "../lib/liveRoom";
+import { preferredMemberDisplayName } from "../lib/memberDisplay";
 import {
   getAppProfile,
   maxLiveKitParticipants,
@@ -80,15 +81,18 @@ export const prepareJoin = internalMutation({
 
     const instructorProfile = await getAppProfile(ctx, liveClass.instructorUserId);
 
+    const authUser = await ctx.db.get(userId);
+
     return {
       userId,
-      displayName: profile.displayName,
+      displayName: preferredMemberDisplayName(profile, authUser),
       roomName: room.roomName,
       participantRole,
       liveClassId: liveClass._id,
       liveClassType: liveClass.type,
       classTitle: liveClass.title,
       instructorName: instructorProfile?.displayName ?? "המדריכה",
+      instructorUserId: liveClass.instructorUserId,
       startsAt: liveClass.startsAt,
       endsAt: liveClass.endsAt,
       joinClosesAt: liveClass.joinClosesAt,

@@ -53,9 +53,9 @@
 >
   <div class="experience-bento__track">
     <div class="experience-bento__pin l-shell experience-bento-section__inner">
-      <header class="experience-intro l-in">
-        <h2 class="section-title section-title--center">{t.landing.pillars.headline()}</h2>
-        <p class="section-lead section-lead--center">{t.landing.pillars.lead()}</p>
+      <header class="experience-intro section-head section-head--center l-in">
+        <h2 class="section-title">{t.landing.pillars.headline()}</h2>
+        <p class="section-lead">{t.landing.pillars.lead()}</p>
         {#if t.landing.experience.scrollHint()}
           <p class="experience-intro__hint">{t.landing.experience.scrollHint()}</p>
         {/if}

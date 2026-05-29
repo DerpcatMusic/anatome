@@ -35,6 +35,17 @@
   const cameraDisabled = $derived(
     session.connectionState !== "connected" || !session.cameraAvailable,
   );
+
+  /** Keep cog open while a portaled quality Select menu is open (sibling layer, not inside popover DOM). */
+  function settingsPopoverInteractOutside(event: PointerEvent) {
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest(".lr-select-overlay, .hb-select__content")
+    ) {
+      event.preventDefault();
+    }
+  }
 </script>
 
 <footer class="lr-control-bar">
@@ -116,17 +127,22 @@
             side="top"
             align="center"
             sideOffset={8}
+            onInteractOutside={settingsPopoverInteractOutside}
           >
             <div class="lr-settings">
               <strong class="lr-settings__title">{t.live.room.settingsTitle()}</strong>
 
-              {#if session.isInstructorRoom}
+              {#if session.isInstructorRoom && session.inRoom}
                 <LivePublishSettingsFields
                   {session}
                   mode="compact"
-                  showPresets={false}
+                  showPresets={true}
                   showEchoToggle={false}
                 />
+              {:else if session.isInstructorRoom}
+                <p class="lr-settings__unavailable">
+                  הגדרות שידור זמינות לפני הכניסה לחדר או אחרי חיבור מלא.
+                </p>
               {/if}
 
               <div class="lr-settings__session">
@@ -198,5 +214,12 @@
     gap: var(--space-2);
     padding-top: var(--space-2);
     border-top: 1px solid var(--border-color);
+  }
+
+  .lr-settings__unavailable {
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--foreground-muted);
   }
 </style>

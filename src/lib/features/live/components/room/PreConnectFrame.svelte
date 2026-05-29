@@ -4,14 +4,14 @@
   let {
     title,
     subtitle = "",
-    scheduleLine = "",
+    schedule,
     statusLabel = "",
     statusTone = "default",
     children,
   }: {
     title: string;
     subtitle?: string;
-    scheduleLine?: string;
+    schedule?: Snippet;
     statusLabel?: string;
     statusTone?: "default" | "live" | "prep";
     children: Snippet;
@@ -23,11 +23,11 @@
     <div class="live-preconnect__heading">
       <span class="live-preconnect__kicker">לייב</span>
       <h1 class="live-preconnect__title">{title}</h1>
-      {#if scheduleLine}
-        <p class="live-preconnect__schedule">
+      {#if schedule}
+        <div class="live-preconnect__schedule">
           <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
-          {scheduleLine}
-        </p>
+          {@render schedule()}
+        </div>
       {/if}
       {#if subtitle}
         <p class="live-preconnect__subtitle">{subtitle}</p>
@@ -98,11 +98,10 @@
   .live-preconnect__schedule {
     display: inline-flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-2);
     margin: 0;
-    font-size: var(--step--1);
-    font-weight: 600;
-    color: var(--foreground-muted);
+    min-width: 0;
   }
 
   .live-preconnect__schedule .material-symbols-rounded {

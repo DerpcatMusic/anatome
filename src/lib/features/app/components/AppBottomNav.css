@@ -67,40 +67,52 @@
   }
 
   .app-bottom-nav__link[data-tone="dashboard"] .app-bottom-nav__icon {
-    color: var(--primary);
+    color: var(--nav-icon-dashboard);
   }
 
   .app-bottom-nav__link[data-tone="calendar"] .app-bottom-nav__icon {
-    color: var(--secondary);
+    color: var(--nav-icon-calendar);
   }
 
   .app-bottom-nav__link[data-tone="video"] .app-bottom-nav__icon {
-    color: var(--accent);
+    color: var(--nav-icon-video);
   }
 
   .app-bottom-nav__link[data-tone="profile"] .app-bottom-nav__icon {
-    color: var(--foreground-muted);
+    color: var(--nav-icon-profile);
   }
 
   .app-bottom-nav__link[data-tone="live"] .app-bottom-nav__icon {
-    color: var(--danger);
+    color: var(--nav-icon-live);
   }
 
   .app-bottom-nav__link--current {
-    color: var(--primary);
+    color: var(--ink);
     font-weight: 800;
   }
 
-  .app-bottom-nav__link--current .app-bottom-nav__icon {
-    color: inherit;
+  .app-bottom-nav__link--current[data-tone="dashboard"] .app-bottom-nav__icon {
+    color: var(--nav-icon-dashboard-active);
+  }
+
+  .app-bottom-nav__link--current[data-tone="calendar"] .app-bottom-nav__icon {
+    color: var(--nav-icon-calendar-active);
+  }
+
+  .app-bottom-nav__link--current[data-tone="video"] .app-bottom-nav__icon {
+    color: var(--nav-icon-video-active);
+  }
+
+  .app-bottom-nav__link--current[data-tone="profile"] .app-bottom-nav__icon {
+    color: var(--nav-icon-profile-active);
+  }
+
+  .app-bottom-nav__link--current[data-tone="live"] .app-bottom-nav__icon {
+    color: var(--nav-icon-live-active);
   }
 
   .app-bottom-nav__link--live.app-bottom-nav__link--current {
-    color: var(--danger);
-  }
-
-  .app-bottom-nav__link--live.app-bottom-nav__link--current .app-bottom-nav__icon {
-    color: inherit;
+    color: var(--nav-icon-live-active);
   }
 
   .app-bottom-nav__label {

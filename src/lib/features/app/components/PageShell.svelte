@@ -66,6 +66,7 @@
     gap: var(--space-4);
     min-width: 0;
     flex: 1;
+    text-align: start;
   }
 
   .page-shell__header {
@@ -92,23 +93,20 @@
 
   .kicker {
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--foreground-muted);
     margin: 0;
   }
 
   .page-title {
-    font-size: clamp(2.25rem, 4vw, 4.5rem);
-    line-height: 1.1;
     margin: 0;
   }
 
   .badge {
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     font-weight: 700;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     padding: 2px 8px;
     border: var(--border);
@@ -119,8 +117,6 @@
 
   .description {
     color: var(--foreground-muted);
-    line-height: 1.7;
-    max-width: 72ch;
     margin: 0;
   }
 

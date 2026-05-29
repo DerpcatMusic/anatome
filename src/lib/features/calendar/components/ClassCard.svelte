@@ -31,7 +31,7 @@
     actionId: string | null;
     nowMs: number;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
-    onCancel: (liveClassId: Id<"liveClasses">) => void;
+    onCancel: (item: CalendarClass) => void;
     onBuyCredits?: (pool?: CreditPool) => void;
   } = $props();
 
@@ -190,7 +190,7 @@
         <Button.Root
           class="hb-button hb-button--paper hb-button--sm"
           type="button"
-          onclick={() => onCancel(item.liveClass._id)}
+          onclick={() => onCancel(item)}
           disabled={actionId === item.liveClass._id}
         >
           {t.calendar.class.cancel()}

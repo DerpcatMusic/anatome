@@ -6,14 +6,21 @@ html[data-theme="light"] {
    */
   --neutral-hue: 115;
 
-  --background: oklch(98.4% 0.008 95);
+  /* Achromatic surfaces & dimming — avoid brand green (155°) on large fills */
+  --scrim-neutral: oklch(22% 0.006 265);
+  --scrim-neutral-soft: oklch(42% 0.008 265);
+  --hero-dim: var(--scrim-neutral);
+  --surface-neutral: oklch(98.5% 0.003 265);
+  --surface-neutral-muted: oklch(96.2% 0.004 265);
+
+  --background: var(--surface-neutral);
   --foreground: oklch(22% 0.04 155);
   --foreground-muted: oklch(42% 0.022 145);
 
-  --card: oklch(99.2% 0.006 95);
+  --card: oklch(99.2% 0.002 265);
   --card-foreground: var(--foreground);
 
-  --muted: oklch(96.2% 0.01 100);
+  --muted: var(--surface-neutral-muted);
   --muted-foreground: var(--foreground-muted);
 
   --border-color: oklch(82% 0.014 130);
@@ -102,20 +109,40 @@ html[data-theme="light"] {
     inset -1px -1px 3px color-mix(in oklch, var(--foreground) 6%, transparent),
     3px 5px 10px color-mix(in oklch, var(--foreground) 16%, transparent);
 
-  /* Typography */
+  /* Typography — families */
   --font-body: "Assistant", "Noto Sans Hebrew", "Arial", sans-serif;
   --font-extralight: "Assistant", "Noto Sans Hebrew", "Arial", sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
   --font-display: "Secular One", "Assistant", sans-serif;
   --font-hand: "Gveret Levin", cursive;
 
-  --step--2: 0.75rem;
-  --step--1: 0.875rem;
-  --step-0: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
-  --step-1: clamp(1.35rem, 1.1rem + 1vw, 2rem);
-  --step-2: clamp(1.8rem, 1.3rem + 2vw, 3.2rem);
-  --step-3: clamp(2.4rem, 1.5rem + 3.5vw, 5rem);
-  --step-4: clamp(3.2rem, 1.8rem + 5.5vw, 7.5rem);
+  /* Product UI scale (fixed rem, ratio ~1.2) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.125rem;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --tracking-tight: -0.02em;
+  --tracking-tighter: -0.03em;
+  --tracking-caps: 0.08em;
+
+  /* Marketing display scale — fluid headings, fixed body */
+  --step--2: var(--text-xs);
+  --step--1: var(--text-sm);
+  --step-0: var(--text-base);
+  --step-1: clamp(1.25rem, 1.08rem + 0.55vw, 1.5rem);
+  --step-2: clamp(1.65rem, 1.2rem + 1.35vw, 2.25rem);
+  --step-3: clamp(2rem, 1.35rem + 2.1vw, 3.25rem);
+  --step-4: clamp(2.5rem, 1.5rem + 2.8vw, 6rem);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -144,10 +171,10 @@ html[data-theme="light"] {
   --shadow-select: var(--shadow-md);
   --shadow-popover: var(--shadow-md);
 
-  --overlay-scrim: oklch(22% 0.04 155 / 0.35);
+  --overlay-scrim: oklch(22% 0.006 265 / 0.35);
 
-  --glass-bg: oklch(98.4% 0.008 95 / 0.72);
-  --glass-strong-bg: oklch(98.4% 0.008 95 / 0.88);
+  --glass-bg: oklch(98.5% 0.003 265 / 0.72);
+  --glass-strong-bg: oklch(98.5% 0.003 265 / 0.88);
   --glass-border: 1px solid oklch(82% 0.014 130 / 0.55);
   --glass-blur: blur(40px);
 
@@ -204,6 +231,22 @@ html[data-theme="light"] {
   --accent-soft: var(--primary-subtle);
   --secondary-soft: var(--secondary-subtle);
 
+  /*
+   * App nav icon hues — psychology-tuned, readable on --muted sidebar.
+   * Default = ~70% chroma reduction; *-active = full semantic hue.
+   */
+  --nav-icon-dashboard: oklch(44% 0.018 155);
+  --nav-icon-dashboard-active: oklch(36% 0.052 155);
+  --nav-icon-calendar: oklch(46% 0.034 220);
+  --nav-icon-calendar-active: oklch(44% 0.11 220);
+  --nav-icon-video: oklch(48% 0.038 285);
+  --nav-icon-video-active: oklch(46% 0.13 285);
+  --nav-icon-profile: oklch(48% 0.024 318);
+  --nav-icon-profile-active: oklch(46% 0.085 318);
+  --nav-icon-live: oklch(50% 0.048 28);
+  --nav-icon-live-active: oklch(48% 0.16 28);
+  --nav-icon-live-on: oklch(98% 0.01 28);
+
   --tag-fg: var(--secondary);
   --tag-bg: var(--secondary-subtle);
   --tag-sub-fg: var(--accent);
@@ -213,19 +256,20 @@ html[data-theme="light"] {
   --media-surface-end: color-mix(in oklch, var(--foreground) 86%, var(--primary));
   --media-on: var(--background);
   --media-on-muted: color-mix(in oklch, var(--background) 78%, var(--foreground-muted));
-  --hero-wash: color-mix(in oklch, var(--secondary) 6%, var(--background));
-  --hero-wash-secondary: var(--secondary-subtle);
-  --section-emphasis: color-mix(in oklch, var(--secondary) 5%, var(--muted));
+  --hero-wash: var(--background);
+  --hero-wash-secondary: var(--muted);
+  --section-emphasis: color-mix(in oklch, var(--scrim-neutral-soft) 4%, var(--muted));
   --shadow-media: var(--shadow-ambient);
   --ring: 0 0 0 3px color-mix(in oklch, var(--secondary) 35%, transparent);
   --focus-ring: var(--ring);
 
   --radius-sm: 8px;
   --radius-md: 16px;
+  --radius-lg: 20px;
   --radius-xl: 24px;
   --radius-pill: 999px;
-  --mesh-base: oklch(97.5% 0.01 100);
-  --mesh-base-end: oklch(95% 0.012 105);
+  --mesh-base: oklch(97.5% 0.004 265);
+  --mesh-base-end: oklch(95% 0.006 265);
 }
 
 html[data-theme="dark"] {
@@ -362,6 +406,18 @@ html[data-theme="dark"] {
   --accent-soft: var(--primary-subtle);
   --secondary-soft: var(--secondary-subtle);
 
+  --nav-icon-dashboard: oklch(72% 0.014 145);
+  --nav-icon-dashboard-active: oklch(84% 0.038 145);
+  --nav-icon-calendar: oklch(70% 0.03 220);
+  --nav-icon-calendar-active: oklch(80% 0.1 220);
+  --nav-icon-video: oklch(70% 0.032 285);
+  --nav-icon-video-active: oklch(80% 0.11 285);
+  --nav-icon-profile: oklch(72% 0.02 318);
+  --nav-icon-profile-active: oklch(82% 0.085 318);
+  --nav-icon-live: oklch(72% 0.042 28);
+  --nav-icon-live-active: oklch(78% 0.14 28);
+  --nav-icon-live-on: oklch(98% 0.01 28);
+
   --tag-fg: var(--foreground-muted);
   --tag-bg: var(--secondary-subtle);
   --tag-sub-fg: var(--accent);
@@ -369,6 +425,10 @@ html[data-theme="dark"] {
 
   --ring: 0 0 0 3px color-mix(in oklch, var(--foreground) 38%, transparent);
   --focus-ring: var(--ring);
+
+  --scrim-neutral: oklch(12% 0.006 95);
+  --scrim-neutral-soft: oklch(75% 0.009 95);
+  --hero-dim: var(--paper);
 
   --hero-wash: var(--background);
   --hero-wash-secondary: var(--muted);

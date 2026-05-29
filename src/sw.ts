@@ -1,6 +1,10 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from "workbox-core";
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching";
+import {
+  cleanupOutdatedCaches,
+  matchPrecache,
+  precacheAndRoute,
+} from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
 
 declare const self: ServiceWorkerGlobalScope;
@@ -8,9 +12,26 @@ declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-const navigationHandler = createHandlerBoundToURL("/app.html");
+const APP_SHELL_CANDIDATES = ["/app.html", "/index.html"] as const;
+
+async function serveAppShell(): Promise<Response> {
+  for (const url of APP_SHELL_CANDIDATES) {
+    const cached = await matchPrecache(url);
+    if (cached) return cached;
+  }
+  for (const url of APP_SHELL_CANDIDATES) {
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (response.ok) return response;
+    } catch {
+      // try next candidate
+    }
+  }
+  return Response.error();
+}
+
 registerRoute(
-  new NavigationRoute(navigationHandler, {
+  new NavigationRoute(() => serveAppShell(), {
     denylist: [/^\/api\//, /^\/convex\//, /^\/_app\//],
   }),
 );

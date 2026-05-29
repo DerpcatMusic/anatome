@@ -18,7 +18,6 @@ export function initLandingScroll(root: HTMLElement): () => void {
     initHeroFade(root);
     initAboutParallax(root);
     cleanupBento = initExperienceBentoScroll(root);
-    initStepsTimeline(root);
     initPricingGlow(root);
     ScrollTrigger.refresh();
   }, root);
@@ -75,47 +74,6 @@ function initAboutParallax(root: HTMLElement) {
       },
     },
   );
-}
-
-function initStepsTimeline(root: HTMLElement) {
-  const section = root.querySelector<HTMLElement>(".section--steps");
-  const line = section?.querySelector<HTMLElement>(".steps__progress");
-  const steps = section?.querySelectorAll<HTMLElement>(".step");
-  if (!section || !line || !steps?.length) return;
-
-  gsap.set(line, { scaleY: 0, transformOrigin: "top center" });
-
-  gsap.to(line, {
-    scaleY: 1,
-    ease: "none",
-    scrollTrigger: {
-      trigger: section,
-      start: "top 70%",
-      end: "bottom 40%",
-      scrub: 0.6,
-    },
-  });
-
-  steps.forEach((step, index) => {
-    gsap.fromTo(
-      step,
-      { opacity: 0.55 },
-      {
-        opacity: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: step,
-          start: "top 85%",
-          end: "top 55%",
-          scrub: 0.5,
-          onEnter: () => step.classList.add("is-highlighted"),
-          onLeaveBack: () => step.classList.remove("is-highlighted"),
-        },
-      },
-    );
-
-    if (index === 0) step.classList.add("is-highlighted");
-  });
 }
 
 function initPricingGlow(root: HTMLElement) {

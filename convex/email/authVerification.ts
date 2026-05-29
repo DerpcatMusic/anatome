@@ -42,20 +42,24 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function buildCodeCellsHtml(code: string): string {
-  const digits = code.padStart(6, "0").slice(0, 6).split("");
-  const cells = digits
-    .map(
-      (digit) => `<td style="width:42px;height:50px;text-align:center;vertical-align:middle;background:${EMAIL.codeBg};border:1px solid ${EMAIL.border};border-radius:10px;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;color:${EMAIL.codeDigit};">${escapeHtml(digit)}</td>`,
-    )
-    .join(`<td style="width:6px;font-size:0;line-height:0;">&nbsp;</td>`);
+/** Six digits, no separators — safe for subject lines and notification previews. */
+export function normalizeOtpCode(code: string): string {
+  return code.replace(/\D/g, "").padStart(6, "0").slice(0, 6);
+}
 
-  return `<table role="presentation" dir="ltr" cellspacing="0" cellpadding="0" style="margin:0 auto 20px;border-collapse:separate;"><tr>${cells}</tr></table>`;
+export function buildAuthVerificationSubject(code: string): string {
+  return `AnatoMe OTP - ${normalizeOtpCode(code)}`;
+}
+
+function buildCodeBlockHtml(code: string): string {
+  const otp = escapeHtml(normalizeOtpCode(code));
+  return `<p dir="ltr" style="margin:0 auto 20px;max-width:100%;padding:14px 20px;background:${EMAIL.codeBg};border:1px solid ${EMAIL.border};border-radius:12px;font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0.2em;line-height:1.2;color:${EMAIL.codeDigit};text-align:center;white-space:nowrap;">${otp}</p>`;
 }
 
 function buildAuthVerificationHtml(args: AuthVerificationEmail): string {
   const expiry = formatExpiryHebrew(args.expiresAt);
   const safeLink = escapeHtml(args.magicLink);
+  const subjectLine = escapeHtml(buildAuthVerificationSubject(args.code));
 
   return `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -66,6 +70,7 @@ function buildAuthVerificationHtml(args: AuthVerificationEmail): string {
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600&display=swap" rel="stylesheet" />
   </head>
   <body style="margin:0;padding:0;background:${EMAIL.canvas};font-family:${FONT_STACK};color:${EMAIL.ink};-webkit-font-smoothing:antialiased;">
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${subjectLine}</div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${EMAIL.canvas};padding:32px 16px;">
       <tr>
         <td align="center">
@@ -74,7 +79,7 @@ function buildAuthVerificationHtml(args: AuthVerificationEmail): string {
               <td style="text-align:center;">
                 <p style="margin:0 0 16px;font-size:14px;font-weight:600;color:${EMAIL.inkMuted};">AnatoMe</p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:${EMAIL.inkMuted};">תקף עד ${escapeHtml(expiry)}</p>
-                ${buildCodeCellsHtml(args.code)}
+                ${buildCodeBlockHtml(args.code)}
                 <p style="margin:0 0 16px;">
                   <a href="${safeLink}" style="display:inline-block;background:${EMAIL.primary};color:${EMAIL.primaryFg};text-decoration:none;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:600;font-family:${FONT_STACK};">כניסה בלחיצה</a>
                 </p>
@@ -91,9 +96,9 @@ function buildAuthVerificationHtml(args: AuthVerificationEmail): string {
 
 function buildAuthVerificationText(args: AuthVerificationEmail): string {
   const expiry = formatExpiryHebrew(args.expiresAt);
+  const subjectLine = buildAuthVerificationSubject(args.code);
   return [
-    "AnatoMe",
-    `קוד: ${args.code}`,
+    subjectLine,
     `תקף עד ${expiry}`,
     args.magicLink,
     "",
@@ -108,7 +113,7 @@ export async function sendAuthVerificationEmail(
   return await createResendClient().sendEmail(ctx, {
     from: resolveResendFromAddress(),
     to: args.to,
-    subject: "קוד כניסה — AnatoMe",
+    subject: buildAuthVerificationSubject(args.code),
     html: buildAuthVerificationHtml(args),
     text: buildAuthVerificationText(args),
   });

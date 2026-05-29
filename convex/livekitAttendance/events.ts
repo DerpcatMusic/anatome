@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { consumeCredits, type LiveCreditPool } from "../credits/lib";
 import { liveClassIdFromRoomName } from "../lib/live";
+import { broadcastMetaForClass } from "../live/joinAccess";
 import {
   findActiveReservation,
   getAppProfile,
@@ -33,7 +34,13 @@ export const handleWebhook = internalMutation({
 
     const liveClass = await ctx.db.get(room.liveClassId);
     if (liveClass === null) return { authorized: false };
-    if (liveClass.status !== "live") return { authorized: false };
+    if (
+      liveClass.status === "ended" ||
+      liveClass.status === "cancelled" ||
+      liveClass.status === "draft"
+    ) {
+      return { authorized: false };
+    }
 
     const parsedIdentity = parseLiveKitIdentity(args.identity);
     if (parsedIdentity === null) return { authorized: false };
@@ -54,11 +61,20 @@ export const handleWebhook = internalMutation({
         } else if (computedRole.isInstructor) {
           isAuthorized = true;
         } else {
-          reservation = await validateCustomerJoinEligibility(joinCtx);
-          isAuthorized =
-            reservation !== null &&
-            (reservation.status === "reserved" || reservation.status === "joined");
-          if (!isAuthorized) deniedReason = "missing_active_reservation";
+          const broadcast = await broadcastMetaForClass(
+            ctx,
+            room.liveClassId,
+            liveClass.status,
+          );
+          if (!broadcast.isBroadcastLive) {
+            deniedReason = "broadcast_not_started";
+          } else {
+            reservation = await validateCustomerJoinEligibility(joinCtx);
+            isAuthorized =
+              reservation !== null &&
+              (reservation.status === "reserved" || reservation.status === "joined");
+            if (!isAuthorized) deniedReason = "missing_active_reservation";
+          }
         }
       } catch (reason: unknown) {
         deniedReason = reason instanceof Error ? reason.message : "webhook_unauthorized";

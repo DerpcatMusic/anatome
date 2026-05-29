@@ -3,6 +3,7 @@
   import type { Id } from "$convex/_generated/dataModel";
   import { useQuery } from "convex-svelte";
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
+  import RosterMemberIdentity from "./RosterMemberIdentity.svelte";
 
   interface Props {
     liveClassId: Id<"liveClasses">;
@@ -44,8 +45,7 @@
         <ul class="instructor-roster__list">
           {#each panel.waitingInLobby as member (member.userId)}
             <li class="instructor-roster__row instructor-roster__row--waiting">
-              <span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>
-              <span class="instructor-roster__name">{member.displayName}</span>
+              <RosterMemberIdentity displayName={member.displayName} avatarUrl={member.avatarUrl} />
               <span class="instructor-roster__meta">{lobbyPhaseLabel(member.phase)}</span>
             </li>
           {/each}
@@ -58,9 +58,11 @@
         <h3 class="instructor-roster__section-title">שמורות ({panel.reserved.length})</h3>
         <ul class="instructor-roster__list">
           {#each panel.reserved as member (member.userId)}
-            <li class="instructor-roster__row">
-              <span class="material-symbols-rounded" aria-hidden="true">event_seat</span>
-              <span class="instructor-roster__name">{member.displayName}</span>
+            <li class="instructor-roster__row instructor-roster__row--reserved">
+              <RosterMemberIdentity displayName={member.displayName} avatarUrl={member.avatarUrl} />
+              <span class="material-symbols-rounded instructor-roster__status-icon" aria-hidden="true"
+                >event_seat</span
+              >
             </li>
           {/each}
         </ul>
@@ -73,8 +75,10 @@
         <ul class="instructor-roster__list">
           {#each panel.joined as member (member.userId)}
             <li class="instructor-roster__row instructor-roster__row--joined">
-              <span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
-              <span class="instructor-roster__name">{member.displayName}</span>
+              <RosterMemberIdentity displayName={member.displayName} avatarUrl={member.avatarUrl} />
+              <span class="material-symbols-rounded instructor-roster__status-icon" aria-hidden="true"
+                >check_circle</span
+              >
             </li>
           {/each}
         </ul>
@@ -93,49 +97,65 @@
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-4);
-    background: var(--elevated);
-    border: 1px solid color-mix(in oklch, var(--line) 55%, transparent);
-    border-radius: 2px;
-    max-height: min(28rem, 50vh);
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-ambient);
+    max-height: min(32rem, 56vh);
     overflow: auto;
+    direction: rtl;
   }
 
   .instructor-roster__head {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
   }
 
   .instructor-roster__title {
     margin: 0;
+    font-family: var(--font-display);
     font-size: var(--step-0);
-    font-weight: 800;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--foreground);
   }
 
   .instructor-roster__stats {
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
-    font-size: var(--step--1);
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--step--2);
     color: var(--foreground-muted);
   }
 
   .instructor-roster__stat strong {
-    color: var(--ink);
+    color: var(--foreground);
     font-family: var(--font-mono);
+    font-weight: 800;
   }
 
   .instructor-roster__stat--live {
-    color: var(--primary);
+    color: var(--accent);
     font-weight: 700;
   }
 
+  .instructor-roster__section {
+    display: grid;
+    gap: var(--space-1);
+  }
+
   .instructor-roster__section-title {
-    margin: 0 0 var(--space-2);
-    font-size: var(--step--1);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
     font-weight: 800;
-    color: var(--foreground-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--secondary);
   }
 
   .instructor-roster__list {
@@ -148,41 +168,55 @@
   }
 
   .instructor-roster__row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-2);
-    padding: var(--space-2);
-    border-radius: 2px;
-    background: var(--paper);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--muted);
     font-size: var(--step--1);
+    min-height: 2.75rem;
   }
 
   .instructor-roster__row--waiting {
-    border-inline-start: 3px solid var(--accent);
+    background: color-mix(in oklch, var(--accent) 14%, var(--muted));
+    outline: 1px solid color-mix(in oklch, var(--accent) 28%, var(--border-color));
+    outline-offset: -1px;
   }
 
-  .instructor-roster__row--joined .material-symbols-rounded {
+  .instructor-roster__row--waiting :global(.roster-member-identity),
+  .instructor-roster__row--reserved :global(.roster-member-identity),
+  .instructor-roster__row--joined :global(.roster-member-identity) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .instructor-roster__status-icon {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+    color: var(--foreground-muted);
+  }
+
+  .instructor-roster__row--joined .instructor-roster__status-icon {
     color: var(--success);
   }
 
-  .instructor-roster__name {
-    font-weight: 700;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .instructor-roster__meta {
+    flex-shrink: 0;
     font-size: var(--step--2);
+    font-weight: 600;
     color: var(--foreground-muted);
     white-space: nowrap;
   }
 
   .instructor-roster__empty {
     margin: 0;
+    padding: var(--space-3);
     font-size: var(--step--1);
     color: var(--foreground-muted);
+    text-align: center;
+    border-radius: var(--radius-md);
+    background: var(--muted);
   }
 </style>

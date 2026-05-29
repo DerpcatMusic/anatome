@@ -32,7 +32,7 @@
 <nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
 	<div class="navbar__shell">
 		<a class="navbar__brand" href="/" aria-label={t.site.name()}>
-			<AnatoMeLogo class="navbar__logo" size={44} />
+			<AnatoMeLogo class="navbar__logo" size={52} />
 		</a>
 
 		<div class="navbar__actions">

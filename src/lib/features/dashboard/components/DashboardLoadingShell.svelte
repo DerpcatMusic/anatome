@@ -31,7 +31,11 @@
             <div class="dashboard-skeleton__bar"></div>
           </div>
           <aside class="dashboard-shell__aside">
-            <div class="dashboard-skeleton dashboard-panel">
+            <div class="dashboard-skeleton dashboard-panel dashboard-panel--member-aside">
+              <div class="dashboard-skeleton__bar"></div>
+              <div class="dashboard-skeleton__bar"></div>
+            </div>
+            <div class="dashboard-skeleton dashboard-panel dashboard-panel--member-aside">
               <div class="dashboard-skeleton__bar"></div>
               <div class="dashboard-skeleton__bar"></div>
             </div>
@@ -40,33 +44,19 @@
         <MemberLatestVideosRail />
       </div>
     {:else}
-      <div class="dashboard-skeleton dashboard-panel">
-        <div class="dashboard-skeleton__bar dashboard-skeleton__bar--lg"></div>
-        <div class="dashboard-skeleton__bar"></div>
+      <div class="dashboard-home dashboard-home--instructor">
+        <div class="dashboard-skeleton dashboard-panel">
+          <div class="dashboard-skeleton__bar"></div>
+        </div>
+        <div class="dashboard-skeleton dashboard-panel">
+          <div class="dashboard-skeleton__bar dashboard-skeleton__bar--lg"></div>
+          <div class="dashboard-skeleton__bar"></div>
+          <div class="dashboard-skeleton__bar"></div>
+        </div>
+        <div class="dashboard-skeleton dashboard-panel">
+          <div class="dashboard-skeleton__bar"></div>
+        </div>
       </div>
     {/if}
   </div>
 </PageShell>
-
-<style>
-  .dashboard-shell {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    min-width: 0;
-  }
-
-  .dashboard-shell__aside {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    min-width: 0;
-  }
-
-  .dashboard-shell--member {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    min-width: 0;
-  }
-</style>

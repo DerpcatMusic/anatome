@@ -11,6 +11,21 @@ export function isValidLiveReservation(
   );
 }
 
+export function findViewerLiveReservationFromRows(
+  reservations: Doc<"liveReservations">[],
+  liveClassId: Id<"liveClasses">,
+): Doc<"liveReservations"> | null {
+  return (
+    reservations.find(
+      (row) => row.liveClassId === liveClassId && row.status === "joined",
+    ) ??
+    reservations.find(
+      (row) => row.liveClassId === liveClassId && row.status === "reserved",
+    ) ??
+    null
+  );
+}
+
 export async function findViewerLiveReservation(
   ctx: QueryCtx | MutationCtx,
   liveClassId: Id<"liveClasses">,
@@ -23,10 +38,22 @@ export async function findViewerLiveReservation(
     )
     .take(10);
 
-  return (
-    reservations.find((row) => row.status === "joined") ??
-    reservations.find((row) => row.status === "reserved") ??
-    null
+  return findViewerLiveReservationFromRows(reservations, liveClassId);
+}
+
+/** Latest terminal reservation row to reactivate after user cancel / no-show. */
+export function findReactivatableReservation(
+  reservations: Doc<"liveReservations">[],
+  liveClassId: Id<"liveClasses">,
+): Doc<"liveReservations"> | null {
+  const terminal = reservations.filter(
+    (row) =>
+      row.liveClassId === liveClassId &&
+      (row.status === "cancelled" || row.status === "no_show"),
+  );
+  if (terminal.length === 0) return null;
+  return terminal.reduce((latest, row) =>
+    row.reservedAt > latest.reservedAt ? row : latest,
   );
 }
 

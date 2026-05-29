@@ -5,6 +5,7 @@
   import LivePipVideo from "./LivePipVideo.svelte";
   import { clampPipBounds, type PipBounds } from "./live-dock-pip-bounds";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import EndLiveConfirm from "../components/room/EndLiveConfirm.svelte";
   import "$lib/features/live/styles/live-pip.css";
 
   let {
@@ -22,6 +23,9 @@
   } = $props();
 
   const { t } = useI18n();
+
+  let showEndLiveConfirm = $state(false);
+  let endingLive = $state(false);
 
   let dragging = $state(false);
   let resizing = $state(false);
@@ -92,7 +96,18 @@
   function onShellDblClick() {
     onExpand();
   }
+
+  function confirmEndLive() {
+    if (endingLive) return;
+    endingLive = true;
+    showEndLiveConfirm = false;
+    void Promise.resolve(onEndLive()).finally(() => {
+      endingLive = false;
+    });
+  }
 </script>
+
+<EndLiveConfirm bind:open={showEndLiveConfirm} pending={endingLive} onConfirm={confirmEndLive} />
 
 <Tooltip.Provider delayDuration={120}>
   <div
@@ -177,7 +192,10 @@
         type="button"
         class="live-pip__btn live-pip__btn--danger"
         aria-label={t.live.room.leaveEndLive()}
-        onclick={onEndLive}
+        disabled={endingLive}
+        onclick={() => {
+          showEndLiveConfirm = true;
+        }}
       >
         <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>
       </button>

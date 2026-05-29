@@ -12,25 +12,27 @@
   let screenVideoEl = $state<HTMLVideoElement | null>(null);
   let screenTrack = $state<LocalVideoTrack | null>(null);
 
-  function syncScreenTrack() {
+  function syncLocalScreenTrack() {
     const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShare);
-    screenTrack = (publication?.track as LocalVideoTrack | undefined) ?? null;
+    const track = publication?.track;
+    screenTrack = track?.kind === "video" ? (track as LocalVideoTrack) : null;
   }
 
   $effect(() => {
-    syncScreenTrack();
+    syncLocalScreenTrack();
     const events = [
       RoomEvent.LocalTrackPublished,
       RoomEvent.LocalTrackUnpublished,
       RoomEvent.TrackPublished,
       RoomEvent.TrackUnpublished,
+      RoomEvent.Reconnected,
     ] as const;
     for (const event of events) {
-      room.on(event, syncScreenTrack);
+      room.on(event, syncLocalScreenTrack);
     }
     return () => {
       for (const event of events) {
-        room.off(event, syncScreenTrack);
+        room.off(event, syncLocalScreenTrack);
       }
     };
   });
@@ -47,6 +49,8 @@
 </script>
 
 <div class="lr-instructor-stage {className}">
+  <VideoConference class="lr-instructor-stage__conference" />
+
   {#if screenTrack}
     <div class="lr-instructor-stage__screen" data-testid="instructor-screen-share">
       <video
@@ -58,8 +62,6 @@
       ></video>
       <span class="lr-badge lr-badge--screen">{t.live.room.screenShare()}</span>
     </div>
-  {:else}
-    <VideoConference class="lr-instructor-stage__conference" />
   {/if}
 </div>
 
@@ -77,11 +79,11 @@
   .lr-instructor-stage__screen {
     position: absolute;
     inset: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #000;
-    border-radius: 0;
     overflow: hidden;
   }
 
@@ -94,6 +96,7 @@
   }
 
   .lr-instructor-stage__screen .lr-badge {
+    position: absolute;
     inset-block-start: var(--space-3);
     inset-inline-start: var(--space-3);
   }
@@ -101,5 +104,6 @@
   .lr-instructor-stage :global(.lr-instructor-stage__conference) {
     position: absolute;
     inset: 0;
+    z-index: 1;
   }
 </style>

@@ -1,38 +1,56 @@
 <script lang="ts">
-	import { DropdownMenu, Toggle } from "bits-ui";
+	import { DropdownMenu, Toggle } from 'bits-ui';
 
 	let {
 		kind,
 		enabled,
 		label,
+		noDeviceLabel,
 		devices = [],
-		selectedDeviceId = "",
+		selectedDeviceId = '',
 		onToggle,
 		onSelectDevice,
+		onEnableFailed,
 	}: {
-		kind: "mic" | "camera";
+		kind: 'mic' | 'camera';
 		enabled: boolean;
 		label: string;
+		noDeviceLabel: string;
 		devices?: MediaDeviceInfo[];
 		selectedDeviceId?: string;
 		onToggle: (enabled: boolean) => void;
 		onSelectDevice: (deviceId: string) => void;
+		/** Called when user turns on but no input devices are available. */
+		onEnableFailed?: () => void;
 	} = $props();
 
 	const icon = $derived(
-		kind === "mic" ? (enabled ? "mic" : "mic_off") : enabled ? "videocam" : "videocam_off",
+		kind === 'mic' ? (enabled ? 'mic' : 'mic_off') : enabled ? 'videocam' : 'videocam_off',
 	);
 
-	const hasDeviceMenu = $derived(devices.length > 1);
+	const hasDevices = $derived(devices.length > 0);
 	const activeDeviceId = $derived(
 		devices.some((d) => d.deviceId === selectedDeviceId)
 			? selectedDeviceId
-			: (devices[0]?.deviceId ?? ""),
+			: (devices[0]?.deviceId ?? ''),
 	);
+	const activeLabel = $derived(
+		hasDevices
+			? (devices.find((d) => d.deviceId === activeDeviceId)?.label ?? label)
+			: noDeviceLabel,
+	);
+
+	async function handleToggle(next: boolean) {
+		if (next && !hasDevices) {
+			onEnableFailed?.();
+			return;
+		}
+		onToggle(next);
+	}
 </script>
 
 <div class="lk-prejoin__media" class:lk-prejoin__media--on={enabled} data-kind={kind}>
-	<Toggle.Root pressed={enabled} onPressedChange={onToggle} aria-label={label}>
+	<Toggle.Root pressed={enabled} onPressedChange={(v) => void handleToggle(v)} aria-label={label}>
 		{#snippet child({ props, pressed })}
 			<button
 				{...props}
@@ -42,30 +60,33 @@
 				aria-pressed={pressed}
 			>
 				<span class="material-symbols-rounded lk-track-toggle__icon" aria-hidden="true">{icon}</span>
-				<span class="lk-prejoin__toggle-label">{label}</span>
 			</button>
 		{/snippet}
 	</Toggle.Root>
 
-	{#if hasDeviceMenu}
+	{#if hasDevices}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
 					<button
 						{...props}
 						type="button"
-						class="lk-button lk-prejoin__device-trigger"
+						class="lk-button lk-prejoin__device-trigger lk-prejoin__device-trigger--wide"
 						aria-label={`${label} — בחירת מכשיר`}
 					>
-						<span class="lk-prejoin__device-label">
-							{devices.find((d) => d.deviceId === activeDeviceId)?.label ?? label}
-						</span>
+						<span class="lk-prejoin__device-kind">{label}</span>
+						<span class="lk-prejoin__device-label">{activeLabel}</span>
 						<span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
 					</button>
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Portal>
-				<DropdownMenu.Content class="hb-dropdown-content lk-prejoin__device-menu" side="bottom" align="start" sideOffset={6}>
+				<DropdownMenu.Content
+					class="hb-dropdown-content lk-prejoin__device-menu"
+					side="bottom"
+					align="start"
+					sideOffset={6}
+				>
 					<DropdownMenu.RadioGroup
 						value={activeDeviceId}
 						onValueChange={(value) => {
@@ -85,31 +106,35 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Portal>
 		</DropdownMenu.Root>
+	{:else}
+		<div class="lk-prejoin__device-static" aria-live="polite">
+			<span class="lk-prejoin__device-kind">{label}</span>
+			<span class="lk-prejoin__device-label">{activeLabel}</span>
+		</div>
 	{/if}
 </div>
 
 <style>
 	.lk-prejoin__media {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
 		align-items: center;
 		gap: var(--space-2);
+		width: 100%;
 		min-width: 0;
 	}
 
 	.lk-prejoin__toggle {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-2);
-		min-height: 2.5rem;
-		padding-inline: var(--space-3);
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
 		border: var(--border);
 		border-radius: var(--radius-pill);
 		background: var(--muted);
 		color: var(--foreground);
-		font: inherit;
-		font-size: var(--step--1);
-		font-weight: 600;
 		cursor: pointer;
 	}
 
@@ -119,33 +144,48 @@
 		color: var(--primary);
 	}
 
-	.lk-prejoin__toggle-label {
-		white-space: nowrap;
-	}
-
-	.lk-prejoin__device-trigger {
-		display: inline-flex;
+	.lk-prejoin__device-trigger--wide,
+	.lk-prejoin__device-static {
+		display: flex;
 		align-items: center;
 		gap: var(--space-2);
 		min-height: 2.5rem;
-		max-width: min(16rem, 42vw);
+		width: 100%;
+		min-width: 0;
 		padding-inline: var(--space-3);
 		border: var(--border);
-		border-radius: var(--radius-pill);
+		border-radius: var(--radius-md);
 		background: var(--card);
 		color: var(--foreground);
 		font: inherit;
 		font-size: var(--step--1);
+	}
+
+	.lk-prejoin__device-trigger--wide {
 		cursor: pointer;
+		justify-content: space-between;
+	}
+
+	.lk-prejoin__device-static {
+		opacity: 0.85;
+	}
+
+	.lk-prejoin__device-kind {
+		flex-shrink: 0;
+		font-weight: 700;
+		color: var(--foreground-muted);
 	}
 
 	.lk-prejoin__device-label {
+		flex: 1;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		text-align: start;
 	}
 
-	.lk-prejoin__device-trigger .material-symbols-rounded {
+	.lk-prejoin__device-trigger--wide .material-symbols-rounded {
 		--icon-size: 1.125rem;
 		flex-shrink: 0;
 	}

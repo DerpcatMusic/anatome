@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { normalizeEquipmentId, normalizeEquipmentList } from "./equipmentCatalog";
 import { normalizePathologyList } from "./pathologyCatalog";
-import { hasSensitiveHealthData, prepareOnboardingProfile } from "./onboardingValidation";
+import {
+  hasSensitiveHealthData,
+  prepareMemberProfileFields,
+  prepareOnboardingProfile,
+} from "./onboardingValidation";
 
 const completeHealthAnswers = {
   heartCondition: "no" as const,
@@ -34,6 +38,22 @@ describe("equipmentCatalog", () => {
       "mat",
       "spine_corrector",
     ]);
+  });
+});
+
+describe("prepareMemberProfileFields", () => {
+  test("does not require health consent flags", () => {
+    const prepared = prepareMemberProfileFields({
+      firstName: "מיה",
+      lastName: "כהן",
+      equipment: ["mat"],
+      experience: "some",
+      goals: ["pelvic_floor_rehab"],
+      pathologies: [],
+      notes: "הערה",
+    });
+    expect(prepared.displayName).toBe("מיה כהן");
+    expect(prepared.notes).toBe("הערה");
   });
 });
 

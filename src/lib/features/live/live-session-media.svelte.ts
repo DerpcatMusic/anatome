@@ -1,4 +1,13 @@
-import { Track, type Room, type TrackPublishDefaults } from "livekit-client";
+import { Track, type Room, type TrackPublishDefaults, type TrackPublishOptions } from "livekit-client";
+import {
+  applyMotionContentHint,
+  buildTrackPublishDefaults,
+  publishPerformanceWarnings as getPublishPerformanceWarnings,
+  resolutionDimensions as publishResolutionDimensions,
+  screenShareCaptureOptions,
+  type PublishProfileInput,
+} from "./live-publish-profile";
+import { detectBrowserMediaProfile } from "./live-performance-tuning";
 import { LivePersistentDevices } from "./live-persistent-devices";
 import { LiveSessionUi } from "./live-session-ui.svelte";
 import { sanitizeMediaDeviceId } from "$lib/media/device-id";
@@ -16,7 +25,9 @@ import { applySessionSubscribePolicy } from "./live-session-connect";
 import {
   buildSessionSubscribePolicy,
   remoteVideoQualityForParticipant,
+  shouldSubscribeToRemoteParticipant,
 } from "./live-subscribe-policy";
+import { shouldApplySimulcastQuality } from "./live-track-source";
 import {
   resolutionToSubscribeLayer,
   subscriberPresetToQuality,
@@ -36,7 +47,6 @@ import {
   type VideoFramerateChoice,
   type VideoResolutionChoice,
 } from "./types";
-import { isInstructorIdentity } from "./live-room-shared";
 
 /** Preview, devices, publish profile, and local media controls. */
 export class LiveSessionMedia extends LiveSessionUi {
@@ -102,8 +112,10 @@ export class LiveSessionMedia extends LiveSessionUi {
   declare inRoom: boolean;
 
   protected shouldSubscribeToPublication(participant: unknown) {
-    if (this.isInstructorRoom) return true;
-    return this.isInstructorIdentity(participantIdentity(participant));
+    return shouldSubscribeToRemoteParticipant(
+      this.buildSubscribePolicy(),
+      participantIdentity(participant),
+    );
   }
 
   protected buildSubscribePolicy() {
@@ -111,6 +123,7 @@ export class LiveSessionMedia extends LiveSessionUi {
       isInstructorRoom: this.isInstructorRoom,
       selectedResolution: this.selectedResolution,
       joinAccess: this.joinAccess,
+      instructorUserId: this.joinInfo?.instructorUserId ?? null,
     });
   }
 
@@ -138,12 +151,16 @@ export class LiveSessionMedia extends LiveSessionUi {
   }
 
   async persistSubscriberReceivePreset() {
-    const classId = this.effectiveClassId;
+    const classId = this.getClassId();
     if (classId === null || !this.isInstructorRoom) return;
-    await this.client.mutation(api.live.class.setSubscriberReceivePreset, {
-      liveClassId: classId,
-      preset: this.subscriberReceivePreset,
-    });
+    try {
+      await this.client.mutation(api.live.class.setSubscriberReceivePreset, {
+        liveClassId: classId,
+        preset: this.subscriberReceivePreset,
+      });
+    } catch (reason) {
+      console.warn("[LiveKit] setSubscriberReceivePreset failed:", reason);
+    }
   }
 
   async setSubscriberReceivePreset(preset: SubscriberReceivePreset) {
@@ -151,6 +168,111 @@ export class LiveSessionMedia extends LiveSessionUi {
     this.subscriberReceivePreset = preset;
     await this.persistSubscriberReceivePreset();
     this.applySubscribePolicyToRoom();
+  }
+
+  async setSubscriberReceiveFromLayer(layer: 0 | 1 | 2) {
+    await this.setSubscriberReceivePreset(subscriberQualityToPreset(layer));
+  }
+
+  publishSettingsApplying = $state(false);
+
+  readonly browserMediaProfile = $derived(detectBrowserMediaProfile());
+
+  readonly publishPerformanceWarnings = $derived(
+    getPublishPerformanceWarnings(this.publishProfileInput(this.isInstructorRoom)),
+  );
+
+  /** What is actually being sent to the room right now (settings apply to this). */
+  readonly activePublishVideoSource = $derived.by((): "screen_share" | "camera" | "none" => {
+    if (this.screenShareEnabled) return "screen_share";
+    if (this.cameraEnabled) return "camera";
+    return "none";
+  });
+
+  private publishSettingsApplyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected publishProfileInput(isInstructor: boolean): PublishProfileInput {
+    return {
+      selectedResolution: this.selectedResolution,
+      selectedFramerate: this.selectedFramerate,
+      selectedBitrateMbps: this.selectedBitrateMbps,
+      selectedCodec: this.selectedCodec,
+      simulcastEnabled: this.simulcastEnabled,
+      degradationPreference: this.degradationPreference,
+      selectedAudioPreset: this.selectedAudioPreset,
+      forceStereo: this.forceStereo,
+      isInstructor,
+    };
+  }
+
+  /** Push capture + encode settings to LiveKit (pre-connect state only updates until connect). */
+  scheduleApplyPublishSettings() {
+    if (this.publishSettingsApplyTimer !== null) {
+      clearTimeout(this.publishSettingsApplyTimer);
+    }
+    this.publishSettingsApplyTimer = setTimeout(() => {
+      this.publishSettingsApplyTimer = null;
+      void this.applyPublishSettings();
+    }, 350);
+  }
+
+  async applyPublishSettings() {
+    if (this._room === null || this.connectionState !== "connected") return;
+    if (this.isInstructorRoom) {
+      await this.syncPublishReceiveFromResolution();
+    }
+
+    const isInstructor = this.isInstructorRoom;
+    const { VideoPreset, AudioPresets } = await import("livekit-client");
+    const publishDefaults = buildTrackPublishDefaults(
+      this.publishProfileInput(isInstructor),
+      VideoPreset,
+      AudioPresets,
+    );
+
+    this._room.options.publishDefaults = {
+      ...this._room.options.publishDefaults,
+      ...publishDefaults,
+    };
+    this._room.options.videoCaptureDefaults = {
+      ...this._room.options.videoCaptureDefaults,
+      resolution: this.resolutionDimensions(isInstructor),
+    };
+
+    if (this.connectionState !== "connected") return;
+
+    this.publishSettingsApplying = true;
+    try {
+      const lp = this._room.localParticipant;
+      const profile = this.publishProfileInput(isInstructor);
+      const publishOpts = publishDefaults as TrackPublishOptions;
+
+      if (this.screenShareEnabled) {
+        await lp.setScreenShareEnabled(false);
+        await lp.setScreenShareEnabled(
+          true,
+          screenShareCaptureOptions(profile, this.screenShareAudioEnabled),
+          publishOpts,
+        );
+      }
+      if (this.cameraEnabled) {
+        await lp.setCameraEnabled(false);
+        await lp.setCameraEnabled(true, this.cameraCaptureOptions(isInstructor), publishOpts);
+        const { Track } = await import("livekit-client");
+        const camPub = lp.getTrackPublication(Track.Source.Camera);
+        applyMotionContentHint(camPub?.track?.mediaStreamTrack);
+      } else if (this.micEnabled) {
+        await lp.setMicrophoneEnabled(true, this.microphoneCaptureOptions(), publishOpts);
+      }
+      this.syncLocalMediaFromRoom();
+      this.applySubscribePolicyToRoom();
+    } catch (reason) {
+      console.warn("[LiveKit] applyPublishSettings failed:", reason);
+      this.mediaError =
+        reason instanceof Error ? reason.message : "Failed to apply stream quality settings";
+    } finally {
+      this.publishSettingsApplying = false;
+    }
   }
 
   protected subscribeIfAllowed(publication: unknown, participant: unknown) {
@@ -164,7 +286,12 @@ export class LiveSessionMedia extends LiveSessionUi {
     if (participantIsLocal(participant)) return;
     const shouldSubscribe = this.shouldSubscribeToPublication(participant);
     pub.setSubscribed(shouldSubscribe);
-    if (shouldSubscribe && pub.kind === "video" && typeof pub.setVideoQuality === "function") {
+    if (
+      shouldSubscribe &&
+      pub.kind === "video" &&
+      typeof pub.setVideoQuality === "function" &&
+      shouldApplySimulcastQuality(publication)
+    ) {
       pub.setVideoQuality(this.targetQualityForPublication(participant));
     }
   }
@@ -275,8 +402,8 @@ export class LiveSessionMedia extends LiveSessionUi {
     );
     const activeIds = new Set(publications.map((p) => p.id));
     for (const key of this.previousStats.keys()) {
-      const baseId = key.split(":")[0];
-      if (!activeIds.has(baseId)) {
+      const publicationKey = key.split(":").slice(0, 2).join(":");
+      if (!activeIds.has(publicationKey)) {
         this.previousStats.delete(key);
       }
     }
@@ -499,12 +626,20 @@ export class LiveSessionMedia extends LiveSessionUi {
     return track?.readyState === "ended" ? undefined : track;
   }
 
-  private async requestPreviewVideoTrack(): Promise<MediaStreamTrack | undefined> {
+  private previewVideoConstraints(): MediaTrackConstraints {
+    const dims = this.resolutionDimensions(this.isInstructorRoom);
     const videoDeviceId = sanitizeMediaDeviceId(this.selectedVideoDevice);
+    return {
+      ...(videoDeviceId ? { deviceId: { ideal: videoDeviceId } } : {}),
+      width: { ideal: dims.width },
+      height: { ideal: dims.height },
+      frameRate: { ideal: dims.frameRate },
+    };
+  }
+
+  private async requestPreviewVideoTrack(): Promise<MediaStreamTrack | undefined> {
     const attempts: MediaStreamConstraints[] = [
-      videoDeviceId
-        ? { video: { deviceId: { ideal: videoDeviceId } }, audio: false }
-        : { video: true, audio: false },
+      { video: this.previewVideoConstraints(), audio: false },
       { video: true, audio: false },
     ];
 
@@ -670,23 +805,11 @@ export class LiveSessionMedia extends LiveSessionUi {
   }
 
   protected resolutionDimensions(isInstructor: boolean) {
-    const frameRate = this.selectedFramerate;
-    if (this.selectedResolution === "1080p") {
-      return { width: 1920, height: 1080, frameRate };
-    }
-    if (this.selectedResolution === "720p") {
-      return { width: 1280, height: 720, frameRate };
-    }
-    if (this.selectedResolution === "480p") {
-      return { width: 854, height: 480, frameRate: Math.min(frameRate, 30) };
-    }
-    if (this.selectedResolution === "360p") {
-      return { width: 640, height: 360, frameRate: Math.min(frameRate, 30) };
-    }
-    if (isInstructor) {
-      return { width: 1280, height: 720, frameRate };
-    }
-    return { width: 640, height: 360, frameRate: Math.min(frameRate, 30) };
+    return publishResolutionDimensions({
+      selectedResolution: this.selectedResolution,
+      selectedFramerate: this.selectedFramerate,
+      isInstructor,
+    });
   }
 
   protected cameraCaptureOptions(isInstructor: boolean) {
@@ -713,55 +836,7 @@ export class LiveSessionMedia extends LiveSessionUi {
     VideoPreset: typeof import("livekit-client").VideoPreset,
     AudioPresets: typeof import("livekit-client").AudioPresets,
   ): TrackPublishDefaults {
-    const targetBitrate = Math.round(this.selectedBitrateMbps * 1_000_000);
-    const frameRate = this.selectedFramerate;
-    const isSvc = this.selectedCodec === "vp9" || this.selectedCodec === "av1";
-
-    const audioPresets: Record<AudioPresetChoice, typeof AudioPresets.telephone> = {
-      speech: AudioPresets.speech,
-      music: AudioPresets.music,
-      musicStereo: AudioPresets.musicStereo,
-      musicHighQuality: AudioPresets.musicHighQuality,
-      musicHighQualityStereo: AudioPresets.musicHighQualityStereo,
-    };
-    const audioPresetKey: AudioPresetChoice =
-      isInstructor && this.selectedAudioPreset === "speech"
-        ? "music"
-        : this.selectedAudioPreset;
-
-    const scalabilityMode = isSvc
-      ? (this.selectedResolution === "1080p" ? "L3T3_KEY" : "L2T3_KEY") as import("livekit-client").ScalabilityMode
-      : undefined;
-
-    return {
-      simulcast: this.simulcastEnabled && !isSvc,
-      videoCodec: this.selectedCodec,
-      videoEncoding: {
-        maxBitrate: targetBitrate,
-        maxFramerate: frameRate,
-      },
-      videoSimulcastLayers: this.simulcastEnabled && !isSvc
-        ? [
-            new VideoPreset(1280, 720, Math.round(targetBitrate * 0.4), Math.min(frameRate, 30)),
-            new VideoPreset(640, 360, Math.round(targetBitrate * 0.15), Math.min(frameRate, 30)),
-          ]
-        : undefined,
-      screenShareEncoding: { maxBitrate: 4_000_000, maxFramerate: 15 },
-      screenShareSimulcastLayers: [
-        new VideoPreset(1280, 720, 2_000_000, 15),
-        new VideoPreset(640, 360, 800_000, 15),
-      ],
-      audioPreset: audioPresets[audioPresetKey],
-      red: true,
-      dtx: !isInstructor && this.selectedAudioPreset === "speech",
-      forceStereo: this.forceStereo,
-      degradationPreference: this.degradationPreference,
-      scalabilityMode,
-      backupCodec: {
-        codec: (this.selectedCodec === "h264" ? "vp8" : "h264") as "vp8" | "h264",
-        encoding: { maxBitrate: Math.round(targetBitrate * 0.7), maxFramerate: frameRate },
-      },
-    };
+    return buildTrackPublishDefaults(this.publishProfileInput(isInstructor), VideoPreset, AudioPresets);
   }
 
   async toggleCamera() {
@@ -782,6 +857,10 @@ export class LiveSessionMedia extends LiveSessionUi {
         next,
         this.cameraCaptureOptions(this.isInstructorRoom),
       );
+      if (next) {
+        const camPub = this._room.localParticipant.getTrackPublication(Track.Source.Camera);
+        applyMotionContentHint(camPub?.track?.mediaStreamTrack);
+      }
       this.syncLocalMediaFromRoom();
       this.mediaError = "";
     } catch (reason) {
@@ -828,10 +907,22 @@ export class LiveSessionMedia extends LiveSessionUi {
     const next = !this.screenShareEnabled;
     this.pendingControl = "screen";
     try {
+      const { VideoPreset, AudioPresets } = await import("livekit-client");
+      const profile = this.publishProfileInput(true);
+      const publishOpts = buildTrackPublishDefaults(
+        profile,
+        VideoPreset,
+        AudioPresets,
+      ) as TrackPublishOptions;
       await this._room.localParticipant.setScreenShareEnabled(
         next,
-        next ? { audio: this.screenShareAudioEnabled } : undefined,
+        next ? screenShareCaptureOptions(profile, this.screenShareAudioEnabled) : undefined,
+        next ? publishOpts : undefined,
       );
+      this._room.options.publishDefaults = {
+        ...this._room.options.publishDefaults,
+        ...publishOpts,
+      };
       this.screenShareEnabled = next;
       if (!next) {
         this.screenShareAudioEnabled = true;
@@ -872,7 +963,18 @@ export class LiveSessionMedia extends LiveSessionUi {
         this.screenShareAudioEnabled = next;
         return;
       }
-      await this._room.localParticipant.setScreenShareEnabled(true, { audio: next });
+      const { VideoPreset, AudioPresets } = await import("livekit-client");
+      const profile = this.publishProfileInput(true);
+      const publishOpts = buildTrackPublishDefaults(
+        profile,
+        VideoPreset,
+        AudioPresets,
+      ) as TrackPublishOptions;
+      await this._room.localParticipant.setScreenShareEnabled(
+        true,
+        screenShareCaptureOptions(profile, next),
+        publishOpts,
+      );
       this.screenShareAudioEnabled = next;
     } catch (reason) {
       console.warn("[LiveKit] Screen share audio toggle failed:", reason);

@@ -1,9 +1,10 @@
 <script lang="ts">
   import { useEventListener } from "runed";
   import { Tooltip } from "bits-ui";
-  import { LiveKitRoom, VideoConference } from "$lib/livekit";
+  import { LiveKitRoom } from "$lib/livekit";
   import RoomAudioRenderer from "$lib/livekit/components/RoomAudioRenderer.svelte";
   import InstructorStage from "./InstructorStage.svelte";
+  import MemberStage from "./MemberStage.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { getLiveDockContext } from "$lib/features/live/dock/live-dock.svelte";
   import PreConnectOverlay from "./PreConnectOverlay.svelte";
@@ -73,6 +74,8 @@
   }
 
   function onBeforeUnload(e: BeforeUnloadEvent) {
+    if (session.sessionEndedByHost) return;
+    if (!session.sessionConnect && !session.inRoom) return;
     const shouldWarn =
       session.connectionState === "connected" ||
       session.connectionState === "reconnecting" ||
@@ -93,7 +96,11 @@
     onExit={() => session.exitAfterDisconnect()}
   />
 {:else if !session.inRoom}
-  <PreConnectOverlay {session} {joinLoading} />
+  <PreConnectOverlay
+    {session}
+    {joinLoading}
+    onEndLive={session.isInstructorRoom ? () => dock.endLive() : undefined}
+  />
 {:else}
   <div class="live-room-shell">
     <JoinExpiryModal
@@ -113,7 +120,14 @@
             {#if session.isInstructorRoom}
               <InstructorStage class="lr-lk-stage" />
             {:else}
-              <VideoConference class="lr-lk-stage" />
+              <MemberStage
+                class="lr-lk-stage"
+                hostUserId={session.classHostUserId}
+                broadcastHostUserId={session.joinAccess?.broadcastStartedByUserId ?? null}
+                hostDisplayName={session.joinInfo?.instructorName ??
+                  session.joinAccess?.instructorName ??
+                  ""}
+              />
             {/if}
 
             <div class="lr-room__header">

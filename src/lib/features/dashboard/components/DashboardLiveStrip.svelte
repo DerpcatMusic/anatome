@@ -52,11 +52,14 @@
 </script>
 
 <section class="live-strip" aria-label={t.dashboard.member.upcomingLivesAria()}>
-  <div class="live-strip__toolbar">
-    {#if manageHref}
-      <a class="dashboard-link" href={manageHref}>{t.dashboard.instructor.openStudio()}</a>
-    {/if}
-    <a class="dashboard-link live-strip__all" href={viewAllHref}>{allLabel}</a>
+  <div class="live-strip__head">
+    <p class="live-strip__kicker dashboard-panel__kicker">{t.dashboard.member.upcomingLives()}</p>
+    <div class="live-strip__toolbar">
+      {#if manageHref}
+        <a class="dashboard-link" href={manageHref}>{t.dashboard.instructor.openStudio()}</a>
+      {/if}
+      <a class="dashboard-link" href={viewAllHref}>{allLabel}</a>
+    </div>
   </div>
 
   {#if loading}
@@ -95,17 +98,24 @@
     min-width: 0;
   }
 
-  .live-strip__toolbar {
+  .live-strip__head {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-3);
     margin-block-end: var(--space-2);
-    min-height: 1.5rem;
+    min-width: 0;
   }
 
-  .live-strip__all {
-    margin-inline-start: auto;
+  .live-strip__kicker {
+    margin: 0;
+  }
+
+  .live-strip__toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
   }
 
   .live-strip__list {
@@ -147,8 +157,9 @@
 
   .live-strip__status {
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--foreground-muted);
   }
@@ -158,25 +169,28 @@
   }
 
   .live-strip__title {
+    font-size: var(--text-base);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: var(--leading-snug);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .live-strip__when {
-    font-size: var(--step--1);
+    font-size: var(--text-sm);
     color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
   }
 
   .live-strip__empty-text {
     margin: 0;
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4);
     border: 1px dashed var(--line-light);
     background: color-mix(in oklch, var(--surface) 60%, transparent);
     color: var(--foreground-muted);
-    line-height: 1.55;
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
   }
 
   .live-strip__error {

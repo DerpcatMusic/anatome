@@ -125,7 +125,7 @@
   <header class="sidebar__brand">
     <div class="sidebar__brand-row">
       <a class="sidebar__home" href="/" aria-label="{t.site.name()} — {t.site.tagline()}">
-        <AnatoMeLogo class="sidebar__logo-mark" size={38} />
+        <AnatoMeLogo class="sidebar__logo-mark" size={50} />
       </a>
       <button
         type="button"

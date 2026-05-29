@@ -12,9 +12,9 @@
 </script>
 
 {#if liveAlert}
-  <a class="live-alert flex items-center gap-3" href={liveRoomHref(liveAlert.liveClassId)}>
-    <span class="live-alert__pulse"></span>
-    <span>
+  <a class="live-alert" href={liveRoomHref(liveAlert.liveClassId)}>
+    <span class="live-alert__pulse" aria-hidden="true"></span>
+    <span class="live-alert__copy">
       <strong>{t.dashboard.liveAlert.title()}</strong>
       <small>{liveAlert.title}</small>
     </span>
@@ -23,14 +23,23 @@
 
 <style>
   .live-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     border: var(--border);
     background: var(--ink);
     color: var(--on-primary);
     padding: var(--space-3) var(--space-4);
     text-decoration: none;
     width: 100%;
-    max-width: 36rem;
+    max-width: min(36rem, 100%);
     min-width: 0;
+    align-self: start;
+  }
+
+  .live-alert__copy {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   .live-alert strong,
@@ -41,7 +50,15 @@
     white-space: nowrap;
   }
 
+  .live-alert strong {
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: var(--leading-snug);
+  }
+
   .live-alert small {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
     color: var(--on-primary-muted);
     margin-top: 2px;
   }

@@ -19,7 +19,7 @@
 
 <div class="locked">
   {#if showLogo}
-    <AnatoMeLogo class="locked__logo" size={52} aria-label={t.site.name()} role="img" />
+    <AnatoMeLogo class="locked__logo" size={60} aria-label={t.site.name()} role="img" />
   {/if}
   <h1>{title}</h1>
   <p>{subtitle}</p>

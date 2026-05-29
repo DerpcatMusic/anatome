@@ -17,8 +17,10 @@
 
 <section class="l-panel l-section section--pricing" aria-label="מחירים">
   <div class="l-shell">
-    <h2 class="section-title l-in">{t.landing.pricing.headline()}</h2>
-    <p class="section-lead l-in">{t.landing.pricing.lead()}</p>
+    <header class="section-head section-head--center l-in">
+      <h2 class="section-title">{t.landing.pricing.headline()}</h2>
+      <p class="section-lead">{t.landing.pricing.lead()}</p>
+    </header>
 
     {#if activePlans.error}
       <Notice tone="danger">

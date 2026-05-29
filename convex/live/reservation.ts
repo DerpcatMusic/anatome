@@ -18,6 +18,11 @@ import { overlaps } from "../lib/oneOnOne";
 import { MS, RULES, LIMITS } from "../lib/constants";
 import { checkRateLimit } from "../lib/rateLimit";
 import { createReminderEventsForReservation } from "../liveReminders/create";
+import {
+  findReactivatableReservation,
+  findViewerLiveReservation,
+  findViewerLiveReservationFromRows,
+} from "../lib/liveClassAccess";
 
 async function hasOverlappingMemberReservation(
   ctx: MutationCtx,
@@ -48,26 +53,6 @@ async function hasOverlappingMemberReservation(
     }
   }
   return false;
-}
-
-async function findReservationForUser(
-  ctx: MutationCtx,
-  liveClassId: Id<"liveClasses">,
-  userId: Id<"users">,
-) {
-  const rows = await ctx.db
-    .query("liveReservations")
-    .withIndex("by_liveClassId_and_userId", (q) =>
-      q.eq("liveClassId", liveClassId).eq("userId", userId),
-    )
-    .take(10);
-
-  return (
-    rows.find((row) => row.status === "joined") ??
-    rows.find((row) => row.status === "reserved") ??
-    rows[0] ??
-    null
-  );
 }
 
 export const listMine = query({
@@ -115,14 +100,19 @@ export const reserve = mutation({
       throw new Error(`חסר ציוד נדרש: ${items}`);
     }
 
-    const existing = await findReservationForUser(ctx, args.liveClassId, userId);
+    const rows = await ctx.db
+      .query("liveReservations")
+      .withIndex("by_liveClassId_and_userId", (q) =>
+        q.eq("liveClassId", args.liveClassId).eq("userId", userId),
+      )
+      .take(10);
 
-    if (
-      existing !== null &&
-      (existing.status === "reserved" || existing.status === "joined")
-    ) {
-      return existing._id;
+    const active = findViewerLiveReservationFromRows(rows, args.liveClassId);
+    if (active !== null) {
+      return active._id;
     }
+
+    const reactivate = findReactivatableReservation(rows, args.liveClassId);
 
     const wallet = await requireWallet(ctx, userId);
     const creditKind: LiveCreditPool =
@@ -153,15 +143,16 @@ export const reserve = mutation({
 
     let reservationId: Id<"liveReservations">;
     try {
-      if (existing !== null) {
-        await ctx.db.patch(existing._id, {
+      if (reactivate !== null) {
+        await ctx.db.patch(reactivate._id, {
           walletId: wallet._id,
           status: "reserved",
           creditKind: liveClass.creditKind,
           creditsReserved: liveClass.creditCost,
           reservedAt: now,
+          cancelledAt: undefined,
         });
-        reservationId = existing._id;
+        reservationId = reactivate._id;
       } else {
         reservationId = await ctx.db.insert("liveReservations", {
           liveClassId: args.liveClassId,
@@ -204,10 +195,10 @@ export const cancel = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    const reservation = await findReservationForUser(ctx, args.liveClassId, userId);
+    const reservation = await findViewerLiveReservation(ctx, args.liveClassId, userId);
 
     if (reservation === null || reservation.status !== "reserved") {
-      throw new Error("Active reservation not found");
+      throw new Error("לא נמצאה הרשמה פעילה לביטול");
     }
 
     const liveClass = await ctx.db.get(args.liveClassId);

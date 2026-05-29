@@ -408,6 +408,17 @@
   font-size: 1rem;
 }
 
+.lr-header :global(.live-schedule--pill) {
+  flex-shrink: 0;
+  background: var(--lr-chip-bg);
+  border-color: var(--border-color);
+}
+
+.lr-header :global(.live-schedule--during.live-schedule--pill) {
+  border-color: color-mix(in oklch, var(--accent) 35%, var(--border-color));
+  background: color-mix(in oklch, var(--accent) 10%, var(--lr-chip-bg));
+}
+
 .lr-header__broadcast {
   display: inline-flex;
   align-items: center;
@@ -1070,6 +1081,21 @@
   background: var(--lr-chip-bg);
 }
 
+.lr-participant__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.lr-participant--roster .lr-participant__left {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .lr-participant__name {
   font-weight: 750;
   font-size: var(--step--1);
@@ -1085,6 +1111,27 @@
   padding: 2px 6px;
   border-radius: 4px;
   flex-shrink: 0;
+}
+
+.lr-participant__role--roster {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lr-participant__role--roster.lr-participant__role--joined {
+  color: var(--accent);
+}
+
+.lr-participant--roster-reserved {
+  opacity: 0.92;
+}
+
+.lr-participant-list__empty {
+  margin: var(--space-3) var(--space-2);
+  font-size: var(--step--1);
+  color: var(--lr-text-muted);
+  text-align: center;
 }
 
 .lr-indicator--on {
@@ -1142,6 +1189,11 @@
 }
 
 /* ── Portaled overlays (Popover/Dropdown render on body, outside .lr-room) ── */
+/* Portaled Select menus must stack above live settings popover (z-index 120). */
+.hb-select__content.lr-select-overlay {
+  z-index: 130;
+}
+
 .hb-popover-content.lr-popover,
 .hb-popover-content.lr-settings-panel,
 .hb-dropdown-content.lr-device-dropdown {

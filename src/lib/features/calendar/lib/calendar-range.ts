@@ -12,7 +12,16 @@ export function maxAgendaDays(typeFilter: TypeFilter): number {
 }
 
 export function initialAgendaRangeEnd(rangeStart: number, typeFilter: TypeFilter): number {
-  const days = Math.min(CALENDAR_INITIAL_DAYS, maxAgendaDays(typeFilter));
+  return agendaRangeEndForLoadedDays(rangeStart, typeFilter, CALENDAR_INITIAL_DAYS);
+}
+
+/** Exclusive `to` timestamp for listRange from day-span loaded in the UI. */
+export function agendaRangeEndForLoadedDays(
+  rangeStart: number,
+  typeFilter: TypeFilter,
+  loadedDays: number,
+): number {
+  const days = Math.min(Math.max(1, loadedDays), maxAgendaDays(typeFilter));
   return addAppDays(rangeStart, days);
 }
 

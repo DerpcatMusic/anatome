@@ -7,7 +7,7 @@
 
   type BillingRow = FunctionReturnType<typeof api.subscriptions.checkout.listMyBillingHistory>[number];
 
-  let { enabled = true }: { enabled?: boolean } = $props();
+  let { enabled = true, hideTitle = false }: { enabled?: boolean; hideTitle?: boolean } = $props();
 
   const historyQuery = useQuery(api.subscriptions.checkout.listMyBillingHistory, () =>
     enabled ? { limit: 12 } : "skip",
@@ -27,8 +27,10 @@
   }
 </script>
 
-<section class="billing-history" aria-labelledby="billing-history-title">
-  <h3 id="billing-history-title">חיובים אחרונים</h3>
+<section class="billing-history" class:billing-history--embedded={hideTitle} aria-labelledby={hideTitle ? undefined : "billing-history-title"}>
+  {#if !hideTitle}
+    <h3 id="billing-history-title">חיובים אחרונים</h3>
+  {/if}
 
   {#if historyQuery.isLoading}
     <p class="billing-history__empty">טוען…</p>
@@ -65,6 +67,11 @@
     gap: var(--space-2);
     padding-top: var(--space-3);
     border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  .billing-history--embedded {
+    padding-top: var(--space-2);
+    border-top: none;
   }
 
   .billing-history h3 {

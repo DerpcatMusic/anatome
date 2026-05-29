@@ -76,14 +76,20 @@
     min-width: 0;
   }
 
+  .instructor-upload .dashboard-panel__head {
+    margin-block-end: 0;
+  }
+
   .instructor-upload__error {
-    margin: 0 0 var(--space-3);
+    margin: var(--space-3) 0 0;
     color: var(--danger);
   }
 
   .instructor-upload__form {
     min-width: 0;
-    margin-block-start: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid color-mix(in oklch, var(--border-color) 55%, transparent);
   }
 
   .instructor-upload__form :global(.video-upload-form) {

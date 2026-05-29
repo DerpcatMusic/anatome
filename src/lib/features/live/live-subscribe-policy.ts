@@ -1,5 +1,7 @@
 import type { JoinAccessSnapshot } from "./join-token";
-import { isInstructorIdentity } from "./live-room-shared";
+import { isClassHostParticipant } from "./live-identity";
+
+export { shouldApplySimulcastQuality } from "./live-track-source";
 import type {
   SubscriberVideoQuality,
   VideoResolutionChoice,
@@ -8,6 +10,8 @@ import { resolutionToSubscribeLayer, subscriberPresetToQuality } from "./types";
 
 export type SessionSubscribePolicy = {
   isInstructorRoom: boolean;
+  instructorUserId: string | null;
+  broadcastHostUserId: string | null;
   /** Simulcast layer the instructor publishes at (from prep presets). */
   instructorPublishLayer: SubscriberVideoQuality;
   /** Simulcast layer customers use when watching the instructor. */
@@ -18,6 +22,7 @@ export function buildSessionSubscribePolicy(input: {
   isInstructorRoom: boolean;
   selectedResolution: VideoResolutionChoice;
   joinAccess: JoinAccessSnapshot | null;
+  instructorUserId?: string | null;
 }): SessionSubscribePolicy {
   const publishLayer = resolutionToSubscribeLayer(input.selectedResolution);
   const hostLayerFromClass = input.joinAccess
@@ -26,9 +31,23 @@ export function buildSessionSubscribePolicy(input: {
 
   return {
     isInstructorRoom: input.isInstructorRoom,
+    instructorUserId: input.instructorUserId ?? null,
+    broadcastHostUserId: input.joinAccess?.broadcastStartedByUserId ?? null,
     instructorPublishLayer: input.isInstructorRoom ? publishLayer : hostLayerFromClass,
     instructorReceiveLayer: input.isInstructorRoom ? publishLayer : hostLayerFromClass,
   };
+}
+
+export function shouldSubscribeToRemoteParticipant(
+  policy: SessionSubscribePolicy,
+  identity: string,
+): boolean {
+  if (policy.isInstructorRoom) return true;
+  return isClassHostParticipant(
+    identity,
+    policy.instructorUserId,
+    policy.broadcastHostUserId,
+  );
 }
 
 function layerOneBelow(layer: SubscriberVideoQuality): SubscriberVideoQuality {
@@ -45,7 +64,7 @@ export function remoteVideoQualityForParticipant(
   policy: SessionSubscribePolicy,
   identity: string,
 ): SubscriberVideoQuality {
-  const remoteIsInstructor = isInstructorIdentity(identity);
+  const remoteIsInstructor = shouldSubscribeToRemoteParticipant(policy, identity);
 
   if (policy.isInstructorRoom) {
     if (remoteIsInstructor) return policy.instructorPublishLayer;

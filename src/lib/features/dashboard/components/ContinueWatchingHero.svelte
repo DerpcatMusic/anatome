@@ -43,7 +43,7 @@
       <div class="dashboard-skeleton__bar"></div>
     </div>
   {:else if error}
-    <div class="continue-hero__fallback dashboard-panel">
+    <div class="continue-hero__fallback dashboard-panel dashboard-panel--member-aside">
       <p class="continue-hero__error">{error}</p>
       <Button.Root
         class="hb-button hb-button--paper hb-button--sm"
@@ -54,6 +54,7 @@
       </Button.Root>
     </div>
   {:else if item}
+    {@const progressPct = Math.max(4, Math.min(100, Math.round(item.percentWatched)))}
     <a class="continue-hero__card" href={watchHref(item.videoId)}>
       <div class="continue-hero__media">
         {#if item.thumbnailUrl}
@@ -71,11 +72,11 @@
         <div
           class="continue-hero__progress"
           role="progressbar"
-          aria-valuenow={Math.max(4, Math.min(100, Math.round(item.percentWatched)))}
+          aria-valuenow={progressPct}
           aria-valuemin="0"
           aria-valuemax="100"
         >
-          <span style:width="{Math.max(4, Math.min(100, Math.round(item.percentWatched)))}%"></span>
+          <span style:--continue-progress="{progressPct / 100}"></span>
         </div>
         <span class="continue-hero__cta hb-button hb-button--ink hb-button--sm">
           {t.dashboard.member.continueCta()}
@@ -83,7 +84,7 @@
       </div>
     </a>
   {:else}
-    <div class="continue-hero__welcome dashboard-panel">
+    <div class="continue-hero__welcome dashboard-panel dashboard-panel--member-aside">
       <div class="continue-hero__welcome-head">
         <h2 id="continue-hero-title" class="continue-hero__welcome-title">{greeting}</h2>
         <p class="continue-hero__welcome-text">{t.dashboard.member.welcomeBody()}</p>
@@ -118,10 +119,13 @@
     grid-template-columns: minmax(120px, 34%) minmax(0, 1fr);
     gap: 0;
     border: var(--border);
+    border-radius: var(--radius-md);
     background: var(--elevated);
+    box-shadow: var(--shadow-ambient);
     color: inherit;
     text-decoration: none;
     min-width: 0;
+    overflow: hidden;
     transition: background var(--duration-fast) var(--ease-out);
   }
 
@@ -170,8 +174,10 @@
 
   .continue-hero__title {
     margin: 0;
-    font-size: clamp(var(--step-1), 2.5vw, var(--step-2));
-    line-height: 1.2;
+    font-size: var(--text-lg);
+    font-weight: 700;
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -183,8 +189,9 @@
   .continue-hero__meta {
     margin: 0;
     font-family: var(--font-mono);
-    font-size: var(--step--1);
+    font-size: var(--text-sm);
     color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
   }
 
   .continue-hero__progress {
@@ -196,20 +203,18 @@
 
   .continue-hero__progress span {
     display: block;
+    width: 100%;
     height: 100%;
     background: var(--accent);
-    transition: width var(--duration-fast) var(--ease-out);
+    transform: scaleX(var(--continue-progress, 0));
+    transform-origin: inline-start;
+    transition: transform var(--duration-fast) var(--ease-out);
   }
 
   .continue-hero__cta {
     margin-block-start: auto;
     align-self: flex-start;
     pointer-events: none;
-  }
-
-  .continue-hero__welcome {
-    border: var(--border);
-    border-radius: var(--radius-md);
   }
 
   .continue-hero__welcome-head {
@@ -220,30 +225,36 @@
   .continue-hero__eyebrow {
     margin: 0;
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--foreground-muted);
+    color: var(--secondary);
   }
 
   .continue-hero__welcome-title {
     margin: 0;
-    font-size: clamp(var(--step-2), 3vw, var(--step-3));
-    line-height: 1.15;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
   }
 
   .continue-hero__welcome-text {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-sm);
     color: var(--foreground-muted);
-    line-height: 1.6;
-    max-width: 52ch;
+    line-height: var(--leading-normal);
+    max-width: 42ch;
+    text-wrap: pretty;
   }
 
   .continue-hero__welcome-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-block-start: var(--space-4);
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
   }
 
   .continue-hero__error {
@@ -263,6 +274,11 @@
     .continue-hero__media {
       aspect-ratio: 16 / 9;
     }
+  }
 
+  @media (prefers-reduced-motion: reduce) {
+    .continue-hero__progress span {
+      transition: none;
+    }
   }
 </style>

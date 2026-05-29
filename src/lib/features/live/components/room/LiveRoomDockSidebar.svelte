@@ -67,7 +67,12 @@
           </div>
         {:else if activeTab === "participants"}
           <div class="lr-dock-sidebar__pane">
-            <ParticipantSidebarList />
+            <ParticipantSidebarList
+              liveClassId={session.getClassId()}
+              showClassRoster={session.isInstructorRoom}
+              hostUserId={session.classHostUserId}
+              broadcastHostUserId={session.joinAccess?.broadcastStartedByUserId ?? null}
+            />
           </div>
         {:else}
           <div class="lr-dock-sidebar__pane">

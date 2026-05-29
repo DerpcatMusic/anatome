@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 221 174" fill="none">
   <defs>
     <mask id="mark" maskUnits="userSpaceOnUse" x="0" y="0" width="221" height="174">
-      <image href="/brand/anatome-mark.png" width="221" height="174" preserveAspectRatio="xMidYMid meet" />
+      <image href="/brand/anatome-mark-favicon.png" width="221" height="174" preserveAspectRatio="xMidYMid meet" />
     </mask>
   </defs>
   <rect width="221" height="174" fill="#fbf9f4" mask="url(#mark)" />

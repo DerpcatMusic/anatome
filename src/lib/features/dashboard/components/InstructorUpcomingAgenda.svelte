@@ -100,40 +100,57 @@
 
   .instructor-agenda__list {
     list-style: none;
-    margin: 0;
+    margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-4)) calc(-1 * var(--space-3));
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: 0;
+    min-width: 0;
   }
 
   .instructor-agenda__row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
     align-items: center;
-    padding: var(--space-3);
-    border: var(--border);
-    background: var(--paper);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: 1px solid color-mix(in oklch, var(--border-color) 55%, transparent);
     text-decoration: none;
     color: inherit;
     min-width: 0;
     transition: background var(--duration-fast) var(--ease-out);
   }
 
+  .instructor-agenda__list > li:last-child .instructor-agenda__row {
+    border-block-end: none;
+    padding-block-end: 0;
+  }
+
+  .instructor-agenda__list > li:first-child .instructor-agenda__row {
+    padding-block-start: 0;
+  }
+
   .instructor-agenda__row:hover {
-    background: color-mix(in oklch, var(--accent) 8%, var(--paper));
+    background: color-mix(in oklch, var(--accent) 6%, var(--elevated));
+  }
+
+  .instructor-agenda__row:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
   }
 
   .instructor-agenda__when {
     font-family: var(--font-mono);
-    font-size: var(--step--1);
+    font-size: var(--text-sm);
     color: var(--foreground-muted);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
   .instructor-agenda__title {
+    font-size: var(--text-base);
     font-weight: 700;
+    line-height: var(--leading-snug);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -142,8 +159,9 @@
 
   .instructor-agenda__badge {
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: var(--text-xs);
     font-weight: 700;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--foreground-muted);
     white-space: nowrap;
@@ -153,11 +171,24 @@
     color: var(--danger);
   }
 
-  .instructor-agenda__empty,
+  .instructor-agenda__empty {
+    margin: 0;
+    padding: var(--space-4);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    text-align: center;
+    color: var(--foreground-muted);
+    border: 1px dashed color-mix(in oklch, var(--border-color) 70%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--muted) 50%, transparent);
+    text-wrap: pretty;
+  }
+
   .instructor-agenda__error {
     margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
     color: var(--foreground-muted);
-    line-height: 1.5;
   }
 
   .instructor-agenda__error {

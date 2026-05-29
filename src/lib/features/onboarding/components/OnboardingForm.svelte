@@ -86,6 +86,7 @@
   let error = $state("");
   let submitted = $state(false);
   let stepValidationAttempted = $state(false);
+  let editValidationAttempted = $state(false);
   let draftHydrated = $state(false);
 
   function isKnownGoal(value: string): value is Goal {
@@ -218,6 +219,9 @@
   const isLast = $derived(stepIndex === steps.length - 1);
   const progressPercent = $derived(((stepIndex + 1) / steps.length) * 100);
 
+  /** Existing members editing profile — no health/consent re-prompt. */
+  const isMemberProfileUpdate = $derived(mode === "edit" && initialProfile !== undefined);
+
   /** Health declaration answers are always stored — consent is required on this step. */
   const needsHealthConsent = $derived(
     currentStep.id === "health-declaration" ||
@@ -252,6 +256,10 @@
       healthComplete &&
       healthDeclarationAccepted &&
       healthInfoConsent,
+  );
+
+  const readyToSubmitProfileEdit = $derived(
+    nameComplete && equipment.length > 0 && goals.length > 0,
   );
 
   function stepIsIncomplete(stepId: (typeof steps)[number]["id"]): boolean {
@@ -327,7 +335,11 @@
 
   async function submit() {
     if (pending || submitted) return;
-    stepValidationAttempted = true;
+    if (mode === "edit") {
+      editValidationAttempted = true;
+    } else {
+      stepValidationAttempted = true;
+    }
 
     if (!nameComplete) {
       nameWarning = true;
@@ -345,6 +357,29 @@
       error = t.onboarding.goals.emptyWarning();
       goToStep(steps.findIndex((s) => s.id === "goals"));
       return;
+    }
+
+    if (isMemberProfileUpdate) {
+      pending = true;
+      error = "";
+      try {
+        await authMutation(api.users.profile.updateMember, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          equipment,
+          experience,
+          goals,
+          pathologies,
+          notes,
+        });
+        onSaved?.();
+        pending = false;
+        return;
+      } catch (reason) {
+        error = convexMutationErrorMessage(reason, t.onboarding.saveError());
+        pending = false;
+        return;
+      }
     }
 
     const normalizedAnswers = normalizeHealthDeclarationAnswers(healthDeclarationAnswers);
@@ -397,6 +432,107 @@
     <h2>{mode === "edit" ? t.onboarding.success.editTitle() : t.onboarding.success.title()}</h2>
     <p>{mode === "edit" ? t.onboarding.success.editSubtitle() : t.onboarding.success.subtitle()}</p>
   </div>
+{:else if mode === "edit"}
+  <form
+    class="profile-edit"
+    onsubmit={(event) => {
+      event.preventDefault();
+      void submit();
+    }}
+  >
+    {#if error}
+      <Notice tone="danger">{error}</Notice>
+    {/if}
+
+    {#if editValidationAttempted && !(isMemberProfileUpdate ? readyToSubmitProfileEdit : readyToSubmit)}
+      <Notice tone="neutral">
+        <p>לפני שמירה, יש להשלים:</p>
+        <ul class="onboarding-missing-list">
+          {#if !nameComplete}
+            <li>שם מלא</li>
+          {/if}
+          {#if equipment.length === 0}
+            <li>בחירת ציוד</li>
+          {/if}
+          {#if goals.length === 0}
+            <li>בחירת מטרות</li>
+          {/if}
+          {#if !isMemberProfileUpdate && (!healthComplete || !healthConsentsComplete)}
+            <li>הצהרת בריאות והסכמות</li>
+          {/if}
+        </ul>
+      </Notice>
+    {/if}
+
+    <section class="profile-edit__section" aria-labelledby="profile-edit-name">
+      <h2 id="profile-edit-name" class="profile-edit__title">{t.onboarding.name.title()}</h2>
+      {#if t.onboarding.name.subtitle()}
+        <p class="profile-edit__subtitle">{t.onboarding.name.subtitle()}</p>
+      {/if}
+      <NameStep
+        bind:firstName
+        bind:lastName
+        showWarning={editValidationAttempted && !nameComplete}
+      />
+    </section>
+
+    <section class="profile-edit__section" aria-labelledby="profile-edit-experience">
+      <h2 id="profile-edit-experience" class="profile-edit__title">{t.onboarding.experience.title()}</h2>
+      {#if t.onboarding.experience.subtitle()}
+        <p class="profile-edit__subtitle">{t.onboarding.experience.subtitle()}</p>
+      {/if}
+      <ExperienceStep bind:experience />
+    </section>
+
+    <section class="profile-edit__section" aria-labelledby="profile-edit-equipment">
+      <h2 id="profile-edit-equipment" class="profile-edit__title">{t.onboarding.equipment.title()}</h2>
+      {#if t.onboarding.equipment.subtitle()}
+        <p class="profile-edit__subtitle">{t.onboarding.equipment.subtitle()}</p>
+      {/if}
+      <EquipmentStep
+        bind:equipment
+        showWarning={editValidationAttempted && equipment.length === 0}
+      />
+    </section>
+
+    <section class="profile-edit__section" aria-labelledby="profile-edit-goals">
+      <h2 id="profile-edit-goals" class="profile-edit__title">{t.onboarding.goals.title()}</h2>
+      {#if t.onboarding.goals.subtitle()}
+        <p class="profile-edit__subtitle">{t.onboarding.goals.subtitle()}</p>
+      {/if}
+      <GoalsStep bind:goals showWarning={editValidationAttempted && goals.length === 0} />
+    </section>
+
+    <section class="profile-edit__section" aria-labelledby="profile-edit-notes">
+      <h2 id="profile-edit-notes" class="profile-edit__title">{t.onboarding.notes.title()}</h2>
+      {#if t.onboarding.notes.subtitle()}
+        <p class="profile-edit__subtitle">{t.onboarding.notes.subtitle()}</p>
+      {/if}
+      <NotesStep bind:pathologies bind:notes />
+    </section>
+
+    {#if !isMemberProfileUpdate}
+      <section class="profile-edit__section" aria-labelledby="profile-edit-health">
+        <h2 id="profile-edit-health" class="profile-edit__title">{t.onboarding.healthDeclaration.title()}</h2>
+        {#if t.onboarding.healthDeclaration.subtitle()}
+          <p class="profile-edit__subtitle">{t.onboarding.healthDeclaration.subtitle()}</p>
+        {/if}
+        <HealthDeclarationStep
+          bind:answers={healthDeclarationAnswers}
+          bind:healthInfoConsent
+          bind:healthDeclarationAccepted
+          {needsHealthConsent}
+          showValidation={editValidationAttempted && (!healthComplete || !healthConsentsComplete)}
+        />
+      </section>
+    {/if}
+
+    <div class="profile-edit__actions">
+      <Button.Root class="hb-button hb-button--ink" type="submit" disabled={pending}>
+        {pending ? t.onboarding.nav.submitPending() : t.onboarding.nav.submitEdit()}
+      </Button.Root>
+    </div>
+  </form>
 {:else}
   <div class="onboarding">
     <div class="panel panel--question">

@@ -1,46 +1,44 @@
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";
 
-  /** Brand mark — fill follows `--foreground` (dark in light theme, light in dark). */
+  /**
+   * Brand logomark — line art (stroke only, no fill).
+   * Alpha mask from the vector stroke asset; color = `--foreground`.
+   */
   type Props = HTMLAttributes<HTMLSpanElement> & {
     /** Logo height (width follows mark aspect ratio). */
     size?: number | string;
-    src?: string;
   };
 
+  /** `static/brand/anatome-mark-trim.png` viewBox (221×174). */
   const MARK_ASPECT = 221 / 174;
 
-  let {
-    size = 40,
-    class: className = "",
-    src = "/brand/anatome-mark.png",
-    ...rest
-  }: Props = $props();
+  let { size = 48, class: className = "", ...rest }: Props = $props();
 
   const height = $derived(typeof size === "number" ? `${size}px` : size);
   const width = $derived(
-    typeof size === "number" ? `${Math.round(size * MARK_ASPECT)}px` : `calc(${size} * ${MARK_ASPECT})`,
+    typeof size === "number"
+      ? `${size * MARK_ASPECT}px`
+      : `calc(${size} * ${MARK_ASPECT})`,
   );
 </script>
 
 <span
   class="anatome-logo {className}"
-  style:--anatome-logo-h={height}
-  style:--anatome-logo-w={width}
-  style:--anatome-logo-src={`url("${src}")`}
+  style:width={width}
+  style:height={height}
   {...rest}
 ></span>
 
 <style>
   .anatome-logo {
-    display: inline-block;
+    display: block;
     flex-shrink: 0;
-    width: var(--anatome-logo-w, 3.1rem);
-    height: var(--anatome-logo-h, 2.5rem);
+    overflow: visible;
     color: var(--foreground);
     background-color: currentColor;
-    -webkit-mask-image: var(--anatome-logo-src);
-    mask-image: var(--anatome-logo-src);
+    -webkit-mask-image: url("/brand/anatome-mark-trim.png");
+    mask-image: url("/brand/anatome-mark-trim.png");
     -webkit-mask-mode: alpha;
     mask-mode: alpha;
     -webkit-mask-size: contain;

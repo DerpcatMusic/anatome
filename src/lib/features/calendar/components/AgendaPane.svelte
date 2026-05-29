@@ -2,7 +2,7 @@
   import ClassCard from "./ClassCard.svelte";
   import OneOnOneDayCard from "./OneOnOneDayCard.svelte";
   import type { Id } from "$convex/_generated/dataModel";
-  import type { AgendaEntry, DayAgendaGroup, TypeFilter } from "../lib/agenda";
+  import type { AgendaEntry, CalendarClass, DayAgendaGroup, TypeFilter } from "../lib/agenda";
   import { formatAgendaDayHeader } from "../lib/agenda";
 
   let {
@@ -26,7 +26,7 @@
     actionId: string | null;
     nowMs: number;
     onReserve: (liveClassId: Id<"liveClasses">) => void;
-    onCancel: (liveClassId: Id<"liveClasses">) => void;
+    onCancel: (item: CalendarClass) => void;
     onOpenOneOnOneRequest?: (dayStart: number) => void;
     onBuyCredits?: () => void;
   } = $props();

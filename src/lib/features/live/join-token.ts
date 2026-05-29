@@ -98,6 +98,8 @@ export function joinAccessSnapshotsEqual(
     a.equipmentBlocked === b.equipmentBlocked &&
     a.isBroadcastLive === b.isBroadcastLive &&
     a.broadcastStartedByUserId === b.broadcastStartedByUserId &&
+    a.instructorUserId === b.instructorUserId &&
+    a.instructorName === b.instructorName &&
     a.subscriberReceivePreset === b.subscriberReceivePreset
   );
 }

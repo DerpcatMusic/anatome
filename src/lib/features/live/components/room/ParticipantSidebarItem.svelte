@@ -1,22 +1,28 @@
 <script lang="ts">
   import { useIsSpeaking, useParticipantMedia } from "$lib/livekit";
-  import { isInstructorIdentity } from "$lib/features/live/live-room-shared";
+  import { isClassHostParticipant } from "$lib/features/live/live-room-shared";
   import type { Participant } from "livekit-client";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   let {
     participant,
+    hostUserId = null,
+    broadcastHostUserId = null,
   }: {
     participant: Participant;
+    hostUserId?: string | null;
+    broadcastHostUserId?: string | null;
   } = $props();
 
   const { t } = useI18n();
 
-  const isSpeaking = useIsSpeaking(participant);
-  const media = useParticipantMedia(participant);
+  const isSpeaking = useIsSpeaking(() => participant);
+  const media = useParticipantMedia(() => participant);
 
   const name = $derived(participant.name || participant.identity);
-  const isInstructor = $derived(isInstructorIdentity(participant.identity));
+  const isInstructor = $derived(
+    isClassHostParticipant(participant.identity, hostUserId, broadcastHostUserId),
+  );
   const hasCamera = $derived(media.isCameraEnabled);
   const hasMic = $derived(media.isMicrophoneEnabled);
 </script>

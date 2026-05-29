@@ -8,7 +8,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <AnatoMeLogo class="footer-logo" size={36} aria-label={t.site.name()} role="img" />
+      <AnatoMeLogo class="footer-logo" size={44} aria-label={t.site.name()} role="img" />
       <span class="footer-tagline">{t.site.tagline()}</span>
     </div>
 

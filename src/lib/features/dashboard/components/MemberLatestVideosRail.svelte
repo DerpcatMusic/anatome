@@ -104,18 +104,26 @@
 <style>
   .dashboard-latest {
     min-width: 0;
-    padding-block-start: var(--space-2);
+    padding-block-start: var(--space-3);
     border-top: var(--border);
   }
 
   .dashboard-latest__error {
     margin: var(--space-3) 0 0;
     color: var(--danger);
-    font-size: var(--step--1);
+    font-size: var(--text-sm);
+  }
+
+  .dashboard-latest :global(.video-row__eyebrow) {
+    margin: 0 0 var(--space-2);
+    padding-inline: 0;
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    color: var(--secondary);
   }
 
   .dashboard-latest :global(.video-row__track--carousel) {
-    padding-inline: 0 var(--space-6);
+    padding-inline: 0 var(--space-5);
     margin-inline: 0;
   }
 </style>

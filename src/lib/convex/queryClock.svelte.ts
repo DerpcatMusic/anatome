@@ -4,6 +4,7 @@ import { onMount } from "svelte";
 export const QUERY_NOW_DEFAULT_MS = 90_000;
 /** Live room join-access / expiry polling. */
 export const QUERY_NOW_LIVE_ROOM_MS = 30_000;
+export { bucketQueryNowMs, QUERY_NOW_CALENDAR_BUCKET_MS } from "./queryClockBucket";
 
 /**
  * Stable client clock for Convex query `now` args.

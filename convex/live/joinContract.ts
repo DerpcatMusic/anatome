@@ -27,6 +27,7 @@ export const prepareJoinResultValidator = v.object({
   liveClassType: liveRoomClassTypeValidator,
   classTitle: v.string(),
   instructorName: v.string(),
+  instructorUserId: v.id("users"),
   startsAt: v.number(),
   endsAt: v.number(),
   joinClosesAt: v.number(),
@@ -49,6 +50,7 @@ export const issueJoinResultValidator = v.object({
   joinClosesAt: v.number(),
   classTitle: v.string(),
   instructorName: v.string(),
+  instructorUserId: v.id("users"),
   liveClassType: liveRoomClassTypeValidator,
 });
 
@@ -73,6 +75,8 @@ export const joinAccessSnapshotValidator = v.object({
   equipmentBlocked: v.boolean(),
   isBroadcastLive: v.boolean(),
   broadcastStartedByUserId: v.optional(v.id("users")),
+  instructorUserId: v.id("users"),
+  instructorName: v.string(),
   subscriberReceivePreset: v.union(
     v.literal("low"),
     v.literal("medium"),

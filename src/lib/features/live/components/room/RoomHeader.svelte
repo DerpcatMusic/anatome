@@ -1,7 +1,10 @@
 <script lang="ts">
   import { useI18n } from "$lib/i18n/runes.svelte";
   import { Button, Tooltip } from "bits-ui";
+  import EndLiveConfirm from "./EndLiveConfirm.svelte";
   import LeaveModal from "./LeaveModal.svelte";
+  import LiveClassScheduleChip from "./LiveClassScheduleChip.svelte";
+  import { QUERY_NOW_LIVE_ROOM_MS, useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import type { ConnectionQualityLevel, ConnectionState } from "$lib/features/live/types";
   import type { LiveSessionHeader } from "$lib/features/live/live-session.svelte";
 
@@ -46,17 +49,14 @@
   const classTitle = $derived(session?.classTitle ?? classTitleProp ?? "");
   const isInstructorRoom = $derived(session?.isInstructorRoom ?? isInstructorRoomProp!);
   const onLeave = $derived.by(() => (session ? () => session.leave() : onLeaveProp!));
-  const onEndLive = $derived.by(() =>
-    session
-      ? session.isInstructorRoom
-        ? () => void session.endLive?.()
-        : undefined
-      : onEndLiveProp,
-  );
+  const onEndLive = $derived(onEndLiveProp);
 
   const { t } = useI18n();
+  const queryNow = useQueryNowMs(QUERY_NOW_LIVE_ROOM_MS);
 
   let showLeaveModal = $state(false);
+  let showEndLiveConfirm = $state(false);
+  let endingLive = $state(false);
 
   const showQualityDetail = $derived(
     connectionState === "connected" &&
@@ -80,14 +80,24 @@
   function openLeaveModal() {
     showLeaveModal = true;
   }
+
+  function openEndLiveConfirm() {
+    showEndLiveConfirm = true;
+  }
+
+  function confirmEndLive() {
+    if (!onEndLive || endingLive) return;
+    endingLive = true;
+    showEndLiveConfirm = false;
+    void Promise.resolve(onEndLive()).finally(() => {
+      endingLive = false;
+    });
+  }
 </script>
 
-<LeaveModal
-  {isInstructorRoom}
-  bind:open={showLeaveModal}
-  onLeave={onLeave}
-  onEndLive={onEndLive}
-/>
+<EndLiveConfirm bind:open={showEndLiveConfirm} pending={endingLive} onConfirm={confirmEndLive} />
+
+<LeaveModal {isInstructorRoom} bind:open={showLeaveModal} onLeave={onLeave} />
 
 <header class="lr-header">
   <div class="lr-header__start">
@@ -119,6 +129,16 @@
       </span>
     {/if}
 
+    {#if session?.joinAccess}
+      <LiveClassScheduleChip
+        startsAt={session.joinAccess.startsAt}
+        endsAt={session.joinAccess.joinClosesAt}
+        nowMs={queryNow.nowMs}
+        variant="pill"
+        showRange={false}
+      />
+    {/if}
+
     {#if session?.classBroadcastLabel}
       <span
         class="lr-header__broadcast"
@@ -143,6 +163,30 @@
       <span class="lr-header__expiry">{joinExpiryLabel}</span>
     {/if}
 
+    {#if isInstructorRoom && onEndLive}
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              class="lr-header-btn lr-header-btn--danger"
+              type="button"
+              disabled={endingLive}
+              onclick={openEndLiveConfirm}
+              aria-label={t.live.room.leaveEndLive()}
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>
+            </Button.Root>
+          {/snippet}
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
+            {t.live.room.leaveEndLive()}
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    {/if}
+
     <Tooltip.Root>
       <Tooltip.Trigger>
         {#snippet child({ props })}
@@ -159,7 +203,7 @@
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="hb-tooltip-content lr-tooltip-content">
-          {t.live.room.leave()}
+          {isInstructorRoom ? t.live.room.leaveOnly() : t.live.room.leave()}
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>

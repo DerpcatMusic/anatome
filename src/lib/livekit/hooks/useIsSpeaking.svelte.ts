@@ -7,11 +7,20 @@ import { useEnsureParticipant } from "$lib/livekit/contexts";
  *
  * @public
  */
-export function useIsSpeaking(explicitParticipant?: Participant): boolean {
+type ParticipantSource = Participant | (() => Participant);
+
+function resolveParticipant(source: ParticipantSource | undefined): Participant {
+	if (source === undefined) {
+		return useEnsureParticipant();
+	}
+	return typeof source === "function" ? source() : source;
+}
+
+export function useIsSpeaking(explicitParticipant?: ParticipantSource): boolean {
 	let isSpeaking = $state(false);
 
 	$effect(() => {
-		const participant = explicitParticipant ?? useEnsureParticipant();
+		const participant = resolveParticipant(explicitParticipant);
 		isSpeaking = participant.isSpeaking;
 		const subscription = createIsSpeakingObserver(participant).subscribe((next) => {
 			isSpeaking = next;

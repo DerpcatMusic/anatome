@@ -29,6 +29,7 @@ This document maps **reservation state**, **join gates**, **reminders**, and **s
 stateDiagram-v2
   [*] --> reserved: api.live.reservation.reserve
   reserved --> cancelled: api.live.reservation.cancel
+  cancelled --> reserved: api.live.reservation.reserve (reactivate row)
   reserved --> joined: LiveKit participant_joined webhook
   reserved --> no_show: settle after class end
   joined --> cancelled: api.live.class.cancel (status only)
@@ -75,6 +76,7 @@ Re-join: reservation already `joined`; credits not consumed again.
 | Trigger | Class | Reserved seats | Joined seats | Reminders |
 |---------|-------|----------------|--------------|-----------|
 | User cancel | — | `releaseCredits`, `cancelled` | — | pending → `cancelled` |
+| User re-reserve after cancel | — | patch same row → `reserved`, credits reserved again | — | reminders re-scheduled |
 | Instructor `class.cancel` | `cancelled` | release + `cancelled` | `cancelled` (no wallet release) | pending → `cancelled` |
 | Instructor `class.end` / cron `endOne` | `ended` | settle → `no_show` + release | unchanged | skip if ended |
 | `settle` / cron | — | `no_show` + release + seats | — | — |

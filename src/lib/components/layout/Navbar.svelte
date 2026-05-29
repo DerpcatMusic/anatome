@@ -16,7 +16,7 @@
 <nav class="navbar" aria-label="ניווט ראשי">
   <div class="navbar__inner">
     <a class="navbar__brand" href="/" aria-label={t.site.name()}>
-      <AnatoMeLogo class="navbar__logo" size={40} />
+      <AnatoMeLogo class="navbar__logo" size={48} />
       <span class="navbar__divider">/</span>
       <span class="navbar__tagline">{t.site.tagline()}</span>
     </a>

@@ -11,6 +11,7 @@
   } from "$lib/features/onboarding/health-declaration";
   import { formatProfileTimestamp } from "$lib/features/dashboard/lib/format";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import "../dashboard.css";
 
   type StaffProfile = {
     displayName?: string | null;
@@ -35,12 +36,20 @@
     appProfile,
     profile,
     showEditLink = true,
+    panelVariant = "default",
   }: {
     isStaff: boolean;
     appProfile?: StaffProfile | null;
     profile?: CustomerProfile | null;
     showEditLink?: boolean;
+    panelVariant?: "default" | "aside";
   } = $props();
+
+  const panelClass = $derived(
+    panelVariant === "aside"
+      ? "profile-summary dashboard-panel dashboard-panel--member-aside"
+      : "profile-summary dashboard-panel",
+  );
 
   const { t } = useI18n();
 
@@ -51,210 +60,264 @@
           .map((id) => t.onboarding.healthDeclaration.questions[id]())
       : [],
   );
+
+  const profileMeta = $derived.by(() => {
+    if (!profile) return null;
+    const parts: string[] = [];
+    if (profile.healthDeclarationAcceptedAt) {
+      parts.push(
+        `${t.onboarding.summary.declaration()} ${formatProfileTimestamp(profile.healthDeclarationAcceptedAt)}`,
+      );
+    }
+    if (profile.healthInfoConsentAcceptedAt) {
+      parts.push(
+        `${t.onboarding.summary.consent()} ${formatProfileTimestamp(profile.healthInfoConsentAcceptedAt)}`,
+      );
+    }
+    return parts.length > 0 ? parts.join(" · ") : null;
+  });
 </script>
 
 {#if isStaff && appProfile}
-  <div class="profile-summary">
-    <div class="profile-summary__header">
-      <p class="profile-summary__kicker">{t.dashboard.staffProfile.title()}</p>
+  <section class={panelClass} aria-labelledby="staff-profile-title">
+    <div class="dashboard-panel__head">
+      <p id="staff-profile-title" class="dashboard-panel__kicker">
+        {t.dashboard.staffProfile.title()}
+      </p>
       {#if showEditLink}
-        <a href="/i/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+        <a href="/i/profile" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
       {/if}
     </div>
-    <div class="profile-summary__grid">
-      <div class="profile-summary__cell">
-        <span class="profile-summary__label">{t.dashboard.staffProfile.name()}</span>
-        <span class="profile-summary__value">{appProfile.displayName || "—"}</span>
+
+    <dl class="profile-summary__list" class:profile-summary__list--aside={panelVariant === "aside"}>
+      <div class="profile-summary__row">
+        <dt>{t.dashboard.staffProfile.name()}</dt>
+        <dd>{appProfile.displayName || "—"}</dd>
       </div>
       {#if appProfile.credentials}
-        <div class="profile-summary__cell profile-summary__cell--wide">
-          <span class="profile-summary__label">{t.dashboard.staffProfile.credentials()}</span>
-          <span class="profile-summary__value">{appProfile.credentials}</span>
+        <div class="profile-summary__row profile-summary__row--wide">
+          <dt>{t.dashboard.staffProfile.credentials()}</dt>
+          <dd>{appProfile.credentials}</dd>
         </div>
       {/if}
-    </div>
+    </dl>
 
-    <div class="compliance-bar">
-      <div class="compliance-item" class:compliance--ok={appProfile.hasCertificate}>
-        <span class="compliance-dot">{appProfile.hasCertificate ? "●" : "○"}</span>
-        <span>{t.dashboard.staffProfile.certificate()}</span>
-      </div>
-      <div class="compliance-item" class:compliance--ok={appProfile.hasInsurance}>
-        <span class="compliance-dot">{appProfile.hasInsurance ? "●" : "○"}</span>
-        <span>{t.dashboard.staffProfile.insurance()}</span>
-      </div>
-    </div>
-  </div>
+    <ul class="profile-summary__compliance" aria-label={t.dashboard.staffProfile.title()}>
+      <li class:profile-summary__compliance--ok={appProfile.hasCertificate}>
+        <span class="profile-summary__compliance-dot" aria-hidden="true"
+          >{appProfile.hasCertificate ? "●" : "○"}</span
+        >
+        {t.dashboard.staffProfile.certificate()}
+      </li>
+      <li class:profile-summary__compliance--ok={appProfile.hasInsurance}>
+        <span class="profile-summary__compliance-dot" aria-hidden="true"
+          >{appProfile.hasInsurance ? "●" : "○"}</span
+        >
+        {t.dashboard.staffProfile.insurance()}
+      </li>
+    </ul>
+  </section>
 {:else if !isStaff && profile}
-  <div class="profile-summary">
-    <div class="profile-summary__header">
-      <p class="profile-summary__kicker">{t.dashboard.customerProfile.title()}</p>
+  <section class={panelClass} aria-labelledby="customer-profile-title">
+    <div class="dashboard-panel__head">
+      <p id="customer-profile-title" class="dashboard-panel__kicker">
+        {t.dashboard.customerProfile.title()}
+      </p>
       {#if showEditLink}
-        <a href="/u/profile" class="profile-summary__edit">{t.dashboard.profile.edit()}</a>
+        <a href="/u/profile?edit=1" class="dashboard-link dashboard-panel__edit">{t.dashboard.profile.edit()}</a>
       {/if}
     </div>
 
-    <div class="profile-summary__grid">
-      <div class="profile-summary__cell">
-        <span class="profile-summary__label">{t.dashboard.profile.experience()}</span>
-        <span class="profile-summary__value">{experienceLabel(profile.experience)}</span>
+    <dl class="profile-summary__list" class:profile-summary__list--aside={panelVariant === "aside"}>
+      <div class="profile-summary__row">
+        <dt>{t.dashboard.profile.experience()}</dt>
+        <dd>{experienceLabel(profile.experience)}</dd>
       </div>
-      <div class="profile-summary__cell">
-        <span class="profile-summary__label">{t.dashboard.profile.equipment()}</span>
-        <span class="profile-summary__value">{fmtEquipmentList(profile.equipment)}</span>
+      <div class="profile-summary__row">
+        <dt>{t.dashboard.profile.equipment()}</dt>
+        <dd>{fmtEquipmentList(profile.equipment)}</dd>
       </div>
-      <div class="profile-summary__cell">
-        <span class="profile-summary__label">{t.dashboard.profile.goals()}</span>
-        <span class="profile-summary__value">{profile.goals.map(goalLabel).join(", ")}</span>
+      <div class="profile-summary__row profile-summary__row--wide">
+        <dt>{t.dashboard.profile.goals()}</dt>
+        <dd>
+          <ul class="profile-summary__tags" role="list">
+            {#each profile.goals as goal (goal)}
+              <li>{goalLabel(goal)}</li>
+            {/each}
+          </ul>
+        </dd>
       </div>
       {#if profile.pathologies && profile.pathologies.length > 0}
-        <div class="profile-summary__cell profile-summary__cell--wide">
-          <span class="profile-summary__label">{t.onboarding.summary.pathologies()}</span>
-          <span class="profile-summary__value"
-            >{profile.pathologies.map(pathologyLabel).join(", ")}</span
-          >
+        <div class="profile-summary__row profile-summary__row--wide">
+          <dt>{t.onboarding.summary.pathologies()}</dt>
+          <dd>
+            <ul class="profile-summary__tags profile-summary__tags--muted" role="list">
+              {#each profile.pathologies as pathology (pathology)}
+                <li>{pathologyLabel(pathology)}</li>
+              {/each}
+            </ul>
+          </dd>
         </div>
       {/if}
       {#if profile.notes && profile.notes.trim().length > 0}
-        <div class="profile-summary__cell profile-summary__cell--wide">
-          <span class="profile-summary__label">{t.dashboard.profile.notes()}</span>
-          <span class="profile-summary__value">{profile.notes}</span>
+        <div class="profile-summary__row profile-summary__row--wide">
+          <dt>{t.dashboard.profile.notes()}</dt>
+          <dd class="profile-summary__notes">{profile.notes}</dd>
         </div>
       {/if}
       {#if healthFlags.length > 0}
-        <div class="profile-summary__cell profile-summary__cell--wide">
-          <span class="profile-summary__label">{t.onboarding.summary.health()}</span>
-          <ul class="profile-summary__health-flags">
-            {#each healthFlags as flag (flag)}
-              <li>{flag}</li>
-            {/each}
-          </ul>
+        <div class="profile-summary__row profile-summary__row--wide">
+          <dt>{t.onboarding.summary.health()}</dt>
+          <dd>
+            <ul class="profile-summary__tags profile-summary__tags--health" role="list">
+              {#each healthFlags as flag (flag)}
+                <li>{flag}</li>
+              {/each}
+            </ul>
+          </dd>
         </div>
       {/if}
-      {#if profile.healthDeclarationAcceptedAt}
-        <div class="profile-summary__cell">
-          <span class="profile-summary__label">{t.onboarding.summary.declaration()}</span>
-          <span class="profile-summary__value"
-            >{formatProfileTimestamp(profile.healthDeclarationAcceptedAt)}</span
-          >
-        </div>
-      {/if}
-      {#if profile.healthInfoConsentAcceptedAt}
-        <div class="profile-summary__cell">
-          <span class="profile-summary__label">{t.onboarding.summary.consent()}</span>
-          <span class="profile-summary__value"
-            >{formatProfileTimestamp(profile.healthInfoConsentAcceptedAt)}</span
-          >
-        </div>
-      {/if}
-    </div>
-  </div>
+    </dl>
+
+    {#if profileMeta}
+      <p class="profile-summary__meta">{profileMeta}</p>
+    {/if}
+  </section>
 {/if}
 
 <style>
-  .profile-summary {
-    border: var(--border);
-    padding: var(--space-4);
-    background: var(--elevated);
-  }
-
-  .profile-summary__header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+  .profile-summary__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
-    margin-bottom: var(--space-3);
+    margin: 0;
   }
 
-  .profile-summary__kicker {
+  .profile-summary__row {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .profile-summary__row--wide {
+    grid-column: 1 / -1;
+  }
+
+  .profile-summary__row dt {
+    margin: 0;
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.1em;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--foreground-muted);
-    font-weight: 700;
+  }
+
+  .profile-summary__row dd {
     margin: 0;
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+    min-width: 0;
   }
 
-  .profile-summary__edit {
-    font-size: var(--step--1);
-    font-weight: 700;
-    color: var(--primary);
-    text-decoration: none;
-    transition: color var(--duration-fast);
-  }
-
-  .profile-summary__edit:hover { color: var(--ink); }
-
-  .profile-summary__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-3);
-  }
-
-  .profile-summary__cell {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .profile-summary__cell--wide { grid-column: 1 / -1; }
-
-  .profile-summary__label {
-    font-size: var(--step--1);
-    color: var(--foreground-muted);
-  }
-
-  .profile-summary__value {
-    font-size: var(--step-1);
-    font-weight: 700;
-    line-height: 1.3;
-  }
-
-  .profile-summary__health-flags {
-    margin: 0;
-    padding-inline-start: var(--space-4);
-    font-size: var(--step-0);
-    line-height: 1.45;
-    font-weight: 650;
-  }
-
-  .profile-summary__health-flags li + li {
-    margin-top: var(--space-1);
-  }
-
-  .compliance-bar {
+  .profile-summary__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-top: var(--space-3);
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .compliance-item {
+  .profile-summary__tags li {
+    padding: 0.12rem var(--space-2);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+    background: color-mix(in oklch, var(--secondary) 12%, var(--elevated));
+    color: var(--ink);
+  }
+
+  .profile-summary__tags--muted li {
+    background: color-mix(in oklch, var(--foreground) 6%, var(--elevated));
+    color: var(--foreground-muted);
+  }
+
+  .profile-summary__tags--health li {
+    background: color-mix(in oklch, var(--warning) 14%, var(--elevated));
+    color: var(--ink-secondary);
+  }
+
+  .profile-summary__notes {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--foreground-muted);
+    line-height: var(--leading-normal);
+    white-space: pre-wrap;
+  }
+
+  .profile-summary__meta {
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-2);
+    border-top: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    color: var(--foreground-muted);
+  }
+
+  .profile-summary__compliance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .profile-summary__compliance li {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1);
     font-family: var(--font-mono);
-    font-size: var(--step--1);
+    font-size: var(--text-xs);
     font-weight: 700;
     color: var(--foreground-muted);
   }
 
-  .compliance-dot {
-    font-size: var(--step-0);
+  .profile-summary__compliance-dot {
+    font-size: var(--text-sm);
     line-height: 1;
     color: var(--line-light);
   }
 
-  .compliance--ok .compliance-dot {
-    color: var(--success);
-  }
-
-  .compliance--ok {
+  .profile-summary__compliance--ok {
     color: var(--ink);
   }
 
+  .profile-summary__compliance--ok .profile-summary__compliance-dot {
+    color: var(--success);
+  }
+
   @media (max-width: 820px) {
-    .profile-summary__grid { grid-template-columns: 1fr; }
+    .profile-summary__list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .profile-summary__list--aside {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .profile-summary__list--aside .profile-summary__row dd {
+    font-size: var(--text-sm);
   }
 </style>

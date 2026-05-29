@@ -71,20 +71,18 @@
 </script>
 
 <section class="dashboard-panel instructor-create" aria-labelledby="instructor-create-title">
-  <div class="instructor-create__inner">
-    <h3 id="instructor-create-title" class="dashboard-panel__title instructor-create__title">
-      {t.dashboard.instructor.createTitle()}
-    </h3>
-    <Button.Root
-      class="hb-button hb-button--ink hb-button--md"
-      type="button"
-      onclick={() => {
-        modalOpen = true;
-      }}
-    >
-      {t.dashboard.instructor.createCta()}
-    </Button.Root>
-  </div>
+  <h3 id="instructor-create-title" class="dashboard-panel__title instructor-create__title">
+    {t.dashboard.instructor.createTitle()}
+  </h3>
+  <Button.Root
+    class="hb-button hb-button--ink hb-button--md"
+    type="button"
+    onclick={() => {
+      modalOpen = true;
+    }}
+  >
+    {t.dashboard.instructor.createCta()}
+  </Button.Root>
 </section>
 
 <LiveClassModalShell
@@ -116,23 +114,19 @@
 
 <style>
   .instructor-create {
-    min-width: 0;
-    border-color: color-mix(in oklch, var(--accent) 22%, var(--line));
-    background: color-mix(in oklch, var(--accent) 6%, var(--elevated));
-  }
-
-  .instructor-create__inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
+    gap: var(--space-3);
     flex-wrap: wrap;
     min-width: 0;
+    border-color: color-mix(in oklch, var(--accent) 18%, var(--border-color));
+    background: color-mix(in oklch, var(--accent) 5%, var(--elevated));
   }
 
   .instructor-create__title {
     margin: 0;
-    flex: 1 1 220px;
+    flex: 1 1 12rem;
     min-width: 0;
   }
 </style>

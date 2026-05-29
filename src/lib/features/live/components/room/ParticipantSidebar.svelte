@@ -3,12 +3,18 @@
   import { useI18n } from "$lib/i18n/runes.svelte";
   import ParticipantSidebarList from "./ParticipantSidebarList.svelte";
 
+  import type { Id } from "$convex/_generated/dataModel";
+
   let {
     open,
     onClose,
+    liveClassId = null,
+    showClassRoster = false,
   }: {
     open: boolean;
     onClose: () => void;
+    liveClassId?: Id<"liveClasses"> | null;
+    showClassRoster?: boolean;
   } = $props();
 
   const { t } = useI18n();
@@ -27,6 +33,6 @@
         <span class="material-symbols-rounded">close</span>
       </Button.Root>
     </div>
-    <ParticipantSidebarList />
+    <ParticipantSidebarList {liveClassId} {showClassRoster} />
   </aside>
 {/if}

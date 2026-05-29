@@ -7,9 +7,9 @@
     type LiveSessionPreConnect,
   } from "$lib/features/live/live-session.svelte";
   import { getMediaErrorMessage } from "$lib/features/live/live-room-shared";
-  import { formatLiveWindow } from "$lib/features/dashboard/lib/format";
   import { PreJoin } from "$lib/livekit";
   import PreConnectFrame from "./PreConnectFrame.svelte";
+  import LiveClassScheduleChip from "./LiveClassScheduleChip.svelte";
   import PreConnectSettings from "./PreConnectSettings.svelte";
   import PreConnectState from "./PreConnectState.svelte";
   import {
@@ -18,17 +18,21 @@
     showHostPublishSettings,
   } from "$lib/features/live/lib/preconnect-ui";
   import InstructorJoinRoster from "./InstructorJoinRoster.svelte";
+  import EndLiveConfirm from "./EndLiveConfirm.svelte";
   import { QUERY_NOW_LIVE_ROOM_MS, useQueryNowMs } from "$lib/convex/queryClock.svelte";
+  import { isCameraNotFoundMediaError } from "$lib/features/live/live-room-shared";
 
   let {
     session: sessionProp,
     room: roomAlias,
     joinLoading = false,
+    onEndLive,
   }: {
     session?: LiveSessionPreConnect;
     /** @deprecated Pass `session` instead. */
     room?: LiveSessionPreConnect;
     joinLoading?: boolean;
+    onEndLive?: () => void | Promise<void>;
   } = $props();
 
   const session = $derived(resolveLiveSession(sessionProp, roomAlias, "PreConnectOverlay"));
@@ -84,12 +88,6 @@
       : "",
   );
 
-  const scheduleLine = $derived.by(() => {
-    const access = session.joinAccess;
-    if (!access) return "";
-    return formatLiveWindow(access.startsAt, access.joinClosesAt);
-  });
-
   const broadcastStatusLabel = $derived.by(() => {
     if (canStartBroadcast) return t.live.preConnect.statusAwaitingStart();
     return session.classBroadcastLabel ?? "";
@@ -101,16 +99,42 @@
     audioEnabled: session.isInstructorRoom,
   });
 
+  const showEndLiveOnPreconnect = $derived(
+    session.isClassHost && broadcastAlreadyLive && !canStartBroadcast && Boolean(onEndLive),
+  );
+
+  let showEndLiveConfirm = $state(false);
+  let endingLive = $state(false);
+
+  const showPreconnectMediaError = $derived(
+    Boolean(session.mediaError?.trim()) &&
+      !isCameraNotFoundMediaError(session.mediaError) &&
+      !isJoining,
+  );
+
   function onPreJoinSubmit(choices: LocalUserChoices) {
-    const safeChoices = session.mediaError
-      ? { ...choices, videoEnabled: false }
-      : choices;
-    void session.enterFromPreJoin(safeChoices, { isPrep });
+    void session.enterFromPreJoin(choices, { isPrep });
   }
 
   function onPreJoinError(error: Error) {
+    if (error instanceof DOMException) {
+      if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") return;
+    }
     session.mediaError = getMediaErrorMessage("camera", error);
     session.wantsCameraOnJoin = false;
+  }
+
+  function openEndLiveConfirm() {
+    showEndLiveConfirm = true;
+  }
+
+  function confirmEndLive() {
+    if (!onEndLive || endingLive) return;
+    endingLive = true;
+    showEndLiveConfirm = false;
+    void Promise.resolve(onEndLive()).finally(() => {
+      endingLive = false;
+    });
   }
 </script>
 
@@ -118,10 +142,19 @@
   <PreConnectFrame
     title={frameTitle}
     subtitle={frameSubtitle}
-    {scheduleLine}
     statusLabel={broadcastStatusLabel}
     statusTone={canStartBroadcast ? "prep" : session.joinAccess?.status === "live" ? "live" : "default"}
   >
+    {#snippet schedule()}
+      {#if session.joinAccess}
+        <LiveClassScheduleChip
+          startsAt={session.joinAccess.startsAt}
+          endsAt={session.joinAccess.joinClosesAt}
+          nowMs={queryNow.nowMs}
+          variant="inline"
+        />
+      {/if}
+    {/snippet}
   {#if session.status === "locked"}
     <PreConnectState
       title={t.live.preConnect.lockedTitle()}
@@ -189,12 +222,25 @@
           </div>
         </div>
       {:else if session.isClassHost && broadcastAlreadyLive}
-        <p class="prep-notice prep-notice--live" role="status">
-          {t.live.preConnect.reenterLiveNotice()}
-        </p>
+        <div class="prep-live-bar" role="status">
+          <p class="prep-notice prep-notice--live">{t.live.preConnect.reenterLiveNotice()}</p>
+          {#if showEndLiveOnPreconnect}
+            <div class="prep-live-bar__end">
+              <Button.Root
+                class="hb-button hb-button--danger hb-button--md"
+                type="button"
+                disabled={endingLive}
+                onclick={openEndLiveConfirm}
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>
+                {t.live.room.leaveEndLive()}
+              </Button.Root>
+            </div>
+          {/if}
+        </div>
       {/if}
 
-      {#if session.mediaError && !isJoining}
+      {#if showPreconnectMediaError}
         <p class="entry-error" role="alert">{session.mediaError}</p>
       {/if}
 
@@ -228,22 +274,18 @@
                   joinLabel={primaryJoinLabel}
                   joinIcon={primaryJoinIcon}
                   joinButtonClass={primaryJoinButtonClass}
+                  secondaryJoinLabel={!isJoining ? secondaryJoinLabel : ""}
+                  onSecondaryJoin={() => void session.enterWithoutDevicesFromPreJoin({ isPrep })}
                   micLabel={t.live.preConnect.micLabel()}
                   camLabel={t.live.preConnect.cameraLabel()}
+                  noDeviceLabel={t.live.preConnect.noDeviceAvailable()}
+                  speakerLabel={t.live.preConnect.speakerLabel()}
+                  speakerHintSupported={t.live.preConnect.speakerHintSupported()}
+                  speakerHintUnsupported={t.live.preConnect.speakerHintUnsupported()}
+                  cameraNotFoundToast={t.live.preConnect.cameraNotFound()}
                   onSubmit={onPreJoinSubmit}
                   onError={onPreJoinError}
                 />
-                {#if !isJoining}
-                  <div class="prejoin-actions">
-                    <Button.Root
-                      class="hb-button hb-button--ghost"
-                      type="button"
-                      onclick={() => void session.enterWithoutDevicesFromPreJoin({ isPrep })}
-                    >
-                      {secondaryJoinLabel}
-                    </Button.Root>
-                  </div>
-                {/if}
               </div>
             </div>
           {:else}
@@ -256,22 +298,18 @@
                 joinLabel={primaryJoinLabel}
                 joinIcon={primaryJoinIcon}
                 joinButtonClass={primaryJoinButtonClass}
+                secondaryJoinLabel={!isJoining ? secondaryJoinLabel : ""}
+                onSecondaryJoin={() => void session.enterWithoutDevicesFromPreJoin({ isPrep })}
                 micLabel={t.live.preConnect.micLabel()}
                 camLabel={t.live.preConnect.cameraLabel()}
+                noDeviceLabel={t.live.preConnect.noDeviceAvailable()}
+                speakerLabel={t.live.preConnect.speakerLabel()}
+                speakerHintSupported={t.live.preConnect.speakerHintSupported()}
+                speakerHintUnsupported={t.live.preConnect.speakerHintUnsupported()}
+                cameraNotFoundToast={t.live.preConnect.cameraNotFound()}
                 onSubmit={onPreJoinSubmit}
                 onError={onPreJoinError}
               />
-              {#if !isJoining}
-                <div class="prejoin-actions prejoin-actions--center">
-                  <Button.Root
-                    class="hb-button hb-button--ghost"
-                    type="button"
-                    onclick={() => void session.enterWithoutDevicesFromPreJoin({ isPrep })}
-                  >
-                    {secondaryJoinLabel}
-                  </Button.Root>
-                </div>
-              {/if}
             </div>
           {/if}
         {:else}
@@ -282,22 +320,18 @@
               showUsername={false}
               persistUserChoices={true}
               joinLabel={t.live.preConnect.enterRoom()}
+              secondaryJoinLabel={!isJoining ? t.live.preConnect.enterWithoutDevices() : ""}
+              onSecondaryJoin={() => void session.enterWithoutDevicesFromPreJoin({ isPrep: false })}
               micLabel={t.live.preConnect.micLabel()}
               camLabel={t.live.preConnect.cameraLabel()}
+              noDeviceLabel={t.live.preConnect.noDeviceAvailable()}
+              speakerLabel={t.live.preConnect.speakerLabel()}
+              speakerHintSupported={t.live.preConnect.speakerHintSupported()}
+              speakerHintUnsupported={t.live.preConnect.speakerHintUnsupported()}
+              cameraNotFoundToast={t.live.preConnect.cameraNotFound()}
               onSubmit={onPreJoinSubmit}
               onError={onPreJoinError}
             />
-            {#if !isJoining}
-              <div class="prejoin-actions prejoin-actions--center">
-                <Button.Root
-                  class="hb-button hb-button--ghost"
-                  type="button"
-                  onclick={() => void session.enterWithoutDevicesFromPreJoin({ isPrep: false })}
-                >
-                  {t.live.preConnect.enterWithoutDevices()}
-                </Button.Root>
-              </div>
-            {/if}
           </div>
         {/if}
       </div>
@@ -324,6 +358,8 @@
     <InstructorJoinRoster {liveClassId} nowMs={queryNow.nowMs} />
   {/if}
 </div>
+
+<EndLiveConfirm bind:open={showEndLiveConfirm} pending={endingLive} onConfirm={confirmEndLive} />
 
 <style>
   .preconnect-layout {
@@ -382,8 +418,35 @@
   }
 
   .prep-notice--live {
-    border-color: var(--border-color);
+    margin: 0;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--foreground-muted);
+  }
+
+  .prep-live-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
     background: var(--muted);
+    direction: rtl;
+  }
+
+  .prep-live-bar__end {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+
+  .prep-live-bar__end .material-symbols-rounded {
+    --icon-size: 1.125rem;
   }
 
   .prep-callout {
@@ -557,15 +620,6 @@
 
   .prejoin-layout :global(.prejoin-layout__prefab.lk-prejoin) {
     width: 100%;
-  }
-
-  .prejoin-actions {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .prejoin-actions--center {
-    justify-items: center;
   }
 
   .entry-retry {

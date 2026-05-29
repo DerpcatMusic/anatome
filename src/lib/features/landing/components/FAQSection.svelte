@@ -20,7 +20,9 @@
 
 <section class="l-panel l-section section--faq" aria-label="שאלות נפוצות">
   <div class="l-shell">
-    <h2 class="section-title l-in">{t.landing.faq.headline()}</h2>
+    <header class="section-head section-head--center l-in">
+      <h2 class="section-title">{t.landing.faq.headline()}</h2>
+    </header>
 
     <div class="faq">
       {#each items as item, index (item.question)}

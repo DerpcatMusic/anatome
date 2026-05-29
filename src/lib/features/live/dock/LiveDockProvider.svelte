@@ -47,6 +47,13 @@
     void goto(session.isInstructorRoom ? "/i/calendar" : "/u/calendar");
   };
 
+  session.onExitAfterDisconnect = () => {
+    void session.requestSessionEnd().finally(() => {
+      dock.finishSession();
+      void goto(session.isInstructorRoom ? "/i/calendar" : "/u/calendar");
+    });
+  };
+
   function ensureInstructorPipIfNeeded() {
     if (!session.isInstructorRoom) return;
     if (isLiveRoomPath(pathname)) return;

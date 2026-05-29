@@ -55,6 +55,7 @@ export const issueJoin = action({
       joinClosesAt: join.joinClosesAt,
       classTitle: join.classTitle,
       instructorName: join.instructorName,
+      instructorUserId: join.instructorUserId,
       liveClassType: join.liveClassType,
     };
   },

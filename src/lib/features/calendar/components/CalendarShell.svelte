@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { Button, ToggleGroup } from "bits-ui";
   import PageShell from "$features/app/components/PageShell.svelte";
   import { api } from "$convex/_generated/api";
@@ -18,25 +19,36 @@
     type TypeFilter,
   } from "../lib/agenda";
   import {
+    CALENDAR_INITIAL_DAYS,
+    CALENDAR_LOAD_MORE_DAYS,
+    agendaRangeEndForLoadedDays,
     canLoadMoreAgendaRange,
-    initialAgendaRangeEnd,
-    maxAgendaRangeEnd,
-    nextAgendaRangeEnd,
+    maxAgendaDays,
   } from "../lib/calendar-range";
   import { startOfLocalDay } from "$lib/datetime/local";
+  import { bucketQueryNowMs, QUERY_NOW_CALENDAR_BUCKET_MS } from "$lib/convex/queryClockBucket";
   import { useQueryNowMs } from "$lib/convex/queryClock.svelte";
+  import { getAppContext } from "$features/app/context/appContext";
+  import { getCachedRole } from "$lib/auth/session.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { CREDITS_PURCHASE_ENABLED } from "$lib/features/subscriptions/featureFlags";
   import { convexMutationErrorMessage } from "$lib/convex/errors";
   import CreditCostTooltip from "$lib/features/credits/CreditCostTooltip.svelte";
+  import CancelReservationDialog from "./CancelReservationDialog.svelte";
+  import type { CalendarClass } from "../lib/agenda";
 
-  const agendaRangeStart = $derived(startOfLocalDay());
-  let agendaRangeEnd = $state(initialAgendaRangeEnd(startOfLocalDay(), "all"));
-  const queryNow = useQueryNowMs();
+  /** Stable for this page visit — avoids re-query when unrelated reactive state updates. */
+  const agendaRangeStart = startOfLocalDay();
+  let loadedAgendaDays = $state(CALENDAR_INITIAL_DAYS);
+  const queryNow = useQueryNowMs(QUERY_NOW_CALENDAR_BUCKET_MS);
   const nowMs = $derived(queryNow.nowMs);
+  const calendarNowMs = $derived(bucketQueryNowMs(nowMs));
+  let calendarHasLoaded = $state(false);
   let actionId = $state<string | null>(null);
   let actionError = $state("");
+  let cancelDialogOpen = $state(false);
+  let cancelTarget = $state<CalendarClass | null>(null);
   let oneOnOneModalOpen = $state(false);
   let oneOnOneModalPending = $state(false);
   let oneOnOneModalInitialDay = $state<number | null>(null);
@@ -49,21 +61,22 @@
 
   const auth = initAuth();
   const client = useConvexClient();
+  const appContext = getAppContext();
 
-  const profileQuery = useQuery(api.profiles.viewer.get, () =>
-    canRunAuthenticatedQuery() ? {} : "skip",
+  const isCustomer = $derived.by(() => {
+    const role = appContext.role ?? getCachedRole();
+    return role === "customer";
+  });
+
+  const agendaRangeEnd = $derived(
+    agendaRangeEndForLoadedDays(agendaRangeStart, typeFilter, loadedAgendaDays),
   );
-  const isCustomer = $derived(profileQuery.data?.role === "customer");
 
   $effect(() => {
-    const start = agendaRangeStart;
     const filter = typeFilter;
-    const minEnd = initialAgendaRangeEnd(start, filter);
-    const maxEnd = maxAgendaRangeEnd(start, filter);
-    let next = agendaRangeEnd;
-    if (next < minEnd) next = minEnd;
-    if (next > maxEnd) next = maxEnd;
-    if (next !== agendaRangeEnd) agendaRangeEnd = next;
+    untrack(() => {
+      loadedAgendaDays = Math.min(CALENDAR_INITIAL_DAYS, maxAgendaDays(filter));
+    });
   });
 
   const query = useQuery(api.live.calendar.listRange, () =>
@@ -71,7 +84,7 @@
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
-          now: nowMs,
+          now: calendarNowMs,
         }
       : "skip",
   );
@@ -81,7 +94,7 @@
       ? {
           from: agendaRangeStart,
           to: agendaRangeEnd,
-          now: nowMs,
+          now: calendarNowMs,
         }
       : "skip",
   );
@@ -103,7 +116,7 @@
   const allAgendaEntries = $derived(buildAgendaEntries(classes, dayWindows, typeFilter));
 
   const displayAgendaEntries = $derived(
-    filterUpcomingAvailable(allAgendaEntries, nowMs),
+    filterUpcomingAvailable(allAgendaEntries, calendarNowMs),
   );
 
   const agendaGroups = $derived(groupAgendaByDay(displayAgendaEntries));
@@ -132,14 +145,14 @@
 
   function loadMoreAgenda() {
     if (!canLoadMore || rangeExtendLock) return;
-    const next = nextAgendaRangeEnd(agendaRangeEnd, agendaRangeStart, typeFilter);
-    if (next <= agendaRangeEnd) return;
+    const maxDays = maxAgendaDays(typeFilter);
+    if (loadedAgendaDays >= maxDays) return;
     rangeExtendLock = true;
-    agendaRangeEnd = next;
+    loadedAgendaDays = Math.min(loadedAgendaDays + CALENDAR_LOAD_MORE_DAYS, maxDays);
   }
 
   $effect(() => {
-    if (!query.isLoading && !dayAvailabilityQuery.isLoading) {
+    if (query.data !== undefined && !query.isLoading) {
       rangeExtendLock = false;
     }
   });
@@ -164,11 +177,20 @@
     }
   }
 
-  async function cancel(liveClassId: Id<"liveClasses">) {
+  function requestCancelReservation(item: CalendarClass) {
+    cancelTarget = item;
+    cancelDialogOpen = true;
+  }
+
+  async function confirmCancelReservation() {
+    if (cancelTarget === null) return;
+    const liveClassId = cancelTarget.liveClass._id;
     actionId = liveClassId;
     actionError = "";
     try {
       await client.mutation(api.live.reservation.cancel, { liveClassId });
+      cancelDialogOpen = false;
+      cancelTarget = null;
     } catch (reason) {
       actionError = convexMutationErrorMessage(reason, t.calendar.error.cancel());
     } finally {
@@ -223,8 +245,25 @@
       actionError) ||
       null,
   );
-  const loading = $derived(
-    query.isLoading || (isCustomer && (dayAvailabilityQuery.isLoading || pendingRequestsQuery.isLoading)),
+  const waitingForAuth = $derived(auth.isAuthenticated && !canRunAuthenticatedQuery());
+
+  $effect(() => {
+    if (query.data !== undefined) calendarHasLoaded = true;
+  });
+
+  const pageLoading = $derived(
+    auth.isLoading ||
+      waitingForAuth ||
+      (canRunAuthenticatedQuery() && !calendarHasLoaded && query.isLoading),
+  );
+
+  /** Avoid opacity flicker on Convex cache refresh; only show while extending range or first 1:1 load. */
+  const agendaRefreshing = $derived(
+    rangeExtendLock ||
+      (isCustomer &&
+        query.data !== undefined &&
+        dayAvailabilityQuery.data === undefined &&
+        dayAvailabilityQuery.isLoading),
   );
 
 
@@ -240,7 +279,7 @@
 
 <PageShell
   title={t.calendar.title()}
-  {loading}
+  loading={pageLoading}
   error={errorMessage}
 >
   {#snippet headerExtra()}
@@ -333,11 +372,11 @@
         {actionId}
         {typeFilter}
         {canLoadMore}
-        {loading}
+        loading={agendaRefreshing}
         nowMs={nowMs}
         onLoadMore={loadMoreAgenda}
         onReserve={reserve}
-        onCancel={cancel}
+        onCancel={requestCancelReservation}
         onOpenOneOnOneRequest={showOneOnOneRequest ? (day) => openOneOnOneModal(day) : undefined}
         onBuyCredits={CREDITS_PURCHASE_ENABLED ? goBuyCredits : undefined}
       />
@@ -351,6 +390,16 @@
       initialDay={oneOnOneModalInitialDay}
       pending={oneOnOneModalPending}
       onSubmit={submitOneOnOneRequest}
+    />
+  {/if}
+
+  {#if cancelTarget}
+    <CancelReservationDialog
+      bind:open={cancelDialogOpen}
+      classTitle={cancelTarget.liveClass.title}
+      creditCost={cancelTarget.liveClass.creditCost}
+      pending={actionId === cancelTarget.liveClass._id}
+      onConfirm={() => void confirmCancelReservation()}
     />
   {/if}
 </PageShell>

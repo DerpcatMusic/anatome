@@ -3,6 +3,7 @@
 @import "./app-route-transition.css";
 @import "./reset.css";
 @import "./tokens.css";
+@import "./typography.css";
 @import "./utilities.css";
 @import "./ui.css";
 @import "./components.css";
@@ -166,23 +167,26 @@ h1, h2, h3, p {
 }
 
 h1 {
-  font-size: var(--step-4);
-  line-height: 1.0;
-  letter-spacing: -0.03em;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
   font-weight: 800;
+  text-wrap: balance;
 }
 
 h2 {
-  font-size: var(--step-3);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
   font-weight: 700;
+  text-wrap: balance;
 }
 
 h3 {
-  font-size: var(--step-2);
-  line-height: 1.1;
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
   font-weight: 700;
+  text-wrap: balance;
 }
 
 /* ─── Hero ─── */
@@ -197,8 +201,8 @@ h3 {
 
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: var(--step--1);
-  letter-spacing: 0.1em;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--foreground-muted);
   margin-bottom: var(--space-5);
@@ -206,10 +210,11 @@ h3 {
 
 .lead {
   margin-top: var(--space-5);
-  font-size: var(--step-1);
+  font-size: var(--text-md);
   color: var(--foreground-muted);
-  line-height: 1.6;
-  max-width: 44ch;
+  line-height: var(--leading-relaxed);
+  max-width: 48ch;
+  text-wrap: pretty;
 }
 
 .hero__actions {
@@ -258,7 +263,7 @@ h3 {
 
 .button--ink {
   background: var(--ink);
-  color: var(--white);
+  color: var(--primary-foreground);
   border-color: var(--ink);
 }
 

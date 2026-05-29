@@ -120,10 +120,11 @@ export const LANDING_COPY_SECTIONS: LandingCopySectionDef[] = [
   },
   {
     id: "steps",
-    title: "איך מתחילים — 4 שלבים",
+    title: "איך מתחילים — 3 צעדים",
     order: 50,
     fields: [
       { slug: "landing.steps.headline", label: "כותרת המדור" },
+      { slug: "landing.steps.lead", label: "פסקת פתיחה" },
       { slug: "landing.steps.step1Title", label: "שלב 1 — כותרת" },
       { slug: "landing.steps.step1Desc", label: "שלב 1 — הסבר" },
       { slug: "landing.steps.step2Title", label: "שלב 2 — כותרת" },

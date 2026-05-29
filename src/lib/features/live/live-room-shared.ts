@@ -47,9 +47,12 @@ export function trackSource(publication: unknown): MediaSource {
   return "unknown";
 }
 
-export function isInstructorIdentity(identity: string) {
-  return identity.startsWith("instructor_") || identity.startsWith("admin_");
-}
+export {
+  isClassHostParticipant,
+  isInstructorIdentity,
+  subscribeToHostPublications,
+  userIdFromLiveKitIdentity,
+} from "./live-identity";
 
 /** Convex join/token paths throw this when profile equipment does not match the class. */
 export function isEquipmentJoinError(message: string): boolean {

@@ -7,6 +7,7 @@
 	import { tick } from 'svelte';
 	import { Button } from 'bits-ui';
 	import PreJoinMediaControl from './PreJoinMediaControl.svelte';
+	import PreJoinSpeakerControl from './PreJoinSpeakerControl.svelte';
 	import ParticipantPlaceholder from '../components/participant/ParticipantPlaceholder.svelte';
 	import type { LocalAudioTrack, LocalVideoTrack } from 'livekit-client';
 
@@ -20,8 +21,15 @@
 		joinIcon?: string;
 		/** Extra classes on the primary submit (e.g. start-live variant). */
 		joinButtonClass?: string;
+		secondaryJoinLabel?: string;
+		onSecondaryJoin?: () => void;
 		micLabel?: string;
 		camLabel?: string;
+		noDeviceLabel?: string;
+		speakerLabel?: string;
+		speakerHintSupported?: string;
+		speakerHintUnsupported?: string;
+		cameraNotFoundToast?: string;
 		userLabel?: string;
 		persistUserChoices?: boolean;
 		showUsername?: boolean;
@@ -36,8 +44,15 @@
 		joinLabel = 'Join Room',
 		joinIcon = 'sensors',
 		joinButtonClass = '',
+		secondaryJoinLabel = '',
+		onSecondaryJoin,
 		micLabel = 'Microphone',
 		camLabel = 'Camera',
+		noDeviceLabel = 'אין מכשיר זמין',
+		speakerLabel = 'רמקול',
+		speakerHintSupported = 'בחירת הרמקול תחול על שמע השיעור לאחר הכניסה.',
+		speakerHintUnsupported = 'הדפדפן לא תומך בבחירת רמקול — השמע יוצא למכשיר ברירת המחדל.',
+		cameraNotFoundToast = 'לא זוהתה מצלמה',
 		userLabel = 'Username',
 		persistUserChoices = true,
 		showUsername = true,
@@ -53,7 +68,12 @@
 		preventLoad: !persistUserChoices,
 	});
 
-	const { audioInputDevices, videoInputDevices, refresh: refreshDevices } = usePreJoinDevices();
+	const {
+		audioInputDevices,
+		videoInputDevices,
+		audioOutputDevices,
+		refresh: refreshDevices,
+	} = usePreJoinDevices();
 
 	let audioEnabled = $state<boolean>(initialUserChoices.audioEnabled);
 	let videoEnabled = $state<boolean>(initialUserChoices.videoEnabled);
@@ -63,6 +83,21 @@
 
 	let tracks = $state<Array<LocalAudioTrack | LocalVideoTrack>>([]);
 	let videoEl = $state<HTMLVideoElement | null>(null);
+	let centerToast = $state('');
+	let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function showCenterToast(message: string) {
+		centerToast = message;
+		clearTimeout(toastTimer);
+		toastTimer = setTimeout(() => {
+			centerToast = '';
+		}, 4500);
+	}
+
+	function isDeviceNotFoundError(err: unknown) {
+		if (!(err instanceof DOMException)) return false;
+		return err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError';
+	}
 
 	async function setAudioEnabled(enabled: boolean) {
 		audioEnabled = enabled;
@@ -70,14 +105,25 @@
 	}
 
 	async function setVideoEnabled(enabled: boolean) {
+		if (enabled) {
+			await refreshDevices(true);
+			if (videoInputDevices.length === 0) {
+				showCenterToast(cameraNotFoundToast);
+				videoEnabled = false;
+				return;
+			}
+		}
 		videoEnabled = enabled;
-		if (enabled) await refreshDevices(true);
 	}
 
 	$effect(() => {
 		if (audioEnabled || videoEnabled) {
 			void refreshDevices(true);
 		}
+	});
+
+	$effect(() => {
+		return () => clearTimeout(toastTimer);
 	});
 
 	// Preview tracks — re-run when toggles or device ids change.
@@ -110,10 +156,14 @@
 					createdTracks.forEach((t) => t.stop());
 				}
 			} catch (err) {
-				if (isCurrent) {
-					if (err instanceof Error) onError?.(err);
-					else log.error(err);
+				if (!isCurrent) return;
+				if (isDeviceNotFoundError(err) && video) {
+					showCenterToast(cameraNotFoundToast);
+					videoEnabled = false;
+					return;
 				}
+				if (err instanceof Error) onError?.(err);
+				else log.error(err);
 			}
 		}
 
@@ -147,7 +197,6 @@
 		};
 	});
 
-	// Debounced persistence (single writer — see usePersistentUserChoices)
 	$effect(() => {
 		saveUserChoices({
 			audioEnabled,
@@ -201,54 +250,81 @@
 				<ParticipantPlaceholder />
 			</div>
 		{/if}
-	</div>
-
-	<div class="lk-prejoin__controls">
-		<PreJoinMediaControl
-			kind="mic"
-			label={micLabel}
-			enabled={audioEnabled}
-			devices={audioInputDevices}
-			selectedDeviceId={audioDeviceId}
-			onToggle={(enabled) => void setAudioEnabled(enabled)}
-			onSelectDevice={(id) => {
-				audioDeviceId = id;
-			}}
-		/>
-		<PreJoinMediaControl
-			kind="camera"
-			label={camLabel}
-			enabled={videoEnabled}
-			devices={videoInputDevices}
-			selectedDeviceId={videoDeviceId}
-			onToggle={(enabled) => void setVideoEnabled(enabled)}
-			onSelectDevice={(id) => {
-				videoDeviceId = id;
-			}}
-		/>
-	</div>
-
-	<form class="lk-prejoin__form" onsubmit={handleSubmit}>
-		{#if showUsername}
-			<input
-				class="lk-prejoin__input"
-				id="username"
-				name="username"
-				type="text"
-				bind:value={username}
-				placeholder={userLabel}
-				autocomplete="off"
-			/>
+		{#if centerToast}
+			<div class="lk-prejoin__center-toast" role="alert">
+				<p>{centerToast}</p>
+			</div>
 		{/if}
-		<Button.Root
-			class="hb-button hb-button--primary hb-button--md lk-prejoin__join {joinButtonClass}"
-			type="submit"
-			disabled={!isValid}
-		>
-			<span class="material-symbols-rounded" aria-hidden="true">{joinIcon}</span>
-			{joinLabel}
-		</Button.Root>
-	</form>
+	</div>
+
+	<div class="lk-prejoin__footer" dir="rtl">
+		<div class="lk-prejoin__footer-controls">
+			<PreJoinMediaControl
+				kind="mic"
+				label={micLabel}
+				{noDeviceLabel}
+				enabled={audioEnabled}
+				devices={audioInputDevices}
+				selectedDeviceId={audioDeviceId}
+				onToggle={(enabled) => void setAudioEnabled(enabled)}
+				onSelectDevice={(id) => {
+					audioDeviceId = id;
+				}}
+			/>
+			<PreJoinMediaControl
+				kind="camera"
+				label={camLabel}
+				{noDeviceLabel}
+				enabled={videoEnabled}
+				devices={videoInputDevices}
+				selectedDeviceId={videoDeviceId}
+				onToggle={(enabled) => void setVideoEnabled(enabled)}
+				onSelectDevice={(id) => {
+					videoDeviceId = id;
+				}}
+				onEnableFailed={() => showCenterToast(cameraNotFoundToast)}
+			/>
+			<PreJoinSpeakerControl
+				label={speakerLabel}
+				{speakerHintSupported}
+				{speakerHintUnsupported}
+				devices={audioOutputDevices}
+			/>
+		</div>
+
+		<div class="lk-prejoin__footer-join">
+			<form class="lk-prejoin__form" onsubmit={handleSubmit}>
+				{#if showUsername}
+					<input
+						class="lk-prejoin__input"
+						id="username"
+						name="username"
+						type="text"
+						bind:value={username}
+						placeholder={userLabel}
+						autocomplete="off"
+					/>
+				{/if}
+				<Button.Root
+					class="hb-button hb-button--primary hb-button--md lk-prejoin__join {joinButtonClass}"
+					type="submit"
+					disabled={!isValid}
+				>
+					<span class="material-symbols-rounded" aria-hidden="true">{joinIcon}</span>
+					{joinLabel}
+				</Button.Root>
+			</form>
+			{#if secondaryJoinLabel && onSecondaryJoin}
+				<Button.Root
+					class="hb-button hb-button--ghost lk-prejoin__secondary"
+					type="button"
+					onclick={onSecondaryJoin}
+				>
+					{secondaryJoinLabel}
+				</Button.Root>
+			{/if}
+		</div>
+	</div>
 </div>
 
 <style>
@@ -273,7 +349,7 @@
 		margin-inline: auto;
 		aspect-ratio: 16 / 9;
 		background: var(--muted);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-lg);
 		overflow: hidden;
 		position: relative;
 	}
@@ -292,12 +368,52 @@
 		place-items: center;
 	}
 
-	.lk-prejoin__controls {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3);
-		justify-content: flex-start;
+	.lk-prejoin__center-toast {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		display: grid;
+		place-items: center;
+		padding: var(--space-4);
+		pointer-events: none;
+	}
+
+	.lk-prejoin__center-toast p {
+		margin: 0;
+		max-width: 26ch;
+		padding: var(--space-3) var(--space-4);
+		border-radius: var(--radius-md);
+		background: color-mix(in oklch, var(--foreground) 88%, transparent);
+		color: var(--background);
+		font-size: var(--step--1);
+		font-weight: 700;
+		text-align: center;
+		line-height: 1.45;
+		box-shadow: var(--shadow-md);
 		direction: rtl;
+	}
+
+	.lk-prejoin__footer {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+		gap: clamp(var(--space-3), 3vw, var(--space-5));
+		align-items: start;
+		width: 100%;
+		max-width: 720px;
+		margin-inline: auto;
+	}
+
+	.lk-prejoin__footer-controls {
+		display: grid;
+		gap: var(--space-2);
+		min-width: 0;
+	}
+
+	.lk-prejoin__footer-join {
+		display: grid;
+		gap: var(--space-3);
+		align-content: start;
+		min-width: 0;
 	}
 
 	.lk-prejoin__form {
@@ -305,8 +421,6 @@
 		flex-direction: column;
 		gap: var(--space-3);
 		width: 100%;
-		max-width: 22rem;
-		margin-inline: auto;
 	}
 
 	.lk-prejoin__input {
@@ -338,10 +452,18 @@
 		--icon-size: 1.25rem;
 	}
 
+	.lk-prejoin__secondary {
+		width: 100%;
+		justify-content: center;
+	}
+
 	@media (max-width: 40rem) {
-		.lk-prejoin__controls {
-			flex-direction: column;
-			align-items: stretch;
+		.lk-prejoin__footer {
+			grid-template-columns: 1fr;
+		}
+
+		.lk-prejoin__footer-join {
+			order: -1;
 		}
 	}
 </style>

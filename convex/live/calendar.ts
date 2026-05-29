@@ -14,6 +14,7 @@ import { LIMITS } from "../lib/constants";
 import { isInLiveJoinWindow } from "../lib/liveJoin";
 import { loadInstructorProfiles } from "../lib/instructorProfile";
 import {
+  findViewerLiveReservationFromRows,
   isValidLiveReservation,
   viewerCanSeeLiveClass,
   viewerIsLiveStaff,
@@ -139,10 +140,6 @@ export const listRange = query({
             .query("liveReservations")
             .withIndex("by_userId_and_reservedAt", (q) => q.eq("userId", userId))
             .take(LIMITS.CALENDAR_RESERVATIONS);
-    const viewerReservationMap = new Map(
-      viewerReservations.map((r) => [r.liveClassId, r]),
-    );
-
     const memberProfiles =
       userId === null
         ? []
@@ -173,7 +170,10 @@ export const listRange = query({
         continue;
       }
       const seatsTaken = liveClass.seatsTaken ?? 0;
-      const viewerReservation = viewerReservationMap.get(liveClass._id) ?? null;
+      const viewerReservation = findViewerLiveReservationFromRows(
+        viewerReservations,
+        liveClass._id,
+      );
       const available =
         wallet === null
           ? 0
@@ -192,11 +192,7 @@ export const listRange = query({
       );
 
       const seatsRemaining = Math.max(0, liveClass.capacity - seatsTaken);
-      const hasValidReservation =
-        viewerReservationStatus !== null &&
-        viewerReservationStatus !== "cancelled" &&
-        viewerReservationStatus !== "refunded" &&
-        viewerReservationStatus !== "no_show";
+      const hasValidReservation = viewerReservation !== null;
 
       const inJoinWindow = isInLiveJoinWindow(liveClass, now);
       const isInstructor =
@@ -219,7 +215,7 @@ export const listRange = query({
         viewerReservationStatus,
         viewerCanReserve:
           userId !== null &&
-          viewerReservationStatus === null &&
+          !hasValidReservation &&
           (liveClass.status === "scheduled" || liveClass.status === "live") &&
           seatsTaken < liveClass.capacity &&
           viewerMissingEquipment.length === 0 &&

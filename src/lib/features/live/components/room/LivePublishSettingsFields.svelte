@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Select, Switch } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes.svelte";
+  import LiveBrowserMediaHints from "./LiveBrowserMediaHints.svelte";
   import type { LiveSessionPreConnect } from "$lib/features/live/live-session.svelte";
   import type {
     AudioPresetChoice,
@@ -25,9 +26,12 @@
 
   const { t } = useI18n();
 
-  let showAdvanced = $state(mode === "prep");
+  let showAdvanced = $state(true);
 
   const isInstructor = $derived(session.isInstructorRoom);
+  const advancedExpanded = $derived(mode === "compact" || showAdvanced);
+  const showAdvancedToggle = $derived(mode !== "compact");
+  const selectOverlayClass = "hb-select__content lr-select-overlay";
 
   const instructorResolutionOptions: { value: VideoResolutionChoice; label: string }[] = [
     { value: "1080p", label: "1080p (1920×1080)" },
@@ -77,6 +81,20 @@
     { value: "balanced", label: "מאוזן" },
   ];
 
+  function afterPublishFieldChange(syncResolution = false) {
+    if (session.selectedFramerate > 30 && session.simulcastEnabled) {
+      session.simulcastEnabled = false;
+    }
+    const canApplyLive =
+      session.inRoom && session.connectionState === "connected" && session.getClassId() !== null;
+    if (syncResolution && session.isInstructorRoom && canApplyLive) {
+      void session.syncPublishReceiveFromResolution();
+    }
+    if (canApplyLive) {
+      session.scheduleApplyPublishSettings();
+    }
+  }
+
   function applyPreset(name: "voice" | "standard" | "high" | "low") {
     if (name === "voice") {
       session.selectedResolution = "720p";
@@ -112,15 +130,26 @@
       session.degradationPreference = "balanced";
       session.simulcastEnabled = true;
     }
-    void session.syncPublishReceiveFromResolution();
+    afterPublishFieldChange(true);
   }
 </script>
 
 <div class="publish-fields" class:publish-fields--compact={mode === "compact"}>
+  {#if isInstructor}
+    <LiveBrowserMediaHints {session} />
+  {/if}
   {#if mode === "prep" && isInstructor}
     <p class="publish-fields__hint">{t.live.preConnect.publishPrepHint()}</p>
   {:else if mode === "compact" && isInstructor}
-    <p class="publish-fields__hint">{t.live.preConnect.publishInRoomHint()}</p>
+    <p class="publish-fields__hint">
+      {#if session.publishSettingsApplying}
+        מעדכנת איכות שידור…
+      {:else if session.activePublishVideoSource === "screen_share"}
+        ההגדרות חלות על שיתוף המסך (לא על מצלמה כבויה). שיתוף מחדש אחרי שינוי קודק/ביטרייט.
+      {:else}
+        שינויים חלים על השידור מיד (המצלמה עשויה להבהב לרגע).
+      {/if}
+    </p>
   {/if}
 
   {#if showPresets && isInstructor}
@@ -174,7 +203,7 @@
         value={String(session.selectedResolution)}
         onValueChange={(selected) => {
           session.selectedResolution = selected as VideoResolutionChoice;
-          void session.syncPublishReceiveFromResolution();
+          afterPublishFieldChange(true);
         }}
       >
         <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.resolutionLabel()}>
@@ -184,7 +213,7 @@
           <span class="hb-select__chevron" aria-hidden="true"></span>
         </Select.Trigger>
         <Select.Portal>
-          <Select.Content class="hb-select__content" sideOffset={6}>
+          <Select.Content class={selectOverlayClass} sideOffset={6}>
             <Select.Viewport class="hb-select__viewport">
               {#each resolutionOptions as option (option.value)}
                 <Select.Item class="hb-select__item" value={option.value} label={option.label}>
@@ -204,12 +233,65 @@
 
     {#if isInstructor}
       <div class="hb-field hb-field--stacked">
+        <span class="hb-field__label">{t.live.preConnect.subscriberReceiveTitle()}</span>
+        <p class="publish-fields__codec-note">{t.live.preConnect.subscriberReceiveHint()}</p>
+        <Select.Root
+          type="single"
+          value={session.subscriberReceivePreset}
+          onValueChange={(selected) => {
+            void session.setSubscriberReceivePreset(selected as import("$lib/features/live/types").SubscriberReceivePreset);
+          }}
+        >
+          <Select.Trigger
+            class="hb-select__trigger"
+            aria-label={t.live.preConnect.subscriberReceiveTitle()}
+          >
+            <span class="hb-select__value">
+              {#if session.subscriberReceivePreset === "low"}
+                {t.live.preConnect.subscriberReceiveLow()} — {t.live.preConnect.subscriberReceiveLowDesc()}
+              {:else if session.subscriberReceivePreset === "high"}
+                {t.live.preConnect.subscriberReceiveHigh()} — {t.live.preConnect.subscriberReceiveHighDesc()}
+              {:else}
+                {t.live.preConnect.subscriberReceiveMedium()} — {t.live.preConnect.subscriberReceiveMediumDesc()}
+              {/if}
+            </span>
+            <span class="hb-select__chevron" aria-hidden="true"></span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class={selectOverlayClass} sideOffset={6}>
+              <Select.Viewport class="hb-select__viewport">
+                <Select.Item class="hb-select__item" value="low" label={t.live.preConnect.subscriberReceiveLow()}>
+                  {#snippet children({ selected })}
+                    <span>{t.live.preConnect.subscriberReceiveLow()} — {t.live.preConnect.subscriberReceiveLowDesc()}</span>
+                    {#if selected}<span class="hb-select__check" aria-hidden="true"></span>{/if}
+                  {/snippet}
+                </Select.Item>
+                <Select.Item class="hb-select__item" value="medium" label={t.live.preConnect.subscriberReceiveMedium()}>
+                  {#snippet children({ selected })}
+                    <span>{t.live.preConnect.subscriberReceiveMedium()} — {t.live.preConnect.subscriberReceiveMediumDesc()}</span>
+                    {#if selected}<span class="hb-select__check" aria-hidden="true"></span>{/if}
+                  {/snippet}
+                </Select.Item>
+                <Select.Item class="hb-select__item" value="high" label={t.live.preConnect.subscriberReceiveHigh()}>
+                  {#snippet children({ selected })}
+                    <span>{t.live.preConnect.subscriberReceiveHigh()} — {t.live.preConnect.subscriberReceiveHighDesc()}</span>
+                    {#if selected}<span class="hb-select__check" aria-hidden="true"></span>{/if}
+                  {/snippet}
+                </Select.Item>
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+      </div>
+
+      <div class="hb-field hb-field--stacked">
         <span class="hb-field__label">{t.live.preConnect.codecLabel()}</span>
         <Select.Root
           type="single"
           value={String(session.selectedCodec)}
           onValueChange={(selected) => {
             session.selectedCodec = selected as VideoCodecChoice;
+            afterPublishFieldChange();
           }}
         >
           <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.codecLabel()}>
@@ -219,7 +301,7 @@
             <span class="hb-select__chevron" aria-hidden="true"></span>
           </Select.Trigger>
           <Select.Portal>
-            <Select.Content class="hb-select__content" sideOffset={6}>
+            <Select.Content class={selectOverlayClass} sideOffset={6}>
               <Select.Viewport class="hb-select__viewport">
                 {#each codecOptions as option (option.value)}
                   <Select.Item class="hb-select__item" value={option.value} label={option.label}>
@@ -245,6 +327,7 @@
           value={String(session.selectedBitrateMbps)}
           onValueChange={(selected) => {
             session.selectedBitrateMbps = Number(selected) as BitrateChoice;
+            afterPublishFieldChange();
           }}
         >
           <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.bitrateLabel()}>
@@ -254,9 +337,44 @@
             <span class="hb-select__chevron" aria-hidden="true"></span>
           </Select.Trigger>
           <Select.Portal>
-            <Select.Content class="hb-select__content" sideOffset={6}>
+            <Select.Content class={selectOverlayClass} sideOffset={6}>
               <Select.Viewport class="hb-select__viewport">
                 {#each bitrateOptions as option (option.value)}
+                  <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
+                    {#snippet children({ selected })}
+                      <span>{option.label}</span>
+                      {#if selected}
+                        <span class="hb-select__check" aria-hidden="true"></span>
+                      {/if}
+                    {/snippet}
+                  </Select.Item>
+                {/each}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+      </div>
+
+      <div class="hb-field hb-field--stacked">
+        <span class="hb-field__label">{t.live.preConnect.framerateLabel()}</span>
+        <Select.Root
+          type="single"
+          value={String(session.selectedFramerate)}
+          onValueChange={(selected) => {
+            session.selectedFramerate = Number(selected) as VideoFramerateChoice;
+            afterPublishFieldChange();
+          }}
+        >
+          <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.framerateLabel()}>
+            <span class="hb-select__value"
+              >{framerateOptions.find((o) => o.value === session.selectedFramerate)?.label ?? ""}</span
+            >
+            <span class="hb-select__chevron" aria-hidden="true"></span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class={selectOverlayClass} sideOffset={6}>
+              <Select.Viewport class="hb-select__viewport">
+                {#each framerateOptions as option (option.value)}
                   <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
                     {#snippet children({ selected })}
                       <span>{option.label}</span>
@@ -275,49 +393,17 @@
   </div>
 
   {#if isInstructor}
-    <button type="button" class="advanced-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
-      <span class="material-symbols-rounded" aria-hidden="true"
-        >{showAdvanced ? "expand_less" : "expand_more"}</span
-      >
-      <span>{t.live.preConnect.advancedSettingsLabel()}</span>
-    </button>
+    {#if showAdvancedToggle}
+      <button type="button" class="advanced-toggle" onclick={() => (showAdvanced = !showAdvanced)}>
+        <span class="material-symbols-rounded" aria-hidden="true"
+          >{showAdvanced ? "expand_less" : "expand_more"}</span
+        >
+        <span>{t.live.preConnect.advancedSettingsLabel()}</span>
+      </button>
+    {/if}
 
-    {#if showAdvanced}
-      <div class="publish-stack publish-stack--advanced">
-        <div class="hb-field hb-field--stacked">
-          <span class="hb-field__label">{t.live.preConnect.framerateLabel()}</span>
-          <Select.Root
-            type="single"
-            value={String(session.selectedFramerate)}
-            onValueChange={(selected) => {
-              session.selectedFramerate = Number(selected) as VideoFramerateChoice;
-            }}
-          >
-            <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.framerateLabel()}>
-              <span class="hb-select__value"
-                >{framerateOptions.find((o) => o.value === session.selectedFramerate)?.label ?? ""}</span
-              >
-              <span class="hb-select__chevron" aria-hidden="true"></span>
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Content class="hb-select__content" sideOffset={6}>
-                <Select.Viewport class="hb-select__viewport">
-                  {#each framerateOptions as option (option.value)}
-                    <Select.Item class="hb-select__item" value={String(option.value)} label={option.label}>
-                      {#snippet children({ selected })}
-                        <span>{option.label}</span>
-                        {#if selected}
-                          <span class="hb-select__check" aria-hidden="true"></span>
-                        {/if}
-                      {/snippet}
-                    </Select.Item>
-                  {/each}
-                </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
-          </Select.Root>
-        </div>
-
+    {#if advancedExpanded}
+      <div class="publish-stack publish-stack--advanced" class:publish-stack--advanced-flat={mode === "compact"}>
         <div class="hb-field hb-field--stacked">
           <span class="hb-field__label">{t.live.preConnect.audioLabel()}</span>
           <Select.Root
@@ -325,6 +411,7 @@
             value={String(session.selectedAudioPreset)}
             onValueChange={(selected) => {
               session.selectedAudioPreset = selected as AudioPresetChoice;
+              afterPublishFieldChange();
             }}
           >
             <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.audioLabel()}>
@@ -334,7 +421,7 @@
               <span class="hb-select__chevron" aria-hidden="true"></span>
             </Select.Trigger>
             <Select.Portal>
-              <Select.Content class="hb-select__content" sideOffset={6}>
+              <Select.Content class={selectOverlayClass} sideOffset={6}>
                 <Select.Viewport class="hb-select__viewport">
                   {#each audioOptions as option (option.value)}
                     <Select.Item class="hb-select__item" value={option.value} label={option.label}>
@@ -359,6 +446,7 @@
             value={String(session.degradationPreference)}
             onValueChange={(selected) => {
               session.degradationPreference = selected as DegradationPreferenceChoice;
+              afterPublishFieldChange();
             }}
           >
             <Select.Trigger class="hb-select__trigger" aria-label={t.live.preConnect.priorityLabel()}>
@@ -368,7 +456,7 @@
               <span class="hb-select__chevron" aria-hidden="true"></span>
             </Select.Trigger>
             <Select.Portal>
-              <Select.Content class="hb-select__content" sideOffset={6}>
+              <Select.Content class={selectOverlayClass} sideOffset={6}>
                 <Select.Viewport class="hb-select__viewport">
                   {#each priorityOptions as option (option.value)}
                     <Select.Item class="hb-select__item" value={option.value} label={option.label}>
@@ -392,6 +480,7 @@
               class="hb-switch__root"
               aria-label={t.live.preConnect.simulcastLabel()}
               bind:checked={session.simulcastEnabled}
+              onCheckedChange={() => afterPublishFieldChange()}
             >
               <Switch.Thumb class="hb-switch__thumb" />
             </Switch.Root>
@@ -402,6 +491,7 @@
               class="hb-switch__root"
               aria-label={t.live.preConnect.stereoLabel()}
               bind:checked={session.forceStereo}
+              onCheckedChange={() => afterPublishFieldChange()}
             >
               <Switch.Thumb class="hb-switch__thumb" />
             </Switch.Root>
@@ -507,6 +597,11 @@
   .publish-stack--advanced {
     padding-top: var(--space-2);
     border-top: 1px solid var(--border-color);
+  }
+
+  .publish-stack--advanced-flat {
+    padding-top: 0;
+    border-top: none;
   }
 
   .publish-fields :global(.hb-field--stacked) {

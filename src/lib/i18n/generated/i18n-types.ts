@@ -279,6 +279,10 @@ type RootTranslation = {
 			 */
 			headline: string
 			/**
+			 * ש​ל​ו​ש​ה​ ​צ​ע​ד​י​ם​ ​מ​ה​א​י​מ​י​י​ל​ ​ו​ע​ד​ ​ה​ש​ט​י​ח​.
+			 */
+			lead: string
+			/**
 			 * ה​ר​ש​מ​ה​ ​ל​ל​א​ ​ס​י​ס​מ​ה
 			 */
 			step1Title: string
@@ -1741,6 +1745,22 @@ type RootTranslation = {
 			 */
 			micLabel: string
 			/**
+			 * ר​מ​ק​ו​ל
+			 */
+			speakerLabel: string
+			/**
+			 * א​י​ן​ ​מ​כ​ש​י​ר​ ​ז​מ​י​ן
+			 */
+			noDeviceAvailable: string
+			/**
+			 * ב​ח​י​ר​ת​ ​ה​ר​מ​ק​ו​ל​ ​ת​ח​ו​ל​ ​ע​ל​ ​ש​מ​ע​ ​ה​ש​י​ע​ו​ר​ ​ל​א​ח​ר​ ​ה​כ​נ​י​ס​ה​.
+			 */
+			speakerHintSupported: string
+			/**
+			 * ה​ד​פ​ד​פ​ן​ ​ל​א​ ​ת​ו​מ​ך​ ​ב​ב​ח​י​ר​ת​ ​ר​מ​ק​ו​ל​ ​—​ ​ה​ש​מ​ע​ ​י​ו​צ​א​ ​ל​מ​כ​ש​י​ר​ ​ב​ר​י​ר​ת​ ​ה​מ​ח​ד​ל​.
+			 */
+			speakerHintUnsupported: string
+			/**
 			 * ר​מ​ת​ ​ש​מ​ע
 			 */
 			audioLevel: string
@@ -2363,6 +2383,7 @@ type RootTranslation = {
 			 * פ​ר​ו​פ​י​ל​ ​ש​י​ד​ו​ר
 			 */
 			sidebarPublish: string
+			sidebarActiveSource: string
 			/**
 			 * מ​ס​ל​ו​ל​י​ם​ ​פ​ע​י​ל​י​ם
 			 */
@@ -3119,6 +3140,10 @@ export type TranslationFunctions = {
 			 * איך מתחילים
 			 */
 			headline: () => LocalizedString
+			/**
+			 * שלושה צעדים מהאימייל ועד השטיח.
+			 */
+			lead: () => LocalizedString
 			/**
 			 * הרשמה ללא סיסמה
 			 */
@@ -4571,6 +4596,22 @@ export type TranslationFunctions = {
 			 */
 			micLabel: () => LocalizedString
 			/**
+			 * רמקול
+			 */
+			speakerLabel: () => LocalizedString
+			/**
+			 * אין מכשיר זמין
+			 */
+			noDeviceAvailable: () => LocalizedString
+			/**
+			 * בחירת הרמקול תחול על שמע השיעור לאחר הכניסה.
+			 */
+			speakerHintSupported: () => LocalizedString
+			/**
+			 * הדפדפן לא תומך בבחירת רמקול — השמע יוצא למכשיר ברירת המחדל.
+			 */
+			speakerHintUnsupported: () => LocalizedString
+			/**
 			 * רמת שמע
 			 */
 			audioLevel: () => LocalizedString
@@ -5188,6 +5229,7 @@ export type TranslationFunctions = {
 			 * פרופיל שידור
 			 */
 			sidebarPublish: () => LocalizedString
+			sidebarActiveSource: () => LocalizedString
 			/**
 			 * מסלולים פעילים
 			 */

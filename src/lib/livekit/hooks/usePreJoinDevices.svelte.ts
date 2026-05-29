@@ -4,16 +4,19 @@ import { Room } from "livekit-client";
 export function usePreJoinDevices() {
 	let audioInputDevices = $state<MediaDeviceInfo[]>([]);
 	let videoInputDevices = $state<MediaDeviceInfo[]>([]);
+	let audioOutputDevices = $state<MediaDeviceInfo[]>([]);
 
 	async function refresh(requestPermissions: boolean) {
 		if (typeof window === "undefined" || !navigator.mediaDevices) return;
 		try {
-			const [audio, video] = await Promise.all([
+			const [audio, video, output] = await Promise.all([
 				Room.getLocalDevices("audioinput", requestPermissions),
 				Room.getLocalDevices("videoinput", requestPermissions),
+				Room.getLocalDevices("audiooutput", false),
 			]);
 			audioInputDevices = audio;
 			videoInputDevices = video;
+			audioOutputDevices = output;
 		} catch {
 			/* PreJoin surfaces errors via createLocalTracks / onError */
 		}
@@ -39,6 +42,9 @@ export function usePreJoinDevices() {
 		},
 		get videoInputDevices() {
 			return videoInputDevices;
+		},
+		get audioOutputDevices() {
+			return audioOutputDevices;
 		},
 		refresh,
 	};

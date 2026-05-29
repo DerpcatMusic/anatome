@@ -14,13 +14,10 @@
   let { appProfile }: { appProfile: StaffProfile | null } = $props();
 </script>
 
-<div class="dashboard-home">
+<div class="dashboard-home dashboard-home--instructor">
   <InstructorCreateLiveCard />
-
-  <div class="dashboard-home__grid dashboard-home__grid--instructor">
-    <InstructorQuickUpload />
-    <InstructorUpcomingAgenda />
-  </div>
+  <InstructorUpcomingAgenda />
+  <InstructorQuickUpload />
 
   {#if appProfile}
     <ProfileSummary isStaff={true} {appProfile} showEditLink />

@@ -15,7 +15,7 @@ export type HealthDeclarationAnswers = {
   recentSurgery: "yes" | "no";
 };
 
-export type OnboardingCompleteInput = {
+export type MemberProfileFieldsInput = {
   firstName: string;
   lastName: string;
   equipment: string[];
@@ -23,6 +23,9 @@ export type OnboardingCompleteInput = {
   goals: readonly string[];
   pathologies: string[];
   notes: string;
+};
+
+export type OnboardingCompleteInput = MemberProfileFieldsInput & {
   healthDeclarationAnswers: HealthDeclarationAnswers;
   healthInfoConsent: boolean;
   healthDeclarationAccepted: boolean;
@@ -63,9 +66,11 @@ function normalizeNamePartHebrew(value: string, fieldLabel: string): string {
   return cleaned;
 }
 
-export function prepareOnboardingProfile(
-  args: OnboardingCompleteInput,
-): PreparedOnboardingProfile {
+export type PreparedMemberProfileFields = Omit<PreparedOnboardingProfile, "healthDeclarationAnswers">;
+
+export function prepareMemberProfileFields(
+  args: MemberProfileFieldsInput,
+): PreparedMemberProfileFields {
   const firstName = normalizeNamePartHebrew(args.firstName, "שם פרטי");
   const lastName = normalizeNamePartHebrew(args.lastName, "שם משפחה");
   const displayName = `${firstName} ${lastName}`.trim();
@@ -87,13 +92,30 @@ export function prepareOnboardingProfile(
   const pathologies = normalizePathologyList(args.pathologies);
   const notes = args.notes.trim().slice(0, RULES.MAX_ONBOARDING_NOTES_LENGTH);
 
+  return {
+    firstName,
+    lastName,
+    displayName,
+    equipment,
+    experience: args.experience,
+    goals,
+    pathologies,
+    notes,
+  };
+}
+
+export function prepareOnboardingProfile(
+  args: OnboardingCompleteInput,
+): PreparedOnboardingProfile {
+  const fields = prepareMemberProfileFields(args);
+
   if (!args.healthDeclarationAccepted) {
     throw new Error("יש לאשר את הצהרת הבריאות לפני שמירת הפרופיל.");
   }
 
   const sensitive = hasSensitiveHealthData({
-    pathologies,
-    notes,
+    pathologies: fields.pathologies,
+    notes: fields.notes,
     healthDeclarationAnswers: args.healthDeclarationAnswers,
   });
 
@@ -106,14 +128,7 @@ export function prepareOnboardingProfile(
   }
 
   return {
-    firstName,
-    lastName,
-    displayName,
-    equipment,
-    experience: args.experience,
-    goals,
-    pathologies,
-    notes,
+    ...fields,
     healthDeclarationAnswers: args.healthDeclarationAnswers,
   };
 }

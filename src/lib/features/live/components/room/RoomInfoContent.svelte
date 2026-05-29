@@ -29,6 +29,28 @@
     `${session.selectedResolution} · ${session.selectedFramerate}fps · ${session.selectedBitrateMbps}Mbps`,
   );
 
+  const activePublishLabel = $derived.by(() => {
+    switch (session.activePublishVideoSource) {
+      case "screen_share":
+        return t.live.stats.sourceScreen();
+      case "camera":
+        return t.live.stats.sourceCamera();
+      default:
+        return "—";
+    }
+  });
+
+  const subscriberReceiveLabel = $derived.by(() => {
+    switch (session.subscriberReceivePreset) {
+      case "low":
+        return t.live.preConnect.subscriberReceiveLow();
+      case "high":
+        return t.live.preConnect.subscriberReceiveHigh();
+      default:
+        return t.live.preConnect.subscriberReceiveMedium();
+    }
+  });
+
   $effect(() => {
     if (active) {
       void tick().then(() => session.refreshStreamStats());
@@ -63,6 +85,10 @@
         <h4 class="lr-info-section__title">{t.live.room.sidebarPublish()}</h4>
         <dl class="lr-info-dl">
           <div class="lr-info-dl__row">
+            <dt>{t.live.room.sidebarActiveSource()}</dt>
+            <dd>{activePublishLabel}</dd>
+          </div>
+          <div class="lr-info-dl__row">
             <dt>{t.live.preConnect.codecLabel()}</dt>
             <dd>{session.selectedCodec.toUpperCase()}</dd>
           </div>
@@ -70,6 +96,12 @@
             <dt>{t.live.preConnect.resolutionLabel()}</dt>
             <dd>{publishResolution}</dd>
           </div>
+          {#if session.isInstructorRoom}
+            <div class="lr-info-dl__row">
+              <dt>{t.live.preConnect.subscriberReceiveTitle()}</dt>
+              <dd>{subscriberReceiveLabel}</dd>
+            </div>
+          {/if}
           <div class="lr-info-dl__row">
             <dt>{t.live.preConnect.simulcastLabel()}</dt>
             <dd>{session.simulcastEnabled ? t.live.room.sidebarOn() : t.live.room.sidebarOff()}</dd>

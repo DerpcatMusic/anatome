@@ -1,0 +1,80 @@
+/* Semantic typography — product UI (fixed rem) + marketing overrides in landing.css */
+
+body {
+  font-size: var(--text-base);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+}
+
+/* App shell: task-first hierarchy, body family for headings */
+.page-shell,
+.dashboard-home {
+  --type-heading-family: var(--font-body);
+}
+
+.page-shell .page-title,
+.dashboard-panel__title,
+.dashboard-home :is(h2, h3) {
+  font-family: var(--type-heading-family);
+  text-wrap: balance;
+}
+
+.page-shell .kicker,
+.dashboard-panel__kicker {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: var(--leading-snug);
+}
+
+.page-shell .page-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+}
+
+.page-shell .description {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  max-width: 65ch;
+}
+
+.dashboard-home {
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+.dashboard-panel__title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+}
+
+.dashboard-panel__kicker {
+  font-size: var(--text-xs);
+}
+
+.dashboard-link {
+  font-size: var(--text-sm);
+}
+
+.instructor-agenda__when,
+.instructor-agenda__badge {
+  font-size: var(--text-xs);
+}
+
+.instructor-agenda__title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+.dashboard-panel__edit {
+  font-size: var(--text-xs);
+}
+
+.prose-measure {
+  max-width: 65ch;
+}

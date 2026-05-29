@@ -201,7 +201,16 @@ export class LiveSession extends LiveSessionLifecycle {
       isInstructorRoom: this.isInstructorRoom,
       selectedResolution: this.selectedResolution,
       joinAccess: this.joinAccess,
+      instructorUserId:
+        this.joinInfo?.instructorUserId ?? this.joinAccess?.instructorUserId ?? null,
     }),
+  );
+
+  readonly classHostUserId = $derived(
+    this.joinInfo?.instructorUserId ??
+      this.joinAccess?.instructorUserId ??
+      this.joinAccess?.broadcastStartedByUserId ??
+      null,
   );
 
   leave() {
@@ -221,6 +230,34 @@ export class LiveSession extends LiveSessionLifecycle {
       selectedVideoDevice: this.selectedVideoDevice,
       selectedAudioDevice: this.selectedAudioDevice,
     };
+    let roomEntered = false;
+
+    const enterRoomShell = (room: NonNullable<typeof this._room>) => {
+      if (roomEntered) return;
+      roomEntered = true;
+      this._room = room;
+      this.inRoom = true;
+      this.joiningLive = false;
+      this.needsManualReconnect = false;
+      this.status = "ready";
+
+      if (info.liveClassType === "group_live" && !this.isInstructorRoom) {
+        this.openChat();
+      }
+      if (this.isInstructorRoom) {
+        this.publishMicOnNextJoin = true;
+      }
+
+      void this.attachConnectedRoomListeners(room).then(() => {
+        this.registerChatHandler(room);
+        this.updateConnectionQualityFromRoom();
+        this.applySubscribePolicyToRoom();
+        this.startStatsTimer();
+        this.startTokenRefreshTimer();
+        void this.acquireWakeLock();
+      });
+      void this.refreshInRoomDevices().then(() => this.syncLocalMediaFromRoom());
+    };
 
     try {
       const result = await connectLiveSessionRoom({
@@ -233,6 +270,7 @@ export class LiveSession extends LiveSessionLifecycle {
           publishMic: this.publishMicOnNextJoin,
         },
         subscribe: this.subscribePolicy,
+        skipPrepareConnection: this.joinPrepareWsUrl === info.wsUrl,
         handlers: {
           onConnectionState: (state) => {
             this.connectionState = state;
@@ -248,13 +286,25 @@ export class LiveSession extends LiveSessionLifecycle {
             this.handleDisconnected(reason);
           },
           onReconnected: () => {
+            this.connectionState = "connected";
+            this.needsManualReconnect = false;
+            this.networkWarning = "";
             void this.refreshConnectionHealth();
             void this.restoreInstructorMicIfNeeded();
+            this.applySubscribePolicyToRoom();
+            this.startTokenRefreshTimer();
+            void this.acquireWakeLock();
+          },
+          onRoomReady: (room) => {
+            enterRoomShell(room);
+            this.syncLocalMediaFromRoom();
           },
         },
       });
 
-      this._room = result.room;
+      if (!roomEntered) {
+        enterRoomShell(result.room);
+      }
       this.selectedVideoDevice = devices.selectedVideoDevice;
       this.selectedAudioDevice = devices.selectedAudioDevice;
       this.cameraEnabled = result.cameraEnabled;
@@ -263,27 +313,8 @@ export class LiveSession extends LiveSessionLifecycle {
       if (!this.cameraEnabled && isCameraNotFoundMediaError(this.mediaError)) {
         this.mediaError = "";
       }
-      this.inRoom = true;
-      this.joiningLive = false;
-      this.needsManualReconnect = false;
-      this.status = "ready";
-
-      if (info.liveClassType === "group_live" && !this.isInstructorRoom) {
-        this.openChat();
-      }
-      if (this.isInstructorRoom) {
-        this.publishMicOnNextJoin = true;
-      }
-
       this.syncLocalMediaFromRoom();
-      await this.attachConnectedRoomListeners(result.room);
-      void this.refreshInRoomDevices().then(() => this.syncLocalMediaFromRoom());
-      this.registerChatHandler(result.room);
-      this.updateConnectionQualityFromRoom();
-      this.applySubscribePolicyToRoom();
-      this.startStatsTimer();
-      this.startTokenRefreshTimer();
-      void this.acquireWakeLock();
+      this.joinPrepareWsUrl = info.wsUrl;
     } catch (reason) {
       this.connectionState = "disconnected";
       this.inRoom = false;
@@ -317,6 +348,7 @@ export class LiveSession extends LiveSessionLifecycle {
       resolutionDimensions: (isInstructor) => this.resolutionDimensions(isInstructor),
       publishProfile: (isInstructor, VideoPreset, AudioPresets) =>
         this.publishProfile(isInstructor, VideoPreset, AudioPresets),
+      publishProfileInput: (isInstructor) => this.publishProfileInput(isInstructor),
     };
   }
 

@@ -54,17 +54,35 @@ export function viewerIsInstructorForClass(
   );
 }
 
+async function instructorDisplayNameForClass(
+  ctx: QueryCtx,
+  liveClass: Pick<Doc<"liveClasses">, "instructorUserId">,
+): Promise<string> {
+  const profile = await ctx.db
+    .query("appProfiles")
+    .withIndex("by_userId", (q) => q.eq("userId", liveClass.instructorUserId))
+    .take(1);
+  return profile[0]?.displayName?.trim() || "המדריכה";
+}
+
 function withBroadcastMeta(
   snapshot: Omit<
     JoinAccessSnapshot,
-    "isBroadcastLive" | "broadcastStartedByUserId" | "subscriberReceivePreset"
+    | "isBroadcastLive"
+    | "broadcastStartedByUserId"
+    | "subscriberReceivePreset"
+    | "instructorUserId"
+    | "instructorName"
   >,
   broadcast: Pick<JoinAccessSnapshot, "isBroadcastLive" | "broadcastStartedByUserId">,
-  liveClass: Doc<"liveClasses">,
+  liveClass: Pick<Doc<"liveClasses">, "instructorUserId" | "subscriberReceivePreset">,
+  instructorName: string,
 ): JoinAccessSnapshot {
   return {
     ...snapshot,
     ...broadcast,
+    instructorUserId: liveClass.instructorUserId,
+    instructorName,
     subscriberReceivePreset: liveClass.subscriberReceivePreset ?? "medium",
   };
 }
@@ -108,6 +126,7 @@ export async function resolveJoinAccess(
     );
     if (equipmentBlocked) {
       const broadcast = await broadcastMetaForClass(ctx, liveClassId, liveClass.status);
+      const blockedInstructorName = await instructorDisplayNameForClass(ctx, liveClass);
       return {
         classTitle: liveClass.title,
         snapshot: withBroadcastMeta(
@@ -124,6 +143,7 @@ export async function resolveJoinAccess(
           },
           broadcast,
           liveClass,
+          blockedInstructorName,
         ),
       };
     }
@@ -136,6 +156,7 @@ export async function resolveJoinAccess(
 
   const inWindow = isInLiveJoinWindow(liveClass, now);
   const broadcast = await broadcastMetaForClass(ctx, liveClassId, liveClass.status);
+  const instructorName = await instructorDisplayNameForClass(ctx, liveClass);
   const canEnter =
     inWindow &&
     liveClass.status !== "ended" &&
@@ -159,6 +180,7 @@ export async function resolveJoinAccess(
       },
       broadcast,
       liveClass,
+      instructorName,
     ),
   };
 }
