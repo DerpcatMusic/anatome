@@ -20,6 +20,9 @@ type ClassEventInput = {
   endsAt: number;
   status: string;
   requiredEquipment: string[];
+  seatsTaken?: number;
+  capacity?: number;
+  lobbyWaitingCount?: number;
 };
 
 export function buildLiveClassEventHtml(c: ClassEventInput): string {
@@ -35,6 +38,16 @@ export function buildLiveClassEventHtml(c: ClassEventInput): string {
   const metaParts: string[] = [];
   if (formattedTime) {
     metaParts.push(`<span class="event-time">${escapeCalendarHtml(formattedTime)}</span>`);
+  }
+  if (typeof c.seatsTaken === "number" && typeof c.capacity === "number") {
+    const seatsLine = `${c.seatsTaken}/${c.capacity} שמורות`;
+    const waiting =
+      typeof c.lobbyWaitingCount === "number" && c.lobbyWaitingCount > 0
+        ? ` · ${c.lobbyWaitingCount} ממתינות`
+        : "";
+    metaParts.push(
+      `<span class="event-seats">${escapeCalendarHtml(seatsLine + waiting)}</span>`,
+    );
   }
   if (equipmentHtml) {
     metaParts.push(equipmentHtml);

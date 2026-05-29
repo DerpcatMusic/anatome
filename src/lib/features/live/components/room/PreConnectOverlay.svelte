@@ -17,6 +17,8 @@
     isBroadcastActive,
     showHostPublishSettings,
   } from "$lib/features/live/lib/preconnect-ui";
+  import InstructorJoinRoster from "./InstructorJoinRoster.svelte";
+  import { QUERY_NOW_LIVE_ROOM_MS, useQueryNowMs } from "$lib/convex/queryClock.svelte";
 
   let {
     session: sessionProp,
@@ -31,6 +33,8 @@
 
   const session = $derived(resolveLiveSession(sessionProp, roomAlias, "PreConnectOverlay"));
   const { t } = useI18n();
+  const queryNow = useQueryNowMs(QUERY_NOW_LIVE_ROOM_MS);
+  const liveClassId = $derived(session.getClassId());
 
   const backHref = $derived(session.isInstructorRoom ? "/i/calendar" : "/u/calendar");
   const profileHref = $derived(session.isInstructorRoom ? "/i/profile" : "/u/profile");
@@ -110,13 +114,14 @@
   }
 </script>
 
-<PreConnectFrame
-  title={frameTitle}
-  subtitle={frameSubtitle}
-  {scheduleLine}
-  statusLabel={broadcastStatusLabel}
-  statusTone={canStartBroadcast ? "prep" : session.joinAccess?.status === "live" ? "live" : "default"}
->
+<div class="preconnect-layout" class:preconnect-layout--instructor={session.isClassHost}>
+  <PreConnectFrame
+    title={frameTitle}
+    subtitle={frameSubtitle}
+    {scheduleLine}
+    statusLabel={broadcastStatusLabel}
+    statusTone={canStartBroadcast ? "prep" : session.joinAccess?.status === "live" ? "live" : "default"}
+  >
   {#if session.status === "locked"}
     <PreConnectState
       title={t.live.preConnect.lockedTitle()}
@@ -315,7 +320,29 @@
   {/if}
 </PreConnectFrame>
 
+  {#if session.isClassHost && liveClassId}
+    <InstructorJoinRoster {liveClassId} nowMs={queryNow.nowMs} />
+  {/if}
+</div>
+
 <style>
+  .preconnect-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .preconnect-layout--instructor {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(22rem, 34vw);
+      align-items: stretch;
+    }
+  }
+
   .entry-stack {
     display: grid;
     gap: var(--space-4);

@@ -669,6 +669,9 @@
           endsAt: c.endsAt,
           status: c.status,
           requiredEquipment: c.requiredEquipment,
+          seatsTaken: c.rosterSummary?.seatsTaken,
+          capacity: c.rosterSummary?.capacity,
+          lobbyWaitingCount: c.rosterSummary?.lobbyWaitingCount,
         }),
       };
     },

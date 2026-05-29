@@ -309,6 +309,17 @@ export default defineSchema({
     .index("by_userId_and_reservedAt", ["userId", "reservedAt"])
     .index("by_walletId", ["walletId"]),
 
+  /** Pre-connect lobby presence (waiting for broadcast / device setup). */
+  liveLobbyPresence: defineTable({
+    liveClassId: v.id("liveClasses"),
+    userId: v.id("users"),
+    displayName: v.string(),
+    phase: v.union(v.literal("waiting_broadcast"), v.literal("device_setup")),
+    lastSeenAt: v.number(),
+  })
+    .index("by_liveClassId_and_userId", ["liveClassId", "userId"])
+    .index("by_liveClassId_and_lastSeenAt", ["liveClassId", "lastSeenAt"]),
+
   liveJoinEvents: defineTable({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),

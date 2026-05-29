@@ -12,6 +12,8 @@
   import JoinGate from "./ui/JoinGate.svelte";
   import Stage from "./ui/Stage.svelte";
   import ControlBarV2 from "./ui/ControlBarV2.svelte";
+  import InstructorJoinRoster from "$features/live/components/room/InstructorJoinRoster.svelte";
+  import { useLiveLobbyHeartbeat } from "$features/live/hooks/useLiveLobbyHeartbeat.svelte";
 
   const client = useConvexClient();
   const session = createLiveSessionV2(client);
@@ -28,6 +30,26 @@
     },
     get nowMs() {
       return queryNow.nowMs;
+    },
+  });
+
+  const isClassHost = $derived(join.joinAccess?.isInstructor === true);
+
+  useLiveLobbyHeartbeat({
+    get liveClassId() {
+      return liveClassId;
+    },
+    get nowMs() {
+      return queryNow.nowMs;
+    },
+    get status() {
+      return join.status;
+    },
+    get isInstructor() {
+      return isClassHost;
+    },
+    get inRoom() {
+      return session.inRoom;
     },
   });
 
@@ -125,7 +147,12 @@
         <p class="v2-room__error v2-room__error--banner">{session.mediaError}</p>
       {/if}
     {:else}
-      <JoinGate {join} onEnter={onEnter} {connecting} />
+      <div class="v2-preconnect" class:v2-preconnect--host={isClassHost}>
+        <JoinGate {join} onEnter={onEnter} {connecting} />
+        {#if isClassHost && liveClassId}
+          <InstructorJoinRoster {liveClassId} nowMs={queryNow.nowMs} />
+        {/if}
+      </div>
       {#if connectError}
         <p class="v2-room__error v2-room__error--block">{connectError}</p>
       {/if}
@@ -199,6 +226,23 @@
     display: grid;
     min-height: 0;
     overflow: hidden;
+  }
+
+  .v2-preconnect {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: 0;
+    overflow: auto;
+    padding: var(--space-4);
+  }
+
+  @media (min-width: 64rem) {
+    .v2-preconnect--host {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(22rem, 32vw);
+      align-items: start;
+    }
   }
 
   .v2-room__error {

@@ -328,13 +328,18 @@
   margin-top: auto;
 }
 
-.calendar-class-event-body .event-time {
+.calendar-class-event-body .event-time,
+.calendar-class-event-body .event-seats {
   font-family: var(--font-mono);
   font-size: var(--step--2);
   font-weight: 800;
   line-height: 1.2;
   opacity: 0.88;
   white-space: nowrap;
+}
+
+.calendar-class-event-body .event-seats {
+  color: var(--primary);
 }
 
 .ec-event.ec-event-type--group_live .calendar-class-event-body .event-time {

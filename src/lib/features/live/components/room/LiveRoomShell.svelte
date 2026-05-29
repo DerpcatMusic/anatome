@@ -18,12 +18,33 @@
   import SelfAudioMonitor from "./SelfAudioMonitor.svelte";
   import ConnectionStatusOverlay from "./ConnectionStatusOverlay.svelte";
   import { useConvexJoinToken } from "$lib/features/live/hooks/useConvexJoinToken.svelte";
+  import { useLiveLobbyHeartbeat } from "$lib/features/live/hooks/useLiveLobbyHeartbeat.svelte";
+  import { QUERY_NOW_LIVE_ROOM_MS, useQueryNowMs } from "$lib/convex/queryClock.svelte";
   import "$lib/features/live/styles/room.css";
   import "$lib/livekit/styles/livekit.css";
 
   const dock = getLiveDockContext();
   const session = dock.session;
   const { t } = useI18n();
+  const queryNow = useQueryNowMs(QUERY_NOW_LIVE_ROOM_MS);
+
+  useLiveLobbyHeartbeat({
+    get liveClassId() {
+      return session.getClassId();
+    },
+    get nowMs() {
+      return queryNow.nowMs;
+    },
+    get status() {
+      return session.status;
+    },
+    get isInstructor() {
+      return session.isInstructorRoom;
+    },
+    get inRoom() {
+      return session.inRoom;
+    },
+  });
 
   let participantCount = $state(0);
 

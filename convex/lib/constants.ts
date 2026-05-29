@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════════════════════════
 // Time constants (milliseconds)
 // ═══════════════════════════════════════════════════════════
+/** Lobby heartbeat older than this is ignored when listing waiting viewers. */
+export const LOBBY_PRESENCE_STALE_MS = 90_000;
+
 export const MS = {
   SECOND: 1_000,
   MINUTE: 60_000,

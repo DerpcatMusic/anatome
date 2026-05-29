@@ -25,6 +25,18 @@
 
   type CellProps = PinInputRootSnippetProps["cells"][0];
 
+  let pinInputEl = $state<HTMLInputElement | null>(null);
+
+  /** Strip spaces, dashes, etc. so paste works from SMS and email apps. */
+  function sanitizeOtpPaste(text: string) {
+    return text.replace(/\D/g, "");
+  }
+
+  $effect(() => {
+    if (method !== "code") return;
+    queueMicrotask(() => pinInputEl?.focus());
+  });
+
   function openEmailApp() {
     window.location.href = "mailto:";
   }
@@ -35,10 +47,13 @@
     <label class="hb-field__label" for="auth-code-input">{t.auth.codeLabel()}</label>
     <PinInput.Root
       bind:value={code}
+      bind:inputRef={pinInputEl}
       inputId="auth-code-input"
       maxlength={6}
       pattern={REGEXP_ONLY_DIGITS}
+      pasteTransformer={sanitizeOtpPaste}
       textalign="center"
+      autocomplete="one-time-code"
       onComplete={submitCode}
     >
       {#snippet children({ cells })}
@@ -125,6 +140,7 @@
   }
 
   :global(.otp-cell) {
+    position: relative;
     display: grid;
     place-items: center;
     width: 100%;
@@ -142,14 +158,42 @@
       transform 120ms ease;
   }
 
-  :global(.otp-cell[data-active="true"]) {
+  /* bits-ui sets data-active="" (not "true") when the cell is focused */
+  :global(.otp-cell[data-active]) {
     border-color: var(--secondary);
-    box-shadow: 0 0 0 1px var(--secondary);
+    background: var(--secondary-subtle);
+    box-shadow: var(--ring);
+    transform: translateY(-1px);
   }
 
-  :global(.otp-cell:focus-within) {
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 1px var(--secondary);
+  :global(.otp-caret) {
+    position: absolute;
+    width: 2px;
+    height: 1.35rem;
+    border-radius: 1px;
+    background: var(--secondary);
+    animation: otp-caret-blink 1s step-end infinite;
+  }
+
+  @keyframes otp-caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.otp-caret) {
+      animation: none;
+      opacity: 1;
+    }
+
+    :global(.otp-cell[data-active]) {
+      transform: none;
+    }
   }
 
 </style>

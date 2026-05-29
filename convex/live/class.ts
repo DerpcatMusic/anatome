@@ -22,6 +22,7 @@ import { scheduleReminderEvent } from "../liveReminders/schedule";
 import { assertInLiveJoinWindow } from "../lib/liveJoin";
 import { joinAccessSnapshotValidator } from "./joinContract";
 import { resolveJoinAccess } from "./joinAccess";
+import { loadClassRosterSummary } from "./roster";
 import { viewerCanSeeLiveClass } from "../lib/liveClassAccess";
 
 const classType = v.union(v.literal("group_live"), v.literal("one_on_one"));
@@ -532,7 +533,13 @@ export const listMine = query({
       .order("asc")
       .take(LIMITS.INSTRUCTOR_LIST_SCAN);
 
-    return scanned.filter((liveClass) => !isAutoPublishedOpenSlot(liveClass));
+    const visible = scanned.filter((liveClass) => !isAutoPublishedOpenSlot(liveClass));
+    const enriched = [];
+    for (const liveClass of visible) {
+      const rosterSummary = await loadClassRosterSummary(ctx, liveClass._id, liveClass, now);
+      enriched.push({ ...liveClass, rosterSummary });
+    }
+    return enriched;
   },
 });
 
