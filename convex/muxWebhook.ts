@@ -139,7 +139,11 @@ export const ingestMuxWebhook = internalAction({
         const appMeta = parseAppPassthrough(data.passthrough);
         if (appMeta.videoId) {
           const videoId = appMeta.videoId as unknown as import("./_generated/dataModel").Id<"videos">;
-          if (eventType === "video.asset.ready") {
+          if (eventType === "video.asset.created" || eventType === "video.asset.preparing") {
+            await ctx.runMutation(internal.videoInternal.muxAssetMutations.markProcessing, {
+              videoId,
+            });
+          } else if (eventType === "video.asset.ready") {
             const duration = (data.duration as number) ?? 0;
             const thumbnailUrl = typeof data.thumbnail === "string" ? data.thumbnail : undefined;
             await ctx.runAction(internal.videoInternal.muxAssetAction.finalizeFromMuxWebhook, {
@@ -149,8 +153,14 @@ export const ingestMuxWebhook = internalAction({
               thumbnailUrl,
             });
           } else if (eventType === "video.asset.errored") {
+            const errors = data.errors;
+            const errorMessage =
+              Array.isArray(errors) && errors[0] && typeof errors[0] === "object"
+                ? String((errors[0] as Record<string, unknown>).message ?? "Mux asset processing failed")
+                : "Mux asset processing failed";
             await ctx.runMutation(internal.videoInternal.muxAssetMutations.markErrored, {
               videoId,
+              errorMessage,
             });
           }
         }
@@ -183,6 +193,13 @@ export const ingestMuxWebhook = internalAction({
         await ctx.runMutation(components.mux.sync.upsertUploadFromPayloadPublic, {
           upload: data,
         });
+        const uploadPassthrough = parseAppPassthrough(data.passthrough);
+        if (uploadPassthrough.videoId && eventType === "video.upload.asset_created") {
+          const videoId = uploadPassthrough.videoId as unknown as import("./_generated/dataModel").Id<"videos">;
+          await ctx.runMutation(internal.videoInternal.muxAssetMutations.markProcessing, {
+            videoId,
+          });
+        }
       }
       return { skipped: false };
     }

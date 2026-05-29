@@ -1,7 +1,6 @@
 import type { Doc } from "../_generated/dataModel";
 import type { AdminVideoRow } from "../contracts/video";
 
-/** Strip provider-internal fields from video docs for admin list UIs. */
 export function toAdminVideoRow(video: Doc<"videos">): AdminVideoRow {
   return {
     _id: video._id,
@@ -14,6 +13,8 @@ export function toAdminVideoRow(video: Doc<"videos">): AdminVideoRow {
     muxMaxResolutionTier: video.muxMaxResolutionTier,
     requiredEquipment: video.requiredEquipment,
     status: video.status,
+    processingError: video.processingError,
+    canPreview: Boolean(video.playbackId),
     createdAt: video.createdAt,
     updatedAt: video.updatedAt,
   };

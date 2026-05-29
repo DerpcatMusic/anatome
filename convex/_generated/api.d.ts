@@ -56,6 +56,8 @@ import type * as lib_promoteInstructor from "../lib/promoteInstructor.js";
 import type * as lib_queryNow from "../lib/queryNow.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_validators from "../lib/validators.js";
+import type * as lib_videoOwnership from "../lib/videoOwnership.js";
+import type * as lib_videoStatus from "../lib/videoStatus.js";
 import type * as lifecycle_repair from "../lifecycle/repair.js";
 import type * as live_calendar from "../live/calendar.js";
 import type * as live_capacity from "../live/capacity.js";
@@ -200,6 +202,8 @@ declare const fullApi: ApiFromModules<{
   "lib/queryNow": typeof lib_queryNow;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/validators": typeof lib_validators;
+  "lib/videoOwnership": typeof lib_videoOwnership;
+  "lib/videoStatus": typeof lib_videoStatus;
   "lifecycle/repair": typeof lifecycle_repair;
   "live/calendar": typeof live_calendar;
   "live/capacity": typeof live_capacity;

@@ -9,15 +9,17 @@
   interface Props {
     library: {
       published: Video[];
+      processing: Video[];
       drafts: Video[];
+      failed: Video[];
+      archived: Video[];
     } | null;
     actionId: string | null;
     onEdit: (video: Video) => void;
-    onPublish: (videoId: Id<"videos">) => void;
-    onDelete: (videoId: Id<"videos">) => void;
+    onArchive: (videoId: Id<"videos">) => void;
   }
 
-  let { library = null, actionId = null, onEdit, onPublish, onDelete }: Props = $props();
+  let { library = null, actionId = null, onEdit, onArchive }: Props = $props();
 
   let searchQuery = $state("");
   let selectedAccessFilter = $state<"all" | AccessKind>("all");
@@ -35,12 +37,26 @@
   }
 
   const filteredPublished = $derived(library ? filterVideos(library.published) : []);
+  const filteredProcessing = $derived(library ? filterVideos(library.processing) : []);
   const filteredDrafts = $derived(library ? filterVideos(library.drafts) : []);
+  const filteredFailed = $derived(library ? filterVideos(library.failed) : []);
 
-  const totalPublishedCount = $derived(library?.published.length ?? 0);
-  const totalDraftsCount = $derived(library?.drafts.length ?? 0);
-  const hasVideos = $derived(totalPublishedCount + totalDraftsCount > 0);
-  const hasFilteredResults = $derived(filteredPublished.length + filteredDrafts.length > 0);
+  const totalCount = $derived(
+    library
+      ? library.published.length +
+          library.processing.length +
+          library.drafts.length +
+          library.failed.length
+      : 0,
+  );
+  const hasVideos = $derived(totalCount > 0);
+  const hasFilteredResults = $derived(
+    filteredPublished.length +
+      filteredProcessing.length +
+      filteredDrafts.length +
+      filteredFailed.length >
+      0,
+  );
 
   const accessFilters = [
     { id: "all" as const, label: "הכל", ariaLabel: "כל מודלי הגישה" },
@@ -109,6 +125,24 @@
   </div>
 {:else}
   <div class="library-sections">
+    {#if filteredProcessing.length > 0}
+      <section class="library-group" aria-labelledby="processing-heading">
+        <header class="library-group__head">
+          <span class="material-symbols-rounded library-group__icon library-group__icon--draft" aria-hidden="true"
+            >hourglass_top</span
+          >
+          <h2 id="processing-heading" class="library-group__title">
+            בעיבוד ({filteredProcessing.length})
+          </h2>
+        </header>
+        <div class="video-grid">
+          {#each filteredProcessing as video (video._id)}
+            <VideoCard {video} {actionId} {onEdit} {onArchive} />
+          {/each}
+        </div>
+      </section>
+    {/if}
+
     {#if filteredDrafts.length > 0}
       <section class="library-group" aria-labelledby="drafts-heading">
         <header class="library-group__head">
@@ -118,13 +152,28 @@
           <h2 id="drafts-heading" class="library-group__title">
             טיוטות ({filteredDrafts.length})
           </h2>
-          {#if totalDraftsCount !== filteredDrafts.length}
-            <span class="library-group__filter-note">מסונן</span>
-          {/if}
         </header>
         <div class="video-grid">
           {#each filteredDrafts as video (video._id)}
-            <VideoCard {video} {actionId} {onEdit} {onPublish} {onDelete} />
+            <VideoCard {video} {actionId} {onEdit} {onArchive} />
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    {#if filteredFailed.length > 0}
+      <section class="library-group" aria-labelledby="failed-heading">
+        <header class="library-group__head">
+          <span class="material-symbols-rounded library-group__icon library-group__icon--draft" aria-hidden="true"
+            >error</span
+          >
+          <h2 id="failed-heading" class="library-group__title">
+            נכשלו ({filteredFailed.length})
+          </h2>
+        </header>
+        <div class="video-grid">
+          {#each filteredFailed as video (video._id)}
+            <VideoCard {video} {actionId} {onEdit} {onArchive} />
           {/each}
         </div>
       </section>
@@ -140,13 +189,10 @@
           <h2 id="published-heading" class="library-group__title">
             בספרייה ({filteredPublished.length})
           </h2>
-          {#if totalPublishedCount !== filteredPublished.length}
-            <span class="library-group__filter-note">מסונן</span>
-          {/if}
         </header>
         <div class="video-grid">
           {#each filteredPublished as video (video._id)}
-            <VideoCard {video} {actionId} {onEdit} {onPublish} {onDelete} />
+            <VideoCard {video} {actionId} {onEdit} {onArchive} />
           {/each}
         </div>
       </section>

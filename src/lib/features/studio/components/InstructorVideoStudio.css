@@ -60,12 +60,40 @@
   }
 }
 
-.ivm .drop-zone {
+.ivm .mux-upload-zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ivm .mux-upload-zone__gate {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--foreground-muted);
+  background: color-mix(in oklch, var(--accent) 10%, var(--elevated));
+  border-radius: 2px;
+}
+
+.ivm .mux-upload-zone.metadata-pending mux-uploader-drop {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.ivm .mux-upload-zone.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ivm mux-uploader-drop.mux-uploader-drop {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
+  min-height: 11rem;
   padding: var(--space-6) var(--space-4);
   border: 2px dashed color-mix(in oklch, var(--primary) 35%, var(--line));
   border-radius: 2px;
@@ -74,81 +102,62 @@
   transition:
     border-color var(--duration-fast),
     background var(--duration-fast);
+  --overlay-background-color: color-mix(in oklch, var(--accent) 22%, var(--elevated));
 }
 
-.ivm .drop-zone:hover,
-.ivm .drop-zone.active {
+.ivm mux-uploader-drop.mux-uploader-drop:hover,
+.ivm mux-uploader-drop.mux-uploader-drop[active] {
   border-color: var(--primary);
   background: var(--accent-soft);
 }
 
-.ivm .drop-icon {
-  font-size: var(--step-3);
-  color: var(--primary);
-}
-
-.ivm .drop-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+.ivm .mux-drop-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--step-0);
-  line-height: 1.45;
-  max-width: 28ch;
-}
-
-.ivm .drop-text strong {
   font-weight: 800;
   color: var(--ink);
 }
 
-.ivm .drop-text span {
+.ivm .mux-drop-icon {
+  font-size: var(--step-2);
+  color: var(--primary);
+}
+
+.ivm .mux-drop-separator {
   font-size: var(--step--1);
   color: var(--foreground-muted);
 }
 
-.ivm .browse-wrap {
-  position: relative;
-  display: inline-flex;
-  cursor: pointer;
-}
-
-.ivm .browse-wrap input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.ivm .file-chip {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
+.ivm .mux-drop-actions {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
+}
+
+.ivm .mux-drop-hint {
+  font-size: var(--step--1);
+  color: var(--foreground-muted);
+}
+
+.ivm .mux-selected-file {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--step--1);
+  font-weight: 700;
   background: var(--elevated);
   border-radius: 2px;
-  box-shadow: var(--shadow-sm);
+  color: var(--ink);
 }
 
-.ivm .file-chip__icon {
+.ivm .mux-selected-file .material-symbols-rounded {
   color: var(--primary);
-  font-size: var(--step-2);
-}
-
-.ivm .file-chip__name {
-  font-weight: 700;
-  font-size: var(--step-0);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ivm .file-chip__meta {
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  color: var(--foreground-muted);
-  white-space: nowrap;
+  font-size: var(--step-1);
 }
 
 .ivm .field,
@@ -353,7 +362,48 @@
   font-family: var(--font-mono);
 }
 
+.ivm .mux-uploader-host {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ivm .upload-progress-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ivm .status-phase {
+  font-weight: 800;
+}
+
+.ivm .upload-hint {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.45;
+  color: var(--foreground-muted);
+}
+
+.ivm .upload-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ivm .upload-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .ivm .progress-track {
+  position: relative;
   height: 8px;
   background: var(--line-light);
   border-radius: 999px;
@@ -364,7 +414,76 @@
   height: 100%;
   background: var(--primary);
   border-radius: 999px;
-  transition: width 0.1s linear;
+  transition: width 0.12s linear;
+}
+
+.ivm .progress-fill--indeterminate {
+  position: absolute;
+  inset-block: 0;
+  width: 42%;
+  animation: ivm-progress-indeterminate 1.15s ease-in-out infinite;
+}
+
+@keyframes ivm-progress-indeterminate {
+  0% {
+    inset-inline-start: -45%;
+  }
+  100% {
+    inset-inline-start: 100%;
+  }
+}
+
+/* Mux uploader subcomponents — themed to match studio */
+.ivm mux-uploader-progress.mux-progress-bar {
+  display: block;
+  width: 100%;
+  --progress-bar-fill-color: var(--primary);
+  --progress-bar-background-color: var(--line-light);
+  --progress-bar-height: 8px;
+  --progress-bar-border-radius: 999px;
+}
+
+.ivm mux-uploader-progress.mux-progress-pct {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 800;
+  color: var(--accent);
+  --progress-percentage-display: block;
+}
+
+.ivm mux-uploader-status.mux-upload-status {
+  font-size: var(--step--1);
+  color: var(--foreground-muted);
+}
+
+.ivm mux-uploader-pause.mux-pause::part(button) {
+  font-family: inherit;
+  font-size: var(--step--1);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--elevated);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ivm mux-uploader-pause.mux-pause::part(button):hover {
+  border-color: var(--primary);
+  background: var(--accent-soft);
+}
+
+.ivm mux-uploader-retry.mux-retry::part(button) {
+  font-family: inherit;
+  font-size: var(--step--1);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 2px;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  margin-block-start: var(--space-2);
 }
 
 .ivm .upload-form__actions {

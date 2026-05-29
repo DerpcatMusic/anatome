@@ -10,22 +10,29 @@
     video: Video;
     actionId: string | null;
     onEdit: (video: Video) => void;
-    onPublish: (videoId: Id<"videos">) => void;
-    onDelete: (videoId: Id<"videos">) => void;
+    onArchive: (videoId: Id<"videos">) => void;
   }
 
-  let { video, actionId = null, onEdit, onPublish, onDelete }: Props = $props();
+  let { video, actionId = null, onEdit, onArchive }: Props = $props();
 
   const isPending = $derived(actionId === video._id);
+  const watchHref = $derived(`/watch?videoId=${video._id}`);
 
-  function statusLabel(status: string) {
-    if (status === "published") return "פעיל";
+  function statusLabel(status: Video["status"]) {
+    if (status === "published") return "בספרייה";
+    if (status === "processing") return "בעיבוד";
     if (status === "draft") return "טיוטה";
+    if (status === "failed") return "נכשל";
     return "בארכיון";
   }
 </script>
 
-<article class="video-card" class:is-draft={video.status === "draft"} class:is-pending={isPending}>
+<article
+  class="video-card"
+  class:is-draft={video.status === "draft" || video.status === "processing"}
+  class:is-failed={video.status === "failed"}
+  class:is-pending={isPending}
+>
   <div class="thumbnail-wrapper">
     <AspectRatio.Root class="hb-aspect-ratio" ratio={16 / 9}>
       {#if video.thumbnailUrl}
@@ -40,7 +47,9 @@
     <span
       class="status-badge"
       class:published={video.status === "published"}
+      class:processing={video.status === "processing"}
       class:draft={video.status === "draft"}
+      class:failed={video.status === "failed"}
     >
       {statusLabel(video.status)}
     </span>
@@ -57,20 +66,18 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content class="hb-dropdown-content">
+            {#if video.canPreview}
+              <DropdownMenu.Item class="hb-dropdown-item">
+                <a class="preview-link" href={watchHref}>תצוגה מקדימה</a>
+              </DropdownMenu.Item>
+            {/if}
             <DropdownMenu.Item class="hb-dropdown-item" onclick={() => onEdit(video)}>
               עריכת פרטים
             </DropdownMenu.Item>
             <DropdownMenu.Item
-              class="hb-dropdown-item"
-              onclick={() => onPublish(video._id)}
-              disabled={isPending || video.status === "published"}
-            >
-              פרסום בספרייה
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
               class="hb-dropdown-item hb-dropdown-item--danger"
-              onclick={() => onDelete(video._id)}
-              disabled={isPending}
+              onclick={() => onArchive(video._id)}
+              disabled={isPending || video.status === "processing"}
             >
               העברה לארכיון
             </DropdownMenu.Item>
@@ -80,6 +87,18 @@
     </div>
 
     <p class="video-desc">{video.description || "אין תיאור."}</p>
+
+    {#if video.status === "failed" && video.processingError}
+      <p class="video-error" role="alert">{video.processingError}</p>
+    {:else if video.status === "processing"}
+      <p class="video-hint">העיבוד ב-Mux לוקח בדרך כלל 2–5 דקות. אפשר לרענן את העמוד.</p>
+    {/if}
+
+    <div class="card-actions">
+      {#if video.canPreview}
+        <a class="hb-button hb-button--ink hb-button--sm preview-btn" href={watchHref}>תצוגה מקדימה</a>
+      {/if}
+    </div>
 
     <div class="metadata-tags">
       <span class="meta-tag duration">{durationLabel(video.durationSeconds)}</span>
@@ -163,6 +182,13 @@
     background: var(--surface);
   }
 
+  .preview-link {
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
   .video-desc {
     margin: 0;
     font-size: var(--step--1);
@@ -175,10 +201,41 @@
     overflow: hidden;
   }
 
+  .video-error {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--danger, #b42318);
+    line-height: 1.4;
+  }
+
+  .video-hint {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--foreground-muted);
+    line-height: 1.4;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .preview-btn {
+    text-decoration: none;
+  }
+
   .metadata-tags {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
     margin-top: auto;
+  }
+
+  .status-badge.processing {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+
+  .status-badge.failed {
+    background: color-mix(in srgb, var(--danger, #b42318) 15%, transparent);
   }
 </style>

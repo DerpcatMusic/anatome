@@ -99,10 +99,6 @@
       goWatch(video._id);
       return;
     }
-    if (library.hasActiveSubscription) {
-      goWatch(video._id);
-      return;
-    }
     actionError = "נדרש מנוי פעיל.";
   }
 

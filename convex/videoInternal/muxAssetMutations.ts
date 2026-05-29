@@ -30,8 +30,24 @@ export const markErrored = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     await ctx.db.patch(args.videoId, {
-      status: "archived",
+      status: "failed",
+      processingError: args.errorMessage,
       updatedAt: now,
+    });
+  },
+});
+
+export const markProcessing = internalMutation({
+  args: { videoId: v.id("videos") },
+  handler: async (ctx, args) => {
+    const video = await ctx.db.get(args.videoId);
+    if (video === null || video.status === "published" || video.status === "archived") {
+      return;
+    }
+    await ctx.db.patch(args.videoId, {
+      status: "processing",
+      processingError: undefined,
+      updatedAt: Date.now(),
     });
   },
 });

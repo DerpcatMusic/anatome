@@ -14,34 +14,46 @@
     onCancel: () => void;
   }
 
+  type MuxUploaderEl = HTMLElement & {
+    endpoint?: string | (() => Promise<string>);
+    file: File | null;
+    dispatchEvent: (event: Event) => boolean;
+  };
+
   let { categories, onComplete, onCancel }: Props = $props();
 
   const client = useConvexClient();
+
+  const UPLOADER_ID = "hb-video-uploader";
+  const MAX_FILE_SIZE_KB = 2 * 1024 * 1024;
 
   let title = $state("");
   let description = $state("");
   let accessKind = $state<VideoAccessKind>("macroflow");
   let selectedCategoryIds = $state<Id<"videoCategories">[]>([]);
   let requiredEquipment = $state<string[]>(["mat"]);
-  let file = $state<File | null>(null);
-  let isDragOver = $state(false);
 
   let titleError = $state<string | null>(null);
   let categoryError = $state<string | null>(null);
   let fileError = $state<string | null>(null);
+  let selectedFileName = $state<string | null>(null);
 
-  let step = $state<"idle" | "uploading" | "success" | "error">("idle");
+  let step = $state<"idle" | "preparing" | "uploading" | "success" | "error">("idle");
   let progress = $state(0);
   let uploadErrorMsg = $state("");
+  let isOffline = $state(false);
 
-  let muxUploader = $state<HTMLElement | null>(null);
+  let muxUploader = $state<MuxUploaderEl | null>(null);
 
-  const canSubmit = $derived(
-    file !== null &&
-      title.trim().length >= 3 &&
-      selectedCategoryIds.length > 0 &&
-      step !== "uploading",
-  );
+  const isBusy = $derived(step === "preparing" || step === "uploading");
+  const metadataReady = $derived(title.trim().length >= 3 && selectedCategoryIds.length > 0);
+
+  const phaseLabel = $derived.by(() => {
+    if (step === "preparing") return "מכינה כתובת העלאה…";
+    if (step === "uploading" && isOffline) return "ממתינה לחיבור…";
+    if (step === "uploading") return "מעלה את הקובץ…";
+    return "";
+  });
 
   const accessOptions = [
     {
@@ -56,87 +68,107 @@
     },
   ];
 
+  function validateMetadata(): boolean {
+    titleError = title.trim().length >= 3 ? null : "כותרת קצרה מדי — לפחות 3 תווים.";
+    categoryError = selectedCategoryIds.length > 0 ? null : "בחרי לפחות קטגוריה אחת.";
+    return titleError === null && categoryError === null;
+  }
+
+  async function resolveUploadEndpoint(): Promise<string> {
+    if (!validateMetadata()) {
+      throw new Error("מלאי כותרת וקטגוריה לפני בחירת הקובץ.");
+    }
+
+    step = "preparing";
+    progress = 0;
+    uploadErrorMsg = "";
+    isOffline = false;
+    fileError = null;
+
+    const result = await client.action(api.video.uploads.requestUpload, {
+      title: title.trim(),
+      description: description.trim(),
+      requiredEquipment: requiredEquipment as Equipment[],
+      accessKind,
+      categoryIds: selectedCategoryIds,
+      muxVideoQuality: "plus",
+      muxMaxResolutionTier: "1080p",
+      staticRendition: "none",
+    });
+
+    if (!result?.uploadUrl) {
+      throw new Error("לא התקבלה כתובת העלאה. רענני ונסי שוב.");
+    }
+
+    await client.mutation(api.video.admin.markUploadStarted, { videoId: result.videoId });
+    return result.uploadUrl;
+  }
+
+  $effect(() => {
+    if (!muxUploader) return;
+    muxUploader.endpoint = resolveUploadEndpoint;
+  });
+
   $effect(() => {
     if (!muxUploader) return;
 
     const onProgress = (e: CustomEvent<number>) => {
-      progress = e.detail;
+      progress = typeof e.detail === "number" ? e.detail : 0;
+    };
+    const onFileReady = (e: CustomEvent<File>) => {
+      const picked = e.detail;
+      selectedFileName = picked?.name ?? null;
+      fileError = null;
+      if (!metadataReady) {
+        fileError = "מלאי כותרת וקטגוריה לפני בחירת הקובץ.";
+      }
+    };
+    const onUploadStart = () => {
+      step = "uploading";
+      progress = 0;
     };
     const onSuccess = () => {
       step = "success";
+      progress = 100;
     };
     const onError = (e: CustomEvent<{ message?: string }>) => {
       step = "error";
       uploadErrorMsg = e.detail?.message ?? "ההעלאה נכשלה. נסי שוב.";
     };
+    const onReset = () => {
+      step = "idle";
+      progress = 0;
+      uploadErrorMsg = "";
+      selectedFileName = null;
+      fileError = null;
+    };
+    const onOffline = () => {
+      isOffline = true;
+    };
+    const onOnline = () => {
+      isOffline = false;
+    };
 
     muxUploader.addEventListener("progress", onProgress as EventListener);
+    muxUploader.addEventListener("file-ready", onFileReady as EventListener);
+    muxUploader.addEventListener("uploadstart", onUploadStart as EventListener);
     muxUploader.addEventListener("success", onSuccess as EventListener);
     muxUploader.addEventListener("uploaderror", onError as EventListener);
+    muxUploader.addEventListener("reset", onReset as EventListener);
+    muxUploader.addEventListener("offline", onOffline as EventListener);
+    muxUploader.addEventListener("online", onOnline as EventListener);
 
     return () => {
-      muxUploader!.removeEventListener("progress", onProgress as EventListener);
-      muxUploader!.removeEventListener("success", onSuccess as EventListener);
-      muxUploader!.removeEventListener("uploaderror", onError as EventListener);
+      muxUploader.removeEventListener("progress", onProgress as EventListener);
+      muxUploader.removeEventListener("file-ready", onFileReady as EventListener);
+      muxUploader.removeEventListener("uploadstart", onUploadStart as EventListener);
+      muxUploader.removeEventListener("success", onSuccess as EventListener);
+      muxUploader.removeEventListener("uploaderror", onError as EventListener);
+      muxUploader.removeEventListener("reset", onReset as EventListener);
+      muxUploader.removeEventListener("offline", onOffline as EventListener);
+      muxUploader.removeEventListener("online", onOnline as EventListener);
     };
   });
-
-  function validate(): boolean {
-    titleError = title.trim().length >= 3 ? null : "כותרת קצרה מדי — לפחות 3 תווים.";
-    categoryError = selectedCategoryIds.length > 0 ? null : "בחרי לפחות קטגוריה אחת.";
-    fileError = file !== null ? null : "צריך לבחור קובץ וידאו.";
-    return titleError === null && categoryError === null && fileError === null;
-  }
-
-  function handleDrop(e: DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    isDragOver = false;
-    const dropped = e.dataTransfer?.files?.[0];
-    if (!dropped) return;
-    if (!dropped.type.startsWith("video/")) {
-      fileError = "רק קבצי וידאו — MP4, MOV וכדומה.";
-      return;
-    }
-    if (dropped.size > 2 * 1024 * 1024 * 1024) {
-      fileError = "הקובץ מעל 2GB. כדאי לדחוס או לקצר לפני העלאה.";
-      return;
-    }
-    file = dropped;
-    fileError = null;
-  }
-
-  function handleDragOver(e: DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    isDragOver = true;
-  }
-
-  function handleDragLeave(e: DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    isDragOver = false;
-  }
-
-  function handleFileInput(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const selected = input.files?.[0];
-    if (selected) {
-      if (selected.size > 2 * 1024 * 1024 * 1024) {
-        fileError = "הקובץ מעל 2GB. כדאי לדחוס או לקצר לפני העלאה.";
-        input.value = "";
-        return;
-      }
-      file = selected;
-      fileError = null;
-    }
-    input.value = "";
-  }
-
-  function clearFile() {
-    file = null;
-    if (muxUploader) (muxUploader as HTMLElement & { file: File | null }).file = null;
-  }
 
   function toggleCategory(id: Id<"videoCategories">) {
     selectedCategoryIds = selectedCategoryIds.includes(id)
@@ -145,102 +177,43 @@
     categoryError = null;
   }
 
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!validate() || !muxUploader || !file) return;
-
-    step = "uploading";
-    progress = 0;
-    uploadErrorMsg = "";
-
-    try {
-      const result = await client.action(api.video.uploads.requestUpload, {
-        title: title.trim(),
-        description: description.trim(),
-        requiredEquipment: requiredEquipment as Equipment[],
-        accessKind,
-        categoryIds: selectedCategoryIds,
-        muxVideoQuality: "plus",
-        muxMaxResolutionTier: "1080p",
-        staticRendition: "none",
-      });
-
-      if (!result?.uploadUrl) throw new Error("לא התקבלה כתובת העלאה. רענני ונסי שוב.");
-
-      const uploader = muxUploader as HTMLElement & { endpoint: string; file: File };
-      uploader.endpoint = result.uploadUrl;
-      uploader.file = file;
-    } catch (reason) {
-      step = "error";
-      uploadErrorMsg = reason instanceof Error ? reason.message : "לא הצלחנו להתחיל העלאה.";
-    }
-  }
-
   function handleReset() {
     title = "";
     description = "";
     accessKind = "macroflow";
     selectedCategoryIds = [];
     requiredEquipment = ["mat"];
-    file = null;
     step = "idle";
     progress = 0;
     uploadErrorMsg = "";
+    isOffline = false;
+    selectedFileName = null;
     titleError = null;
     categoryError = null;
     fileError = null;
     if (muxUploader) {
-      const uploader = muxUploader as HTMLElement & { file: File | null; endpoint: string | null };
-      uploader.file = null;
-      uploader.endpoint = null;
+      muxUploader.file = null;
+      muxUploader.dispatchEvent(new Event("reset"));
     }
   }
 </script>
 
-<mux-uploader bind:this={muxUploader} style="display: none;" hidden aria-hidden="true"></mux-uploader>
+<mux-uploader
+  id={UPLOADER_ID}
+  bind:this={muxUploader}
+  class="mux-uploader-host"
+  no-drop
+  no-progress
+  no-status
+  no-retry
+  pausable
+  dynamic-chunk-size
+  max-file-size={MAX_FILE_SIZE_KB}
+></mux-uploader>
 
-<form class="upload-form" onsubmit={handleSubmit}>
+<div class="upload-form">
   <div class="upload-form__body">
     <div class="upload-form__primary">
-      {#if !file}
-        <div
-          class="drop-zone"
-          class:active={isDragOver}
-          ondragover={handleDragOver}
-          ondragleave={handleDragLeave}
-          ondrop={handleDrop}
-          role="region"
-          aria-label="אזור גרירת קובץ וידאו"
-        >
-          <span class="material-symbols-rounded drop-icon" aria-hidden="true">video_file</span>
-          <div class="drop-text">
-            <strong>גררי וידאו לכאן</strong>
-            <span>או בחרי מהמחשב · עד 2GB</span>
-          </div>
-          <label class="browse-wrap">
-            <Button.Root class="hb-button hb-button--ink" type="button">בחירת קובץ</Button.Root>
-            <input type="file" accept="video/*" onchange={handleFileInput} />
-          </label>
-          {#if fileError}
-            <span class="field-error" role="alert">{fileError}</span>
-          {/if}
-        </div>
-      {:else}
-        <div class="file-chip">
-          <span class="material-symbols-rounded file-chip__icon" aria-hidden="true">movie</span>
-          <span class="file-chip__name">{file.name}</span>
-          <span class="file-chip__meta">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
-          <Button.Root
-            class="hb-button hb-button--icon hb-button--icon-danger"
-            type="button"
-            onclick={clearFile}
-            aria-label="הסרת קובץ"
-          >
-            <span class="material-symbols-rounded">close</span>
-          </Button.Root>
-        </div>
-      {/if}
-
       <label class="field" class:invalid={titleError !== null}>
         <span class="field-label">כותרת השיעור <span class="required" aria-hidden="true">*</span></span>
         <input
@@ -248,7 +221,7 @@
           bind:value={title}
           placeholder="לדוגמה: יסודות רפורמר למתחילות"
           maxlength="120"
-          disabled={step === "uploading"}
+          disabled={isBusy}
           autocomplete="off"
         />
         {#if titleError}
@@ -263,7 +236,7 @@
           placeholder="מה נעשה בשיעור? למי הוא מתאים?"
           maxlength="500"
           rows="3"
-          disabled={step === "uploading"}
+          disabled={isBusy}
         ></textarea>
       </label>
     </div>
@@ -273,7 +246,7 @@
         <span class="field-label">איך לקוחות יגיעו לשיעור? <span class="required" aria-hidden="true">*</span></span>
         <RadioGroup.Root bind:value={accessKind} orientation="horizontal" class="hb-choice-grid">
           {#each accessOptions as option}
-            <RadioGroup.Item value={option.value} class="hb-choice">
+            <RadioGroup.Item value={option.value} class="hb-choice" disabled={isBusy}>
               <span class="hb-choice__title">{option.label}</span>
               <span class="hb-choice__description">{option.description}</span>
             </RadioGroup.Item>
@@ -298,7 +271,7 @@
                 class="hb-choice"
                 checked={selectedCategoryIds.includes(cat._id)}
                 onchange={() => toggleCategory(cat._id)}
-                disabled={step === "uploading"}
+                disabled={isBusy}
               >
                 <span class="hb-choice__title">{cat.name}</span>
               </Checkbox.Root>
@@ -311,33 +284,96 @@
       </div>
 
       <div class="field-group equipment-section">
-        <EquipmentPicker bind:selected={requiredEquipment} label="ציוד בשיעור" disabled={step === "uploading"} />
+        <EquipmentPicker bind:selected={requiredEquipment} label="ציוד בשיעור" disabled={isBusy} />
       </div>
     </div>
   </div>
 
-  {#if step === "uploading"}
-    <div class="status-box uploading" role="status" aria-live="polite">
+  {#if step !== "success"}
+    <section
+      class="mux-upload-zone"
+      class:is-disabled={isBusy}
+      class:metadata-pending={!metadataReady}
+      aria-label="העלאת קובץ וידאו"
+    >
+      {#if !metadataReady}
+        <p class="mux-upload-zone__gate">מלאי כותרת ולפחות קטגוריה אחת — ואז אפשר לבחור קובץ.</p>
+      {/if}
+
+      <mux-uploader-drop
+        mux-uploader={UPLOADER_ID}
+        overlay
+        overlay-text="שחררי את הקובץ כאן"
+        class="mux-uploader-drop"
+      >
+        <span slot="heading" class="mux-drop-heading">
+          <span class="material-symbols-rounded mux-drop-icon" aria-hidden="true">video_file</span>
+          גררי וידאו לכאן
+        </span>
+        <span slot="separator" class="mux-drop-separator">או</span>
+        <div class="mux-drop-actions">
+          <mux-uploader-file-select mux-uploader={UPLOADER_ID} class="mux-file-select">
+            <button type="button" class="hb-button hb-button--ink">בחירת קובץ</button>
+          </mux-uploader-file-select>
+          <span class="mux-drop-hint">עד 2GB · MP4, MOV וכדומה</span>
+        </div>
+      </mux-uploader-drop>
+
+      {#if selectedFileName && step === "idle"}
+        <p class="mux-selected-file" role="status">
+          <span class="material-symbols-rounded" aria-hidden="true">movie</span>
+          {selectedFileName}
+        </p>
+      {/if}
+
+      {#if fileError}
+        <span class="field-error" role="alert">{fileError}</span>
+      {/if}
+    </section>
+  {/if}
+
+  {#if step === "preparing" || step === "uploading"}
+    <section class="upload-progress-panel status-box uploading" aria-live="polite" aria-busy="true">
       <div class="status-header">
-        <span>מעלה את הקובץ…</span>
-        <span class="status-percent">{Math.round(progress)}%</span>
+        <span class="status-phase">{phaseLabel}</span>
+        {#if step === "uploading"}
+          <mux-uploader-progress mux-uploader={UPLOADER_ID} type="percentage" class="mux-progress-pct"></mux-uploader-progress>
+        {/if}
       </div>
-      <Progress.Root class="progress-track" value={progress} max={100}>
-        <div class="progress-fill" style:width="{progress}%"></div>
-      </Progress.Root>
-    </div>
+
+      {#if step === "preparing"}
+        <Progress.Root class="progress-track progress-track--indeterminate" value={null} max={100}>
+          <div class="progress-fill progress-fill--indeterminate" aria-hidden="true"></div>
+        </Progress.Root>
+        <p class="upload-hint">יוצרת שורה בספרייה ומבקשת כתובת מ-Mux…</p>
+      {:else}
+        <mux-uploader-progress mux-uploader={UPLOADER_ID} type="bar" class="mux-progress-bar"></mux-uploader-progress>
+        <mux-uploader-status mux-uploader={UPLOADER_ID} class="mux-upload-status"></mux-uploader-status>
+        <div class="upload-controls">
+          <mux-uploader-pause mux-uploader={UPLOADER_ID} class="mux-pause"></mux-uploader-pause>
+        </div>
+        {#if isOffline}
+          <Notice tone="neutral">אין חיבור — ההעלאה תמשיך אוטומטית כשהרשת חוזרת.</Notice>
+        {/if}
+        <p class="upload-hint">אפשר להשהות ולהמשיך. אחרי 100% Mux מעבד את הווידאו (2–5 דקות).</p>
+      {/if}
+    </section>
   {:else if step === "success"}
     <div class="status-box success" role="status">
       <span class="material-symbols-rounded status-icon" aria-hidden="true">check_circle</span>
       <div class="status-text">
         <strong>הועלה בהצלחה</strong>
-        <span>השיעור יופיע בספרייה אחרי עיבוד (בדרך כלל 2–5 דקות).</span>
+        <span>הקובץ אצל Mux. השיעור יופיע בספרייה אחרי עיבוד (בדרך כלל 2–5 דקות).</span>
       </div>
     </div>
   {:else if step === "error"}
     <div class="status-box error" role="alert">
       <span class="material-symbols-rounded status-icon" aria-hidden="true">error</span>
-      <span class="status-text">{uploadErrorMsg}</span>
+      <div class="status-text">
+        <strong>ההעלאה נכשלה</strong>
+        <span>{uploadErrorMsg}</span>
+      </div>
+      <mux-uploader-retry mux-uploader={UPLOADER_ID} class="mux-retry"></mux-uploader-retry>
     </div>
   {/if}
 
@@ -348,21 +384,9 @@
       </Button.Root>
       <Button.Root class="hb-button hb-button--ink" type="button" onclick={onComplete}>סיום</Button.Root>
     {:else}
-      <Button.Root
-        class="hb-button hb-button--ghost"
-        type="button"
-        onclick={onCancel}
-        disabled={step === "uploading"}
-      >
+      <Button.Root class="hb-button hb-button--ghost" type="button" onclick={onCancel} disabled={isBusy}>
         ביטול
-      </Button.Root>
-      <Button.Root
-        class="hb-button hb-button--ink"
-        type="submit"
-        disabled={!canSubmit || step === "uploading"}
-      >
-        {step === "uploading" ? "מעלה…" : "העלאה לספרייה"}
       </Button.Root>
     {/if}
   </div>
-</form>
+</div>

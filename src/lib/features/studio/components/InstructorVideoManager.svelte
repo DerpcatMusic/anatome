@@ -37,19 +37,7 @@
   );
   const categories = $derived(categoriesResource.current ?? []);
 
-  async function handlePublishVideo(videoId: Id<"videos">) {
-    actionId = videoId;
-    actionError = "";
-    try {
-      await client.mutation(api.video.admin.updateMetadata, { videoId, status: "published" });
-    } catch (reason) {
-      actionError = reason instanceof Error ? reason.message : "לא הצלחנו לפרסם את השיעור.";
-    } finally {
-      actionId = null;
-    }
-  }
-
-  async function handleDeleteVideo(videoId: Id<"videos">) {
+  async function handleArchiveVideo(videoId: Id<"videos">) {
     actionId = videoId;
     actionError = "";
     try {
@@ -118,8 +106,7 @@
         {library}
         {actionId}
         onEdit={(video) => (editingVideoObj = video)}
-        onPublish={handlePublishVideo}
-        onDelete={handleDeleteVideo}
+        onArchive={handleArchiveVideo}
       />
     </section>
   </div>

@@ -7,7 +7,7 @@ export const getAuthorizedVideo = internalQuery({
   args: { userId: v.id("users"), videoId: v.id("videos") },
   handler: async (ctx, args) => {
     const video = await ctx.db.get(args.videoId);
-    if (video === null || video.status !== "published") {
+    if (video === null) {
       return null;
     }
     const profiles = await ctx.db
@@ -15,7 +15,14 @@ export const getAuthorizedVideo = internalQuery({
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .take(1);
     const profile = profiles[0] ?? null;
-    if (isStaff(profile)) return { video, access: { allowed: true as const, reason: "staff_preview" } };
+    const ownsVideo = video.instructorUserId === args.userId;
+    if (isStaff(profile) && ownsVideo && video.playbackId) {
+      return { video, access: { allowed: true as const, reason: "staff_preview" } };
+    }
+
+    if (video.status !== "published") {
+      return null;
+    }
 
     if (video.accessKind === "macroflow") {
       const entitlements = await ctx.db

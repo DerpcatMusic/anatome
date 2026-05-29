@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
 import { equipmentListValidator } from "../lib/validators";
+import { videoStatusValidator } from "../lib/videoStatus";
 
 /** Instructor admin list row — no Mux asset / playback identifiers. */
 export const adminVideoRowValidator = v.object({
@@ -13,7 +14,9 @@ export const adminVideoRowValidator = v.object({
   muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
   muxMaxResolutionTier: v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p")),
   requiredEquipment: equipmentListValidator,
-  status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
+  status: videoStatusValidator,
+  processingError: v.optional(v.string()),
+  canPreview: v.boolean(),
   createdAt: v.number(),
   updatedAt: v.number(),
 });
@@ -22,7 +25,9 @@ export type AdminVideoRow = Infer<typeof adminVideoRowValidator>;
 
 export const adminVideoListReturns = v.object({
   published: v.array(adminVideoRowValidator),
+  processing: v.array(adminVideoRowValidator),
   drafts: v.array(adminVideoRowValidator),
+  failed: v.array(adminVideoRowValidator),
   archived: v.array(adminVideoRowValidator),
 });
 

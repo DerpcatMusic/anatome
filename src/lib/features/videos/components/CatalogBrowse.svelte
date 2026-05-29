@@ -149,10 +149,6 @@
       openRedeem(video);
       return;
     }
-    if (data.hasActiveSubscription) {
-      goWatch(video._id);
-      return;
-    }
     actionError = "נדרש מנוי פעיל.";
   }
 

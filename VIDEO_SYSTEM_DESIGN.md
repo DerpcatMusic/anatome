@@ -1,12 +1,13 @@
 # Video System Design — HomeBody
 
-## Problem Statement
+> **Implementation status (2026):** Production uses **Mux** direct upload (`convex/video/uploads.ts`), webhooks (`convex/muxWebhook.ts`), and signed playback. Instructor studio: `/i/videos`. Member catalog: `/library`, `/u/library`. Access: **macroflow** = VOD credit purchase + entitlement; **microflow** = active subscription. In product copy, **admin and instructor are the same studio role**.
 
-- Instructors currently CANNOT upload videos. The `videos` table is manually populated.
-- The `/videos` page shows a **customer credit selection UI** to everyone — instructors see "video credits" which makes no sense for them.
-- We need a role-based video experience:
-  - **Instructors/Admins**: Upload, manage, publish/archived videos
-  - **Customers**: Browse available videos, select with weekly credits, watch selected ones
+## Problem Statement (historical)
+
+- ~~Instructors currently CANNOT upload videos.~~ **Resolved:** Mux upload + auto-publish on `video.asset.ready`.
+- Role-based video experience:
+  - **Instructors (includes admin)**: Upload, manage own videos, preview own uploads at `/watch`
+  - **Customers**: Browse catalog; macroflow redeem with VOD credits; microflow with active subscription
 
 ## Architecture Decision
 
