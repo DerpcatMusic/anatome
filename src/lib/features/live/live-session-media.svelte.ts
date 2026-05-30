@@ -1,3 +1,4 @@
+import { useDebounce } from "runed";
 import { Track, type Room, type TrackPublishDefaults, type TrackPublishOptions } from "livekit-client";
 import {
   applyMotionContentHint,
@@ -189,7 +190,9 @@ export class LiveSessionMedia extends LiveSessionUi {
     return "none";
   });
 
-  private publishSettingsApplyTimer: ReturnType<typeof setTimeout> | null = null;
+  private _scheduleApplyPublishSettings = useDebounce(() => {
+    void this.applyPublishSettings();
+  }, 350);
 
   protected publishProfileInput(isInstructor: boolean): PublishProfileInput {
     return {
@@ -207,13 +210,7 @@ export class LiveSessionMedia extends LiveSessionUi {
 
   /** Push capture + encode settings to LiveKit (pre-connect state only updates until connect). */
   scheduleApplyPublishSettings() {
-    if (this.publishSettingsApplyTimer !== null) {
-      clearTimeout(this.publishSettingsApplyTimer);
-    }
-    this.publishSettingsApplyTimer = setTimeout(() => {
-      this.publishSettingsApplyTimer = null;
-      void this.applyPublishSettings();
-    }, 350);
+    this._scheduleApplyPublishSettings();
   }
 
   async applyPublishSettings() {

@@ -59,6 +59,7 @@
 		class: className = '',
 	}: PreJoinProps = $props();
 
+	// svelte-ignore state_referenced_locally
 	const {
 		userChoices: initialUserChoices,
 		saveUserChoices,

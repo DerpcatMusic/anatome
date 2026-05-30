@@ -1,5 +1,6 @@
 import { browser } from "$app/environment";
 import { CONCEPT_SECTION_COUNT } from "./concept-sections";
+import { useIntersectionObserver } from "runed";
 
 export interface SpineScrollObserverOptions {
   onSectionChange: (index: number) => void;
@@ -47,7 +48,8 @@ export function createSpineScrollObserver({
     onSectionChange(clamped);
   };
 
-  const observer = new IntersectionObserver(
+  useIntersectionObserver(
+    () => sections,
     () => pickActive(),
     {
       root: null,
@@ -56,14 +58,11 @@ export function createSpineScrollObserver({
     },
   );
 
-  for (const section of sections) observer.observe(section);
-
   window.addEventListener("scroll", pickActive, { passive: true });
   window.addEventListener("resize", pickActive, { passive: true });
   pickActive();
 
   return () => {
-    observer.disconnect();
     window.removeEventListener("scroll", pickActive);
     window.removeEventListener("resize", pickActive);
   };

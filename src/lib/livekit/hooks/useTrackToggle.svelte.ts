@@ -1,7 +1,7 @@
 import type { ToggleSource, CaptureOptionsBySource } from "@livekit/components-core";
 import { setupMediaToggle, setupManualToggle, log } from "@livekit/components-core";
 import type { Room, TrackPublishOptions } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 import { useObservableState } from "./internal/useObservableState.svelte";
 
 export interface UseTrackToggleProps<T extends ToggleSource> {
@@ -24,7 +24,7 @@ export function useTrackToggle<T extends ToggleSource>({
 	room,
 	...rest
 }: UseTrackToggleProps<T> & Record<string, unknown>) {
-	const roomFromContext = getMaybeRoomContext();
+	const roomFromContext = roomCtx.getOr(undefined);
 	const roomFallback = room ?? roomFromContext;
 	const track = roomFallback?.localParticipant?.getTrackPublication(source);
 	let userInteraction = $state(false);

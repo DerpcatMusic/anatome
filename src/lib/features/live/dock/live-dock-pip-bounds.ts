@@ -1,4 +1,4 @@
-const STORAGE_KEY = "hb-live-pip-bounds";
+import { PersistedState } from "runed";
 
 export type PipBounds = {
   x: number;
@@ -13,6 +13,8 @@ export const DEFAULT_PIP_BOUNDS: PipBounds = {
   width: 320,
   height: 180,
 };
+
+export const pipBoundsPref = new PersistedState<PipBounds>("pip-bounds", DEFAULT_PIP_BOUNDS);
 
 const MIN_WIDTH = 240;
 const MIN_HEIGHT = 135;
@@ -34,33 +36,4 @@ export function clampPipBounds(bounds: PipBounds): PipBounds {
     window.innerHeight - height - 8,
   );
   return { x, y, width, height };
-}
-
-export function readPipBounds(): PipBounds {
-  if (typeof window === "undefined") return DEFAULT_PIP_BOUNDS;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_PIP_BOUNDS;
-    const parsed = JSON.parse(raw) as PipBounds;
-    if (
-      typeof parsed.x !== "number" ||
-      typeof parsed.y !== "number" ||
-      typeof parsed.width !== "number" ||
-      typeof parsed.height !== "number"
-    ) {
-      return DEFAULT_PIP_BOUNDS;
-    }
-    return clampPipBounds(parsed);
-  } catch {
-    return DEFAULT_PIP_BOUNDS;
-  }
-}
-
-export function writePipBounds(bounds: PipBounds) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clampPipBounds(bounds)));
-  } catch {
-    /* ignore quota */
-  }
 }

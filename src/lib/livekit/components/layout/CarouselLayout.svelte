@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+import type { Snippet } from 'svelte';
+	import { ElementSize, Previous } from "runed";
 	import { getScrollBarWidth } from '@livekit/components-core';
 	import type { TrackReferenceOrPlaceholder } from '@livekit/components-core';
-	import { useResizeObserver } from '../../hooks/internal/useResizeObserver.svelte';
 	import { useVisualStableUpdate } from '../../hooks/useVisualStableUpdate.svelte';
 	import TrackLoop from '../TrackLoop.svelte';
 
@@ -26,40 +26,41 @@
 	} & Record<string, unknown> = $props();
 
 	let asideEl = $state<HTMLElement | null>(null);
-	let prevTiles = $state(0);
 
-	const { width, height } = useResizeObserver(() => asideEl);
+	const asideSize = new ElementSize(() => asideEl, { box: "content-box" });
 
 	const carouselOrientation = $derived(
-		orientation ?? (height >= width ? 'vertical' : 'horizontal'),
+		orientation ?? (asideSize.height >= asideSize.width ? 'vertical' : 'horizontal'),
 	);
 
 	const tileSpan = $derived(
 		carouselOrientation === 'vertical'
-			? Math.max(width * ASPECT_RATIO_INVERT, MIN_HEIGHT)
-			: Math.max(height * ASPECT_RATIO, MIN_WIDTH),
+			? Math.max(asideSize.width * ASPECT_RATIO_INVERT, MIN_HEIGHT)
+			: Math.max(asideSize.height * ASPECT_RATIO, MIN_WIDTH),
 	);
 
 	const scrollBarWidth = getScrollBarWidth();
 
 	const tilesThatFit = $derived(
 		carouselOrientation === 'vertical'
-			? Math.max((height - scrollBarWidth) / tileSpan, MIN_VISIBLE_TILES)
-			: Math.max((width - scrollBarWidth) / tileSpan, MIN_VISIBLE_TILES),
+			? Math.max((asideSize.height - scrollBarWidth) / tileSpan, MIN_VISIBLE_TILES)
+			: Math.max((asideSize.width - scrollBarWidth) / tileSpan, MIN_VISIBLE_TILES),
 	);
+
+	const prevTilesFit = new Previous(() => tilesThatFit, MIN_VISIBLE_TILES);
 
 	let maxVisibleTiles = $state(MIN_VISIBLE_TILES);
 
 	$effect(() => {
 		let count = Math.round(tilesThatFit);
-		if (Math.abs(tilesThatFit - prevTiles) < 0.5) {
-			count = Math.round(prevTiles);
-		} else if (prevTiles !== tilesThatFit) {
-			prevTiles = tilesThatFit;
+		const prev = prevTilesFit.current ?? MIN_VISIBLE_TILES;
+		if (Math.abs(tilesThatFit - prev) < 0.5) {
+			count = Math.round(prev);
 		}
 		maxVisibleTiles = count;
 	});
 
+	// svelte-ignore state_referenced_locally
 	const sortedTiles = useVisualStableUpdate(tracks, maxVisibleTiles);
 
 	$effect(() => {

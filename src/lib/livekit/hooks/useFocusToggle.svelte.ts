@@ -1,6 +1,6 @@
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core';
 import { setupFocusToggle, isTrackReferencePinned } from '@livekit/components-core';
-import { useEnsureTrackRef, getMaybeLayoutContext } from '../contexts/index.js';
+import { useEnsureTrackRef, layoutCtx } from '../contexts/index.js';
 
 export interface UseFocusToggleProps {
 	trackRef?: TrackReferenceOrPlaceholder;
@@ -16,7 +16,7 @@ export interface UseFocusToggleProps {
  */
 export function useFocusToggle({ trackRef, props }: UseFocusToggleProps) {
 	const trackReference = useEnsureTrackRef(trackRef);
-	const layoutContext = getMaybeLayoutContext();
+	const layoutContext = layoutCtx.getOr(undefined);
 	const { className } = setupFocusToggle();
 
 	const inFocus = $derived(
@@ -32,6 +32,7 @@ export function useFocusToggle({ trackRef, props }: UseFocusToggleProps) {
 		}
 	}
 
+	// svelte-ignore state_referenced_locally
 	return {
 		mergedProps: {
 			class: `${className} ${props?.class ?? ''}`.trim(),

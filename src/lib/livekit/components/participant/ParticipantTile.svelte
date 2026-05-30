@@ -2,15 +2,9 @@
 	import { Track } from 'livekit-client';
 	import { isTrackReference, isTrackReferencePinned } from '@livekit/components-core';
 	import type { ParticipantClickEvent, TrackReferenceOrPlaceholder } from '@livekit/components-core';
-	import {
-		setParticipantContext,
-		getMaybeParticipantContext,
-		setTrackRefContext,
-		getMaybeTrackRefContext,
-		getMaybeLayoutContext,
-	} from '../../contexts/index.js';
+	import { participantCtx, trackRefCtx, layoutCtx } from '../../contexts/index.js';
 	import { useParticipantTile } from '../../hooks/useParticipantTile.svelte';
-	import { useIsEncrypted } from '../../hooks/useIsEncrypted.svelte';
+	import { useIsEncrypted } from '../../hooks/useIsEncrypted';
 	import VideoTrack from './VideoTrack.svelte';
 	import AudioTrack from './AudioTrack.svelte';
 	import ParticipantPlaceholder from './ParticipantPlaceholder.svelte';
@@ -33,20 +27,25 @@
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	const maybeTrackRef = trackRef ?? getMaybeTrackRefContext();
+	// svelte-ignore state_referenced_locally
+	const maybeTrackRef = trackRef ?? trackRefCtx.getOr(undefined);
 	if (!maybeTrackRef) {
 		throw new Error('No trackRef provided, make sure you are inside a TrackRefContext or pass the trackRef explicitly');
 	}
+	// svelte-ignore state_referenced_locally
 	const trackReference = maybeTrackRef;
 
 	// Only set contexts if not already present in parent
-	if (!getMaybeTrackRefContext()) {
-		setTrackRefContext(trackReference);
+	if (!trackRefCtx.getOr(undefined)) {
+		// svelte-ignore state_referenced_locally
+		trackRefCtx.set(trackReference);
 	}
-	if (!getMaybeParticipantContext()) {
-		setParticipantContext(trackReference.participant);
+	if (!participantCtx.getOr(undefined)) {
+		// svelte-ignore state_referenced_locally
+		participantCtx.set(trackReference.participant);
 	}
 
+	// svelte-ignore state_referenced_locally
 	const { elementProps } = useParticipantTile({
 		trackRef: trackReference,
 		disableSpeakingIndicator,
@@ -55,7 +54,7 @@
 	});
 
 	const isEncrypted = useIsEncrypted(trackReference.participant);
-	const layoutContext = getMaybeLayoutContext();
+	const layoutContext = layoutCtx.getOr(undefined);
 
 	function handleSubscribe(subscribed: boolean) {
 		if (

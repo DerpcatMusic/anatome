@@ -1,38 +1,8 @@
-import { getContext, setContext } from 'svelte';
-import type { Participant } from 'livekit-client';
-import { getMaybeTrackRefContext } from './track-ref-context.svelte.js';
+import { Context } from "runed";
+import type { Participant } from "livekit-client";
+import { trackRefCtx } from "./track-ref-context.svelte.js";
 
-const PARTICIPANT_CONTEXT_KEY = Symbol('livekit-participant');
-
-/**
- * Set a Participant in the current Svelte component tree.
- * @public
- */
-export function setParticipantContext(participant: Participant): void {
-	setContext(PARTICIPANT_CONTEXT_KEY, participant);
-}
-
-/**
- * Get the Participant from the current Svelte component tree.
- * Throws if not found.
- * @public
- */
-export function getParticipantContext(): Participant {
-	const ctx = getContext<Participant | undefined>(PARTICIPANT_CONTEXT_KEY);
-	if (!ctx) {
-		throw new Error('tried to access participant context outside of participant context provider');
-	}
-	return ctx;
-}
-
-/**
- * Get the Participant from the current Svelte component tree.
- * Returns `undefined` if not found.
- * @public
- */
-export function getMaybeParticipantContext(): Participant | undefined {
-	return getContext<Participant | undefined>(PARTICIPANT_CONTEXT_KEY);
-}
+export const participantCtx = new Context<Participant>("livekit-participant");
 
 /**
  * Ensures that a participant is provided, either via context or explicitly as a parameter.
@@ -41,8 +11,8 @@ export function getMaybeParticipantContext(): Participant | undefined {
  * @public
  */
 export function useEnsureParticipant(participant?: Participant): Participant {
-	const context = getMaybeParticipantContext();
-	const trackContext = getMaybeTrackRefContext();
+	const context = participantCtx.getOr(undefined);
+	const trackContext = trackRefCtx.getOr(undefined);
 	const p = participant ?? context ?? trackContext?.participant;
 	if (!p) {
 		throw new Error(

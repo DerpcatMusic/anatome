@@ -1,4 +1,9 @@
-const STORAGE_KEY = "app-sidebar-collapsed";
+import { PersistedState } from "runed";
+
+const sidebarStore = new PersistedState<boolean>("sidebar-collapsed", false, {
+	storage: "local",
+	syncTabs: true,
+});
 
 /** Expanded app shell sidebar column (matches previous AppLayout default). */
 export const SIDEBAR_WIDTH_EXPANDED = "clamp(220px, 16vw, 260px)";
@@ -6,60 +11,48 @@ export const SIDEBAR_WIDTH_EXPANDED = "clamp(220px, 16vw, 260px)";
 /** Icon rail width when collapsed (room for ~26px icons + touch padding). */
 export const SIDEBAR_WIDTH_COLLAPSED = "5rem";
 
-function readCollapsed(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(STORAGE_KEY) === "true";
-}
-
-function persistCollapsed(collapsed: boolean) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, String(collapsed));
-}
-
 const RAIL_MEDIA = "(min-width: 861px)";
 
 class SidebarStore {
-  collapsed = $state(false);
-  /** Desktop rail only — mobile keeps full horizontal nav. */
-  railActive = $state(
-    typeof window !== "undefined"
-      ? window.matchMedia(RAIL_MEDIA).matches
-      : true,
-  );
+	get collapsed(): boolean {
+		return sidebarStore.current;
+	}
 
-  readonly isCollapsed = $derived(this.collapsed && this.railActive);
+	private set collapsed(v: boolean) {
+		sidebarStore.current = v;
+	}
 
-  readonly width = $derived(
-    this.isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED,
-  );
+	/** Desktop rail only — mobile keeps full horizontal nav. */
+	railActive = $state(
+		typeof window !== "undefined"
+			? window.matchMedia(RAIL_MEDIA).matches
+			: true,
+	);
 
-  constructor() {
-    if (typeof window !== "undefined") {
-      this.collapsed = readCollapsed();
-    }
-  }
+	readonly isCollapsed = $derived(this.collapsed && this.railActive);
 
-  initRailQuery(): () => void {
-    if (typeof window === "undefined") return () => {};
-    const mq = window.matchMedia(RAIL_MEDIA);
-    const sync = () => {
-      this.railActive = mq.matches;
-    };
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }
+	readonly width = $derived(
+		this.isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED,
+	);
 
-  toggle() {
-    this.collapsed = !this.collapsed;
-    persistCollapsed(this.collapsed);
-  }
+	initRailQuery(): () => void {
+		if (typeof window === "undefined") return () => {};
+		const mq = window.matchMedia(RAIL_MEDIA);
+		const sync = () => {
+			this.railActive = mq.matches;
+		};
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}
 
-  setCollapsed(collapsed: boolean) {
-    if (this.collapsed === collapsed) return;
-    this.collapsed = collapsed;
-    persistCollapsed(collapsed);
-  }
+	toggle() {
+		sidebarStore.current = !sidebarStore.current;
+	}
+
+	setCollapsed(collapsed: boolean) {
+		sidebarStore.current = collapsed;
+	}
 }
 
 export const sidebar = new SidebarStore();

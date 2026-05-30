@@ -26,6 +26,7 @@
 		children?: Snippet;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const { enabled, pending, buttonProps } = useTrackToggle({
 		source,
 		initialState,
@@ -35,6 +36,7 @@
 		onDeviceError,
 	});
 
+	// svelte-ignore state_referenced_locally
 	const userChildren = children;
 
 	const iconName = $derived.by(() => {

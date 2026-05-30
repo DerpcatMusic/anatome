@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { TrackIdentifier } from '@livekit/components-core';
 	import { Track } from 'livekit-client';
-	import { useTrackMutedIndicator } from '../../hooks/useTrackMutedIndicator.svelte';
+	import { useTrackMutedIndicator } from '../../hooks/useTrackMutedIndicator';
 
 	let {
 		trackRef,
@@ -13,6 +13,7 @@
 		class?: string;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const { isMuted, className: hookClassName } = useTrackMutedIndicator(trackRef as Parameters<typeof useTrackMutedIndicator>[0]);
 
 	const showIndicator = $derived(

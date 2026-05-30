@@ -13,6 +13,7 @@ import {
   prepareJoinConnection as warmJoinConnection,
   teardownLiveSessionRoom,
 } from "./live-session-connect";
+import { refreshLiveSessionRoomToken } from "./live-room-token-refresh";
 import { LiveSessionMedia } from "./live-session-media.svelte";
 import type { ConnectionState } from "./types";
 
@@ -330,11 +331,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     );
   }
 
-  /**
-   * Keep join credentials fresh for manual reconnect / join window.
-   * LiveKit Cloud pushes refreshed JWTs over the signal channel while connected;
-   * calling room.connect() when already Connected is a no-op (see livekit-client Room.connect).
-   */
+  /** Mint a fresh JWT and push it to the active LiveKit room before the 10m TTL expires. */
   private async refreshJoinToken() {
     const liveClassId = this.getClassId();
     if (liveClassId === null || !this.inRoom) return;
@@ -346,6 +343,10 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
         return;
       }
       this.setJoinInfo(joinInfo);
+      const lkRoom = this._room;
+      if (lkRoom) {
+        await refreshLiveSessionRoomToken(lkRoom, joinInfo);
+      }
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.startTokenRefreshTimer();
     } catch (reason) {

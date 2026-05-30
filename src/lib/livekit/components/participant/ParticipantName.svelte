@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Participant } from 'livekit-client';
-	import { useParticipantInfo } from '../../hooks/useParticipantInfo.svelte';
-	import { getMaybeParticipantContext } from '../../contexts/participant-context.svelte.js';
+	import { useParticipantInfo } from '../../hooks/useParticipantInfo';
+	import { participantCtx } from '../../contexts/participant-context.svelte.js';
 
 	let {
 		participant,
@@ -13,7 +13,8 @@
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	const p = participant ?? getMaybeParticipantContext();
+	// svelte-ignore state_referenced_locally
+	const p = participant ?? participantCtx.getOr(undefined);
 	const { name, identity } = useParticipantInfo({ participant: p });
 </script>
 

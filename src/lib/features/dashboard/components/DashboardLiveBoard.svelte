@@ -128,7 +128,7 @@
     line-height: var(--leading-snug);
   }
 
-  .live-board__range {
+  :global(.live-board__range) {
     display: inline-flex;
     gap: var(--space-1);
     padding: 3px;

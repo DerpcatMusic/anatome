@@ -1,6 +1,6 @@
-import { getContext, setContext } from 'svelte';
+import { Context } from "runed";
 
-const WIDGET_CONTEXT_KEY = Symbol('livekit-widget');
+export const widgetCtx = new Context<WidgetContext>("livekit-widget");
 
 /**
  * Manages widget UI state (chat visibility, settings visibility, unread message count).
@@ -53,21 +53,4 @@ export class WidgetContext {
 	setUnread(count: number): void {
 		this.unreadMessages = count;
 	}
-}
-
-/**
- * Set the WidgetContext in the current Svelte component tree.
- * @public
- */
-export function setWidgetContext(ctx: WidgetContext): void {
-	setContext(WIDGET_CONTEXT_KEY, ctx);
-}
-
-/**
- * Get the WidgetContext from the current Svelte component tree.
- * Returns `undefined` if not found.
- * @public
- */
-export function getWidgetContext(): WidgetContext | undefined {
-	return getContext<WidgetContext | undefined>(WIDGET_CONTEXT_KEY);
 }

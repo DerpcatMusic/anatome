@@ -10,11 +10,13 @@ import { useEnsureParticipant } from "$lib/livekit/contexts";
  */
 type ParticipantSource = Participant | (() => Participant);
 
+import { extract } from "runed";
+
 function resolveParticipant(source: ParticipantSource | undefined): Participant {
 	if (source === undefined) {
 		return useEnsureParticipant();
 	}
-	return typeof source === "function" ? source() : source;
+	return extract(source);
 }
 
 export function useParticipantMedia(explicitParticipant?: ParticipantSource): ParticipantMedia {
@@ -33,5 +35,6 @@ export function useParticipantMedia(explicitParticipant?: ParticipantSource): Pa
 		return () => subscription.unsubscribe();
 	});
 
+	// svelte-ignore state_referenced_locally
 	return media;
 }

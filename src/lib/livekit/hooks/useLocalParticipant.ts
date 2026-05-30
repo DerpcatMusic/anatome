@@ -1,5 +1,5 @@
 import type { LocalParticipant, Room } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 
 /**
  * Returns the local participant from the room context.
@@ -7,7 +7,7 @@ import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
  * @public
  */
 export function useLocalParticipant(explicitRoom?: Room): LocalParticipant {
-	const room = explicitRoom ?? getMaybeRoomContext();
+	const room = explicitRoom ?? roomCtx.getOr(undefined);
 	if (!room) {
 		throw new Error("useLocalParticipant: no room found in context");
 	}

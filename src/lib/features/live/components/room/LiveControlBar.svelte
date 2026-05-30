@@ -193,11 +193,7 @@
 </footer>
 
 <style>
-  .lr-control-bar__toolbar {
-    flex-wrap: nowrap;
-    gap: 4px;
-    max-width: 100%;
-  }
+  
 
   .lr-control-bar__media {
     flex-shrink: 0;

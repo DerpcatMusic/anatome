@@ -10,6 +10,7 @@
     loadLandingCopyDraft,
     saveLandingCopyDraft,
   } from "$lib/features/landing/copy/landing-copy-storage";
+  import { Debounced } from "runed";
   import "./LandingCopyEditor.css";
 
   let {
@@ -26,6 +27,8 @@
   let lastSavedAt = $state<string | null>(null);
   let mobileTab = $state<"before" | "edit" | "after">("edit");
   let copied = $state(false);
+
+  const debouncedValues = new Debounced(() => values, 450);
 
   const baselineDoc = $derived(buildLandingCopyDocument(baseline));
   const doc = $derived(buildLandingCopyDocument(values));
@@ -49,14 +52,12 @@
 
   $effect(() => {
     if (!browser || !hydrated) return;
-    const snapshot = values;
+    const snapshot = debouncedValues.current;
+    if (snapshot === values && saveStatus !== "idle") return;
     saveStatus = "saving";
-    const timer = setTimeout(() => {
-      saveLandingCopyDraft(snapshot);
-      lastSavedAt = new Date().toISOString();
-      saveStatus = "saved";
-    }, 450);
-    return () => clearTimeout(timer);
+    saveLandingCopyDraft(snapshot);
+    lastSavedAt = new Date().toISOString();
+    saveStatus = "saved";
   });
 
   function updateField(slug: string, next: string) {

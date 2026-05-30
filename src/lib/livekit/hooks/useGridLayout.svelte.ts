@@ -1,6 +1,6 @@
+import { ElementSize } from "runed";
 import { GRID_LAYOUTS, selectGridLayout } from "@livekit/components-core";
 import type { GridLayoutDefinition, GridLayoutInfo } from "@livekit/components-core";
-import { useResizeObserver } from "./internal/useResizeObserver.svelte";
 
 export type UseGridLayoutOptions = {
   gridLayouts?: GridLayoutDefinition[];
@@ -26,10 +26,10 @@ export function useGridLayout(
   const elementGetter =
     typeof gridElement === "function" ? gridElement : () => gridElement ?? null;
   const countGetter = typeof trackCount === "function" ? trackCount : () => trackCount;
-  const { width, height } = useResizeObserver(elementGetter);
+  const elementSize = new ElementSize(elementGetter, { box: "content-box" });
 
   const layout = $derived(
-    selectGridLayout(gridLayouts, countGetter(), width, height),
+    selectGridLayout(gridLayouts, countGetter(), elementSize.width, elementSize.height),
   );
 
   $effect(() => {
@@ -45,10 +45,10 @@ export function useGridLayout(
       return layout;
     },
     get containerWidth() {
-      return width;
+      return elementSize.width;
     },
     get containerHeight() {
-      return height;
+      return elementSize.height;
     },
   };
 }

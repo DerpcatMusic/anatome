@@ -160,6 +160,11 @@ html[data-theme="light"] {
   --app-bottom-nav-bar-height: 3.5rem;
   --app-bottom-nav-height: calc(var(--app-bottom-nav-bar-height) + env(safe-area-inset-bottom, 0px));
 
+  /* App shell — desktop chrome sizing */
+  --app-navbar-height: 4rem;          /* 64px — MarketingNavbar desktop */
+  --app-sidebar-width: 16.25rem;      /* 260px — AppSidebar desktop */
+  --app-sidebar-collapsed-width: 4.5rem;
+
   --border: 1px solid var(--border-color);
 
   --shadow-sm: 0 2px 8px oklch(22% 0.04 155 / 0.04);

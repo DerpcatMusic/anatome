@@ -125,6 +125,7 @@
     <div
       class="live-pip__drag"
       role="toolbar"
+      tabindex="0"
       aria-label={session.classTitle || t.live.room.instructor()}
       onpointerdown={onDragPointerDown}
       onpointermove={onDragPointerMove}

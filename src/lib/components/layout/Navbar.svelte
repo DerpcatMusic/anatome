@@ -73,10 +73,7 @@
     color: var(--ink);
   }
 
-  .navbar__logo {
-    flex-shrink: 0;
-    align-self: center;
-  }
+  
 
   .navbar__divider {
     color: var(--line-light);

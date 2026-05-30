@@ -2,11 +2,11 @@
 	import type { Snippet } from 'svelte';
 	import {
 		LayoutContext,
-		setLayoutContext,
+		layoutCtx,
 		useCreateLayoutContext,
 	} from '../contexts/layout-context.svelte.js';
-	import { setPinContext } from '../contexts/pin-context.svelte.js';
-	import { setWidgetContext } from '../contexts/widget-context.svelte.js';
+	import { pinCtx } from '../contexts/pin-context.svelte.js';
+	import { widgetCtx } from '../contexts/widget-context.svelte.js';
 
 	let {
 		value,
@@ -16,10 +16,11 @@
 		children: Snippet;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const layoutContext = value ?? useCreateLayoutContext();
-	setLayoutContext(layoutContext);
-	setPinContext(layoutContext.pin);
-	setWidgetContext(layoutContext.widget);
+	layoutCtx.set(layoutContext);
+	pinCtx.set(layoutContext.pin);
+	widgetCtx.set(layoutContext.widget);
 </script>
 
 {@render children()}

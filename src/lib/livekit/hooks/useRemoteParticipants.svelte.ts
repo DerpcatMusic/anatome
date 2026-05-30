@@ -1,6 +1,6 @@
 import { connectedParticipantsObserver } from "@livekit/components-core";
 import type { RemoteParticipant, Room } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 
 /**
  * Returns a reactive array of remote participants.
@@ -11,7 +11,7 @@ export function useRemoteParticipants(explicitRoom?: Room): RemoteParticipant[] 
 	let participants = $state<RemoteParticipant[]>([]);
 
 	$effect(() => {
-		const room = explicitRoom ?? getMaybeRoomContext();
+		const room = explicitRoom ?? roomCtx.getOr(undefined);
 		if (!room) {
 			participants = [];
 			return;
@@ -28,5 +28,6 @@ export function useRemoteParticipants(explicitRoom?: Room): RemoteParticipant[] 
 		};
 	});
 
+	// svelte-ignore state_referenced_locally
 	return participants;
 }

@@ -1,6 +1,6 @@
 import { participantInfoObserver } from "@livekit/components-core";
 import type { Participant } from "livekit-client";
-import { getMaybeParticipantContext } from "$lib/livekit/contexts";
+import { participantCtx } from "$lib/livekit/contexts";
 import { useObservableState } from "./internal/useObservableState.svelte";
 
 export interface UseParticipantInfoOptions {
@@ -19,7 +19,7 @@ export type ParticipantInfo = {
  * @public
  */
 export function useParticipantInfo(options: UseParticipantInfoOptions = {}): ParticipantInfo {
-	const context = getMaybeParticipantContext();
+	const context = participantCtx.getOr(undefined);
 	const p = options.participant ?? context;
 	const infoObserver = p ? participantInfoObserver(p) : undefined;
 	const initial: ParticipantInfo = {

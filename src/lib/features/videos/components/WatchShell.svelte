@@ -186,7 +186,7 @@
   }
 
   .skeleton {
-    height: 64px;
+    height: var(--space-8);
     background: var(--line-light);
     animation: pulse 1.6s ease-in-out infinite;
   }

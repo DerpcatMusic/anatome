@@ -11,6 +11,7 @@
   import { setReturnTo } from "$lib/auth/session.svelte";
   import { watchHref } from "$lib/i18n/context";
   import { useI18n } from "$lib/i18n/runes";
+import { useIntersectionObserver } from "runed";
   import { chunkMacroflowRows } from "$features/videos/lib/catalog-chunks";
   import CatalogCategoryRail from "./CatalogCategoryRail.svelte";
   import HorizontalVideoRow, { type RowVideo } from "./HorizontalVideoRow.svelte";
@@ -184,7 +185,8 @@
 
     if (elements.length === 0) return;
 
-    const observer = new IntersectionObserver(
+    useIntersectionObserver(
+      () => elements,
       (entries) => {
         const visible = entries
           .filter((e) => e.isIntersecting)
@@ -195,9 +197,6 @@
       },
       { rootMargin: "-12% 0px -60% 0px", threshold: [0, 0.12, 0.35] },
     );
-
-    for (const el of elements) observer.observe(el);
-    return () => observer.disconnect();
   });
 </script>
 

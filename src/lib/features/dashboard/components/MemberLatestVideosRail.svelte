@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+import { useIntersectionObserver } from "runed";
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
   import { canRunAuthenticatedQuery } from "$lib/auth/session.svelte";
@@ -15,23 +16,15 @@
   let sectionEl: HTMLElement | undefined = $state();
   let catalogEnabled = $state(false);
 
-  onMount(() => {
-    const el = sectionEl;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          catalogEnabled = true;
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "240px 0px", threshold: 0 },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  });
+  useIntersectionObserver(
+    () => sectionEl,
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        catalogEnabled = true;
+      }
+    },
+    { rootMargin: "240px 0px", threshold: 0, once: true },
+  );
 
   const queryNow = useQueryNowMs();
   const catalogQuery = useQuery(api.video.catalog.listCatalog, () =>

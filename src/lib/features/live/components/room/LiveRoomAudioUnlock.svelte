@@ -4,6 +4,7 @@
 
   let { room }: { room: Room } = $props();
 
+  // svelte-ignore state_referenced_locally
   const { canPlayAudio } = useStartAudio({ room });
 
   $effect(() => {

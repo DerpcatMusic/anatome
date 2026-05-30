@@ -2,8 +2,7 @@
 	import { DropdownMenu } from 'bits-ui';
 	import {
 		isAudioOutputSelectionSupported,
-		persistAudioOutputId,
-		readPersistedAudioOutputId,
+		audioOutputPref,
 	} from '$lib/media/audio-output';
 
 	let {
@@ -19,7 +18,7 @@
 	} = $props();
 
 	const supported = isAudioOutputSelectionSupported();
-	let selectedDeviceId = $state(readPersistedAudioOutputId());
+	let selectedDeviceId = $state(audioOutputPref.current);
 
 	const activeDeviceId = $derived(
 		devices.some((d) => d.deviceId === selectedDeviceId)
@@ -35,7 +34,7 @@
 
 	function selectDevice(deviceId: string) {
 		selectedDeviceId = deviceId;
-		persistAudioOutputId(deviceId);
+		audioOutputPref.current = deviceId;
 	}
 </script>
 

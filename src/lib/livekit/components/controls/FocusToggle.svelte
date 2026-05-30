@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { TrackReferenceOrPlaceholder } from '@livekit/components-core';
 	import { Toggle, Tooltip } from 'bits-ui';
-	import { getMaybeTrackRefContext } from '../../contexts/track-ref-context.svelte.js';
-	import { getMaybeLayoutContext } from '../../contexts/layout-context.svelte.js';
+	import { trackRefCtx } from '../../contexts/track-ref-context.svelte.js';
+	import { layoutCtx } from '../../contexts/layout-context.svelte.js';
 	import { useFocusToggle } from '../../hooks/useFocusToggle.svelte';
 
 	let {
@@ -15,14 +15,16 @@
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	const trackRefFromContext = getMaybeTrackRefContext();
-	const layoutContext = getMaybeLayoutContext();
+	const trackRefFromContext = trackRefCtx.getOr(undefined);
+	const layoutContext = layoutCtx.getOr(undefined);
 
+	// svelte-ignore state_referenced_locally
 	const { mergedProps, inFocus } = useFocusToggle({
 		trackRef: trackRef ?? trackRefFromContext,
 		props: { class: className },
 	});
 
+	// svelte-ignore state_referenced_locally
 	const userChildren = children;
 </script>
 

@@ -2,6 +2,7 @@
   import AgendaPane from "./AgendaPane.svelte";
   import type { Id } from "$convex/_generated/dataModel";
   import type { DayAgendaGroup, CalendarClass } from "../lib/agenda";
+import { useIntersectionObserver } from "runed";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import "../styles/agenda-list.css";
 
@@ -47,29 +48,15 @@
 
   let loadMoreSentinel = $state<HTMLDivElement | null>(null);
 
-  $effect(() => {
-    const node = loadMoreSentinel;
-    const isLoading = loading;
-    if (!node || !onLoadMore || !canLoadMore) return;
-
-    let armed = false;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.some((e) => e.isIntersecting);
-        if (!visible) {
-          armed = true;
-          return;
-        }
-        if (!armed || isLoading) return;
-        armed = false;
-        onLoadMore();
-      },
-      { rootMargin: "200px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  });
+  useIntersectionObserver(
+    () => canLoadMore && onLoadMore ? loadMoreSentinel : null,
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        onLoadMore?.();
+      }
+    },
+    { rootMargin: "200px 0px" },
+  );
 </script>
 
 {#if isEmpty}

@@ -1,5 +1,3 @@
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   BENTO_FRAME_ROTATIONS,
   BENTO_MOTION,
@@ -14,6 +12,12 @@ type BentoElements = {
   pin: HTMLElement;
   frames: HTMLElement[];
 };
+
+type GSAP = Parameters<typeof import("gsap")["gsap"]["to"]>[0] extends never
+  ? never
+  : Awaited<typeof import("gsap")> extends { gsap: infer G }
+    ? G
+    : never;
 
 function queryBento(root: HTMLElement): BentoElements | null {
   const experience = root.querySelector<HTMLElement>("[data-landing-experience]");
@@ -44,13 +48,21 @@ function frameShownState() {
   };
 }
 
-function clearPinnedMode(experience: HTMLElement, frames: HTMLElement[]) {
+function clearPinnedMode(
+  gsap: typeof import("gsap").gsap,
+  experience: HTMLElement,
+  frames: HTMLElement[],
+) {
   experience.removeAttribute("data-bento-pinned");
   experience.classList.remove("is-bento-scroll-active");
   gsap.set(frames, { clearProps: "all" });
 }
 
-function buildBentoTimeline(elements: BentoElements): ScrollTrigger | undefined {
+function buildBentoTimeline(
+  gsap: typeof import("gsap").gsap,
+  ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger,
+  elements: BentoElements,
+): ScrollTrigger | undefined {
   const { experience, track, pin, frames } = elements;
   const step = 1 / frames.length;
 
@@ -101,9 +113,14 @@ function buildBentoTimeline(elements: BentoElements): ScrollTrigger | undefined 
 }
 
 /**
- * Desktop-only pinned bento chapter. Must run synchronously inside `gsap.context`.
+ * Desktop-only pinned bento chapter.
+ * GSAP and ScrollTrigger are passed in from the parent lazy-loader.
  */
-export function initExperienceBentoScroll(root: HTMLElement): (() => void) | undefined {
+export function initExperienceBentoScroll(
+  root: HTMLElement,
+  gsap: typeof import("gsap").gsap,
+  ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger,
+): (() => void) | undefined {
   const elements = queryBento(root);
   if (!elements) return undefined;
 
@@ -111,17 +128,17 @@ export function initExperienceBentoScroll(root: HTMLElement): (() => void) | und
   const mm = gsap.matchMedia();
 
   mm.add(LANDING_BENTO_DESKTOP_MQ, () => {
-    clearPinnedMode(experience, frames);
-    const trigger = buildBentoTimeline(elements);
+    clearPinnedMode(gsap, experience, frames);
+    const trigger = buildBentoTimeline(gsap, ScrollTrigger, elements);
     ScrollTrigger.refresh();
     return () => {
       trigger?.kill();
-      clearPinnedMode(experience, frames);
+      clearPinnedMode(gsap, experience, frames);
     };
   });
 
   return () => {
     mm.revert();
-    clearPinnedMode(experience, frames);
+    clearPinnedMode(gsap, experience, frames);
   };
 }

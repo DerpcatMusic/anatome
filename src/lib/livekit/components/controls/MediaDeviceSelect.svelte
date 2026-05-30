@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { RoomEvent, type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client';
-	import { getMaybeRoomContext } from '../../contexts/room-context.svelte.js';
+	import { roomCtx } from '../../contexts/room-context.svelte.js';
+	import { Previous } from "runed";
 	import { useMediaDeviceSelect } from '../../hooks/useMediaDeviceSelect.svelte';
 
 	let {
@@ -29,8 +30,7 @@
 		class?: string;
 	} = $props();
 
-	const room = getMaybeRoomContext();
-	let previousActiveDeviceId = $state('default');
+	const room = roomCtx.getOr(undefined);
 
 	function handleError(e: Error) {
 		if (room) {
@@ -39,13 +39,17 @@
 		onError?.(e);
 	}
 
+	// svelte-ignore state_referenced_locally
 	const { devices, activeDeviceId, setActiveMediaDevice, className: hookClassName } =
 		useMediaDeviceSelect({
 			kind,
 			track,
 			requestPermissions,
 			onError: handleError,
+
 		});
+
+	const prevDeviceId = new Previous(() => activeDeviceId, 'default');
 
 	$effect(() => {
 		if (initialSelection !== undefined) {
@@ -58,10 +62,9 @@
 	});
 
 	$effect(() => {
-		if (activeDeviceId !== previousActiveDeviceId) {
+		if (activeDeviceId !== prevDeviceId.current) {
 			onActiveDeviceChange?.(activeDeviceId);
 		}
-		previousActiveDeviceId = activeDeviceId;
 	});
 
 	const hasDefault = $derived(
@@ -85,7 +88,7 @@
 	}
 </script>
 
-<ul class="lk-list lk-media-device-select {hookClassName} {className}" aria-disabled={disabled}>
+<ul class="lk-list lk-media-device-select {hookClassName} {className}" role="listbox" aria-disabled={disabled}>
 	{#each devices as device, index (device.deviceId)}
 		<li
 			id={device.deviceId}

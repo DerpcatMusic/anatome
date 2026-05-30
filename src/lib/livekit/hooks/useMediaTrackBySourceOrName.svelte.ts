@@ -19,8 +19,11 @@ export function useMediaTrackBySourceOrName(
 	options: UseMediaTrackOptions = {},
 ) {
 	let publication = $state<TrackPublication | undefined>(getTrackByIdentifier(observerOptions));
+	// svelte-ignore state_referenced_locally
 	let isMuted = $state(publication?.isMuted);
+	// svelte-ignore state_referenced_locally
 	let isSubscribed = $state(publication?.isSubscribed);
+	// svelte-ignore state_referenced_locally
 	let track = $state(publication?.track);
 	let orientation = $state<"landscape" | "portrait">("landscape");
 

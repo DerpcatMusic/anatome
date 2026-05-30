@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Track, RoomEvent, type RemoteParticipant, type RemoteTrackPublication } from "livekit-client";
   import type { TrackReference } from "@livekit/components-core";
-  import { getRoomContext } from "$lib/livekit/contexts/room-context.svelte.js";
+  import { roomCtx } from "$lib/livekit/contexts/room-context.svelte.js";
   import VideoTrack from "$lib/livekit/components/participant/VideoTrack.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import {
@@ -21,7 +21,7 @@
     class?: string;
   } = $props();
 
-  const room = getRoomContext();
+  const room = roomCtx.get();
   const { t } = useI18n();
 
   let roomRevision = $state(0);

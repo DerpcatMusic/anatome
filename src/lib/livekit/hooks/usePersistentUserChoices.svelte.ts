@@ -9,7 +9,6 @@ export type UsePersistentUserChoicesOptions = {
 
 const PREFIX = "hb-live";
 const LEGACY_PREFIX = "lk";
-const SAVE_DEBOUNCE_MS = 300;
 
 const defaultChoices: LocalUserChoices = {
 	audioEnabled: true,
@@ -37,8 +36,9 @@ function migrateLegacyStorageKey(newKey: string, legacyKey: string) {
 }
 
 /**
- * Persist user media choices to localStorage via RUNED PersistedState.
- * Writes are debounced so PreJoin does not hammer storage on every keystroke.
+ * Persist user media choices to localStorage via Runed PersistedState.
+ * PersistedState debounces storage writes internally — no manual setTimeout needed.
+ * Shared storage schema with LivePersistentDevices for Live room sessions.
  * @alpha
  */
 export function usePersistentUserChoices(options: UsePersistentUserChoicesOptions = {}) {
@@ -46,20 +46,24 @@ export function usePersistentUserChoices(options: UsePersistentUserChoicesOption
 	const preventSave = options.preventSave ?? false;
 	const preventLoad = options.preventLoad ?? false;
 
-	function makeState<T>(key: string, legacyKey: string, fallback: T) {
+	/**
+	 * Build a per-field PersistedState (shared storage schema with LivePersistentDevices).
+	 * Each field has its own key for independent cross-tab sync granularity.
+	 */
+	function makeField<T>(key: string, legacyKey: string, fallback: T): { current: T } {
 		if (!preventLoad) {
 			migrateLegacyStorageKey(key, legacyKey);
 		}
 		if (preventLoad) {
-			let val = $state(fallback);
+			// In-memory only — never touch localStorage on read.
+			let val = $state<T>(fallback);
 			return {
 				get current() {
 					return val;
 				},
 				set current(v: T) {
-					val = v as unknown as typeof val;
+					val = v;
 				},
-				disconnect() {},
 			};
 		}
 		const persisted = new PersistedState(key, fallback, { storage: "local" });
@@ -69,27 +73,31 @@ export function usePersistentUserChoices(options: UsePersistentUserChoicesOption
 		return persisted;
 	}
 
-	const audioEnabled = makeState(
+	const audioEnabled = makeField(
 		`${PREFIX}-audio-enabled`,
 		`${LEGACY_PREFIX}-audio-enabled`,
 		initial.audioEnabled,
 	);
-	const videoEnabled = makeState(
+	const videoEnabled = makeField(
 		`${PREFIX}-video-enabled`,
 		`${LEGACY_PREFIX}-video-enabled`,
 		initial.videoEnabled,
 	);
-	const audioDeviceId = makeState(
+	const audioDeviceId = makeField(
 		`${PREFIX}-audio-device`,
 		`${LEGACY_PREFIX}-audio-device`,
 		initial.audioDeviceId,
 	);
-	const videoDeviceId = makeState(
+	const videoDeviceId = makeField(
 		`${PREFIX}-video-device`,
 		`${LEGACY_PREFIX}-video-device`,
 		initial.videoDeviceId,
 	);
-	const username = makeState(`${LEGACY_PREFIX}-username`, `${LEGACY_PREFIX}-username`, initial.username);
+	const username = makeField(
+		`${LEGACY_PREFIX}-username`,
+		`${LEGACY_PREFIX}-username`,
+		initial.username,
+	);
 
 	const userChoices = $derived<LocalUserChoices>({
 		audioEnabled: audioEnabled.current,
@@ -99,54 +107,28 @@ export function usePersistentUserChoices(options: UsePersistentUserChoicesOption
 		username: username.current,
 	});
 
-	let debounceHandle: ReturnType<typeof setTimeout> | undefined;
-	let pending: Partial<LocalUserChoices> = {};
-
-	function flushPending() {
-		if (preventSave) return;
-		const next = pending;
-		pending = {};
-		debounceHandle = undefined;
-		if (next.audioEnabled !== undefined) audioEnabled.current = next.audioEnabled;
-		if (next.videoEnabled !== undefined) videoEnabled.current = next.videoEnabled;
-		if (next.audioDeviceId !== undefined) audioDeviceId.current = next.audioDeviceId;
-		if (next.videoDeviceId !== undefined) videoDeviceId.current = next.videoDeviceId;
-		if (next.username !== undefined) username.current = next.username;
-	}
-
+	/**
+	 * Write partial choices to PersistedState.
+	 * PersistedState debounces storage writes internally — direct assignment is fine.
+	 */
 	function saveUserChoices(partial: Partial<LocalUserChoices>) {
 		if (preventSave) return;
-		Object.assign(pending, partial);
-		clearTimeout(debounceHandle);
-		debounceHandle = setTimeout(flushPending, SAVE_DEBOUNCE_MS);
+		if (partial.audioEnabled !== undefined) audioEnabled.current = partial.audioEnabled;
+		if (partial.videoEnabled !== undefined) videoEnabled.current = partial.videoEnabled;
+		if (partial.audioDeviceId !== undefined) audioDeviceId.current = partial.audioDeviceId;
+		if (partial.videoDeviceId !== undefined) videoDeviceId.current = partial.videoDeviceId;
+		if (partial.username !== undefined) username.current = partial.username;
 	}
-
-	$effect(() => {
-		return () => {
-			clearTimeout(debounceHandle);
-			flushPending();
-		};
-	});
 
 	return {
 		get userChoices() {
 			return userChoices;
 		},
 		saveUserChoices,
-		saveAudioInputEnabled: (v: boolean) => {
-			saveUserChoices({ audioEnabled: v });
-		},
-		saveVideoInputEnabled: (v: boolean) => {
-			saveUserChoices({ videoEnabled: v });
-		},
-		saveAudioInputDeviceId: (v: string) => {
-			saveUserChoices({ audioDeviceId: v });
-		},
-		saveVideoInputDeviceId: (v: string) => {
-			saveUserChoices({ videoDeviceId: v });
-		},
-		saveUsername: (v: string) => {
-			saveUserChoices({ username: v });
-		},
+		saveAudioInputEnabled: (v: boolean) => saveUserChoices({ audioEnabled: v }),
+		saveVideoInputEnabled: (v: boolean) => saveUserChoices({ videoEnabled: v }),
+		saveAudioInputDeviceId: (v: string) => saveUserChoices({ audioDeviceId: v }),
+		saveVideoInputDeviceId: (v: string) => saveUserChoices({ videoDeviceId: v }),
+		saveUsername: (v: string) => saveUserChoices({ username: v }),
 	};
 }

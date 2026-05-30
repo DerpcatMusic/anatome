@@ -1,4 +1,4 @@
-import { useLocalParticipant } from "./useLocalParticipant.svelte";
+import { useLocalParticipant } from "./useLocalParticipant";
 
 export function useLocalParticipantPermissions() {
 	const localParticipant = useLocalParticipant();

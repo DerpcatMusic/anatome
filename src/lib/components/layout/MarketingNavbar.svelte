@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { Button } from 'bits-ui';
 	import { theme } from '$features/app/theme.svelte';
+	import { ScrollState } from 'runed';
 	import { dashboardPathFromCachedRole } from '$lib/auth/post-sign-in';
 	import { openAuthOverlay } from '$lib/auth/open-overlay';
 	import { getCachedRole, initAuth } from '$lib/auth/session.svelte';
@@ -12,21 +13,15 @@
 	const auth = initAuth();
 	const dashboardHref = $derived(dashboardPathFromCachedRole(getCachedRole()));
 
-	let scrolled = $state(false);
-
 	const SCROLL_PILL_THRESHOLD = 32;
 
-	$effect(() => {
-		if (!browser) return;
-
-		const onScroll = () => {
-			scrolled = window.scrollY > SCROLL_PILL_THRESHOLD;
-		};
-
-		onScroll();
-		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => window.removeEventListener('scroll', onScroll);
+	const scrollState = new ScrollState({
+		element: () => window,
+		offset: { top: SCROLL_PILL_THRESHOLD },
+		idle: 100,
 	});
+
+	let scrolled = $derived(scrollState.arrived.top);
 </script>
 
 <nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
@@ -140,7 +135,7 @@
 		flex-shrink: 0;
 	}
 
-	.navbar__logo {
+	:global(.navbar__logo) {
 		flex-shrink: 0;
 	}
 

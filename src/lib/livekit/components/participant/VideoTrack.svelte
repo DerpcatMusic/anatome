@@ -3,7 +3,8 @@
 	import { isTrackReference } from '@livekit/components-core';
 	import type { ParticipantClickEvent } from '@livekit/components-core';
 	import { RemoteTrackPublication } from 'livekit-client';
-	import { useEnsureTrackRef } from '../../contexts/track-ref-context.svelte.js';
+	import { useIntersectionObserver } from "runed";
+import { useEnsureTrackRef } from '../../contexts/track-ref-context.svelte.js';
 	import { useMediaTrackBySourceOrName } from '../../hooks/useMediaTrackBySourceOrName.svelte';
 
 	let {
@@ -20,6 +21,7 @@
 		class?: string;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const trackReference = useEnsureTrackRef(trackRef);
 	let mediaEl = $state<HTMLVideoElement | null>(null);
 
@@ -45,38 +47,21 @@
 	let isIntersecting = $state(false);
 	let debouncedIsIntersecting = $state(false);
 
-	$effect(() => {
-		const el = mediaEl;
-		if (!el || !manageSubscription) return;
-
-		let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
-
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				const intersecting = entry?.isIntersecting ?? false;
-				isIntersecting = intersecting;
-				if (debounceTimeout) {
-					clearTimeout(debounceTimeout);
-					debounceTimeout = null;
-				}
-				if (intersecting) {
-					debouncedIsIntersecting = true;
-				} else {
-					debounceTimeout = setTimeout(() => {
-						debouncedIsIntersecting = false;
-						debounceTimeout = null;
-					}, 3000);
-				}
-			},
-			{ threshold: 0 },
-		);
-		observer.observe(el);
-
-		return () => {
-			observer.disconnect();
-			if (debounceTimeout) clearTimeout(debounceTimeout);
-		};
-	});
+	useIntersectionObserver(
+		() => manageSubscription ? mediaEl : null,
+		([entry]) => {
+			const intersecting = entry?.isIntersecting ?? false;
+			isIntersecting = intersecting;
+			if (intersecting) {
+				debouncedIsIntersecting = true;
+			} else {
+				setTimeout(() => {
+					debouncedIsIntersecting = false;
+				}, 3000);
+			}
+		},
+		{ threshold: 0 },
+	);
 
 	$effect(() => {
 		if (!manageSubscription) return;

@@ -1,12 +1,12 @@
 <script lang="ts">
   import { RoomEvent, Track, type LocalVideoTrack } from "livekit-client";
-  import { getRoomContext } from "$lib/livekit/contexts/room-context.svelte.js";
+  import { roomCtx } from "$lib/livekit/contexts/room-context.svelte.js";
   import VideoConference from "$lib/livekit/prefabs/VideoConference.svelte";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   let { class: className = "" }: { class?: string } = $props();
 
-  const room = getRoomContext();
+  const room = roomCtx.get();
   const { t } = useI18n();
 
   let screenVideoEl = $state<HTMLVideoElement | null>(null);

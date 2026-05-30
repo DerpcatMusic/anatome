@@ -51,5 +51,6 @@ export function useVisualStableUpdate(
     lastMaxItemsOnPage = maxItemsOnPage;
   });
 
+  // svelte-ignore state_referenced_locally
   return updatedTrackRefs;
 }

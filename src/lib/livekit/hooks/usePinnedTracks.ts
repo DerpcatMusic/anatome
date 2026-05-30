@@ -1,5 +1,5 @@
 import type { TrackReferenceOrPlaceholder } from "@livekit/components-core";
-import { getMaybeLayoutContext } from "$lib/livekit/contexts";
+import { layoutCtx } from "$lib/livekit/contexts";
 import type { LayoutContext } from "$lib/livekit/contexts";
 
 /**
@@ -8,7 +8,7 @@ import type { LayoutContext } from "$lib/livekit/contexts";
  * @public
  */
 export function usePinnedTracks(layoutContext?: LayoutContext): TrackReferenceOrPlaceholder[] {
-	const ctx = layoutContext ?? getMaybeLayoutContext();
+	const ctx = layoutContext ?? layoutCtx.getOr(undefined);
 	if (!ctx) {
 		throw new Error(
 			"No layout context provided, make sure you are inside a LayoutContext provider or pass the layout context explicitly",

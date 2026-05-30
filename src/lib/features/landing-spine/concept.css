@@ -16,7 +16,7 @@ html:has(.concept-page) {
 
 .concept-page__banner {
   position: sticky;
-  top: 56px;
+  top: var(--app-navbar-height);
   z-index: 5;
   padding: 0.35rem 1rem;
   text-align: center;
@@ -267,6 +267,8 @@ html:has(.concept-page) {
   flex-direction: column;
   gap: 0;
 }
+
+/* Nav spacer — uses CSS custom property so navbar height changes don't break layout */
 
 .concept-card {
   position: relative;

@@ -33,6 +33,7 @@
     toCalendarEventDate,
     toDateTimeLocalString,
   } from "$lib/datetime/local";
+  import { useDebounce } from "runed";
 
   type LiveClass = FunctionReturnType<typeof api.live.class.listMine>[number];
   type ClassTypeFilter = "all" | "group_live" | "one_on_one";
@@ -76,7 +77,6 @@
   let availabilitySavedPainted = $state<PaintedSlots>(createEmptyPainted());
   let availabilitySaving = $state(false);
   let availabilityError = $state("");
-  let availabilitySaveTimer: ReturnType<typeof setTimeout> | undefined;
 
   let title = $state("פילאטיס לייב");
   let description = $state("שיעור קטן עם תיקונים.");
@@ -228,12 +228,7 @@
     }
   }
 
-  function scheduleAvailabilitySave() {
-    if (availabilitySaveTimer) clearTimeout(availabilitySaveTimer);
-    availabilitySaveTimer = setTimeout(() => {
-      void saveAvailability();
-    }, 450);
-  }
+  const scheduleAvailabilitySave = useDebounce(() => void saveAvailability(), 450);
 
   function handleAvailabilityPaintChange(next: PaintedSlots) {
     availabilityPainted = next;

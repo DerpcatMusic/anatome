@@ -7,7 +7,7 @@
 	} from "@livekit/components-core";
 	import type { TrackReferenceOrPlaceholder } from "@livekit/components-core";
 	import { useTracks } from "../hooks/useTracks.svelte";
-	import { getLayoutContext } from "../contexts/layout-context.svelte.js";
+	import { layoutCtx } from "../contexts/layout-context.svelte.js";
 	import GridLayout from "../components/layout/GridLayout.svelte";
 	import FocusLayoutContainer from "../components/layout/FocusLayoutContainer.svelte";
 	import FocusLayout from "../components/layout/FocusLayout.svelte";
@@ -21,7 +21,7 @@
 		class?: string;
 	} = $props();
 
-	const layoutContext = getLayoutContext();
+	const layoutContext = layoutCtx.get();
 
 	const trackUpdateEvents = [
 		RoomEvent.ActiveSpeakersChanged,

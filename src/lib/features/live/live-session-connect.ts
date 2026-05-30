@@ -287,6 +287,8 @@ export async function prepareJoinConnection(info: JoinInfo): Promise<void> {
   }
 }
 
+export { refreshLiveSessionRoomToken } from "./live-room-token-refresh";
+
 /** Disconnect and unregister handlers; safe if connect failed early. */
 export async function teardownLiveSessionRoom(room: Room | null): Promise<void> {
   if (room === null) return;

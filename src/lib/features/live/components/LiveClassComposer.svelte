@@ -3,7 +3,7 @@
   import DatePicker from "$components/ui/DatePicker.svelte";
   import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
   import type { Equipment } from "$lib/labels";
-  import { TextareaAutosize } from "runed";
+  import { TextareaAutosize, Previous } from "runed";
   import { parseDate } from "@internationalized/date";
   import type { DateValue } from "@internationalized/date";
 
@@ -118,16 +118,16 @@
     confirmCancel = false;
   });
 
-  let previousStartTime = "";
+  const prevStartTime = new Previous(() => startTime, "");
   $effect(() => {
     const currentStart = startTime;
-    if (currentStart === previousStartTime) return;
-    const oldStartMin = timeToMinutes(previousStartTime || currentStart);
+    const prev = prevStartTime.current ?? "";
+    if (currentStart === prev) return;
+    const oldStartMin = timeToMinutes(prev || currentStart);
     const newStartMin = timeToMinutes(currentStart);
     const oldEndMin = timeToMinutes(endTime);
     const duration = oldEndMin - oldStartMin;
     endTime = minutesToTime(newStartMin + (duration > 0 ? duration : durationMinutes || 50));
-    previousStartTime = currentStart;
   });
 
   function timeToMinutes(t: string) {

@@ -12,6 +12,7 @@
 		class?: string;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const { canPlayAudio, buttonProps } = useStartAudio({ room });
 </script>
 

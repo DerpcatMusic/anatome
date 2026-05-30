@@ -42,13 +42,10 @@
 
   onMount(() => {
     measureConnector();
-    window.addEventListener("scroll", measureConnector, { passive: true });
-    window.addEventListener("resize", measureConnector, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", measureConnector);
-      window.removeEventListener("resize", measureConnector);
-    };
   });
+
+  useEventListener("scroll", measureConnector, { passive: true });
+  useEventListener("resize", measureConnector, { passive: true });
 
   $effect(() => {
     spine.activeSectionIndex;

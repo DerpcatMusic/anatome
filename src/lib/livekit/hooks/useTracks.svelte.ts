@@ -11,7 +11,7 @@ import {
   trackReferencesObservable,
 } from "@livekit/components-core";
 import { Track, RoomEvent, type Participant, type Room } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 
 /** @public */
 export type UseTracksOptions = {
@@ -130,7 +130,7 @@ export function useTracks<T extends SourcesArray = Track.Source[]>(
 
   /** Force Svelte to refresh when LiveKit mutates publications in place. */
   $effect(() => {
-    const r = options.getRoom?.() ?? options.room ?? getMaybeRoomContext() ?? null;
+    const r = options.getRoom?.() ?? options.room ?? roomCtx.getOr(undefined) ?? null;
     if (!r) return;
     const bump = () => {
       tracksRevision += 1;
@@ -159,7 +159,7 @@ export function useTracks<T extends SourcesArray = Track.Source[]>(
   });
 
   $effect(() => {
-    const r = options.getRoom?.() ?? options.room ?? getMaybeRoomContext() ?? null;
+    const r = options.getRoom?.() ?? options.room ?? roomCtx.getOr(undefined) ?? null;
     if (!r) {
       trackReferences = [];
       participants = [];
@@ -184,12 +184,13 @@ export function useTracks<T extends SourcesArray = Track.Source[]>(
   });
 
   $effect(() => {
-    const r = options.getRoom?.() ?? options.room ?? getMaybeRoomContext() ?? null;
+    const r = options.getRoom?.() ?? options.room ?? roomCtx.getOr(undefined) ?? null;
     trackReferences;
     participants;
     tracksRevision;
     outputTracks = buildTrackReferences(sources, r, trackReferences, participants);
   });
 
+  // svelte-ignore state_referenced_locally
   return outputTracks as UseTracksHookReturnType<T>;
 }

@@ -14,11 +14,25 @@ cleanupOutdatedCaches();
 
 const APP_SHELL_CANDIDATES = ["/app.html", "/index.html"] as const;
 
-async function serveAppShell(): Promise<Response> {
+async function serveAppShell({ request }: { request: Request }): Promise<Response> {
+  // 1. Try precache candidates first.
   for (const url of APP_SHELL_CANDIDATES) {
     const cached = await matchPrecache(url);
     if (cached) return cached;
   }
+  // 2. Fetch the requested URL directly (same-origin, guaranteed by NavigationRoute).
+  //    Dev: SvelteKit dev server renders each route dynamically.
+  //    Prod: static host serves the HTML file (or fallback to app.html via adapter-static).
+  const navUrl = new URL(request.url);
+  if (navUrl.origin === self.location.origin) {
+    try {
+      const response = await fetch(request.url, { cache: "no-store" });
+      if (response.ok) return response;
+    } catch {
+      // fall through
+    }
+  }
+  // 3. Fall back to explicit app shell files for hosts that need them.
   for (const url of APP_SHELL_CANDIDATES) {
     try {
       const response = await fetch(url, { cache: "no-store" });
@@ -31,7 +45,7 @@ async function serveAppShell(): Promise<Response> {
 }
 
 registerRoute(
-  new NavigationRoute(() => serveAppShell(), {
+  new NavigationRoute(serveAppShell, {
     denylist: [/^\/api\//, /^\/convex\//, /^\/_app\//],
   }),
 );

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { useIntersectionObserver } from "runed";
   import { browser } from "$app/environment";
 
   interface Props {
@@ -220,7 +221,8 @@
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const visibilityObserver = new IntersectionObserver(
+    const { stop } = useIntersectionObserver(
+      () => canvas,
       (entries) => {
         isVisible = entries.some((entry) => entry.isIntersecting);
         if (isVisible && !reducedMotion) {
@@ -232,14 +234,13 @@
       },
       { rootMargin: "120px 0px", threshold: 0 },
     );
-    visibilityObserver.observe(canvas);
 
     resize();
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
-      visibilityObserver.disconnect();
+      stop();
       themeObserver.disconnect();
       schemeMq.removeEventListener("change", onScheme);
     };

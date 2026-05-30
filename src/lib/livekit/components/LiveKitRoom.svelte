@@ -2,7 +2,7 @@
 	import type { RoomOptions, RoomConnectOptions, Room } from "livekit-client";
 	import { Room as RoomCtor } from "livekit-client";
 	import type { Snippet } from "svelte";
-	import { setRoomContext } from "../contexts/room-context.svelte.js";
+	import { roomCtx } from "../contexts/room-context.svelte.js";
 	import { LayoutContext } from "../contexts/layout-context.svelte.js";
 	import LayoutContextProvider from "./LayoutContextProvider.svelte";
 	import "$lib/livekit/styles/livekit-components.css";
@@ -23,9 +23,10 @@
 		children: Snippet;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const room = externalRoom ?? new RoomCtor(options);
 	const layoutContext = new LayoutContext();
-	setRoomContext(room);
+	roomCtx.set(room);
 
 	$effect(() => {
 		if (!externalRoom && token && serverUrl) {

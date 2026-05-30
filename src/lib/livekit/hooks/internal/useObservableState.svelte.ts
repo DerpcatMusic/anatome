@@ -26,5 +26,6 @@ export function useObservableState<T>(
     };
   });
 
+  // svelte-ignore state_referenced_locally
   return state;
 }

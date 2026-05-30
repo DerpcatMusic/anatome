@@ -4,7 +4,7 @@
 	import { Separator } from "bits-ui";
 	import TrackToggle from "../components/controls/TrackToggle.svelte";
 	import StartAudio from "../components/controls/StartAudio.svelte";
-	import { useLocalParticipantPermissions } from "../hooks/useLocalParticipantPermissions.svelte";
+	import { useLocalParticipantPermissions } from "../hooks/useLocalParticipantPermissions";
 
 	let {
 		controls,

@@ -1,4 +1,5 @@
 import { api } from "$convex/_generated/api";
+import { useInterval } from "runed";
 import type { Id } from "$convex/_generated/dataModel";
 import { useConvexClient } from "convex-svelte";
 import type { RoomStatus } from "../types";
@@ -46,11 +47,10 @@ export function useLiveLobbyHeartbeat(options: LiveLobbyHeartbeatOptions) {
     };
 
     tick();
-    const intervalId = window.setInterval(tick, HEARTBEAT_MS);
+    useInterval(HEARTBEAT_MS, { callback: tick });
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
       if (classId !== null) {
         void client.mutation(api.live.roster.clearLobbyPresence, { liveClassId: classId });
       }

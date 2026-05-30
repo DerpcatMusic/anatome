@@ -1,4 +1,4 @@
-import { onMount } from "svelte";
+import { useInterval } from "runed";
 
 /** Default tick for calendar/dashboard/sidebar (join windows use a shorter interval). */
 export const QUERY_NOW_DEFAULT_MS = 90_000;
@@ -14,19 +14,19 @@ export { bucketQueryNowMs, QUERY_NOW_CALENDAR_BUCKET_MS } from "./queryClockBuck
 export function useQueryNowMs(refreshMs: number = QUERY_NOW_DEFAULT_MS) {
   let nowMs = $state(Date.now());
 
-  onMount(() => {
+  $effect(() => {
     const tick = () => {
       nowMs = Date.now();
     };
     if (refreshMs <= 0) return;
 
-    const interval = setInterval(tick, refreshMs);
+    useInterval(refreshMs, { callback: tick });
+
     const onVisible = () => {
       if (document.visibilityState === "visible") tick();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
   });

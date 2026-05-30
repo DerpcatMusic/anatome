@@ -5,7 +5,7 @@
 	import {
 		applyAudioSink,
 		isAudioOutputSelectionSupported,
-		readPersistedAudioOutputId,
+		audioOutputPref,
 	} from '$lib/media/audio-output';
 
 	let { room }: { room?: Room } = $props();
@@ -32,7 +32,7 @@
 
 {#each tracks as trackRef (trackRef.participant.identity + '_' + trackRef.source)}
 	{#if trackRef.publication?.track}
-		{@const outputId = readPersistedAudioOutputId()}
+		{@const outputId = audioOutputPref.current}
 		<audio
 			srcObject={trackRef.publication.track.mediaStream}
 			autoplay

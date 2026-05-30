@@ -1,5 +1,5 @@
 import type { Room, RoomEvent, Participant } from "livekit-client";
-import { useLocalParticipant } from "./useLocalParticipant.svelte";
+import { useLocalParticipant } from "./useLocalParticipant";
 import { useRemoteParticipants } from "./useRemoteParticipants.svelte";
 
 export interface UseParticipantsOptions {
@@ -38,5 +38,6 @@ export function useParticipants(options: UseParticipantsOptions = {}): Participa
 		participants = [localParticipant, ...remoteParticipants];
 	});
 
+	// svelte-ignore state_referenced_locally
 	return participants;
 }

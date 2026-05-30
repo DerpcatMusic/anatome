@@ -56,9 +56,7 @@
     gap: var(--space-1);
   }
 
-  .footer-logo {
-    flex-shrink: 0;
-  }
+  
 
   .footer-tagline {
     font-size: var(--step--1);

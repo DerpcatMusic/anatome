@@ -3,7 +3,7 @@ import type { Id } from "$convex/_generated/dataModel";
 import { sidebar } from "$features/app/sidebar.svelte";
 import type { LiveSession } from "../live-session.svelte";
 import { isAppShellPath, isLiveRoomPath } from "./live-dock-paths";
-import { readPipBounds, writePipBounds, type PipBounds, DEFAULT_PIP_BOUNDS } from "./live-dock-pip-bounds";
+import { pipBoundsPref, type PipBounds, DEFAULT_PIP_BOUNDS } from "./live-dock-pip-bounds";
 
 export type LivePresentation = "idle" | "preconnect" | "immersive" | "pip";
 
@@ -34,7 +34,7 @@ export class LiveDockController {
 
   constructor(readonly session: LiveSession) {
     if (typeof window !== "undefined") {
-      this.pipBounds = readPipBounds();
+      this.pipBounds = pipBoundsPref.current;
     }
   }
 
@@ -44,7 +44,7 @@ export class LiveDockController {
 
   updatePipBounds(bounds: PipBounds) {
     this.pipBounds = bounds;
-    writePipBounds(bounds);
+    pipBoundsPref.current = bounds;
   }
 
   ensureLiveSidebarCollapsed() {

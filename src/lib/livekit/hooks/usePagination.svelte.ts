@@ -70,7 +70,7 @@ export function usePagination(
 
   const trackRefs = $derived(trackReferencesGetter());
   const pageSize = $derived(itemsPerPageGetter());
-  const updatedTrackReferences = useVisualStableUpdate(trackRefs, pageSize);
+  const updatedTrackReferences = $derived(useVisualStableUpdate(trackRefs, pageSize));
 
   const tracksOnPage = $derived(updatedTrackReferences.slice(firstItemIndex, lastItemIndex));
 

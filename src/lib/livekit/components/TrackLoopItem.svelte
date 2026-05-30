@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { TrackReferenceOrPlaceholder } from '@livekit/components-core';
-	import { setTrackRefContext } from '../contexts/track-ref-context.svelte.js';
-	import { setParticipantContext } from '../contexts/participant-context.svelte.js';
+	import { trackRefCtx } from '../contexts/track-ref-context.svelte.js';
+	import { participantCtx } from '../contexts/participant-context.svelte.js';
 
 	let {
 		trackReference,
@@ -12,8 +12,10 @@
 		children: Snippet;
 	} = $props();
 
-	setTrackRefContext(trackReference);
-	setParticipantContext(trackReference.participant);
+	// svelte-ignore state_referenced_locally
+	trackRefCtx.set(trackReference);
+	// svelte-ignore state_referenced_locally
+	participantCtx.set(trackReference.participant);
 </script>
 
 {@render children()}

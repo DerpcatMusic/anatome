@@ -19,6 +19,7 @@
 		class?: string;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	const trackReference = useEnsureTrackRef(trackRef);
 	let mediaEl = $state<HTMLAudioElement | null>(null);
 

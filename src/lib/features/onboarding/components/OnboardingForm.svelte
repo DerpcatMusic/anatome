@@ -33,7 +33,8 @@
     loadOnboardingDraft,
     saveOnboardingDraft,
   } from "$lib/features/onboarding/draft";
-  import { convexMutationErrorMessage } from "$lib/convex/errors";
+  import { useDebounce } from "runed";
+import { convexMutationErrorMessage } from "$lib/convex/errors";
   import { browser } from "$app/environment";
   import "./OnboardingForm.css";
 
@@ -168,6 +169,11 @@
     healthDeclarationAccepted = draft.healthDeclarationAccepted;
   });
 
+  const _saveDraft = useDebounce(
+    (snapshot: Parameters<typeof saveOnboardingDraft>[0]) => saveOnboardingDraft(snapshot),
+    400,
+  );
+
   $effect(() => {
     if (!browser || mode !== "onboarding" || submitted) return;
     const snapshot = {
@@ -183,8 +189,8 @@
       healthInfoConsent,
       healthDeclarationAccepted,
     };
-    const handle = setTimeout(() => saveOnboardingDraft(snapshot), 400);
-    return () => clearTimeout(handle);
+    _saveDraft(snapshot);
+    return () => _saveDraft.cancel();
   });
 
   /** Edit mode: hydrate once per profile snapshot — never reset mid-flow. */

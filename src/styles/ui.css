@@ -1073,7 +1073,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 .hb-toggle-item {
   min-width: 108px;
-  min-height: 64px;
+  min-height: var(--space-8);
   border: var(--border);
   background: var(--white);
   color: var(--ink);

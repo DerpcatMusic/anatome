@@ -29,7 +29,7 @@
 
 </script>
 
-<div class="plan-picker-grid" role="list">
+<div class="plan-picker-grid">
   {#each sortedPlans as plan (plan.slug)}
     {@const theme = planTierTheme(plan.slug)}
     {@const isActive = plan.slug === activePlanSlug}
@@ -41,7 +41,6 @@
       class:plan-picker-card--highlight={isHighlighted}
       disabled={pending !== null || isActive || isScheduled}
       onclick={() => onSelectPlan(plan.slug)}
-      role="listitem"
     >
       <p class="plan-picker-card__tier">{theme.label}</p>
       <h3 class="plan-picker-card__name">{plan.nameHe}</h3>

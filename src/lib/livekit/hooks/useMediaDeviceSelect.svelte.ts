@@ -4,7 +4,7 @@ import {
 	log,
 } from "@livekit/components-core";
 import { Room, type LocalAudioTrack, type LocalVideoTrack } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 import { useObservableState } from "./internal/useObservableState.svelte";
 
 export interface UseMediaDeviceSelectProps {
@@ -22,7 +22,7 @@ export function useMediaDeviceSelect({
 	requestPermissions,
 	onError,
 }: UseMediaDeviceSelectProps) {
-	const roomContext = getMaybeRoomContext();
+	const roomContext = roomCtx.getOr(undefined);
 	const roomForSelector = room ?? roomContext ?? new Room();
 
 	const deviceObserver = createMediaDeviceObserver(kind, onError, requestPermissions);

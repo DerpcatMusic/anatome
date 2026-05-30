@@ -1,12 +1,12 @@
 import { Room, RoomEvent } from "livekit-client";
-import { getMaybeRoomContext } from "../contexts/room-context.svelte.js";
+import { roomCtx } from "../contexts/room-context.svelte.js";
 
 export interface UseStartAudioProps {
 	room?: Room;
 }
 
 export function useStartAudio({ room }: UseStartAudioProps = {}) {
-	const roomContext = getMaybeRoomContext();
+	const roomContext = roomCtx.getOr(undefined);
 	const roomFallback = room ?? roomContext;
 	let canPlayAudio = $state(false);
 
@@ -27,10 +27,14 @@ export function useStartAudio({ room }: UseStartAudioProps = {}) {
 	}
 
 	return {
-		canPlayAudio,
+		get canPlayAudio() {
+			return canPlayAudio;
+		},
 		buttonProps: {
 			class: "lk-start-audio",
-			"data-lk-audio-playback": canPlayAudio,
+			get "data-lk-audio-playback"() {
+				return canPlayAudio;
+			},
 			onclick: startAudio,
 		},
 	};

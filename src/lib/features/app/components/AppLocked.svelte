@@ -43,16 +43,9 @@
     background: var(--elevated);
   }
 
-  .locked__logo {
-    margin-inline: auto;
-  }
+  
 
-  .kicker {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--foreground-muted);
-    margin: 0;
-  }
+  
 
   h1 {
     font-size: var(--step-3);

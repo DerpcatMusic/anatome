@@ -15,12 +15,12 @@
     canRunAuthenticatedQuery() ? { now: queryNow.nowMs } : "skip",
   );
 
-  const now = $derived(queryNow.nowMs);
+  const nowMs = $derived(queryNow.nowMs);
 
   const upcomingLives = $derived.by((): DashboardLiveItem[] => {
     const rows = upcomingQuery.data ?? [];
     return rows
-      .filter((row) => row.status !== "cancelled" && row.status !== "draft" && row.startsAt >= now)
+      .filter((row) => row.status !== "cancelled" && row.status !== "draft" && row.startsAt >= nowMs)
       .slice(0, 24)
       .map((row) => ({
         _id: row._id,
