@@ -25,6 +25,10 @@
   } = $props();
 
   const canRedeem = $derived(creditsBalance >= 1);
+
+  function handleConfirm() {
+    onConfirm();
+  }
 </script>
 
 <Dialog.Root bind:open>
@@ -53,7 +57,7 @@
           class="hb-button hb-button--ink hb-button--sm"
           type="button"
           disabled={pending || !canRedeem || video === null}
-          onclick={() => onConfirm()}
+          onclick={handleConfirm}
         >
           {pending ? "פותחים…" : "כן, לפתוח"}
         </Button.Root>

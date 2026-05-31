@@ -41,6 +41,14 @@
   );
 
   const hasDeviceMenu = $derived(!disabled && devices.length > 1);
+
+  function handleToggle() {
+    onToggle();
+  }
+
+  function handleSelectDevice(value: string) {
+    if (value) onSelectDevice(value);
+  }
 </script>
 
 <div
@@ -51,7 +59,7 @@
 >
   <Toggle.Root
     pressed={enabled}
-    onPressedChange={() => onToggle()}
+    onPressedChange={handleToggle}
     disabled={disabled || busy}
     aria-label={toggleLabel}
     title={toggleLabel}
@@ -93,9 +101,7 @@
         >
           <DropdownMenu.RadioGroup
             value={selectedDeviceId}
-            onValueChange={(value) => {
-              if (value) onSelectDevice(value);
-            }}
+            onValueChange={handleSelectDevice}
           >
             {#each devices as device (device.deviceId)}
               <DropdownMenu.RadioItem

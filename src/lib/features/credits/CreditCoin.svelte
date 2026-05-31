@@ -20,26 +20,33 @@
 
   const { t } = useI18n();
 
+  function makeCopy(title: string, hint: string, available: string) {
+    return { title, hint, available };
+  }
+  function creditAvailableArgs(count: number) {
+    return { count };
+  }
+
   const copy = $derived.by(() => {
     switch (pool) {
       case "vod":
-        return {
-          title: t.app.wallet.vod.title(),
-          hint: t.app.wallet.vod.hint(),
-          available: t.app.wallet.vod.available({ count: balance }),
-        };
+        return makeCopy(
+          t.app.wallet.vod.title(),
+          t.app.wallet.vod.hint(),
+          t.app.wallet.vod.available(creditAvailableArgs(balance)),
+        );
       case "live":
-        return {
-          title: t.app.wallet.live.title(),
-          hint: t.app.wallet.live.hint(),
-          available: t.app.wallet.live.available({ count: balance }),
-        };
+        return makeCopy(
+          t.app.wallet.live.title(),
+          t.app.wallet.live.hint(),
+          t.app.wallet.live.available(creditAvailableArgs(balance)),
+        );
       case "oneOnOne":
-        return {
-          title: t.app.wallet.oneOnOne.title(),
-          hint: t.app.wallet.oneOnOne.hint(),
-          available: t.app.wallet.oneOnOne.available({ count: balance }),
-        };
+        return makeCopy(
+          t.app.wallet.oneOnOne.title(),
+          t.app.wallet.oneOnOne.hint(),
+          t.app.wallet.oneOnOne.available(creditAvailableArgs(balance)),
+        );
     }
   });
 

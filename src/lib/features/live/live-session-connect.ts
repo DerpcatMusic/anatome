@@ -166,7 +166,7 @@ async function publishCameraWithFallback(
     return;
   } catch (reason) {
     if (!sanitizeMediaDeviceId(devices.selectedVideoDevice)) throw reason;
-    console.warn("[LiveSession] Camera selected device failed, retrying default:", reason);
+    void reason;
   }
 
   const previousDevice = devices.selectedVideoDevice;
@@ -193,7 +193,7 @@ async function publishMicrophoneWithFallback(
     return;
   } catch (reason) {
     if (!sanitizeMediaDeviceId(devices.selectedAudioDevice)) throw reason;
-    console.warn("[LiveSession] Microphone selected device failed, retrying default:", reason);
+    void reason;
   }
 
   const previousDevice = devices.selectedAudioDevice;
@@ -226,7 +226,7 @@ async function publishLocalSessionMedia(
         })
         .catch((cameraReason) => {
           cameraEnabled = false;
-          console.warn("[LiveSession] Camera failed:", cameraReason);
+          void cameraReason;
           const cameraMsg = mediaErrorFromReason("camera", cameraReason);
           if (cameraMsg) mediaError = cameraMsg;
         })
@@ -239,7 +239,7 @@ async function publishLocalSessionMedia(
         })
         .catch((micReason) => {
           micEnabled = false;
-          console.warn("[LiveSession] Microphone failed:", micReason);
+          void micReason;
           const micMsg = getMediaErrorMessage("microphone", micReason);
           mediaError = [mediaError, micMsg].filter(Boolean).join(" ");
         })
@@ -262,7 +262,7 @@ async function publishLocalSessionMedia(
         mediaError = parts.length > 1 ? parts.slice(1).join(" ") : "";
       }
     } catch (micReason) {
-      console.warn("[LiveSession] Instructor mic failed:", micReason);
+      void micReason;
       mediaError = getMediaErrorMessage("microphone", micReason);
     }
   }
@@ -277,17 +277,15 @@ export async function prepareJoinConnection(info: JoinInfo): Promise<void> {
   try {
     await warm.prepareConnection(info.wsUrl, info.token);
   } catch (reason) {
-    console.warn("[LiveSession] prepareConnection failed:", reason);
+    void reason;
   } finally {
     try {
       await warm.disconnect();
     } catch (reason) {
-      console.warn("[LiveSession] prepareConnection warm room disconnect failed:", reason);
+      void reason;
     }
   }
 }
-
-export { refreshLiveSessionRoomToken } from "./live-room-token-refresh";
 
 /** Disconnect and unregister handlers; safe if connect failed early. */
 export async function teardownLiveSessionRoom(room: Room | null): Promise<void> {
@@ -299,8 +297,8 @@ export async function teardownLiveSessionRoom(room: Room | null): Promise<void> 
   }
   try {
     await room.disconnect();
-  } catch (reason) {
-    console.warn("[LiveSession] Room disconnect failed:", reason);
+  } catch {
+    // disconnect failed silently
   }
 }
 

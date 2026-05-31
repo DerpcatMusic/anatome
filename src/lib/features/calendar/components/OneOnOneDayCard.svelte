@@ -12,11 +12,11 @@
   import InstructorAvatar from "./InstructorAvatar.svelte";
 
   let {
-    window: dayWindow,
+    dayWindow,
     onOpenRequest,
     onBuyCredits,
   }: {
-    window: DayAvailability;
+    dayWindow: DayAvailability;
     onOpenRequest?: (dayStart: number) => void;
     onBuyCredits?: (pool?: import("$lib/features/credits/types").CreditPool) => void;
   } = $props();
@@ -24,6 +24,9 @@
   const { t } = useI18n();
 
   const hasCredits = $derived(dayWindow.availableCredits >= 1);
+
+  const handleOpenRequest = () => onOpenRequest?.(dayWindow.dayStart);
+  const handleBuyCredits = () => onBuyCredits?.("oneOnOne");
 
   const rangeLabel = $derived.by(() => {
     const start = formatWallMinutes(wallMinutesFromTimestamp(dayWindow.windowStartsAt, dayWindow.dayStart));
@@ -59,7 +62,7 @@
         <Button.Root
           class="hb-button hb-button--primary hb-button--sm"
           type="button"
-          onclick={() => onOpenRequest(dayWindow.dayStart)}
+          onclick={handleOpenRequest}
         >
           {t.calendar.class.pickTime()}
         </Button.Root>
@@ -67,7 +70,7 @@
         <Button.Root
           class="hb-button hb-button--ink hb-button--sm"
           type="button"
-          onclick={() => onBuyCredits?.("oneOnOne")}
+          onclick={handleBuyCredits}
         >
           {t.calendar.class.noCredits()}
         </Button.Root>

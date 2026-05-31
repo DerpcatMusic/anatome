@@ -1,0 +1,28 @@
+{
+  "name": "anatome-seo-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "pull": "bun run src/gsc.ts",
+    "pull-oauth": "bun run src/gsc-oauth.ts",
+    "scan": "bun run src/opportunities.ts",
+    "draft": "bun run src/drafts.ts",
+    "monitor": "bun run src/monitor.ts",
+    "sitemap": "bun run src/sitemap.ts",
+    "oauth-setup": "bun run src/gsc-oauth-setup.ts",
+    "test-sites": "bun run src/gsc-list-sites.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "googleapis": "^173.0.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.0.4",
+    "openai": "^6.39.1",
+    "slugify": "^1.6.9",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
+  }
+}

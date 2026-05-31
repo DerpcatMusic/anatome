@@ -26,6 +26,10 @@
 
 	// svelte-ignore state_referenced_locally
 	const userChildren = children;
+
+	function handlePressedChange(_p: boolean) {
+		mergedProps.onclick?.(new MouseEvent('click'));
+	}
 </script>
 
 {#if layoutContext !== undefined}
@@ -36,7 +40,7 @@
 					{...props}
 					type="button"
 					pressed={inFocus}
-					onPressedChange={(_p) => mergedProps.onclick?.(new MouseEvent('click'))}
+					onPressedChange={handlePressedChange}
 					class={mergedProps.class}
 					aria-label={inFocus ? 'Unpin participant' : 'Pin participant'}
 				>

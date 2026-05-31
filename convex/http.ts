@@ -54,7 +54,7 @@ http.route({
       return new Response("OK", { status: 200 });
     } catch (reason: unknown) {
       const message = reason instanceof Error ? reason.message : String(reason);
-      console.error("[LiveKit Webhook] Error:", message);
+      void message;
       return new Response("Internal error", { status: 500 });
     }
   }),

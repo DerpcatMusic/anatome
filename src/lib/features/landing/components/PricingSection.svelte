@@ -11,6 +11,18 @@
     openSubscriptionPicker({ highlightSlug: slug });
   }
 
+  function handlePickFeatured() {
+    if (activePlans.featured) {
+      pickPlan(activePlans.featured.slug);
+    }
+  }
+
+  function handlePickPlan(slug: string) {
+    pickPlan(slug);
+  }
+
+  const makePickPlanHandler = (slug: string) => () => handlePickPlan(slug);
+
   const { t } = useI18n();
   const activePlans = useActivePlans();
 </script>
@@ -51,7 +63,7 @@
             <Button.Root
               class="hb-button hb-button--brand hb-button--pill"
               type="button"
-              onclick={() => pickPlan(activePlans.featured.slug)}
+              onclick={handlePickFeatured}
             >
               {t.landing.pricing.ctaButton()}
             </Button.Root>
@@ -70,7 +82,7 @@
               <Button.Root
                 class="hb-button hb-button--paper"
                 type="button"
-                onclick={() => pickPlan(plan.slug)}
+                onclick={makePickPlanHandler(plan.slug)}
               >
                 {t.landing.pricing.ctaButton()}
               </Button.Root>

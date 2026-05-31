@@ -12,16 +12,6 @@ export const onResendEmailEvent = internalMutation({
     const status = await ctx.runQuery(components.resend.lib.getStatus, {
       emailId: id,
     });
-    console.log(
-      JSON.stringify({
-        source: "resend",
-        emailId: id,
-        eventType: event.type,
-        status: status?.status ?? "unknown",
-        failed: status?.failed ?? false,
-        bounced: status?.bounced ?? false,
-        errorMessage: status?.errorMessage ?? null,
-      }),
-    );
+    void status;
   },
 });

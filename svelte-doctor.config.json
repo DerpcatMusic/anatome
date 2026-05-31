@@ -1,0 +1,66 @@
+{
+  "lint": true,
+  "deadCode": false,
+  "cache": true,
+  "watch": {
+    "deadCode": "lazy"
+  },
+  "reports": {
+    "html": ".svelte-doctor/report.html",
+    "markdown": ".svelte-doctor/report.md"
+  },
+  "ignore": {
+    "rules": ["no-unnecessary-state"],
+    "files": [
+      "reference/",
+      "convex/auth.ts",
+      "convex/credits/lib.ts",
+      "src/lib/auth/*.ts",
+      "src/lib/components/icons/*.ts",
+      "src/lib/convex/*.ts",
+      "src/lib/datetime/*.ts",
+      "src/lib/features/app/nav/*.ts",
+      "src/lib/features/app/*.svelte.ts",
+      "src/lib/features/calendar/lib/*.ts",
+      "src/lib/features/celebration/*.ts",
+      "src/lib/features/credits/*.ts",
+      "src/lib/features/dashboard/lib/*.ts",
+      "src/lib/features/landing-spine/*.ts",
+      "src/lib/features/landing/components/index.ts",
+      "src/lib/features/landing/copy/*.ts",
+      "src/lib/features/landing/lib/*.ts",
+      "src/lib/features/live/dock/*.ts",
+      "src/lib/features/live/*.ts",
+      "src/lib/features/live/types/*.ts",
+      "src/lib/features/onboarding/*.ts",
+      "src/lib/features/studio/lib/*.ts",
+      "src/lib/features/subscriptions/*.ts",
+      "src/lib/i18n/*.ts",
+      "src/lib/i18n/generated/*.ts",
+      "src/lib/labels.ts",
+      "src/lib/livekit/*.ts",
+      "src/lib/livekit/contexts/*.ts",
+      "src/lib/livekit/hooks/*.ts",
+      "src/lib/livekit/prefabs/*.ts",
+      "src/lib/livekit/components/**/*.ts",
+      "src/lib/pwa/*.ts",
+      "src/lib/seo/*.ts",
+      "src/routes/(marketing)/[slug]/+page.svelte",
+      "seo-agent/**"
+    ]
+  },
+  "rules": {
+    "categories": [
+      "Correctness",
+      "Performance",
+      "Architecture",
+      "Security",
+      "Accessibility",
+      "State & Reactivity"
+    ]
+  },
+  "ci": {
+    "failOn": "error",
+    "minScore": 80
+  }
+}

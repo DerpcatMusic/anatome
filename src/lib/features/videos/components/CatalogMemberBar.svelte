@@ -7,7 +7,11 @@
     vodCredits?: number;
   } = $props();
 
-  const balances = $derived({ vod: vodCredits, live: 0, oneOnOne: 0 });
+  function makeBalances(vodCredits: number) {
+    return { vod: vodCredits, live: 0, oneOnOne: 0 };
+  }
+
+  const balances = $derived(makeBalances(vodCredits));
 </script>
 
 <div class="catalog-member-bar">

@@ -3,6 +3,29 @@
   import { SITE } from "$lib/seo/config";
   import type { JsonLd } from "$lib/seo/schema";
 
+  function buildAllLd(
+    breadcrumbs: { name: string; url: string }[] | undefined,
+    jsonLd: JsonLd | JsonLd[] | undefined,
+  ): JsonLd[] {
+    const out: JsonLd[] = [];
+    if (breadcrumbs) {
+      out.push({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: breadcrumbs.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: c.name,
+          item: c.url,
+        })),
+      });
+    }
+    if (jsonLd) {
+      out.push(...(Array.isArray(jsonLd) ? jsonLd : [jsonLd]));
+    }
+    return out;
+  }
+
   interface Props {
     title: string;
     description?: string;
@@ -71,33 +94,29 @@
   );
 
   const robotsDirectives = $derived.by(() => {
-    const parts: string[] = [];
-    if (noindex) parts.push("noindex");
-    if (nofollow) parts.push("nofollow");
-    if (!noindex && !nofollow) parts.push("index, follow");
-    if (robotsMaxSnippet !== undefined) parts.push(`max-snippet:${robotsMaxSnippet}`);
-    if (robotsMaxImagePreview) parts.push(`max-image-preview:${robotsMaxImagePreview}`);
-    return parts.join(", ");
+    let result = "";
+    if (noindex) result = "noindex";
+    if (nofollow) result = result ? `${result}, nofollow` : "nofollow";
+    if (!noindex && !nofollow) result = result ? `${result}, index, follow` : "index, follow";
+    if (robotsMaxSnippet !== undefined) result = result ? `${result}, max-snippet:${robotsMaxSnippet}` : `max-snippet:${robotsMaxSnippet}`;
+    if (robotsMaxImagePreview) result = result ? `${result}, max-image-preview:${robotsMaxImagePreview}` : `max-image-preview:${robotsMaxImagePreview}`;
+    return result;
   });
 
-  const allLd = $derived.by(() => {
-    const out: JsonLd[] = [];
-    if (breadcrumbs) {
-      out.push({
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: breadcrumbs.map((c, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: c.name,
-          item: c.url,
-        })),
-      });
+  const allLd = $derived(buildAllLd(breadcrumbs, jsonLd));
+
+  $effect(() => {
+    const scripts: HTMLScriptElement[] = [];
+    for (const item of allLd) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify(item);
+      document.head.appendChild(script);
+      scripts.push(script);
     }
-    if (jsonLd) {
-      out.push(...(Array.isArray(jsonLd) ? jsonLd : [jsonLd]));
-    }
-    return out;
+    return () => {
+      scripts.forEach((s) => s.remove());
+    };
   });
 </script>
 
@@ -151,7 +170,7 @@
     {#if article.modifiedTime}<meta property="article:modified_time" content={article.modifiedTime} />{/if}
     {#if article.author}<meta property="article:author" content={article.author} />{/if}
     {#if article.section}<meta property="article:section" content={article.section} />{/if}
-    {#if article.tags}{#each article.tags as tag}<meta property="article:tag" content={tag} />{/each}{/if}
+    {#if article.tags}{#each article.tags as tag (tag)}<meta property="article:tag" content={tag} />{/each}{/if}
   {/if}
 
   <!-- Video OG (if applicable) -->
@@ -162,16 +181,11 @@
 
   <!-- Alternate languages -->
   {#if alternateLanguages}
-    {#each alternateLanguages as alt}
+    {#each alternateLanguages as alt (alt.lang)}
       <link rel="alternate" hreflang={alt.lang} href={alt.url} />
     {/each}
   {/if}
   <link rel="alternate" hreflang="x-default" href={SITE.domain} />
 </svelte:head>
 
-<!-- JSON-LD structured data (body placement is valid per Google) -->
-{#each allLd as item}
-  {@const json = JSON.stringify(item)}
-  <!-- eslint-disable svelte/no-at-html-tags -->
-  {@html `<script type="application/ld+json">${json}<\/script>`}
-{/each}
+

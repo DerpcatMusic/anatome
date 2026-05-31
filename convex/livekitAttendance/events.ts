@@ -117,7 +117,8 @@ export const handleWebhook = internalMutation({
           .withIndex("by_liveClassId_and_userId", (q) =>
             q.eq("liveClassId", room.liveClassId).eq("userId", userId),
           )
-          .collect();
+          .order("desc")
+          .take(20);
         const hasOpenSession = priorSessions.some((row) => row.leftAt === undefined);
         if (!hasOpenSession) {
           await ctx.db.insert("liveAttendance", {

@@ -42,26 +42,29 @@
       "פרטי האשראי מוזנים בטופס מאובטח (PCI). אפשר לשלם בכרטיס אשראי בלבד.",
   );
 
+  const ilsFormatter = new Intl.NumberFormat("he-IL", {
+    style: "currency",
+    currency: "ILS",
+    minimumFractionDigits: 2,
+  });
+
   const amountLabel = $derived(
-    amountIls !== undefined
-      ? new Intl.NumberFormat("he-IL", {
-          style: "currency",
-          currency: "ILS",
-          minimumFractionDigits: 2,
-        }).format(amountIls)
-      : null,
+    amountIls !== undefined ? ilsFormatter.format(amountIls) : null,
   );
 
-  const showDevCssHint = $derived(
-    dev && typeof window !== "undefined" && window.location.hostname === "localhost",
-  );
+  let showDevCssHint = $state(false);
+  $effect(() => {
+    showDevCssHint = dev && typeof window !== "undefined" && window.location.hostname === "localhost";
+  });
+
+  function handleOpenChange(next: boolean) {
+    if (!next) onClose();
+  }
 </script>
 
 <Dialog.Root
   bind:open
-  onOpenChange={(next) => {
-    if (!next) onClose();
-  }}
+  onOpenChange={handleOpenChange}
 >
   <Dialog.Portal>
     <Dialog.Overlay class="hb-dialog-overlay cardcom-checkout-overlay" />

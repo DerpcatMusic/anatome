@@ -23,9 +23,27 @@
   let actionError = $state("");
   let editingVideoObj = $state<Video | null>(null);
 
+  function toggleUpload() {
+    showUpload = !showUpload;
+  }
+
+  function closeUpload() {
+    showUpload = false;
+  }
+
+  function handleEdit(video: Video) {
+    editingVideoObj = video;
+  }
+
+  function handleCloseEdit() {
+    editingVideoObj = null;
+  }
+
   const client = useConvexClient();
   const listQuery = useQuery(api.video.admin.listAll, () => (canRunAuthenticatedQuery() ? {} : "skip"));
   const library = $derived(listQuery.data ?? null);
+
+  const EMPTY_ARRAY: Array<{ _id: Id<"videoCategories">; name: string }> = [];
 
   const categoriesResource = resource(
     () => auth.isAuthenticated,
@@ -35,7 +53,7 @@
     },
     { initialValue: [] },
   );
-  const categories = $derived(categoriesResource.current ?? []);
+  const categories = $derived(categoriesResource.current ?? EMPTY_ARRAY);
 
   async function handleArchiveVideo(videoId: Id<"videos">) {
     actionId = videoId;
@@ -72,9 +90,7 @@
   <Button.Root
     class="hb-button {showUpload ? 'hb-button--paper' : 'hb-button--ink'}"
     type="button"
-    onclick={() => {
-      showUpload = !showUpload;
-    }}
+    onclick={toggleUpload}
   >
     <span class="material-symbols-rounded" aria-hidden="true">{showUpload ? "close" : "cloud_upload"}</span>
     {showUpload ? "סגירה" : "העלאת שיעור"}
@@ -91,12 +107,8 @@
       <section class="ivm__upload" aria-label="טופס העלאת שיעור">
         <VideoUploadForm
           {categories}
-          onComplete={() => {
-            showUpload = false;
-          }}
-          onCancel={() => {
-            showUpload = false;
-          }}
+          onComplete={closeUpload}
+          onCancel={closeUpload}
         />
       </section>
     {/if}
@@ -105,7 +117,7 @@
       <VideoList
         {library}
         {actionId}
-        onEdit={(video) => (editingVideoObj = video)}
+        onEdit={handleEdit}
         onArchive={handleArchiveVideo}
       />
     </section>
@@ -116,7 +128,7 @@
   <VideoEditModal
     video={editingVideoObj}
     {actionId}
-    onClose={() => (editingVideoObj = null)}
+    onClose={handleCloseEdit}
     onSave={handleSaveEdit}
   />
 {/if}

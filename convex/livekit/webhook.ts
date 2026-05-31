@@ -43,9 +43,8 @@ export const removeParticipant = internalAction({
     const client = new RoomServiceClient(httpUrlForLiveKit(wsUrl), apiKey, apiSecret);
     try {
       await client.removeParticipant(args.roomName, args.identity);
-    } catch (reason: unknown) {
-      const message = reason instanceof Error ? reason.message : String(reason);
-      console.warn(`[LiveKit] Failed to remove participant ${args.identity} from ${args.roomName}:`, message);
+    } catch {
+      /* ignore */
     }
     return null;
   },

@@ -28,13 +28,15 @@
     return new CalendarDate(today.year, today.month, today.day);
   }
 
-  const eventMap = $derived.by(() => {
+  function buildEventMap(events: EventDot[]): Map<string, string> {
     const map = new Map<string, string>();
     for (const ev of events) {
       map.set(ev.date.toString(), ev.tone);
     }
     return map;
-  });
+  }
+
+  const eventMap = $derived(buildEventMap(events));
 
   function dateKey(d: DateValue): string {
     return d.toString();
@@ -62,15 +64,15 @@
       <Calendar.Grid class="hb-calendar__grid">
         <Calendar.GridHead>
           <Calendar.GridRow class="hb-calendar__row">
-            {#each ["א", "ב", "ג", "ד", "ה", "ו", "ש"] as day}
+            {#each ["א", "ב", "ג", "ד", "ה", "ו", "ש"] as day (day)}
               <Calendar.HeadCell class="hb-calendar__head-cell">{day}</Calendar.HeadCell>
             {/each}
           </Calendar.GridRow>
         </Calendar.GridHead>
         <Calendar.GridBody>
-          {#each months[0].weeks as week}
+          {#each months[0].weeks as week (week[0]?.toString())}
             <Calendar.GridRow class="hb-calendar__row">
-              {#each week as date}
+              {#each week as date (date.toString())}
                 <Calendar.Cell {date} month={months[0].value}>
                   <Calendar.Day class="hb-calendar__day hb-calendar__day--with-dots">
                     {#snippet children({ day })}

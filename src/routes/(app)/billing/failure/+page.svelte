@@ -24,6 +24,10 @@
     if (!browser || !orderId || !embed) return;
     notifyCardcomCheckoutParent("failure", orderId);
   });
+
+  function goToDashboard() {
+    void goto("/u/dashboard");
+  }
 </script>
 
 {#if embed}
@@ -46,7 +50,7 @@
     <Button.Root
       class="hb-button hb-button--ink"
       type="button"
-      onclick={() => goto("/u/dashboard")}
+      onclick={goToDashboard}
     >
       חזרה לאזור האישי
     </Button.Root>

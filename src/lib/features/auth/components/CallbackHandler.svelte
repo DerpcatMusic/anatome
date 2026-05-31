@@ -22,7 +22,7 @@
       storeTokens(result.tokens ?? null);
       await completeSignIn();
     } catch (err) {
-      console.error("Magic link failed:", err);
+      void err;
       error = "הקוד פג תוקף או כבר נוצל. נסי להתחבר שוב.";
       message = "";
       setTimeout(() => window.location.replace("/"), 3000);

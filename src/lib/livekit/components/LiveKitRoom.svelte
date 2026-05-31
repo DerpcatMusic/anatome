@@ -31,7 +31,7 @@
 	$effect(() => {
 		if (!externalRoom && token && serverUrl) {
 			room.connect(serverUrl, token, connectOptions).catch((err) => {
-				console.error("[LiveKitRoom] Connection failed:", err);
+				void err;
 			});
 		}
 		return () => {

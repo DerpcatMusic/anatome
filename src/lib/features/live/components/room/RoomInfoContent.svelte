@@ -143,6 +143,27 @@
         </dl>
       </section>
 
+      {#snippet trackStatsList(stats: typeof session.trackStats)}
+        <ul class="lr-info-tracks">
+          {#each stats.filter((track) => track.kind === "video") as stat (stat.id)}
+            <li class="lr-info-tracks__item">
+              <span class="lr-info-tracks__name">{stat.name}</span>
+              <span class="lr-info-tracks__meta">
+                {stat.source === "screen_share"
+                  ? t.live.stats.sourceScreen()
+                  : stat.source === "camera"
+                    ? t.live.stats.sourceCamera()
+                    : t.live.stats.sourceUnknown()}
+                · {stat.width ?? "—"}×{stat.height ?? "—"}
+                {#if stat.bitrateKbps > 0}
+                  · {stat.bitrateKbps} kbps
+                {/if}
+              </span>
+            </li>
+          {/each}
+        </ul>
+      {/snippet}
+
       {#if session.isInstructorRoom}
         <section class="lr-info-section">
           <h4 class="lr-info-section__title">{t.live.room.sidebarLiveStats()}</h4>
@@ -165,24 +186,7 @@
             </div>
           </dl>
           {#if session.trackStats.length > 0}
-            <ul class="lr-info-tracks">
-              {#each session.trackStats.filter((track) => track.kind === "video") as stat (stat.id)}
-                <li class="lr-info-tracks__item">
-                  <span class="lr-info-tracks__name">{stat.name}</span>
-                  <span class="lr-info-tracks__meta">
-                    {stat.source === "screen_share"
-                      ? t.live.stats.sourceScreen()
-                      : stat.source === "camera"
-                        ? t.live.stats.sourceCamera()
-                        : t.live.stats.sourceUnknown()}
-                    · {stat.width ?? "—"}×{stat.height ?? "—"}
-                    {#if stat.bitrateKbps > 0}
-                      · {stat.bitrateKbps} kbps
-                    {/if}
-                  </span>
-                </li>
-              {/each}
-            </ul>
+            {@render trackStatsList(session.trackStats)}
           {/if}
         </section>
       {/if}

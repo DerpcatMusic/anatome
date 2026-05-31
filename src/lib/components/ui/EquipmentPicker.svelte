@@ -27,6 +27,10 @@
     selected = next;
     onchange?.(next);
   }
+
+  function makeToggle(value: Equipment) {
+    return () => toggle(value);
+  }
 </script>
 
 <div class="equipment-picker" class:equipment-picker--compact={compact}>
@@ -34,13 +38,13 @@
     <p class="equipment-picker__label">{label}</p>
   {/if}
   <div class="equipment-grid" class:equipment-grid--compact={compact}>
-    {#each equipmentOptions as [value, itemLabel]}
+    {#each equipmentOptions as [value, itemLabel] (value)}
       <Checkbox.Root
         class="hb-choice"
         checked={selected.includes(value)}
         {readonly}
         {disabled}
-        onCheckedChange={() => toggle(value)}
+        onCheckedChange={makeToggle(value)}
       >
         <div class="equipment-choice-content" class:equipment-choice-content--compact={compact}>
           <div class="icon-wrapper" class:icon-wrapper--compact={compact}>

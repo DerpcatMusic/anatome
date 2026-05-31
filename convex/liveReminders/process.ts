@@ -21,10 +21,8 @@ async function processReminder(
 ) {
   if (reminder.status !== "pending") return "inactive" as const;
 
-  const [reservation, liveClass] = await Promise.all([
-    ctx.db.get(reminder.reservationId),
-    ctx.db.get(reminder.liveClassId),
-  ]);
+  const reservation: Doc<"liveReservations"> | null = await ctx.db.get(reminder.reservationId);
+  const liveClass: Doc<"liveClasses"> | null = await ctx.db.get(reminder.liveClassId);
 
   if (shouldSkipLiveReminderDelivery(reservation, liveClass)) {
     await ctx.db.patch(reminder._id, {

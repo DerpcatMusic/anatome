@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+
   import { T } from "@threlte/core";
   import ProceduralSpine from "./ProceduralSpine.svelte";
   import SpineCameraRig from "./SpineCameraRig.svelte";
@@ -9,7 +9,7 @@
   const spine = useSpineLanding();
   const initial = CAMERA_FRAMES.skull;
 
-  onMount(() => {
+  $effect(() => {
     spine.setSceneReady(true);
     return () => spine.setSceneReady(false);
   });

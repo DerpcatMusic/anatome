@@ -35,8 +35,6 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         const magicLink = `${siteUrl}/callback?code=${encodeURIComponent(token)}&email=${encodeURIComponent(identifier)}`;
 
         if (shouldSkipResendForAuth()) {
-          console.log(`AnatoMe login OTP for ${identifier}: ${token}`);
-          console.log(`AnatoMe magic link for ${identifier}: ${magicLink}`);
           return;
         }
 
@@ -51,25 +49,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
             magicLink,
             expiresAt: expires,
           });
-          console.log(
-            JSON.stringify({
-              source: "auth",
-              action: "verification_email_queued",
-              emailId,
-              testMode: isResendTestMode(),
-              toDomain: identifier.split("@")[1] ?? "",
-            }),
-          );
+          void emailId;
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          console.error(
-            JSON.stringify({
-              source: "auth",
-              action: "verification_email_failed",
-              testMode: isResendTestMode(),
-              error: message,
-            }),
-          );
+          void message;
           throw error;
         }
       },

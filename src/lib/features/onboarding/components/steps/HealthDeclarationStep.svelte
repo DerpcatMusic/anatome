@@ -26,6 +26,20 @@
   function questionLabel(id: (typeof healthDeclarationQuestionIds)[number]) {
     return t.onboarding.healthDeclaration.questions[id]();
   }
+
+  const makeAnswerHandler = (questionId: (typeof healthDeclarationQuestionIds)[number]) => (value: string) => {
+    if (value === "yes" || value === "no") {
+      answers = { ...answers, [questionId]: value };
+    }
+  };
+
+  function handleDeclarationCheckedChange(value: boolean | "indeterminate") {
+    healthDeclarationAccepted = value === true;
+  }
+
+  function handleConsentCheckedChange(value: boolean | "indeterminate") {
+    healthInfoConsent = value === true;
+  }
 </script>
 
 <div class="health-step">
@@ -40,11 +54,7 @@
         <legend>{questionLabel(questionId)}</legend>
         <RadioGroup.Root
           value={answers[questionId] ?? undefined}
-          onValueChange={(value) => {
-            if (value === "yes" || value === "no") {
-              answers = { ...answers, [questionId]: value };
-            }
-          }}
+          onValueChange={makeAnswerHandler(questionId)}
           orientation="horizontal"
           class="health-question__choices"
         >
@@ -74,9 +84,7 @@
     <Checkbox.Root
       class="health-consent-check"
       checked={healthDeclarationAccepted}
-      onCheckedChange={(value) => {
-        healthDeclarationAccepted = value === true;
-      }}
+      onCheckedChange={handleDeclarationCheckedChange}
     >
       {#snippet children({ checked })}
         <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>
@@ -95,9 +103,7 @@
         <Checkbox.Root
           class="health-consent-check"
           checked={healthInfoConsent}
-          onCheckedChange={(value) => {
-            healthInfoConsent = value === true;
-          }}
+          onCheckedChange={handleConsentCheckedChange}
         >
           {#snippet children({ checked })}
             <span class="health-consent-check__box" data-checked={checked} aria-hidden="true"></span>

@@ -21,7 +21,7 @@
 
 	// svelte-ignore state_referenced_locally
 	const trackReference = useEnsureTrackRef(trackRef);
-	let mediaEl = $state<HTMLAudioElement | null>(null);
+	let mediaEl: HTMLAudioElement | null = null;
 
 	const { publication, track, className: hookClassName } = useMediaTrackBySourceOrName(trackReference);
 

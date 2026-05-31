@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+
   import { afterNavigate, beforeNavigate, goto } from "$app/navigation";
   import { isAppShellPath, isLiveRoomPath } from "./live-dock-paths";
   import { page } from "$app/state";
@@ -14,6 +14,7 @@
     setLiveDockContext,
     type LiveDockContext,
   } from "./live-dock.svelte";
+  import type { PipBounds } from "./live-dock-pip-bounds";
   import LivePip from "./LivePip.svelte";
 
   let { children }: { children: import("svelte").Snippet } = $props();
@@ -149,11 +150,19 @@
     });
   }
 
+  function handleEndLive() {
+    void endLiveFromDock();
+  }
+
   function expandFromPip() {
     const classId = dock.activeClassId ?? session.pinnedClassId;
     if (classId === null) return;
     dock.focusImmersive();
     void goto(liveRoomHref(classId));
+  }
+
+  function handleBoundsChange(b: PipBounds) {
+    dock.updatePipBounds(b);
   }
 
   const dockContext: LiveDockContext = {
@@ -185,7 +194,7 @@
 
   setLiveDockContext(dockContext);
 
-  onMount(() => {
+  $effect(() => {
     session.initBrowserStabilityHandlers();
     return () => {
       if (dock.presentation === "pip" || session.inRoom) return;
@@ -201,8 +210,8 @@
   <LivePip
     {session}
     bounds={dock.pipBounds}
-    onBoundsChange={(b) => dock.updatePipBounds(b)}
+    onBoundsChange={handleBoundsChange}
     onExpand={expandFromPip}
-    onEndLive={() => void endLiveFromDock()}
+    onEndLive={handleEndLive}
   />
 {/if}

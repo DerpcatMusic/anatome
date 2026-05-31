@@ -13,7 +13,6 @@ import {
   prepareJoinConnection as warmJoinConnection,
   teardownLiveSessionRoom,
 } from "./live-session-connect";
-import { refreshLiveSessionRoomToken } from "./live-room-token-refresh";
 import { LiveSessionMedia } from "./live-session-media.svelte";
 import type { ConnectionState } from "./types";
 
@@ -85,7 +84,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
         now: Date.now(),
       });
     } catch (reason) {
-      console.warn("[LiveKit] Join access snapshot failed:", reason);
+      void reason;
       return null;
     }
   }
@@ -191,7 +190,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     try {
       this.wakeLockSentinel = await navigator.wakeLock.request("screen");
     } catch (reason) {
-      console.warn("[LiveKit] Wake lock failed:", reason);
+      void reason;
     }
   }
 
@@ -331,7 +330,11 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
     );
   }
 
-  /** Mint a fresh JWT and push it to the active LiveKit room before the 10m TTL expires. */
+  /**
+   * Keep join credentials fresh for manual reconnect / join window.
+   * LiveKit Cloud pushes refreshed JWTs over the signal channel while connected;
+   * calling room.connect() when already Connected is a no-op (see livekit-client Room.connect).
+   */
   private async refreshJoinToken() {
     const liveClassId = this.getClassId();
     if (liveClassId === null || !this.inRoom) return;
@@ -343,14 +346,10 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
         return;
       }
       this.setJoinInfo(joinInfo);
-      const lkRoom = this._room;
-      if (lkRoom) {
-        await refreshLiveSessionRoomToken(lkRoom, joinInfo);
-      }
       this.startExpiryTimer(joinInfo.joinClosesAt);
       this.startTokenRefreshTimer();
     } catch (reason) {
-      console.warn("[LiveKit] Token refresh failed:", reason);
+      void reason;
     }
   }
 
@@ -364,7 +363,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       this.startTokenRefreshTimer();
       return true;
     } catch (reason) {
-      console.error("[LiveKit] issueJoin failed:", reason);
+      void reason;
       this.error = reason instanceof Error ? reason.message : i18n.t.live.room.tokenError();
       this.status = "error";
       return false;
@@ -385,7 +384,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       this.sessionConnect = true;
       await this.syncSessionConnect();
     } catch (reason) {
-      console.error("[LiveKit] Reconnect failed:", reason);
+      void reason;
       this.connectionState = "disconnected";
       this.needsManualReconnect = true;
       this.mediaError =
@@ -473,7 +472,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
         await this.beginSessionConnect(publishAvailableDevices);
       }
     } catch (reason) {
-      console.error("[LiveKit] Start live failed:", reason);
+      void reason;
       this.error = reason instanceof Error ? reason.message : i18n.t.live.room.startLiveError();
       this.status = "error";
     }
@@ -494,7 +493,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       }
       this.exitAfterDisconnect();
     } catch (reason) {
-      console.error("[LiveKit] End live failed:", reason);
+      void reason;
       this.mediaError = reason instanceof Error ? reason.message : i18n.t.live.room.endLiveError();
     }
   }
@@ -574,9 +573,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
       now: Date.now(),
     });
 
-    if (snapshot.phase === "error" && snapshot.status === "error") {
-      console.error("[LiveKit] Token fetch failed:", snapshot.error);
-    }
+    void snapshot;
 
     this.applyJoinTokenSnapshot(snapshot);
   }
@@ -604,7 +601,7 @@ export class LiveSessionLifecycle extends LiveSessionMedia {
 
       await this.connectRoom(this.joinInfo);
     } catch (reason) {
-      console.error("[LiveKit] Session connect failed:", reason);
+      void reason;
       this.connectionState = "disconnected";
       this.sessionConnect = false;
       this.joiningLive = false;

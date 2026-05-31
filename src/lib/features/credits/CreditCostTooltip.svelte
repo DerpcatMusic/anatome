@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { onMount } from 'svelte';
+
   import { Tooltip } from "bits-ui";
   import CreditCostHint from "./CreditCostHint.svelte";
   import type { CreditPool } from "./types";
@@ -22,7 +22,7 @@
   const show = $derived(enabled && cost > 0);
   let coarsePointer = $state(false);
 
-  onMount(() => {
+  $effect(() => {
     if (!browser) return;
     coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   });

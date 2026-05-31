@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { PUBLIC_MUX_ENV_KEY } from "$env/static/public";
+  import { MUX_ENV_KEY } from "$lib/video/mux-config";
   import { syncMediaSession } from "$lib/pwa/media-session";
 
   type MuxPlayerElement = HTMLElement & {
@@ -36,12 +35,12 @@
     onProgress,
   }: Props = $props();
 
-  let player = $state<MuxPlayerElement | null>(null);
+  let player: MuxPlayerElement | null = null;
   let muxReady = $state(false);
   let muxLoadError = $state(false);
   let lastProgressSentAt = 0;
 
-  onMount(() => {
+  $effect(() => {
     void import("@mux/mux-player")
       .then(() => {
         muxReady = true;
@@ -52,6 +51,19 @@
 
     return () => syncMediaSession(null);
   });
+
+  function onTimeUpdate() {
+    reportProgress(false);
+  }
+  function onPause() {
+    reportProgress(true);
+  }
+  function onSeeking() {
+    reportProgress(true);
+  }
+  function onEnded() {
+    reportProgress(true);
+  }
 
   $effect(() => {
     if (!muxReady || !title) return;
@@ -94,20 +106,20 @@
       metadata-video-id={videoId}
       metadata-video-title={title}
       metadata-viewer-user-id={viewerUserId ?? undefined}
-      env-key={PUBLIC_MUX_ENV_KEY || undefined}
+      env-key={MUX_ENV_KEY || undefined}
       stream-type="on-demand"
       playbackrates="0.75 1 1.25 1.5 2"
       max-resolution={maxResolution ?? undefined}
       max-auto-resolution="1080p"
       cap-rendition-to-player-size
       accent-color="var(--secondary)"
-      style="--controls-backdrop-color: rgba(0,0,0,0.6);"
+
       playsinline
       onplay={onPlayerPlay}
-      ontimeupdate={() => reportProgress(false)}
-      onpause={() => reportProgress(true)}
-      onseeking={() => reportProgress(true)}
-      onended={() => reportProgress(true)}
+      ontimeupdate={onTimeUpdate}
+      onpause={onPause}
+      onseeking={onSeeking}
+      onended={onEnded}
     ></mux-player>
   {:else}
     <div class="mux-player-state">טוענים נגן...</div>
@@ -126,6 +138,7 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     --media-object-fit: cover;
+    --controls-backdrop-color: rgba(0, 0, 0, 0.6);
   }
 
   .mux-player-state {

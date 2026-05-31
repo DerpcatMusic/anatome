@@ -12,9 +12,10 @@
 
   const auth = initAuth();
 
-  const videoId = $derived(
-    new URLSearchParams(window.location.search).get("videoId") as Id<"videos"> | null
-  );
+  let videoId = $state<Id<"videos"> | null>(null);
+  $effect(() => {
+    videoId = new URLSearchParams(window.location.search).get("videoId") as Id<"videos"> | null;
+  });
 
   const playbackResource = resource(
     () => auth.isAuthenticated && videoId,

@@ -9,11 +9,16 @@
   } = $props();
 
   const { t } = useI18n();
-  const options = $derived([
-    { value: "new" as const, label: t.onboarding.experience.newTitle(), description: t.onboarding.experience.newDesc() },
-    { value: "some" as const, label: t.onboarding.experience.someTitle(), description: t.onboarding.experience.someDesc() },
-    { value: "steady" as const, label: t.onboarding.experience.steadyTitle(), description: t.onboarding.experience.steadyDesc() },
-  ]);
+
+  function makeExperienceOptions(t: ReturnType<typeof useI18n>["t"]) {
+    return [
+      { value: "new" as const, label: t.onboarding.experience.newTitle(), description: t.onboarding.experience.newDesc() },
+      { value: "some" as const, label: t.onboarding.experience.someTitle(), description: t.onboarding.experience.someDesc() },
+      { value: "steady" as const, label: t.onboarding.experience.steadyTitle(), description: t.onboarding.experience.steadyDesc() },
+    ];
+  }
+
+  const options = $derived(makeExperienceOptions(t));
 </script>
 
 <div class="experience-options">

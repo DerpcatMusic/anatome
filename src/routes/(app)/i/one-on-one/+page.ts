@@ -1,5 +1,6 @@
 import { redirect } from "@sveltejs/kit";
+import type { PageLoad } from "./$types";
 
-export function load() {
+export const load: PageLoad = () => {
   throw redirect(307, "/i/calendar");
-}
+};

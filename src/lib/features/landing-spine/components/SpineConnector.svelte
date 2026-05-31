@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+  import { useEventListener } from "runed";
+
   import { useSpineLanding } from "../spine-context.svelte";
 
   const spine = useSpineLanding();
@@ -40,12 +41,14 @@
     visible = true;
   }
 
-  onMount(() => {
+  $effect(() => {
     measureConnector();
   });
 
-  useEventListener("scroll", measureConnector, { passive: true });
-  useEventListener("resize", measureConnector, { passive: true });
+  if (browser) {
+    useEventListener(window, "scroll", measureConnector, { passive: true });
+    useEventListener(window, "resize", measureConnector, { passive: true });
+  }
 
   $effect(() => {
     spine.activeSectionIndex;

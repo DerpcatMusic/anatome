@@ -15,13 +15,29 @@
 
 	const SCROLL_PILL_THRESHOLD = 32;
 
-	const scrollState = new ScrollState({
-		element: () => window,
-		offset: { top: SCROLL_PILL_THRESHOLD },
-		idle: 100,
+	let scrollState = $state<ScrollState | null>(null);
+	$effect(() => {
+		if (browser) {
+			scrollState = new ScrollState({
+				element: () => window,
+				offset: { top: SCROLL_PILL_THRESHOLD },
+				idle: 100,
+			});
+		}
 	});
 
-	let scrolled = $derived(scrollState.arrived.top);
+	let scrolled = $derived(scrollState?.arrived.top ?? false);
+
+	function handleThemeToggle() {
+		theme.toggle();
+	}
+	function handleDashboardClick() {
+		window.location.assign(dashboardHref);
+	}
+
+	function handleAuthClick() {
+		openAuthOverlay();
+	}
 </script>
 
 <nav class="navbar" class:navbar--scrolled={scrolled} aria-label="ניווט ראשי">
@@ -39,7 +55,7 @@
 			<Button.Root
 				class="hb-button hb-button--icon navbar__theme"
 				type="button"
-				onclick={() => theme.toggle()}
+				onclick={handleThemeToggle}
 				title={theme.isDark ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'}
 				aria-label={theme.isDark ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'}
 			>
@@ -50,9 +66,7 @@
 				<Button.Root
 					class="hb-button hb-button--brand navbar__cta"
 					type="button"
-					onclick={() => {
-						window.location.assign(dashboardHref);
-					}}
+					onclick={handleDashboardClick}
 				>
 					{t.nav.dashboard()}
 				</Button.Root>
@@ -60,7 +74,7 @@
 				<Button.Root
 					class="hb-button hb-button--brand navbar__cta"
 					type="button"
-					onclick={() => openAuthOverlay()}
+					onclick={handleAuthClick}
 				>
 					{t.nav.login()}
 				</Button.Root>

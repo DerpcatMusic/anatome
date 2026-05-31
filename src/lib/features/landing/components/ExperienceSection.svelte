@@ -5,40 +5,68 @@
 
   const { t } = useI18n();
 
-  const cells = $derived([
-    {
-      id: "preview",
-      variant: "preview" as const,
-      orient: "landscape" as const,
-      title: t.landing.preview.videoPlaceholderTitle(),
-      lead: t.landing.preview.videoPlaceholderSubtitle(),
-      body: "",
-    },
-    {
-      id: "macro",
-      variant: "macro" as const,
-      orient: "portrait" as const,
-      title: t.landing.pillars.macroTitle(),
-      lead: t.landing.pillars.macroLead(),
-      body: t.landing.pillars.macroBody(),
-    },
-    {
-      id: "micro",
-      variant: "micro" as const,
-      orient: "portrait" as const,
-      title: t.landing.pillars.microTitle(),
-      lead: t.landing.pillars.microLead(),
-      body: t.landing.pillars.microBody(),
-    },
-    {
-      id: "live",
-      variant: "live" as const,
-      orient: "landscape" as const,
-      title: t.landing.pillars.liveTitle(),
-      lead: t.landing.pillars.liveLead(),
-      body: t.landing.pillars.liveBody(),
-    },
-  ]);
+  function buildCells(
+    previewTitle: string,
+    previewLead: string,
+    macroTitle: string,
+    macroLead: string,
+    macroBody: string,
+    microTitle: string,
+    microLead: string,
+    microBody: string,
+    liveTitle: string,
+    liveLead: string,
+    liveBody: string,
+  ) {
+    return [
+      {
+        id: "preview" as const,
+        variant: "preview" as const,
+        orient: "landscape" as const,
+        title: previewTitle,
+        lead: previewLead,
+        body: "",
+      },
+      {
+        id: "macro" as const,
+        variant: "macro" as const,
+        orient: "portrait" as const,
+        title: macroTitle,
+        lead: macroLead,
+        body: macroBody,
+      },
+      {
+        id: "micro" as const,
+        variant: "micro" as const,
+        orient: "portrait" as const,
+        title: microTitle,
+        lead: microLead,
+        body: microBody,
+      },
+      {
+        id: "live" as const,
+        variant: "live" as const,
+        orient: "landscape" as const,
+        title: liveTitle,
+        lead: liveLead,
+        body: liveBody,
+      },
+    ];
+  }
+
+  const cells = $derived(buildCells(
+    t.landing.preview.videoPlaceholderTitle(),
+    t.landing.preview.videoPlaceholderSubtitle(),
+    t.landing.pillars.macroTitle(),
+    t.landing.pillars.macroLead(),
+    t.landing.pillars.macroBody(),
+    t.landing.pillars.microTitle(),
+    t.landing.pillars.microLead(),
+    t.landing.pillars.microBody(),
+    t.landing.pillars.liveTitle(),
+    t.landing.pillars.liveLead(),
+    t.landing.pillars.liveBody(),
+  ));
 
   const openLibraryLabel = $derived(
     `${t.landing.preview.videoPlaceholderTitle()} — ${t.landing.preview.videoPlaceholderSubtitle()}`,

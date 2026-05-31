@@ -21,12 +21,15 @@
   const session = $derived(resolveLiveSession(sessionProp, roomAlias, "LiveControlBar"));
   const { t } = useI18n();
 
-  const micDevices = $derived(
-    session.audioDevices.map((d) => ({ deviceId: d.deviceId, label: d.label })),
-  );
-  const cameraDevices = $derived(
-    session.videoDevices.map((d) => ({ deviceId: d.deviceId, label: d.label })),
-  );
+  function toDeviceOption(d: { deviceId: string; label: string }) {
+    return { deviceId: d.deviceId, label: d.label };
+  }
+  function mapDeviceOptions(devices: { deviceId: string; label: string }[]) {
+    return devices.map(toDeviceOption);
+  }
+
+  const micDevices = $derived(mapDeviceOptions(session.audioDevices));
+  const cameraDevices = $derived(mapDeviceOptions(session.videoDevices));
 
   const micBusy = $derived(session.pendingControl === "mic");
   const cameraBusy = $derived(session.pendingControl === "camera");
@@ -46,6 +49,34 @@
       event.preventDefault();
     }
   }
+
+  function handleToggleMic() {
+    void session.toggleMic();
+  }
+
+  function handleSelectMicDevice(deviceId: string) {
+    void session.switchStreamDevice("audioinput", deviceId);
+  }
+
+  function handleToggleCamera() {
+    void session.toggleCamera();
+  }
+
+  function handleSelectCameraDevice(deviceId: string) {
+    void session.switchStreamDevice("videoinput", deviceId);
+  }
+
+  function handleToggleScreenShare() {
+    void session.toggleScreenShare();
+  }
+
+  function handleApplyAudioProcessing() {
+    void session.applyAudioProcessing();
+  }
+
+  function handleSetScreenShareAudioEnabled(value: boolean) {
+    void session.setScreenShareAudioEnabled(!!value);
+  }
 </script>
 
 <footer class="lr-control-bar">
@@ -60,8 +91,8 @@
         selectedDeviceId={session.selectedAudioDevice}
         toggleLabel={session.micEnabled ? t.live.controls.muteMic() : t.live.controls.unmuteMic()}
         deviceMenuLabel={t.live.controls.mic()}
-        onToggle={() => void session.toggleMic()}
-        onSelectDevice={(deviceId) => void session.switchStreamDevice("audioinput", deviceId)}
+        onToggle={handleToggleMic}
+        onSelectDevice={handleSelectMicDevice}
       />
     </div>
 
@@ -75,8 +106,8 @@
         selectedDeviceId={session.selectedVideoDevice}
         toggleLabel={session.cameraEnabled ? t.live.controls.stopCamera() : t.live.controls.startCamera()}
         deviceMenuLabel={t.live.controls.camera()}
-        onToggle={() => void session.toggleCamera()}
-        onSelectDevice={(deviceId) => void session.switchStreamDevice("videoinput", deviceId)}
+        onToggle={handleToggleCamera}
+        onSelectDevice={handleSelectCameraDevice}
       />
     </div>
 
@@ -84,7 +115,7 @@
       <div class="lr-control-bar__media" role="group" aria-label={t.live.controls.screen()}>
         <Toggle.Root
           pressed={session.screenShareEnabled}
-          onPressedChange={() => void session.toggleScreenShare()}
+          onPressedChange={handleToggleScreenShare}
           disabled={screenBusy || session.connectionState !== "connected"}
           aria-label={session.screenShareEnabled ? t.live.controls.stopScreen() : t.live.controls.startScreen()}
         >
@@ -151,7 +182,7 @@
                     class="hb-switch__root"
                     aria-label={t.live.room.echoCancel()}
                     bind:checked={session.audioProcessingEnabled}
-                    onCheckedChange={() => void session.applyAudioProcessing()}
+                    onCheckedChange={handleApplyAudioProcessing}
                   >
                     <Switch.Thumb class="hb-switch__thumb" />
                   </Switch.Root>
@@ -176,7 +207,7 @@
                       aria-label={t.live.room.screenShareAudio()}
                       checked={session.screenShareAudioEnabled}
                       disabled={!session.screenShareEnabled}
-                      onCheckedChange={(value) => void session.setScreenShareAudioEnabled(!!value)}
+                      onCheckedChange={handleSetScreenShareAudioEnabled}
                     >
                       <Switch.Thumb class="hb-switch__thumb" />
                     </Switch.Root>

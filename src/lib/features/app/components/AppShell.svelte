@@ -22,6 +22,13 @@
   const knownRole = $derived(
     (appContext.role ?? getCachedRole()) as "customer" | "instructor" | "admin" | null,
   );
+
+  function goHome() {
+    window.location.assign("/");
+  }
+  function goOnboarding() {
+    window.location.assign("/onboarding");
+  }
   const waitingForAuth = $derived(auth.isAuthenticated && !canRunAuthenticatedQuery());
   const dashboardPending = $derived(
     auth.isAuthenticated &&
@@ -43,7 +50,7 @@
       <h1>{t.app.locked.title()}</h1>
       <p>{t.app.locked.subtitle()}</p>
       <div class="locked__actions">
-        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign('/')}>{t.app.locked.cta()}</Button.Root>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={goHome}>{t.app.locked.cta()}</Button.Root>
       </div>
     </div>
   </div>
@@ -57,7 +64,7 @@
       <h1>{t.app.needsOnboarding.title()}</h1>
       <p>{t.app.needsOnboarding.subtitle()}</p>
       <div class="locked__actions">
-        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={() => window.location.assign("/onboarding")}>{t.app.needsOnboarding.cta()}</Button.Root>
+        <Button.Root class="hb-button hb-button--ink hb-button--md" type="button" onclick={goOnboarding}>{t.app.needsOnboarding.cta()}</Button.Root>
         <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={signOut}>יציאה</Button.Root>
       </div>
     </div>

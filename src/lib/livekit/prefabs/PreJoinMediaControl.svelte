@@ -47,10 +47,18 @@
 		}
 		onToggle(next);
 	}
+
+	function handlePressedChange(v: boolean) {
+		void handleToggle(v);
+	}
+
+	function handleValueChange(value: string) {
+		if (value) onSelectDevice(value);
+	}
 </script>
 
 <div class="lk-prejoin__media" class:lk-prejoin__media--on={enabled} data-kind={kind}>
-	<Toggle.Root pressed={enabled} onPressedChange={(v) => void handleToggle(v)} aria-label={label}>
+	<Toggle.Root pressed={enabled} onPressedChange={handlePressedChange} aria-label={label}>
 		{#snippet child({ props, pressed })}
 			<button
 				{...props}
@@ -89,9 +97,7 @@
 				>
 					<DropdownMenu.RadioGroup
 						value={activeDeviceId}
-						onValueChange={(value) => {
-							if (value) onSelectDevice(value);
-						}}
+						onValueChange={handleValueChange}
 					>
 						{#each devices as device (device.deviceId)}
 							<DropdownMenu.RadioItem

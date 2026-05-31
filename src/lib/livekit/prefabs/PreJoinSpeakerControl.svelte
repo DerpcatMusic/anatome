@@ -36,6 +36,10 @@
 		selectedDeviceId = deviceId;
 		audioOutputPref.current = deviceId;
 	}
+
+	function handleValueChange(value: string) {
+		if (value) selectDevice(value);
+	}
 </script>
 
 <div class="lk-prejoin__media lk-prejoin__media--speaker" data-kind="speaker">
@@ -68,9 +72,7 @@
 				>
 					<DropdownMenu.RadioGroup
 						value={activeDeviceId}
-						onValueChange={(value) => {
-							if (value) selectDevice(value);
-						}}
+						onValueChange={handleValueChange}
 					>
 						{#each devices as device (device.deviceId)}
 							<DropdownMenu.RadioItem

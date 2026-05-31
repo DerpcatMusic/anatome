@@ -46,7 +46,10 @@ export async function getUserWallet(
   const rows = await ctx.db
     .query("userWallets")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
+    .take(2);
+  if (rows.length > 1) {
+    throw new Error("Duplicate user wallets require repair");
+  }
   return rows[0] ?? null;
 }
 

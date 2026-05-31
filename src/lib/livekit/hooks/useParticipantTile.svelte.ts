@@ -2,8 +2,8 @@ import { setupParticipantTile } from "@livekit/components-core";
 import type { ParticipantClickEvent, TrackReferenceOrPlaceholder } from "@livekit/components-core";
 import { Track } from "livekit-client";
 import { useEnsureTrackRef } from "$lib/livekit/contexts";
-import { useFacingMode } from "./useFacingMode";
-import { useIsMuted } from "./useIsMuted";
+import { useFacingMode } from "./useFacingMode.svelte";
+import { useIsMuted } from "./useIsMuted.svelte";
 import { useIsSpeaking } from "./useIsSpeaking.svelte";
 
 export interface UseParticipantTileProps {

@@ -8,3 +8,6 @@ export { default as PricingSection } from "./PricingSection.svelte";
 export { default as FAQSection } from "./FAQSection.svelte";
 export { default as MeshGradient } from "./MeshGradient.svelte";
 export { default as LandingFooter } from "./LandingFooter.svelte";
+export { default as AiAnswerBox } from "./AiAnswerBox.svelte";
+export { default as ComparisonSection } from "./ComparisonSection.svelte";
+export { default as WhyDifferent } from "./WhyDifferent.svelte";

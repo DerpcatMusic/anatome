@@ -12,6 +12,16 @@
     categories: { id: string; name: string }[];
     onJump: (id: string) => void;
   } = $props();
+
+  function jumpToMacro() {
+    onJump("macroflow");
+  }
+
+  function jumpToMicro() {
+    onJump("microflow");
+  }
+
+  const makeJumpHandler = (id: string) => () => onJump(id);
 </script>
 
 <nav class="catalog-rail" aria-label="ניווט בספרייה">
@@ -22,7 +32,7 @@
         class="catalog-rail__item catalog-rail__item--zone"
         class:catalog-rail__item--active={activeId === "macroflow"}
         aria-current={activeId === "macroflow" ? "true" : undefined}
-        onclick={() => onJump("macroflow")}
+        onclick={jumpToMacro}
       >
         {macroLabel}
       </button>
@@ -36,7 +46,7 @@
         class="catalog-rail__item catalog-rail__item--zone"
         class:catalog-rail__item--active={activeId === "microflow"}
         aria-current={activeId === "microflow" ? "true" : undefined}
-        onclick={() => onJump("microflow")}
+        onclick={jumpToMicro}
       >
         {microLabel}
       </button>
@@ -49,7 +59,7 @@
           class="catalog-rail__item catalog-rail__item--cat"
           class:catalog-rail__item--active={activeId === cat.id}
           aria-current={activeId === cat.id ? "true" : undefined}
-          onclick={() => onJump(cat.id)}
+          onclick={makeJumpHandler(cat.id)}
         >
           {cat.name}
         </button>

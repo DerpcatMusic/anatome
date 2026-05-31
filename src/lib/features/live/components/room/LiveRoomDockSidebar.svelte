@@ -14,16 +14,40 @@
     participantCount?: number;
   } = $props();
 
+  function getSidebarTabs(
+    chatTitle: string,
+    participantsTitle: string,
+    sidebarInfo: string,
+  ): { value: LiveSidebarTab; icon: string; label: string }[] {
+    return [
+      { value: "chat", icon: "chat", label: chatTitle },
+      { value: "participants", icon: "groups", label: participantsTitle },
+      { value: "info", icon: "info", label: sidebarInfo },
+    ];
+  }
+
   const { t } = useI18n();
 
-  const tabs: { value: LiveSidebarTab; icon: string; label: string }[] = $derived([
-    { value: "chat", icon: "chat", label: t.live.room.chatTitle() },
-    { value: "participants", icon: "groups", label: t.live.room.participantsTitle() },
-    { value: "info", icon: "info", label: t.live.room.sidebarInfo() },
-  ]);
+  const tabs = $derived(
+    getSidebarTabs(
+      t.live.room.chatTitle(),
+      t.live.room.participantsTitle(),
+      t.live.room.sidebarInfo(),
+    ),
+  );
 
   const activeTab = $derived(session.sidebarTab);
   const railOnly = $derived(activeTab === null);
+
+  function toggleTab(value: LiveSidebarTab) {
+    session.toggleSidebarTab(value);
+  }
+
+  function sendChatMessage() {
+    void session.sendChatMessage();
+  }
+
+  const makeToggleTabHandler = (value: LiveSidebarTab) => () => toggleTab(value);
 </script>
 
 <aside
@@ -40,7 +64,7 @@
           class:lr-dock-sidebar__nav-btn--active={activeTab === tab.value}
           aria-pressed={activeTab === tab.value}
           aria-current={activeTab === tab.value ? "true" : undefined}
-          onclick={() => session.toggleSidebarTab(tab.value)}
+          onclick={makeToggleTabHandler(tab.value)}
         >
           <span class="material-symbols-rounded lr-dock-sidebar__nav-icon" aria-hidden="true"
             >{tab.icon}</span
@@ -62,7 +86,7 @@
             <RoomChatContent
               messages={session.chatMessages}
               bind:draft={session.chatDraft}
-              onSend={() => void session.sendChatMessage()}
+              onSend={sendChatMessage}
             />
           </div>
         {:else if activeTab === "participants"}

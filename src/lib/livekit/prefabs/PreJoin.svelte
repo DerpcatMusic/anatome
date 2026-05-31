@@ -5,10 +5,8 @@
 	import { usePersistentUserChoices } from '../hooks/usePersistentUserChoices.svelte';
 	import { usePreJoinDevices } from '../hooks/usePreJoinDevices.svelte';
 	import { tick } from 'svelte';
-	import { Button } from 'bits-ui';
-	import PreJoinMediaControl from './PreJoinMediaControl.svelte';
-	import PreJoinSpeakerControl from './PreJoinSpeakerControl.svelte';
-	import ParticipantPlaceholder from '../components/participant/ParticipantPlaceholder.svelte';
+	import PreJoinControls from './PreJoinControls.svelte';
+	import PreJoinVideoPreview from './PreJoinVideoPreview.svelte';
 	import type { LocalAudioTrack, LocalVideoTrack } from 'livekit-client';
 
 	interface PreJoinProps {
@@ -208,13 +206,23 @@
 		});
 	});
 
-	const userChoices = $derived<LocalUserChoices>({
-		username,
-		videoEnabled,
-		videoDeviceId,
-		audioEnabled,
-		audioDeviceId,
-	});
+	function makeUserChoices(
+		username: string,
+		videoEnabled: boolean,
+		videoDeviceId: string,
+		audioEnabled: boolean,
+		audioDeviceId: string,
+	): LocalUserChoices {
+		return {
+			username,
+			videoEnabled,
+			videoDeviceId,
+			audioEnabled,
+			audioDeviceId,
+		};
+	}
+
+	const userChoices = $derived(makeUserChoices(username, videoEnabled, videoDeviceId, audioEnabled, audioDeviceId));
 
 	const isValid = $derived(
 		(onValidate ??
@@ -239,93 +247,56 @@
 			log.warn('Validation failed with: ', userChoices);
 		}
 	}
+
+	const handleAudioToggle = (enabled: boolean) => void setAudioEnabled(enabled);
+	const handleAudioDeviceSelect = (id: string) => {
+		audioDeviceId = id;
+	};
+	const handleVideoToggle = (enabled: boolean) => void setVideoEnabled(enabled);
+	const handleVideoDeviceSelect = (id: string) => {
+		videoDeviceId = id;
+	};
+	const handleEnableFailed = () => showCenterToast(cameraNotFoundToast);
 </script>
 
 <div class="lk-prejoin lk-prejoin--flat {className}">
-	<div class="lk-prejoin__video">
-		{#if videoEnabled}
-			<video bind:this={videoEl} width="1280" height="720" autoplay playsinline muted></video>
-		{/if}
-		{#if !videoEnabled || !videoTrack}
-			<div class="lk-prejoin__placeholder">
-				<ParticipantPlaceholder />
-			</div>
-		{/if}
-		{#if centerToast}
-			<div class="lk-prejoin__center-toast" role="alert">
-				<p>{centerToast}</p>
-			</div>
-		{/if}
-	</div>
+	<PreJoinVideoPreview
+		{videoEnabled}
+		{videoTrack}
+		{centerToast}
+		bind:videoEl
+	/>
 
-	<div class="lk-prejoin__footer" dir="rtl">
-		<div class="lk-prejoin__footer-controls">
-			<PreJoinMediaControl
-				kind="mic"
-				label={micLabel}
-				{noDeviceLabel}
-				enabled={audioEnabled}
-				devices={audioInputDevices}
-				selectedDeviceId={audioDeviceId}
-				onToggle={(enabled) => void setAudioEnabled(enabled)}
-				onSelectDevice={(id) => {
-					audioDeviceId = id;
-				}}
-			/>
-			<PreJoinMediaControl
-				kind="camera"
-				label={camLabel}
-				{noDeviceLabel}
-				enabled={videoEnabled}
-				devices={videoInputDevices}
-				selectedDeviceId={videoDeviceId}
-				onToggle={(enabled) => void setVideoEnabled(enabled)}
-				onSelectDevice={(id) => {
-					videoDeviceId = id;
-				}}
-				onEnableFailed={() => showCenterToast(cameraNotFoundToast)}
-			/>
-			<PreJoinSpeakerControl
-				label={speakerLabel}
-				{speakerHintSupported}
-				{speakerHintUnsupported}
-				devices={audioOutputDevices}
-			/>
-		</div>
-
-		<div class="lk-prejoin__footer-join">
-			<form class="lk-prejoin__form" onsubmit={handleSubmit}>
-				{#if showUsername}
-					<input
-						class="lk-prejoin__input"
-						id="username"
-						name="username"
-						type="text"
-						bind:value={username}
-						placeholder={userLabel}
-						autocomplete="off"
-					/>
-				{/if}
-				<Button.Root
-					class="hb-button hb-button--primary hb-button--md lk-prejoin__join {joinButtonClass}"
-					type="submit"
-					disabled={!isValid}
-				>
-					<span class="material-symbols-rounded" aria-hidden="true">{joinIcon}</span>
-					{joinLabel}
-				</Button.Root>
-			</form>
-			{#if secondaryJoinLabel && onSecondaryJoin}
-				<Button.Root
-					class="hb-button hb-button--ghost lk-prejoin__secondary"
-					type="button"
-					onclick={onSecondaryJoin}
-				>
-					{secondaryJoinLabel}
-				</Button.Root>
-			{/if}
-		</div>
-	</div>
+	<PreJoinControls
+		{micLabel}
+		{camLabel}
+		{noDeviceLabel}
+		{speakerLabel}
+		{speakerHintSupported}
+		{speakerHintUnsupported}
+		{joinLabel}
+		{joinIcon}
+		{joinButtonClass}
+		{secondaryJoinLabel}
+		{userLabel}
+		{showUsername}
+		audioEnabled={audioEnabled}
+		videoEnabled={videoEnabled}
+		audioDeviceId={audioDeviceId}
+		videoDeviceId={videoDeviceId}
+		audioInputDevices={audioInputDevices}
+		videoInputDevices={videoInputDevices}
+		audioOutputDevices={audioOutputDevices}
+		bind:username
+		{isValid}
+		onToggleAudio={handleAudioToggle}
+		onSelectAudioDevice={handleAudioDeviceSelect}
+		onToggleVideo={handleVideoToggle}
+		onSelectVideoDevice={handleVideoDeviceSelect}
+		onEnableFailed={handleEnableFailed}
+		onSubmit={handleSubmit}
+		onSecondaryJoin={onSecondaryJoin}
+	/>
 </div>
 
 <style>
@@ -344,127 +315,4 @@
 		box-shadow: none;
 	}
 
-	.lk-prejoin__video {
-		width: 100%;
-		max-width: 720px;
-		margin-inline: auto;
-		aspect-ratio: 16 / 9;
-		background: var(--muted);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-		position: relative;
-	}
-
-	.lk-prejoin__video video {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transform: scaleX(-1);
-	}
-
-	.lk-prejoin__placeholder {
-		position: absolute;
-		inset: 0;
-		display: grid;
-		place-items: center;
-	}
-
-	.lk-prejoin__center-toast {
-		position: absolute;
-		inset: 0;
-		z-index: 3;
-		display: grid;
-		place-items: center;
-		padding: var(--space-4);
-		pointer-events: none;
-	}
-
-	.lk-prejoin__center-toast p {
-		margin: 0;
-		max-width: 26ch;
-		padding: var(--space-3) var(--space-4);
-		border-radius: var(--radius-md);
-		background: color-mix(in oklch, var(--foreground) 88%, transparent);
-		color: var(--background);
-		font-size: var(--step--1);
-		font-weight: 700;
-		text-align: center;
-		line-height: 1.45;
-		box-shadow: var(--shadow-md);
-		direction: rtl;
-	}
-
-	.lk-prejoin__footer {
-		display: grid;
-		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-		gap: clamp(var(--space-3), 3vw, var(--space-5));
-		align-items: start;
-		width: 100%;
-		max-width: 720px;
-		margin-inline: auto;
-	}
-
-	.lk-prejoin__footer-controls {
-		display: grid;
-		gap: var(--space-2);
-		min-width: 0;
-	}
-
-	.lk-prejoin__footer-join {
-		display: grid;
-		gap: var(--space-3);
-		align-content: start;
-		min-width: 0;
-	}
-
-	.lk-prejoin__form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-		width: 100%;
-	}
-
-	.lk-prejoin__input {
-		flex: 1;
-		min-height: 40px;
-		padding-inline: var(--space-3);
-		border: var(--border);
-		border-radius: var(--radius-sm);
-		background: var(--card);
-		color: var(--foreground);
-		font: inherit;
-	}
-
-	.lk-prejoin__input:focus {
-		outline: none;
-		border-color: var(--secondary);
-		box-shadow: var(--ring);
-	}
-
-	.lk-prejoin__join {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--space-2);
-		width: 100%;
-	}
-
-	.lk-prejoin__join .material-symbols-rounded {
-		--icon-size: 1.25rem;
-	}
-
-	.lk-prejoin__secondary {
-		width: 100%;
-		justify-content: center;
-	}
-
-	@media (max-width: 40rem) {
-		.lk-prejoin__footer {
-			grid-template-columns: 1fr;
-		}
-
-		.lk-prejoin__footer-join {
-			order: -1;
-		}
-	}
 </style>

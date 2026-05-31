@@ -105,6 +105,14 @@
       endingLive = false;
     });
   }
+
+  const handleToggleMic = () => void session.toggleMic();
+  const handleToggleCamera = () => void session.toggleCamera();
+  const handleToggleScreenShare = () => void session.toggleScreenShare();
+
+  function handleShowEndLiveConfirm() {
+    showEndLiveConfirm = true;
+  }
 </script>
 
 <EndLiveConfirm bind:open={showEndLiveConfirm} pending={endingLive} onConfirm={confirmEndLive} />
@@ -151,7 +159,7 @@
         class:live-pip__btn--off={!session.micEnabled}
         aria-pressed={session.micEnabled}
         aria-label={t.live.preConnect.micLabel()}
-        onclick={() => void session.toggleMic()}
+        onclick={handleToggleMic}
       >
         <span class="material-symbols-rounded" aria-hidden="true">
           {session.micEnabled ? "mic" : "mic_off"}
@@ -163,7 +171,7 @@
         class:live-pip__btn--off={!session.cameraEnabled}
         aria-pressed={session.cameraEnabled}
         aria-label={t.live.preConnect.cameraLabel()}
-        onclick={() => void session.toggleCamera()}
+        onclick={handleToggleCamera}
       >
         <span class="material-symbols-rounded" aria-hidden="true">
           {session.cameraEnabled ? "videocam" : "videocam_off"}
@@ -175,7 +183,7 @@
         class:live-pip__btn--off={!session.screenShareEnabled}
         aria-pressed={session.screenShareEnabled}
         aria-label={t.live.room.screenShare()}
-        onclick={() => void session.toggleScreenShare()}
+        onclick={handleToggleScreenShare}
       >
         <span class="material-symbols-rounded" aria-hidden="true">
           {session.screenShareEnabled ? "stop_screen_share" : "present_to_all"}
@@ -194,9 +202,7 @@
         class="live-pip__btn live-pip__btn--danger"
         aria-label={t.live.room.leaveEndLive()}
         disabled={endingLive}
-        onclick={() => {
-          showEndLiveConfirm = true;
-        }}
+        onclick={handleShowEndLiveConfirm}
       >
         <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>
       </button>

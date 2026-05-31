@@ -3,7 +3,7 @@
   import LiveClassComposer from "./LiveClassComposer.svelte";
   import type { Equipment } from "$lib/labels";
   import type { Id } from "$convex/_generated/dataModel";
-  import type { SelectionAnchor } from "$features/live/types/selection-anchor";
+  import type { SelectionAnchor, PopoverSide } from "$features/live/types/selection-anchor";
   import { anchorBesideSelection } from "$features/live/types/selection-anchor";
 
   type LiveClass = {
@@ -57,14 +57,18 @@
     onEndLive?: () => void;
   } = $props();
 
-  const placement = $derived.by(() => {
-    if (!anchor) return null;
-    const { trigger, side } = anchorBesideSelection(anchor);
+  function buildPlacement(trigger: { top: number; left: number }, side: PopoverSide) {
     return {
       top: `${trigger.top}px`,
       left: `${trigger.left}px`,
       side,
     };
+  }
+
+  const placement = $derived.by(() => {
+    if (!anchor) return null;
+    const { trigger, side } = anchorBesideSelection(anchor);
+    return buildPlacement(trigger, side);
   });
 
   const railType = $derived(
@@ -90,7 +94,8 @@
   <Popover.Root bind:open onOpenChange={handleOpenChange}>
     <span
       class="live-event-popover-anchor-wrap"
-      style="top: {placement.top}; left: {placement.left};"
+      style:--popover-top={placement.top}
+      style:--popover-left={placement.left}
       aria-hidden="true"
     >
       <Popover.Trigger class="live-event-popover-anchor-trigger" tabindex={-1} />
@@ -132,6 +137,8 @@
 <style>
   .live-event-popover-anchor-wrap {
     position: fixed;
+    top: var(--popover-top);
+    left: var(--popover-left);
     width: 1px;
     height: 1px;
     transform: translate(0, -50%);

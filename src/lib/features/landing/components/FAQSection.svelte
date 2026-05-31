@@ -16,6 +16,8 @@
   function toggle(index: number) {
     openIndex = openIndex === index ? null : index;
   }
+
+  const makeToggleHandler = (index: number) => () => toggle(index);
 </script>
 
 <section class="l-panel l-section section--faq" aria-label="שאלות נפוצות">
@@ -31,7 +33,7 @@
             type="button"
             class="faq__trigger"
             aria-expanded={openIndex === index}
-            onclick={() => toggle(index)}
+            onclick={makeToggleHandler(index)}
           >
             <span>{item.question}</span>
             <span class="faq__icon" class:faq__icon--open={openIndex === index} aria-hidden="true"></span>

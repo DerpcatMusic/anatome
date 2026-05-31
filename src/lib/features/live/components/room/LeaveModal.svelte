@@ -13,6 +13,10 @@
   } = $props();
 
   const { t } = useI18n();
+
+  function handleCancel() {
+    open = false;
+  }
 </script>
 
 <Dialog.Root bind:open>
@@ -35,9 +39,7 @@
         <Button.Root
           class="hb-button hb-button--ghost hb-button--sm"
           type="button"
-          onclick={() => {
-            open = false;
-          }}
+          onclick={handleCancel}
         >
           {t.live.room.leaveCancel()}
         </Button.Root>

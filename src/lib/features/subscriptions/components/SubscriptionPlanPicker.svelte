@@ -23,9 +23,13 @@
     onSelectPlan: (slug: string) => void;
   } = $props();
 
-  const sortedPlans = $derived(
-    [...plans].sort((a, b) => planTierTheme(a.slug).tier - planTierTheme(b.slug).tier),
-  );
+  function sortPlansByTier(plans: Plan[]): Plan[] {
+    return [...plans].sort((a, b) => planTierTheme(a.slug).tier - planTierTheme(b.slug).tier);
+  }
+
+  const sortedPlans = $derived(sortPlansByTier(plans));
+
+  const makeSelectPlanHandler = (slug: string) => () => onSelectPlan(slug);
 
 </script>
 
@@ -40,7 +44,7 @@
       class="plan-picker-card {theme.cardClass}"
       class:plan-picker-card--highlight={isHighlighted}
       disabled={pending !== null || isActive || isScheduled}
-      onclick={() => onSelectPlan(plan.slug)}
+      onclick={makeSelectPlanHandler(plan.slug)}
     >
       <p class="plan-picker-card__tier">{theme.label}</p>
       <h3 class="plan-picker-card__name">{plan.nameHe}</h3>

@@ -29,9 +29,11 @@ const he = {
   },
   landing: {
     hero: {
-      headlineBefore: '',
-      headlineAccent: 'תנועה שמכבדת',
-      headlineAfter: ' את הגוף שלך',
+      headlineBefore: 'רגע, אבל למה ',
+      headlineAccent: 'אנאטומי',
+      headlineAfter: '?',
+      eyebrow: 'פילאטיס שיקומי אונליין — לא סתם עוד אימון',
+      subhead: 'לא סרטוני יוטיוב ולא זום. פילאטיס שיקומי מבוסס אנטומיה — לייב דו-כיווני בתוך הפלטפורמה, בלי התקנות, במחיר שפוי.',
       lead: 'פילאטיס שיקומי וקלאסי. בקצב שלך מהבית שלך.',
       ctaPrimary: 'מתחילים בחינם',
       ctaSecondary: 'על המדריכה',

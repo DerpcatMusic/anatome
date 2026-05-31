@@ -15,23 +15,33 @@
   const { t } = useI18n();
 
   let search = $state("");
-  let notesEl = $state<HTMLTextAreaElement | null>(null);
+  let notesEl: HTMLTextAreaElement | null = null;
   const notesAutosize = new TextareaAutosize({
     element: () => notesEl ?? undefined,
     input: () => notes,
   });
 
-  const filteredPathologies = $derived(
-    pathologyOptions.filter(([, label]) => {
+  function filterPathologies(search: string) {
+    return pathologyOptions.filter(([, label]) => {
       const q = search.trim().toLowerCase();
       if (!q) return true;
       return label.toLowerCase().includes(q);
-    }),
-  );
+    });
+  }
+
+  const filteredPathologies = $derived(filterPathologies(search));
 
   function toggle<T extends string>(list: T[], value: T) {
     return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   }
+
+  function charCountText(n: number) {
+    return t.misc.charCount({ count: n });
+  }
+
+  const makeToggleHandler = (value: Pathology) => () => {
+    pathologies = toggle(pathologies, value);
+  };
 </script>
 
 <div class="notes-step">
@@ -50,9 +60,7 @@
       <Checkbox.Root
         class="hb-choice pathology-choice"
         checked={pathologies.includes(value)}
-        onCheckedChange={() => {
-          pathologies = toggle(pathologies, value);
-        }}
+        onCheckedChange={makeToggleHandler(value)}
       >
         <span>{label}</span>
       </Checkbox.Root>
@@ -69,7 +77,7 @@
       maxlength="600"
       placeholder={t.onboarding.notes.placeholder()}
     ></textarea>
-    <span class="char-count">{t.misc.charCount({ count: notes.length })}</span>
+    <span class="char-count">{charCountText(notes.length)}</span>
   </label>
 </div>
 

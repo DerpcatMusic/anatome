@@ -41,16 +41,19 @@
 		{ updateOnlyOn: [...trackUpdateEvents], onlySubscribed: false },
 	);
 
-	const screenShareTracks = $derived(
-		(tracks as TrackReferenceOrPlaceholder[])
-			.filter(isTrackReference)
-			.filter((t) => t.publication.source === Track.Source.ScreenShare),
-	);
+	function getScreenShareTracks(trackList: TrackReferenceOrPlaceholder[]) {
+		return trackList.filter(isTrackReference).filter((t) => t.publication.source === Track.Source.ScreenShare);
+	}
+
+	const screenShareTracks = $derived(getScreenShareTracks(tracks as TrackReferenceOrPlaceholder[]));
 
 	const focusTrack = $derived(layoutContext.pin.pinnedTracks[0]);
-	const carouselTracks = $derived(
-		(tracks as TrackReferenceOrPlaceholder[]).filter((t) => !isEqualTrackRef(t, focusTrack)),
-	);
+
+	function getCarouselTracks(trackList: TrackReferenceOrPlaceholder[], pinned: typeof focusTrack) {
+		return trackList.filter((t) => !isEqualTrackRef(t, pinned));
+	}
+
+	const carouselTracks = $derived(getCarouselTracks(tracks as TrackReferenceOrPlaceholder[], focusTrack));
 
 	let lastAutoFocusedScreenShareTrack = $state<TrackReferenceOrPlaceholder | null>(null);
 

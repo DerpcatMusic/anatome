@@ -19,4 +19,4 @@ main = "worker/index.ts"
 [assets]
 directory = "build"
 binding = "ASSETS"
-html_handling = "none"
+html_handling = "auto-trailing-slash"

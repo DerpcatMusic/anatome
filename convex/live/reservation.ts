@@ -179,11 +179,7 @@ export const reserve = mutation({
         liveClass.startsAt,
       );
     } catch (reminderError) {
-      console.error("live/reservation.reserve: reminder scheduling failed", {
-        liveClassId: args.liveClassId,
-        reservationId,
-        reminderError,
-      });
+      void reminderError;
     }
     return reservationId;
   },

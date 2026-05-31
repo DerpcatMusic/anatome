@@ -3,7 +3,7 @@ import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
-import { isStaff, requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
+import { requireAppProfile, requireUserId } from "../lib/authz";
 import {
   assertCheckoutEnabled,
   assertCreditsPurchaseEnabled,
@@ -29,15 +29,16 @@ import {
   creditPoolValidator,
   creditPurchaseQuoteValidator,
 } from "../contracts/credits";
+import { requireSelfServeBillingCustomer } from "../lib/billingAuth";
 
 async function assertCreditCheckoutCustomer(ctx: MutationCtx, userId: Id<"users">) {
   assertCreditsPurchaseEnabled();
   assertCheckoutEnabled();
-  const profile = await requireAppProfile(ctx, userId);
-  if (isStaff(profile)) {
-    throw new Error("רכישת קרדיטים זמינה למנויות בלבד, לא למדריכות.");
-  }
-  requireCustomer(profile);
+  await requireSelfServeBillingCustomer(
+    ctx,
+    userId,
+    "רכישת קרדיטים זמינה למנויות בלבד, לא למדריכות.",
+  );
 }
 
 export const getCatalog = query({

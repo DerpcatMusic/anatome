@@ -35,12 +35,16 @@
     onSelect: (video: RowVideo) => void;
   } = $props();
 
-  const categoryGroups = $derived(
-    (Array.isArray(groups) ? groups : []).map((group) => ({
+  const EMPTY_ARRAY: CategoryGroup[] = [];
+
+  function normalizeCategoryGroups(groups: CategoryGroup[]) {
+    return (Array.isArray(groups) ? groups : EMPTY_ARRAY).map((group) => ({
       ...group,
       items: Array.isArray(group.items) ? group.items : [],
-    })),
-  );
+    }));
+  }
+
+  const categoryGroups = $derived(normalizeCategoryGroups(groups));
 </script>
 
 <section class="microflow-section" aria-labelledby="microflow-heading">

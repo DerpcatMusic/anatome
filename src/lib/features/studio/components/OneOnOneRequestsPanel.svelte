@@ -77,6 +77,17 @@
     }
   }
 
+  function handleApprove(requestId: Id<"oneOnOneRequests">) {
+    void approveRequest(requestId);
+  }
+
+  function handleReject(requestId: Id<"oneOnOneRequests">) {
+    void rejectRequest(requestId);
+  }
+
+  const makeApproveHandler = (requestId: Id<"oneOnOneRequests">) => () => handleApprove(requestId);
+  const makeRejectHandler = (requestId: Id<"oneOnOneRequests">) => () => handleReject(requestId);
+
   $effect(() => {
     void loadRequests();
   });
@@ -124,7 +135,7 @@
                   <Button.Root
                     class="hb-button hb-button--ink hb-button--sm"
                     type="button"
-                    onclick={() => approveRequest(request._id)}
+                    onclick={makeApproveHandler(request._id)}
                     disabled={actionId === request._id}
                   >
                     אישור
@@ -132,7 +143,7 @@
                   <Button.Root
                     class="hb-button hb-button--paper hb-button--sm"
                     type="button"
-                    onclick={() => rejectRequest(request._id)}
+                    onclick={makeRejectHandler(request._id)}
                     disabled={actionId === request._id}
                   >
                     דחייה

@@ -13,7 +13,8 @@ export async function logCardcomAudit(
     .take(1);
   const actor = admins[0];
   if (actor === undefined) {
-    console.error("[CardCom audit]", action, metadata);
+    void action;
+    void metadata;
     return;
   }
 

@@ -47,7 +47,7 @@
       <span
         class="live-schedule__progress"
         aria-hidden="true"
-        style={`--live-schedule-progress: ${progressPercent}%`}
+        style:--live-schedule-progress="{progressPercent}%"
       ></span>
     {/if}
   </div>

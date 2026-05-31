@@ -16,8 +16,8 @@ import {
 } from "../lib/oneOnOne";
 import { LIMITS, RULES } from "../lib/constants";
 import { releaseOneOnOneCredits } from "../credits/lib";
-import { scheduleLiveClassLifecycle } from "../live/schedule";
 import { createReminderEventsForReservation } from "../liveReminders/create";
+import { createScheduledOneOnOneClass } from "./liveClass";
 
 export const listRequests = query({
   args: {},
@@ -150,32 +150,18 @@ export const publishAvailability = mutation({
           }
 
           const now = Date.now();
-          const liveClassId = await ctx.db.insert("liveClasses", {
-            title: "שיעור 1:1 אישי",
-            description: "חלון פתוח להזמנה",
-            type: "one_on_one",
-            instructorUserId: userId,
-            startsAt,
-            endsAt,
-            joinOpensAt: startsAt - 15 * minuteMs,
-            joinClosesAt: endsAt,
-            capacity: 1,
-            requiredEquipment: ["mat"],
-            creditKind: "oneOnOne",
-            creditCost: 1,
-            status: "scheduled",
-            seatsTaken: 0,
-            createdAt: now,
-            updatedAt: now,
-          });
-          const scheduled = await scheduleLiveClassLifecycle(
+          await createScheduledOneOnOneClass(
             ctx,
-            liveClassId,
-            startsAt,
-            startsAt - 15 * minuteMs,
-            endsAt,
+            {
+              instructorUserId: userId,
+              startsAt,
+              endsAt,
+              title: "שיעור 1:1 אישי",
+              description: "חלון פתוח להזמנה",
+              seatsTaken: 0,
+              now,
+            },
           );
-          await ctx.db.patch(liveClassId, scheduled);
           created += 1;
         }
       }
@@ -220,21 +206,18 @@ export const approveRequest = mutation({
     }
 
     const now = Date.now();
-    const liveClassId = await ctx.db.insert("liveClasses", {
-      title: "שיעור 1:1 אישי", description: request.note, type: "one_on_one",
-      instructorUserId: userId, startsAt: request.requestedStartsAt, endsAt: request.requestedEndsAt,
-      joinOpensAt: request.requestedStartsAt - 15 * minuteMs, joinClosesAt: request.requestedEndsAt,
-      capacity: 1, requiredEquipment: ["mat"], creditKind: "oneOnOne", creditCost: 1,
-      status: "scheduled", seatsTaken: 1, createdAt: now, updatedAt: now,
-    });
-    const scheduled = await scheduleLiveClassLifecycle(
+    const liveClassId = await createScheduledOneOnOneClass(
       ctx,
-      liveClassId,
-      request.requestedStartsAt,
-      request.requestedStartsAt - 15 * minuteMs,
-      request.requestedEndsAt,
+      {
+        instructorUserId: userId,
+        startsAt: request.requestedStartsAt,
+        endsAt: request.requestedEndsAt,
+        title: "שיעור 1:1 אישי",
+        description: request.note,
+        seatsTaken: 1,
+        now,
+      },
     );
-    await ctx.db.patch(liveClassId, scheduled);
 
     const reservationId = await ctx.db.insert("liveReservations", {
       liveClassId, userId: request.customerUserId, walletId: request.walletId,

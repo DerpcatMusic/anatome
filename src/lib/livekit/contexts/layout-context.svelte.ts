@@ -4,6 +4,10 @@ import { WidgetContext } from "./widget-context.svelte.js";
 
 export const layoutCtx = new Context<LayoutContext>("livekit-layout");
 
+export function getMaybeLayoutContext(): LayoutContext | undefined {
+	return layoutCtx.getOr(undefined);
+}
+
 /**
  * Composes PinContext and WidgetContext for layout management.
  * @public

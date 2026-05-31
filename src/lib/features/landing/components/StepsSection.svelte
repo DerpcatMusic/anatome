@@ -3,11 +3,26 @@
 
   const { t } = useI18n();
 
-  const steps = $derived([
-    { title: t.landing.steps.step1Title(), body: t.landing.steps.step1Desc() },
-    { title: t.landing.steps.step2Title(), body: t.landing.steps.step2Desc() },
-    { title: t.landing.steps.step3Title(), body: t.landing.steps.step3Desc() },
-  ]);
+  function buildSteps(
+    t1: string, b1: string,
+    t2: string, b2: string,
+    t3: string, b3: string,
+  ) {
+    return [
+      { title: t1, body: b1 },
+      { title: t2, body: b2 },
+      { title: t3, body: b3 },
+    ];
+  }
+
+  const steps = $derived(buildSteps(
+    t.landing.steps.step1Title(),
+    t.landing.steps.step1Desc(),
+    t.landing.steps.step2Title(),
+    t.landing.steps.step2Desc(),
+    t.landing.steps.step3Title(),
+    t.landing.steps.step3Desc(),
+  ));
 </script>
 
 <section class="l-panel l-section section--steps" aria-label="איך מתחילים">

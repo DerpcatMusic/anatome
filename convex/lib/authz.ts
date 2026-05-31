@@ -31,10 +31,13 @@ export async function getOrCreateAppProfile(ctx: MutationCtx, userId: Id<"users"
   const existingRows = await ctx.db
     .query("appProfiles")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
+    .take(2);
   const existing = existingRows[0] ?? null;
 
   if (existing !== null) {
+    if (existingRows.length > 1) {
+      throw new Error("Duplicate app profiles require repair");
+    }
     return existing;
   }
 
@@ -65,14 +68,24 @@ export async function getOrCreateAppProfile(ctx: MutationCtx, userId: Id<"users"
 }
 
 export async function requireAppProfile(ctx: Ctx, userId: Id<"users">) {
-  const profiles = await ctx.db
-    .query("appProfiles")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
-  const profile = profiles[0] ?? null;
+  const profile = await getAppProfile(ctx, userId);
 
   if (profile === null) {
     throw new Error("App profile required");
+  }
+
+  return profile;
+}
+
+export async function getAppProfile(ctx: Ctx, userId: Id<"users">) {
+  const profiles = await ctx.db
+    .query("appProfiles")
+    .withIndex("by_userId", (q) => q.eq("userId", userId))
+    .take(2);
+  const profile = profiles[0] ?? null;
+
+  if (profiles.length > 1) {
+    throw new Error("Duplicate app profiles require repair");
   }
 
   return profile;

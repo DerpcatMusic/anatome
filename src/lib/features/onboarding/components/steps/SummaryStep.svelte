@@ -42,9 +42,14 @@
 
   const fullName = $derived(buildDisplayName(firstName, lastName));
 
+  function makePathologySummary(pathologies: string[]) {
+    if (pathologies.length === 0) return "";
+    return pathologies.map(pathologyLabel).join(", ");
+  }
+
   const pathologySummary = $derived(
     pathologies.length > 0
-      ? pathologies.map(pathologyLabel).join(", ")
+      ? makePathologySummary(pathologies)
       : t.onboarding.summary.pathologiesNone(),
   );
 

@@ -89,6 +89,12 @@ export function startOfLocalDay(instantMs: number = Date.now()): number {
   return parseDateTimeLocal(`${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}T00:00`);
 }
 
+/** Same as {@link startOfLocalDay} but requires an explicit timestamp (no default). */
+export function startOfLocalDayPure(instantMs: number): number {
+  const parts = zonedParts(instantMs);
+  return parseDateTimeLocal(`${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}T00:00`);
+}
+
 export function addAppDays(dayStartMs: number, days: number): number {
   const parts = zonedParts(dayStartMs);
   const next = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));

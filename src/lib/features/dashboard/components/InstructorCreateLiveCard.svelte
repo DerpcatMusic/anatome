@@ -46,6 +46,10 @@
     error = "";
   }
 
+  function openModal() {
+    modalOpen = true;
+  }
+
   async function createClass() {
     error = "";
     pending = true;
@@ -77,9 +81,7 @@
   <Button.Root
     class="hb-button hb-button--ink hb-button--md"
     type="button"
-    onclick={() => {
-      modalOpen = true;
-    }}
+    onclick={openModal}
   >
     {t.dashboard.instructor.createCta()}
   </Button.Root>

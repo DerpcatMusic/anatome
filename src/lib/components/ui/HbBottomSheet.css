@@ -1,0 +1,135 @@
+/* Native <dialog> + ::backdrop — sheet always paints above the dim (top layer). */
+
+.hb-bottom-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: visible;
+}
+
+.hb-bottom-sheet::backdrop {
+  background: color-mix(in oklch, var(--ink) 48%, transparent);
+  opacity: 0;
+  transition: opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hb-bottom-sheet--presented::backdrop {
+  opacity: 1;
+}
+
+.hb-bottom-sheet__panel {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--elevated);
+  box-shadow: none;
+  overflow: hidden;
+  touch-action: pan-y;
+  will-change: transform;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hb-bottom-sheet__panel--dragging {
+  transition: none;
+}
+
+.hb-bottom-sheet__handle-zone {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) 0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.hb-bottom-sheet__handle-zone:active {
+  cursor: grabbing;
+}
+
+.hb-bottom-sheet__handle {
+  width: 2.75rem;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.hb-bottom-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.hb-bottom-sheet__title {
+  margin: 0;
+  font-size: var(--step-0);
+  font-weight: 800;
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+}
+
+.hb-bottom-sheet__close {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--secondary-subtle);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.hb-bottom-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.hb-bottom-sheet__head-leading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.hb-bottom-sheet__head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-bottom-sheet::backdrop,
+  .hb-bottom-sheet__panel {
+    transition: none;
+  }
+}

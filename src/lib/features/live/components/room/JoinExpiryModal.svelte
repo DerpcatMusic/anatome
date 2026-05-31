@@ -15,6 +15,10 @@
   } = $props();
 
   const { t } = useI18n();
+
+  function joinExpiryBodyText(minutes: number) {
+    return t.live.room.joinExpiryBody({ minutes: Math.max(1, minutes) });
+  }
 </script>
 
 <Dialog.Root bind:open>
@@ -23,7 +27,7 @@
     <Dialog.Content class="hb-dialog-content join-expiry-modal" aria-label={t.live.room.joinExpiryTitle()}>
       <Dialog.Title class="join-expiry-modal__title">{t.live.room.joinExpiryTitle()}</Dialog.Title>
       <p class="join-expiry-modal__text">
-        {t.live.room.joinExpiryBody({ minutes: Math.max(1, minutesRemaining) })}
+        {joinExpiryBodyText(minutesRemaining)}
       </p>
       <div class="join-expiry-modal__actions">
         <Button.Root class="hb-button hb-button--primary hb-button--md" type="button" onclick={onStay}>

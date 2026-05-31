@@ -57,7 +57,10 @@
   const showHeader = $derived(!hideHeader && (title.length > 0 || subtitle));
   const showEyebrow = $derived(Boolean(eyebrow?.trim()) && hideHeader);
 
-  const rowVideos = $derived(Array.isArray(videos) ? videos : []);
+  const EMPTY_ARRAY: RowVideo[] = [];
+  const rowVideos = $derived(Array.isArray(videos) ? videos : EMPTY_ARRAY);
+
+  const makeSelectHandler = (video: RowVideo) => () => onSelect(video);
 </script>
 
 <section class="video-row" class:video-row--carousel={carousel}>
@@ -102,7 +105,7 @@
             {hideStatus}
             {vodCreditBalance}
             pending={pendingId === video._id}
-            onclick={() => onSelect(video)}
+            onclick={makeSelectHandler(video)}
           />
         </div>
       {/each}

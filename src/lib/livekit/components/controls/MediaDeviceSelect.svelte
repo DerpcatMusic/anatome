@@ -86,6 +86,8 @@
 			}
 		}
 	}
+
+	const makeDeviceChangeHandler = (deviceId: string) => () => handleActiveDeviceChange(deviceId);
 </script>
 
 <ul class="lk-list lk-media-device-select {hookClassName} {className}" role="listbox" aria-disabled={disabled}>
@@ -100,7 +102,7 @@
 				type="button"
 				class="lk-button"
 				{disabled}
-				onclick={() => handleActiveDeviceChange(device.deviceId)}
+				onclick={makeDeviceChangeHandler(device.deviceId)}
 			>
 				{device.label || device.deviceId}
 			</button>

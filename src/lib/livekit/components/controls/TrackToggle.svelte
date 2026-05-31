@@ -39,6 +39,10 @@
 	// svelte-ignore state_referenced_locally
 	const userChildren = children;
 
+	function handlePressedChange(_p: boolean) {
+		buttonProps.onclick?.(new MouseEvent('click'));
+	}
+
 	const iconName = $derived.by(() => {
 		if (source === "microphone") return enabled ? "mic" : "mic_off";
 		if (source === "camera") return enabled ? "videocam" : "videocam_off";
@@ -60,7 +64,7 @@
 				{...props}
 				type="button"
 				pressed={enabled}
-				onPressedChange={(_p) => buttonProps.onclick?.(new MouseEvent('click'))}
+				onPressedChange={handlePressedChange}
 				disabled={buttonProps.disabled}
 				class="lk-button lk-track-toggle {buttonProps.class} {className}"
 				data-lk-source={buttonProps['data-lk-source']}

@@ -9,7 +9,7 @@
   const room = roomCtx.get();
   const { t } = useI18n();
 
-  let screenVideoEl = $state<HTMLVideoElement | null>(null);
+  let screenVideoEl: HTMLVideoElement | null = null;
   let screenTrack = $state<LocalVideoTrack | null>(null);
 
   function syncLocalScreenTrack() {

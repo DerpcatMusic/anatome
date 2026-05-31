@@ -1,20 +1,13 @@
 import { v } from "convex/values";
+import {
+  creditOrderLineValidator,
+  creditPoolValidator,
+  orderStatusValidator,
+} from "../lib/orderValidators";
 
-export const creditPoolValidator = v.union(
-  v.literal("vod"),
-  v.literal("live"),
-  v.literal("oneOnOne"),
-);
+export { creditOrderLineValidator, creditPoolValidator };
 
-export const creditOrderStatusValidator = v.union(
-  v.literal("pending"),
-  v.literal("redirected"),
-  v.literal("paid"),
-  v.literal("failed_payment"),
-  v.literal("pending_charge"),
-  v.literal("refunded"),
-  v.literal("fulfilled"),
-);
+export const creditOrderStatusValidator = orderStatusValidator;
 
 export const creditPurchaseQuoteValidator = v.object({
   pool: creditPoolValidator,
@@ -49,16 +42,6 @@ export const creditCartQuoteValidator = v.object({
   listSubtotalIls: v.number(),
   discountIls: v.number(),
   totalIls: v.number(),
-});
-
-export const creditOrderLineValidator = v.object({
-  pool: creditPoolValidator,
-  quantity: v.number(),
-  unitListIls: v.number(),
-  unitEffectiveIls: v.number(),
-  discountPercent: v.number(),
-  discountIls: v.number(),
-  lineTotalIls: v.number(),
 });
 
 export const creditCheckoutStatusReturns = v.union(

@@ -25,7 +25,7 @@
 
   type CellProps = PinInputRootSnippetProps["cells"][0];
 
-  let pinInputEl = $state<HTMLInputElement | null>(null);
+  let pinInputEl: HTMLInputElement | null = null;
 
   /** Strip spaces, dashes, etc. so paste works from SMS and email apps. */
   function sanitizeOtpPaste(text: string) {

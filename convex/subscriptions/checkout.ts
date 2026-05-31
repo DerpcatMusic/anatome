@@ -2,51 +2,25 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { billingHistoryItemValidator, checkoutOrderStatusReturns } from "../contracts/payments";
 import type { MutationCtx } from "../_generated/server";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
-import { isStaff, requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
+import { requireAppProfile, requireUserId } from "../lib/authz";
 import {
   assertCheckoutEnabled,
   assertSubscriptionsEnabled,
 } from "../lib/featureFlags";
 import { getActiveSubscription } from "./lib";
-import { DEFAULT_PLANS, planPayload } from "./plans";
+import { requireSelfServeBillingCustomer } from "../lib/billingAuth";
+import { resolveCheckoutPlan } from "./planLookup";
 
 async function assertCheckoutCustomer(ctx: MutationCtx, userId: Id<"users">) {
   assertSubscriptionsEnabled();
   assertCheckoutEnabled();
-  const profile = await requireAppProfile(ctx, userId);
-  if (isStaff(profile)) {
-    throw new Error("מנוי בתשלום זמין למנויות בלבד, לא למדריכות.");
-  }
-  requireCustomer(profile);
-}
-
-async function getActivePlanBySlug(
-  ctx: MutationCtx,
-  slug: string,
-): Promise<Doc<"plans"> | null> {
-  const plans = await ctx.db
-    .query("plans")
-    .withIndex("by_slug", (q) => q.eq("slug", slug))
-    .take(10);
-  return plans.find((plan) => plan.isActive) ?? null;
-}
-
-async function resolvePlan(
-  ctx: MutationCtx,
-  planSlug: string,
-): Promise<Doc<"plans">> {
-  const slug = planSlug.trim().toLowerCase();
-  let plan = await getActivePlanBySlug(ctx, slug);
-  if (plan === null) {
-    const fallback = DEFAULT_PLANS.find((item) => item.slug === slug);
-    if (fallback === undefined) throw new Error("Plan is not available");
-    const planId = await ctx.db.insert("plans", planPayload(fallback));
-    plan = await ctx.db.get(planId);
-  }
-  if (plan === null || !plan.isActive) throw new Error("Plan is not available");
-  return plan;
+  await requireSelfServeBillingCustomer(
+    ctx,
+    userId,
+    "מנוי בתשלום זמין למנויות בלבד, לא למדריכות.",
+  );
 }
 
 export async function beginCheckout(
@@ -58,7 +32,7 @@ export async function beginCheckout(
     amountIls?: number;
   },
 ) {
-  const plan = await resolvePlan(ctx, args.planSlug);
+  const plan = await resolveCheckoutPlan(ctx, args.planSlug);
   const now = Date.now();
   const active = await getActiveSubscription(ctx, userId, now);
 

@@ -1,6 +1,6 @@
 import type { FunctionReturnType } from "convex/server";
 import { api } from "$convex/_generated/api";
-import { addAppDays, isInLocalDay, LOCAL_TIMEZONE, startOfLocalDay } from "$lib/datetime/local";
+import { addAppDays, isInLocalDay, LOCAL_TIMEZONE, startOfLocalDay, startOfLocalDayPure } from "$lib/datetime/local";
 import { ONE_ON_ONE_MAX_DAYS } from "./calendar-range";
 
 export type CalendarClass = FunctionReturnType<typeof api.live.calendar.listRange>[number];
@@ -12,7 +12,7 @@ export type TypeFilter = "all" | "group_live" | "one_on_one";
 
 export type AgendaEntry =
   | { kind: "class"; startsAt: number; item: CalendarClass }
-  | { kind: "one_on_one_day"; startsAt: number; window: DayAvailability };
+  | { kind: "one_on_one_day"; startsAt: number; dayWindow: DayAvailability };
 
 export type DayAgendaGroup = {
   dayStart: number;
@@ -33,8 +33,37 @@ const dayShortFormatter = new Intl.DateTimeFormat("he-IL", {
   timeZone: LOCAL_TIMEZONE,
 });
 
-export function formatAgendaDayHeader(dayStart: number): string {
-  const todayStart = startOfLocalDay();
+export function formatAgendaDayHeader(dayStart: number, nowMs?: number): string {
+  const todayStart = nowMs !== undefined ? startOfLocalDay(nowMs) : startOfLocalDay();
+  if (dayStart === todayStart) return `היום · ${dayShortFormatter.format(new Date(dayStart))}`;
+  const tomorrowStart = addAppDays(todayStart, 1);
+  if (dayStart === tomorrowStart) return `מחר · ${dayShortFormatter.format(new Date(dayStart))}`;
+  return dayHeaderFormatter.format(new Date(dayStart));
+}
+
+/** Deterministic version for SSR — requires an explicit reference timestamp. */
+export function buildDayHeaders(
+  groups: DayAgendaGroup[],
+  nowMs: number,
+): Record<number, string> {
+  const todayStart = startOfLocalDayPure(nowMs);
+  const next: Record<number, string> = {};
+  for (const g of groups) {
+    next[g.dayStart] = formatAgendaDayHeaderPure(g.dayStart, todayStart);
+  }
+  return next;
+}
+
+export function formatAgendaDayHeaderAt(dayStart: number, nowMs: number): string {
+  const todayStart = startOfLocalDay(nowMs);
+  if (dayStart === todayStart) return `היום · ${dayShortFormatter.format(new Date(dayStart))}`;
+  const tomorrowStart = addAppDays(todayStart, 1);
+  if (dayStart === tomorrowStart) return `מחר · ${dayShortFormatter.format(new Date(dayStart))}`;
+  return dayHeaderFormatter.format(new Date(dayStart));
+}
+
+/** Pure version — caller must supply `todayStart` (no `Date.now()` in the call chain). */
+export function formatAgendaDayHeaderPure(dayStart: number, todayStart: number): string {
   if (dayStart === todayStart) return `היום · ${dayShortFormatter.format(new Date(dayStart))}`;
   const tomorrowStart = addAppDays(todayStart, 1);
   if (dayStart === tomorrowStart) return `מחר · ${dayShortFormatter.format(new Date(dayStart))}`;
@@ -70,7 +99,7 @@ export function buildAgendaEntries(
     const key = `${window.dayStart}-${window.instructorUserId}`;
     if (seenDayInstructor.has(key)) continue;
     seenDayInstructor.add(key);
-    entries.push({ kind: "one_on_one_day", startsAt: window.dayStart, window });
+    entries.push({ kind: "one_on_one_day", startsAt: window.dayStart, dayWindow: window });
   }
 
   return entries.sort((a, b) => a.startsAt - b.startsAt);
@@ -124,7 +153,7 @@ function isUpcomingAvailableDayWindow(window: DayAvailability, now: number): boo
 export function filterUpcomingAvailable(entries: AgendaEntry[], now: number): AgendaEntry[] {
   return entries.filter((entry) => {
     if (entry.kind === "class") return isUpcomingAvailableClass(entry.item, now);
-    return isUpcomingAvailableDayWindow(entry.window, now);
+    return isUpcomingAvailableDayWindow(entry.dayWindow, now);
   });
 }
 
@@ -184,3 +213,16 @@ export function groupAgendaByDay(entries: AgendaEntry[]): DayAgendaGroup[] {
       entries: dayEntries.sort((a, b) => a.startsAt - b.startsAt),
     }));
 }
+
+export function orEmpty<T>(arr: T[] | undefined | null): T[] {
+  return arr ?? [];
+}
+
+export function filterPending<T extends { status: string }>(data: T[] | undefined | null): T[] {
+  return (data ?? []).filter((r) => r.status === "pending");
+}
+
+export function maxAvailableCredits(windows: Array<{ availableCredits: number }>): number {
+  return windows.reduce((max, w) => Math.max(max, w.availableCredits), 0);
+}
+

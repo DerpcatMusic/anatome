@@ -160,7 +160,7 @@ export class LiveSessionMedia extends LiveSessionUi {
         preset: this.subscriberReceivePreset,
       });
     } catch (reason) {
-      console.warn("[LiveKit] setSubscriberReceivePreset failed:", reason);
+      void reason;
     }
   }
 
@@ -178,10 +178,6 @@ export class LiveSessionMedia extends LiveSessionUi {
   publishSettingsApplying = $state(false);
 
   readonly browserMediaProfile = $derived(detectBrowserMediaProfile());
-
-  readonly publishPerformanceWarnings = $derived(
-    getPublishPerformanceWarnings(this.publishProfileInput(this.isInstructorRoom)),
-  );
 
   /** What is actually being sent to the room right now (settings apply to this). */
   readonly activePublishVideoSource = $derived.by((): "screen_share" | "camera" | "none" => {
@@ -207,6 +203,10 @@ export class LiveSessionMedia extends LiveSessionUi {
       isInstructor,
     };
   }
+
+  readonly publishPerformanceWarnings = $derived.by(() =>
+    getPublishPerformanceWarnings(this.publishProfileInput(this.isInstructorRoom)),
+  );
 
   /** Push capture + encode settings to LiveKit (pre-connect state only updates until connect). */
   scheduleApplyPublishSettings() {
@@ -264,7 +264,7 @@ export class LiveSessionMedia extends LiveSessionUi {
       this.syncLocalMediaFromRoom();
       this.applySubscribePolicyToRoom();
     } catch (reason) {
-      console.warn("[LiveKit] applyPublishSettings failed:", reason);
+      void reason;
       this.mediaError =
         reason instanceof Error ? reason.message : "Failed to apply stream quality settings";
     } finally {
@@ -487,7 +487,7 @@ export class LiveSessionMedia extends LiveSessionUi {
       this.micEnabled = true;
       this.instructorMicBeforeDrop = false;
     } catch (reason) {
-      console.warn("[LiveKit] Instructor mic restore failed:", reason);
+      void reason;
     }
   }
 
@@ -580,7 +580,7 @@ export class LiveSessionMedia extends LiveSessionUi {
         this.cameraEnabled = false;
       }
     } catch (reason) {
-      console.warn("[LiveSession] Device enumeration failed:", reason);
+      void reason;
     }
   }
 
@@ -653,7 +653,7 @@ export class LiveSessionMedia extends LiveSessionUi {
         return track;
       } catch (reason) {
         if (index === attempts.length - 1) {
-          console.warn("[LiveKit] Camera preview failed:", reason);
+          void reason;
           this.cameraAccess = accessStateFromError(reason);
           this.wantsCameraOnJoin = false;
           throw reason;
@@ -699,7 +699,7 @@ export class LiveSessionMedia extends LiveSessionUi {
         return track;
       } catch (reason) {
         if (index === attempts.length - 1) {
-          console.warn("[LiveKit] Microphone preview failed:", reason);
+          void reason;
           this.micAccess = accessStateFromError(reason);
           this.wantsMicOnJoin = false;
           throw reason;
@@ -784,7 +784,7 @@ export class LiveSessionMedia extends LiveSessionUi {
       if (kind === "audioinput") this.selectedAudioDevice = deviceId;
       if (kind === "videoinput") this.selectedVideoDevice = deviceId;
     } catch (reason) {
-      console.warn(`[LiveKit] Failed to switch ${kind}:`, reason);
+      void reason;
     }
   }
 
@@ -974,7 +974,7 @@ export class LiveSessionMedia extends LiveSessionUi {
       );
       this.screenShareAudioEnabled = next;
     } catch (reason) {
-      console.warn("[LiveKit] Screen share audio toggle failed:", reason);
+      void reason;
     } finally {
       this.pendingControl = null;
     }
@@ -1003,7 +1003,7 @@ export class LiveSessionMedia extends LiveSessionUi {
     try {
       await local.sendText(previous, { topic: "homebody.chat" });
     } catch (reason) {
-      console.warn("[LiveKit] Chat send failed:", reason);
+      void reason;
       this.chatDraft = previous;
       this.chatMessages = this.chatMessages.filter((message) => message.id !== optimisticId);
       this.mediaError = i18n.t.live.room.chatSendError();

@@ -1,0 +1,131 @@
+.app-mobile-menu__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.app-mobile-menu__area {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--foreground-muted);
+}
+
+.app-mobile-menu__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  direction: rtl;
+}
+
+.app-mobile-menu__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.app-mobile-menu__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: var(--border);
+  flex-shrink: 0;
+}
+
+.app-mobile-menu__avatar--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.app-mobile-menu__user-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.app-mobile-menu__user-label {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.app-mobile-menu__role {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: var(--border);
+}
+
+.app-mobile-menu__role.role-badge--admin {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+.app-mobile-menu__role.role-badge--instructor {
+  background: var(--secondary);
+  color: var(--ink);
+}
+
+.app-mobile-menu__credits {
+  padding-block: var(--space-1);
+  border-block: 1px solid var(--border-color);
+}
+
+.app-mobile-menu__credits :global(.wallet-credit-strip) {
+  width: 100%;
+}
+
+.app-mobile-menu__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.app-mobile-menu__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--step-0);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: start;
+  width: 100%;
+  transition: background 0.15s var(--ease-out);
+}
+
+.app-mobile-menu__action:hover {
+  background: var(--secondary-subtle);
+}
+
+.app-mobile-menu__action--danger {
+  color: var(--danger);
+}
+
+.app-mobile-menu__action--danger:hover {
+  background: color-mix(in oklch, var(--danger) 10%, var(--elevated));
+}

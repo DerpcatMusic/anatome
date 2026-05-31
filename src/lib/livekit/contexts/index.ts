@@ -1,14 +1,30 @@
 // Room context
-export { roomCtx, useEnsureRoom } from './room-context.svelte.js';
+export { getMaybeRoomContext, roomCtx, useEnsureRoom } from './room-context.svelte.js';
 
 // Participant context
-export { participantCtx, useEnsureParticipant } from './participant-context.svelte.js';
+export {
+	getMaybeParticipantContext,
+	participantCtx,
+	setParticipantContext,
+	useEnsureParticipant,
+} from './participant-context.svelte.js';
 
 // Track reference context
-export { trackRefCtx, useEnsureTrackRef } from './track-ref-context.svelte.js';
+export {
+	getMaybeTrackRefContext,
+	setTrackRefContext,
+	trackRefCtx,
+	useEnsureTrackRef,
+} from './track-ref-context.svelte.js';
 
 // Layout context
-export { LayoutContext, layoutCtx, useCreateLayoutContext } from './layout-context.svelte.js';
+export {
+	getMaybeLayoutContext,
+	LayoutContext,
+	layoutCtx,
+	useCreateLayoutContext,
+} from './layout-context.svelte.js';
+export type { LayoutContext as LayoutContextType } from './layout-context.svelte.js';
 
 // Pin context
 export { PinContext, pinCtx } from './pin-context.svelte.js';

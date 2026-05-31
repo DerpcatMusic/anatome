@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+
   import { goto } from "$app/navigation";
   import { resolveDashboardRedirectPath } from "$lib/auth/resolve-dashboard-redirect";
   import { useI18n } from "$lib/i18n/runes.svelte";
 
   const { t } = useI18n();
 
-  onMount(() => {
-    void (async () => {
-      const target = await resolveDashboardRedirectPath();
-      await goto(target, { replaceState: true });
-    })();
+  $effect(() => {
+    void resolveDashboardRedirectPath().then((target) => {
+      void goto(target, { replaceState: true });
+    });
   });
 </script>
 

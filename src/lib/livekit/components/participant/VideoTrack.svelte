@@ -23,7 +23,7 @@ import { useEnsureTrackRef } from '../../contexts/track-ref-context.svelte.js';
 
 	// svelte-ignore state_referenced_locally
 	const trackReference = useEnsureTrackRef(trackRef);
-	let mediaEl = $state<HTMLVideoElement | null>(null);
+	let mediaEl: HTMLVideoElement | null = null;
 
 	const { publication, track, className: hookClassName, orientation } = useMediaTrackBySourceOrName(trackReference);
 

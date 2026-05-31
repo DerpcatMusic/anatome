@@ -6,8 +6,8 @@
   {#if title}
     <div class="skeleton skeleton--title"></div>
   {/if}
-  {#each Array.from({ length: lines }) as _, i}
-    <div class="skeleton skeleton--text" style={i === lines - 1 ? `width: ${width};` : undefined}></div>
+  {#each Array.from({ length: lines }) as _, i (i)}
+    <div class="skeleton skeleton--text" style:--skeleton-width={i === lines - 1 ? width : undefined}></div>
   {/each}
 </div>
 
@@ -27,7 +27,7 @@
   }
 
   .skeleton--title { height: 36px; width: 60%; }
-  .skeleton--text { height: 16px; width: 100%; }
+  .skeleton--text { height: 16px; width: var(--skeleton-width, 100%); }
 
   @keyframes skeleton-pulse {
     0%, 100% { opacity: 1; }

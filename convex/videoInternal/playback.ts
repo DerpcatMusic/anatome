@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalQuery } from "../_generated/server";
-import { isStaff } from "../lib/authz";
+import { getAppProfile, isStaff } from "../lib/authz";
 import { getActiveSubscription } from "../subscriptions/lib";
 
 export const getAuthorizedVideo = internalQuery({
@@ -10,11 +10,7 @@ export const getAuthorizedVideo = internalQuery({
     if (video === null) {
       return null;
     }
-    const profiles = await ctx.db
-      .query("appProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .take(1);
-    const profile = profiles[0] ?? null;
+    const profile = await getAppProfile(ctx, args.userId);
     const ownsVideo = video.instructorUserId === args.userId;
     if (isStaff(profile) && ownsVideo && video.playbackId) {
       return { video, access: { allowed: true as const, reason: "staff_preview" } };

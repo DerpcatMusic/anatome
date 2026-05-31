@@ -5,7 +5,7 @@
 
 <div class="lr-inline-meter" role="meter" aria-label={label} aria-valuenow={Math.round(scale * 100)} aria-valuemin={0} aria-valuemax={100}>
   <div class="lr-inline-meter__track">
-    <div class="lr-inline-meter__fill" style="transform: scaleX({scale})"></div>
+    <div class="lr-inline-meter__fill" style:--meter-scale={scale}></div>
   </div>
 </div>
 
@@ -34,6 +34,7 @@
     position: absolute;
     inset: 0;
     transform-origin: inline-start center;
+    transform: scaleX(var(--meter-scale, 0));
     border-radius: inherit;
     background: linear-gradient(
       90deg,

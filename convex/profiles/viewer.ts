@@ -1,17 +1,13 @@
 import { query } from "../_generated/server";
 import { viewerProfileReturns } from "../contracts/profiles";
-import { requireUserId } from "../lib/authz";
+import { getAppProfile, requireUserId } from "../lib/authz";
 
 export const get = query({
   args: {},
   returns: viewerProfileReturns,
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const profiles = await ctx.db
-      .query("appProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .take(1);
-    const profile = profiles[0] ?? null;
+    const profile = await getAppProfile(ctx, userId);
     if (profile === null) return null;
 
     const avatarUrl = profile.avatarStorageId

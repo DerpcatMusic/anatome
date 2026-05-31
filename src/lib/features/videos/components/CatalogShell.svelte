@@ -41,6 +41,14 @@
     if (!auth.isAuthenticated || !isStaff) return;
     void goto("/i/videos", { replaceState: true });
   });
+
+  function handleRefetch() {
+    void catalogResource.refetch();
+  }
+
+  async function handleOnRefetch() {
+    await catalogResource.refetch();
+  }
 </script>
 
 <SEO
@@ -63,9 +71,7 @@
     <Button.Root
       class="hb-button hb-button--ghost"
       type="button"
-      onclick={() => {
-        void catalogResource.refetch();
-      }}
+      onclick={handleRefetch}
     >
       {t.catalog.retry()}
     </Button.Root>
@@ -75,9 +81,7 @@
     {data}
     guest={isGuest}
     {inAppShell}
-    onRefetch={async () => {
-      await catalogResource.refetch();
-    }}
+    onRefetch={handleOnRefetch}
   />
 {:else}
   <div class="catalog-state">

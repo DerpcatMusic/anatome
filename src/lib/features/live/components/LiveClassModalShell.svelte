@@ -27,6 +27,11 @@
     }
   }
 
+  function handleClose() {
+    open = false;
+    onClose?.();
+  }
+
   const contentClasses = $derived(
     `calendar-modal-content ${wide ? "calendar-modal-content--wide" : ""}`
   );
@@ -48,7 +53,7 @@
           type="button"
           class="close-button"
           aria-label="סגור"
-          onclick={() => { open = false; onClose?.(); }}
+          onclick={handleClose}
         >
           <span class="material-symbols-rounded">close</span>
         </button>

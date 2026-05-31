@@ -2,9 +2,15 @@
 	import { Track } from 'livekit-client';
 	import { isTrackReference, isTrackReferencePinned } from '@livekit/components-core';
 	import type { ParticipantClickEvent, TrackReferenceOrPlaceholder } from '@livekit/components-core';
-	import { participantCtx, trackRefCtx, layoutCtx } from '../../contexts/index.js';
+	import {
+		setParticipantContext,
+		getMaybeParticipantContext,
+		setTrackRefContext,
+		getMaybeTrackRefContext,
+		getMaybeLayoutContext,
+	} from '../../contexts/index.js';
 	import { useParticipantTile } from '../../hooks/useParticipantTile.svelte';
-	import { useIsEncrypted } from '../../hooks/useIsEncrypted';
+	import { useIsEncrypted } from '../../hooks/useIsEncrypted.svelte';
 	import VideoTrack from './VideoTrack.svelte';
 	import AudioTrack from './AudioTrack.svelte';
 	import ParticipantPlaceholder from './ParticipantPlaceholder.svelte';
@@ -27,25 +33,20 @@
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	// svelte-ignore state_referenced_locally
-	const maybeTrackRef = trackRef ?? trackRefCtx.getOr(undefined);
+	const maybeTrackRef = trackRef ?? getMaybeTrackRefContext();
 	if (!maybeTrackRef) {
 		throw new Error('No trackRef provided, make sure you are inside a TrackRefContext or pass the trackRef explicitly');
 	}
-	// svelte-ignore state_referenced_locally
 	const trackReference = maybeTrackRef;
 
 	// Only set contexts if not already present in parent
-	if (!trackRefCtx.getOr(undefined)) {
-		// svelte-ignore state_referenced_locally
-		trackRefCtx.set(trackReference);
+	if (!getMaybeTrackRefContext()) {
+		setTrackRefContext(trackReference);
 	}
-	if (!participantCtx.getOr(undefined)) {
-		// svelte-ignore state_referenced_locally
-		participantCtx.set(trackReference.participant);
+	if (!getMaybeParticipantContext()) {
+		setParticipantContext(trackReference.participant);
 	}
 
-	// svelte-ignore state_referenced_locally
 	const { elementProps } = useParticipantTile({
 		trackRef: trackReference,
 		disableSpeakingIndicator,
@@ -54,7 +55,7 @@
 	});
 
 	const isEncrypted = useIsEncrypted(trackReference.participant);
-	const layoutContext = layoutCtx.getOr(undefined);
+	const layoutContext = getMaybeLayoutContext();
 
 	function handleSubscribe(subscribed: boolean) {
 		if (
@@ -66,10 +67,17 @@
 			layoutContext.pin.clearPin();
 		}
 	}
+
+	function handleKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			(e.currentTarget as HTMLDivElement).click();
+		}
+	}
 </script>
 
 <div
-	class={elementProps.class}
+	class="lk-participant-tile-root {elementProps.class}"
 	data-lk-audio-muted={elementProps['data-lk-audio-muted']}
 	data-lk-video-muted={elementProps['data-lk-video-muted']}
 	data-lk-speaking={elementProps['data-lk-speaking']}
@@ -77,16 +85,10 @@
 	data-lk-source={elementProps['data-lk-source']}
 	data-lk-facing-mode={elementProps['data-lk-facing-mode']}
 	onclick={elementProps.onclick}
-	onkeydown={(e: KeyboardEvent) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			(e.currentTarget as HTMLDivElement).click();
-		}
-	}}
+	onkeydown={handleKeyDown}
 	role="button"
 	tabindex="0"
 	aria-label="Participant tile"
-	style="position: relative;"
 >
 	{#if children}
 		{@render children()}
@@ -122,7 +124,7 @@
 							height="16"
 							fill="none"
 							aria-hidden="true"
-							style="margin-inline-end: 0.25rem;"
+							class="lk-participant-meta-icon"
 						>
 							<path
 								fill="currentColor"
@@ -147,7 +149,7 @@
 						height="16"
 						fill="none"
 						aria-hidden="true"
-						style="margin-inline-end: 0.25rem;"
+						class="lk-participant-meta-icon"
 					>
 						<path
 							fill="currentColor"
@@ -171,3 +173,12 @@
 
 	<FocusToggle trackRef={trackReference} />
 </div>
+
+<style>
+	.lk-participant-tile-root {
+		position: relative;
+	}
+	.lk-participant-meta-icon {
+		margin-inline-end: 0.25rem;
+	}
+</style>

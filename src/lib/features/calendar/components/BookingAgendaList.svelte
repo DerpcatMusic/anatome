@@ -2,6 +2,7 @@
   import AgendaPane from "./AgendaPane.svelte";
   import type { Id } from "$convex/_generated/dataModel";
   import type { DayAgendaGroup, CalendarClass } from "../lib/agenda";
+  import { buildDayHeaders } from "../lib/agenda";
 import { useIntersectionObserver } from "runed";
   import { useI18n } from "$lib/i18n/runes.svelte";
   import "../styles/agenda-list.css";
@@ -46,7 +47,11 @@ import { useIntersectionObserver } from "runed";
       : groups.length === 0,
   );
 
-  let loadMoreSentinel = $state<HTMLDivElement | null>(null);
+  const groupDayHeaders = $derived(buildDayHeaders(groupGroups, nowMs));
+  const oneOnOneDayHeaders = $derived(buildDayHeaders(oneOnOneGroups, nowMs));
+  const allDayHeaders = $derived(buildDayHeaders(groups, nowMs));
+
+  let loadMoreSentinel: HTMLDivElement | null = null;
 
   useIntersectionObserver(
     () => canLoadMore && onLoadMore ? loadMoreSentinel : null,
@@ -71,6 +76,7 @@ import { useIntersectionObserver } from "runed";
       emptyText={t.calendar.panes.groupEmpty()}
       {actionId}
       {nowMs}
+      dayHeaders={groupDayHeaders}
       onReserve={onReserve}
       onCancel={onCancel}
       {onBuyCredits}
@@ -83,6 +89,7 @@ import { useIntersectionObserver } from "runed";
       emptyText={t.calendar.panes.oneOnOneEmpty()}
       {actionId}
       {nowMs}
+      dayHeaders={oneOnOneDayHeaders}
       onReserve={onReserve}
       onCancel={onCancel}
       onOpenOneOnOneRequest={onOpenOneOnOneRequest}
@@ -112,6 +119,7 @@ import { useIntersectionObserver } from "runed";
         : t.calendar.panes.oneOnOneEmpty()}
       {actionId}
       {nowMs}
+      dayHeaders={allDayHeaders}
       onReserve={onReserve}
       onCancel={onCancel}
       onOpenOneOnOneRequest={typeFilter !== "group_live" ? onOpenOneOnOneRequest : undefined}

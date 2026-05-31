@@ -4,7 +4,7 @@
 	import { Separator } from "bits-ui";
 	import TrackToggle from "../components/controls/TrackToggle.svelte";
 	import StartAudio from "../components/controls/StartAudio.svelte";
-	import { useLocalParticipantPermissions } from "../hooks/useLocalParticipantPermissions";
+	import { useLocalParticipantPermissions } from "../hooks/useLocalParticipantPermissions.svelte";
 
 	let {
 		controls,
@@ -35,14 +35,20 @@
 	const permissionsState = useLocalParticipantPermissions();
 	const browserSupportsScreenSharing = supportsScreenSharing();
 
-	const visibleControls = $derived.by(() => {
+	const handleMicError = (error: Error) => onDeviceError?.({ source: Track.Source.Microphone, error });
+	const handleCameraError = (error: Error) => onDeviceError?.({ source: Track.Source.Camera, error });
+	const handleScreenShareError = (error: Error) => onDeviceError?.({ source: Track.Source.ScreenShare, error });
+
+	function computeVisibleControls(
+		ctrls: typeof controls,
+		permissions: ReturnType<typeof useLocalParticipantPermissions>,
+	) {
 		const base = {
-			microphone: controls?.microphone,
-			camera: controls?.camera,
-			screenShare: controls?.screenShare,
+			microphone: ctrls?.microphone,
+			camera: ctrls?.camera,
+			screenShare: ctrls?.screenShare,
 		};
 
-		const permissions = permissionsState;
 		if (!permissions) {
 			return {
 				camera: false,
@@ -63,7 +69,9 @@
 			camera: base.camera ?? canPublishSource(Track.Source.Camera),
 			screenShare: base.screenShare ?? canPublishSource(Track.Source.ScreenShare),
 		};
-	});
+	}
+
+	const visibleControls = $derived(computeVisibleControls(controls, permissionsState));
 
 	const isTooLittleSpace = $state(false);
 	const defaultVariation = $derived(isTooLittleSpace ? 'minimal' : 'verbose');
@@ -78,7 +86,7 @@
 			<TrackToggle
 				source={Track.Source.Microphone}
 				{showIcon}
-				onDeviceError={(error) => onDeviceError?.({ source: Track.Source.Microphone, error })}
+				onDeviceError={handleMicError}
 			>
 				{#if showText}{micLabel}{/if}
 			</TrackToggle>
@@ -90,7 +98,7 @@
 			<TrackToggle
 				source={Track.Source.Camera}
 				{showIcon}
-				onDeviceError={(error) => onDeviceError?.({ source: Track.Source.Camera, error })}
+				onDeviceError={handleCameraError}
 			>
 				{#if showText}{cameraLabel}{/if}
 			</TrackToggle>
@@ -101,7 +109,7 @@
 		<TrackToggle
 			source={Track.Source.ScreenShare}
 			{showIcon}
-			onDeviceError={(error) => onDeviceError?.({ source: Track.Source.ScreenShare, error })}
+			onDeviceError={handleScreenShareError}
 		>
 			{#if showText}{screenShareLabel}{/if}
 		</TrackToggle>

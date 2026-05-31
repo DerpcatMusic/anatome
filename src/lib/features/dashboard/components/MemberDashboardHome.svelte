@@ -17,19 +17,32 @@
 
   const nowMs = $derived(queryNow.nowMs);
 
-  const upcomingLives = $derived.by((): DashboardLiveItem[] => {
-    const rows = upcomingQuery.data ?? [];
+  const EMPTY_ARRAY: DashboardLiveItem[] = [];
+
+  function isUpcomingLive(row: DashboardLiveItem, now: number) {
+    return row.status !== "cancelled" && row.status !== "draft" && row.startsAt >= now;
+  }
+  function toLiveItem(row: DashboardLiveItem): DashboardLiveItem {
+    return {
+      _id: row._id,
+      title: row.title,
+      startsAt: row.startsAt,
+      status: row.status,
+      type: row.type,
+    };
+  }
+  function buildUpcomingLives(rows: DashboardLiveItem[], now: number): DashboardLiveItem[] {
     return rows
-      .filter((row) => row.status !== "cancelled" && row.status !== "draft" && row.startsAt >= nowMs)
+      .filter((row) => isUpcomingLive(row, now))
       .slice(0, 24)
-      .map((row) => ({
-        _id: row._id,
-        title: row.title,
-        startsAt: row.startsAt,
-        status: row.status,
-        type: row.type,
-      }));
-  });
+      .map(toLiveItem);
+  }
+
+  const upcomingLives = $derived(buildUpcomingLives(upcomingQuery.data ?? EMPTY_ARRAY, nowMs));
+
+  function reloadPage() {
+    window.location.reload();
+  }
 </script>
 
 <div class="dashboard-home">
@@ -40,6 +53,6 @@
     loading={upcomingQuery.isLoading}
     error={upcomingQuery.error?.message ?? null}
     {nowMs}
-    onRetry={() => window.location.reload()}
+    onRetry={reloadPage}
   />
 </div>

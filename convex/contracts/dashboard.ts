@@ -6,12 +6,9 @@ import {
   healthDeclarationAnswersValidator,
   pathologiesListValidator,
 } from "../lib/validators";
+import { profileRoleValidator } from "../lib/domainValidators";
 
-export const dashboardRoleValidator = v.union(
-  v.literal("customer"),
-  v.literal("instructor"),
-  v.literal("admin"),
-);
+export const dashboardRoleValidator = profileRoleValidator;
 
 export const dashboardUserValidator = v.object({
   name: v.union(v.string(), v.null()),

@@ -23,7 +23,7 @@
 	import LiveDockProvider from "$lib/features/live/dock/LiveDockProvider.svelte";
 	import { setupAppShellViewTransitions } from "$lib/navigation/app-shell-transition";
 	import { untrack } from 'svelte';
-	import { onMount } from 'svelte';
+
 	import { useThemeMedia } from '$features/app/themeMedia.svelte';
 	import '@fontsource/secular-one/hebrew-400.css';
 
@@ -37,7 +37,7 @@
 		useThemeMedia();
 	}
 
-	onMount(() => {
+	$effect(() => {
 		setupAppShellViewTransitions();
 	});
 

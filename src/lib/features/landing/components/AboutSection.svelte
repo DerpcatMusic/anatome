@@ -13,20 +13,20 @@
 
   const { t } = useI18n();
 
-  const credentials = $derived([
+  const credentials = [
     {
-      title: t.landing.instructor.credTrainingTitle(),
-      body: t.landing.instructor.credTraining(),
+      title: () => t.landing.instructor.credTrainingTitle(),
+      body: () => t.landing.instructor.credTraining(),
     },
     {
-      title: t.landing.instructor.credExperienceTitle(),
-      body: t.landing.instructor.credExperience(),
+      title: () => t.landing.instructor.credExperienceTitle(),
+      body: () => t.landing.instructor.credExperience(),
     },
     {
-      title: t.landing.instructor.credMissionTitle(),
-      body: t.landing.instructor.credMission(),
+      title: () => t.landing.instructor.credMissionTitle(),
+      body: () => t.landing.instructor.credMission(),
     },
-  ]);
+  ];
 </script>
 
 <section id="about" class="l-panel section--about" aria-label="על יובל">
@@ -41,10 +41,10 @@
       <div class="about__why l-in l-in--2">
         <h3 class="about__why-title">{t.landing.instructor.whyMeHeadline()}</h3>
         <div class="about__cred-grid">
-          {#each credentials as cred, i (cred.title)}
+          {#each credentials as cred, i (i)}
             <article class="about__cred l-in" class:l-in--1={i === 0} class:l-in--2={i === 1} class:l-in--3={i === 2}>
-              <h4 class="about__cred-title">{cred.title}</h4>
-              <p class="about__cred-body">{cred.body}</p>
+              <h4 class="about__cred-title">{cred.title()}</h4>
+              <p class="about__cred-body">{cred.body()}</p>
             </article>
           {/each}
         </div>

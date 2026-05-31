@@ -14,6 +14,11 @@
 
   const { t } = useI18n();
   const dashboardHref = dashboardPathFromCachedRole(getCachedRole());
+
+  function handleSignOut() {
+    signOut();
+    closeModal();
+  }
 </script>
 
 <div class="auth-state grid gap-4">
@@ -23,7 +28,7 @@
     <p class="intro">{t.auth.loggedIn.subtitle()}</p>
   </div>
   <Button.Root class="hb-button hb-button--ink" href={dashboardHref}>{t.auth.loggedIn.cta()}</Button.Root>
-  <Button.Root class="hb-button hb-button--paper" type="button" onclick={() => { signOut(); closeModal(); }}>{t.auth.loggedIn.signOut()}</Button.Root>
+  <Button.Root class="hb-button hb-button--paper" type="button" onclick={handleSignOut}>{t.auth.loggedIn.signOut()}</Button.Root>
 </div>
 
 <style>

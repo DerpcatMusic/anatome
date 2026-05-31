@@ -73,6 +73,10 @@
       return () => clearTimeout(timer);
     }
   });
+
+  function goToReturnHref() {
+    void goto(returnHref);
+  }
 </script>
 
 {#if embed}
@@ -111,7 +115,7 @@
     <Button.Root
       class="hb-button hb-button--ink"
       type="button"
-      onclick={() => goto(returnHref)}
+      onclick={goToReturnHref}
     >
       {orderKind === "credit" ? "חזרה לרכישת קרדיטים" : "לאזור האישי"}
     </Button.Root>

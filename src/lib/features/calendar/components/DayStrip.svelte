@@ -28,16 +28,20 @@
   function dayNum(ts: number): string {
     return dayNumFormatter.format(new Date(ts));
   }
+
+  function handleValueChange(v: string | undefined) {
+    if (v) onSelect(Number(v));
+  }
 </script>
 
 <ToggleGroup.Root
   type="single"
   value={String(selectedDay)}
-  onValueChange={(v) => { if (v) onSelect(Number(v)); }}
+  onValueChange={handleValueChange}
   class="day-strip"
   aria-label="בחירת יום"
 >
-  {#each days as { date }}
+  {#each days as { date } (date)}
     <ToggleGroup.Item value={String(date)} class="day-pill" aria-label={dayName(date)}>
       <span class="day-pill__name">{dayName(date)}</span>
       <span class="day-pill__num">{dayNum(date)}</span>

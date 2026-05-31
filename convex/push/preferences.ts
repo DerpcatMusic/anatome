@@ -13,10 +13,14 @@ export async function getOrCreateNotificationPreferences(
   ctx: MutationCtx,
   userId: Id<"users">,
 ) {
-  const existing = await ctx.db
+  const existingRows = await ctx.db
     .query("notificationPreferences")
     .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .unique();
+    .take(2);
+  if (existingRows.length > 1) {
+    throw new Error("Duplicate notification preferences require repair");
+  }
+  const existing = existingRows[0] ?? null;
 
   if (existing !== null) return existing;
 
@@ -39,10 +43,14 @@ export const get = query({
   }),
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const row = await ctx.db
+    const rows = await ctx.db
       .query("notificationPreferences")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
+      .take(2);
+    if (rows.length > 1) {
+      throw new Error("Duplicate notification preferences require repair");
+    }
+    const row = rows[0] ?? null;
 
     if (row === null) {
       return { ...DEFAULT_PREFS };

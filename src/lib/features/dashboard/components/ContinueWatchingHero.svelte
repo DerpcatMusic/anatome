@@ -29,11 +29,34 @@
     return first || null;
   });
 
+  function getGreeting(
+    name: string | null,
+    greet: () => string,
+    greetNamed: (opts: { name: string }) => string,
+  ) {
+    if (!name) return greet();
+    return greetNamed({ name });
+  }
+
   const greeting = $derived(
-    friendlyName
-      ? t.dashboard.member.greetingNamed({ name: friendlyName })
-      : t.dashboard.member.greeting(),
+    getGreeting(
+      friendlyName,
+      t.dashboard.member.greeting,
+      t.dashboard.member.greetingNamed,
+    ),
   );
+
+  function handleReload() {
+    window.location.reload();
+  }
+
+  function goToLibrary() {
+    window.location.assign(routePath("library"));
+  }
+
+  function goToCalendar() {
+    window.location.assign(routePath("uCalendar"));
+  }
 </script>
 
 <section class="continue-hero" aria-labelledby="continue-hero-title">
@@ -48,7 +71,7 @@
       <Button.Root
         class="hb-button hb-button--paper hb-button--sm"
         type="button"
-        onclick={() => window.location.reload()}
+        onclick={handleReload}
       >
         {t.dashboard.retry()}
       </Button.Root>
@@ -93,14 +116,14 @@
         <Button.Root
           class="hb-button hb-button--ink hb-button--md"
           type="button"
-          onclick={() => window.location.assign(routePath("library"))}
+          onclick={goToLibrary}
         >
           {t.dashboard.member.browseLibrary()}
         </Button.Root>
         <Button.Root
           class="hb-button hb-button--paper hb-button--sm"
           type="button"
-          onclick={() => window.location.assign(routePath("uCalendar"))}
+          onclick={goToCalendar}
         >
           {t.dashboard.member.browseLives()}
         </Button.Root>

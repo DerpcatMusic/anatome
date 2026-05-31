@@ -3,7 +3,7 @@ import { mutation, query } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { requireUserId, requireAppProfile } from "../lib/authz";
-import { LOBBY_PRESENCE_STALE_MS } from "../lib/constants";
+import { LIMITS, LOBBY_PRESENCE_STALE_MS } from "../lib/constants";
 import { loadMemberPublicProfiles, memberPublicProfileForUser } from "../lib/memberDisplay";
 import { requireQueryNow } from "../lib/queryNow";
 import {
@@ -11,11 +11,7 @@ import {
   isValidLiveReservation,
 } from "../lib/liveClassAccess";
 import { viewerIsInstructorForClass } from "./joinAccess";
-
-const lobbyPhaseValidator = v.union(
-  v.literal("waiting_broadcast"),
-  v.literal("device_setup"),
-);
+import { liveLobbyPhaseValidator } from "../lib/domainValidators";
 
 const rosterMemberValidator = v.object({
   userId: v.id("users"),
@@ -30,7 +26,7 @@ const lobbyMemberValidator = v.object({
   userId: v.id("users"),
   displayName: v.string(),
   avatarUrl: v.union(v.string(), v.null()),
-  phase: lobbyPhaseValidator,
+  phase: liveLobbyPhaseValidator,
   lastSeenAt: v.number(),
 });
 
@@ -50,24 +46,29 @@ export type ClassRosterSummary = {
   lobbyWaitingCount: number;
 };
 
-export async function loadClassRosterSummary(
+type LiveRosterRows = {
+  reservedRows: Doc<"liveReservations">[];
+  joinedRows: Doc<"liveReservations">[];
+  lobbyRows: Doc<"liveLobbyPresence">[];
+};
+
+export async function loadLiveRosterRows(
   ctx: QueryCtx,
   liveClassId: Id<"liveClasses">,
-  liveClass: Pick<Doc<"liveClasses">, "capacity" | "seatsTaken">,
   now: number,
-): Promise<ClassRosterSummary> {
+): Promise<LiveRosterRows> {
   const reservedRows = await ctx.db
     .query("liveReservations")
     .withIndex("by_liveClassId_and_status", (q) =>
       q.eq("liveClassId", liveClassId).eq("status", "reserved"),
     )
-    .collect();
+    .take(LIMITS.LIVE_PARTICIPANTS);
   const joinedRows = await ctx.db
     .query("liveReservations")
     .withIndex("by_liveClassId_and_status", (q) =>
       q.eq("liveClassId", liveClassId).eq("status", "joined"),
     )
-    .collect();
+    .take(LIMITS.LIVE_PARTICIPANTS);
 
   const staleBefore = now - LOBBY_PRESENCE_STALE_MS;
   const lobbyRows = await ctx.db
@@ -75,7 +76,22 @@ export async function loadClassRosterSummary(
     .withIndex("by_liveClassId_and_lastSeenAt", (q) =>
       q.eq("liveClassId", liveClassId).gte("lastSeenAt", staleBefore),
     )
-    .collect();
+    .take(LIMITS.LIVE_PARTICIPANTS);
+
+  return { reservedRows, joinedRows, lobbyRows };
+}
+
+export async function loadClassRosterSummary(
+  ctx: QueryCtx,
+  liveClassId: Id<"liveClasses">,
+  liveClass: Pick<Doc<"liveClasses">, "capacity" | "seatsTaken">,
+  now: number,
+): Promise<ClassRosterSummary> {
+  const { reservedRows, joinedRows, lobbyRows } = await loadLiveRosterRows(
+    ctx,
+    liveClassId,
+    now,
+  );
 
   const joinedUserIds = new Set(joinedRows.map((row) => row.userId as string));
 
@@ -91,7 +107,7 @@ export async function loadClassRosterSummary(
 export const heartbeat = mutation({
   args: {
     liveClassId: v.id("liveClasses"),
-    phase: lobbyPhaseValidator,
+    phase: liveLobbyPhaseValidator,
     now: v.number(),
   },
   returns: v.null(),
@@ -191,28 +207,19 @@ export const getInstructorPanel = query({
       return null;
     }
 
-    const summary = await loadClassRosterSummary(ctx, args.liveClassId, liveClass, now);
-
-    const reservedRows = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
-      )
-      .collect();
-    const joinedRows = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("status", "joined"),
-      )
-      .collect();
-
-    const staleBefore = now - LOBBY_PRESENCE_STALE_MS;
-    const lobbyRows = await ctx.db
-      .query("liveLobbyPresence")
-      .withIndex("by_liveClassId_and_lastSeenAt", (q) =>
-        q.eq("liveClassId", args.liveClassId).gte("lastSeenAt", staleBefore),
-      )
-      .collect();
+    const { reservedRows, joinedRows, lobbyRows } = await loadLiveRosterRows(
+      ctx,
+      args.liveClassId,
+      now,
+    );
+    const joinedUserIds = new Set(joinedRows.map((row) => row.userId as string));
+    const summary = {
+      capacity: liveClass.capacity,
+      seatsTaken: liveClass.seatsTaken ?? reservedRows.length + joinedRows.length,
+      reservedCount: reservedRows.length,
+      joinedCount: joinedRows.length,
+      lobbyWaitingCount: lobbyRows.filter((row) => !joinedUserIds.has(row.userId as string)).length,
+    };
 
     const memberProfiles = await loadMemberPublicProfiles(ctx, [
       ...reservedRows.map((row) => row.userId),
@@ -254,7 +261,6 @@ export const getInstructorPanel = query({
       })
       .sort((a, b) => (a.joinedAt ?? a.reservedAt) - (b.joinedAt ?? b.reservedAt));
 
-    const joinedUserIds = new Set(joinedRows.map((row) => row.userId as string));
     const waitingInLobby = lobbyRows
       .filter((row) => !joinedUserIds.has(row.userId as string))
       .map((row) => {
@@ -305,7 +311,7 @@ export const getMemberPanel = query({
   ),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    requireQueryNow(args.now);
+    const now = requireQueryNow(args.now);
     const liveClass = await ctx.db.get(args.liveClassId);
     if (liveClass === null) return null;
 
@@ -321,18 +327,11 @@ export const getMemberPanel = query({
 
     const hostProfile = await memberPublicProfileForUser(ctx, liveClass.instructorUserId);
 
-    const reservedRows = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("status", "reserved"),
-      )
-      .collect();
-    const joinedRows = await ctx.db
-      .query("liveReservations")
-      .withIndex("by_liveClassId_and_status", (q) =>
-        q.eq("liveClassId", args.liveClassId).eq("status", "joined"),
-      )
-      .collect();
+    const { reservedRows, joinedRows } = await loadLiveRosterRows(
+      ctx,
+      args.liveClassId,
+      now,
+    );
 
     const attendeeUserIds = [
       ...reservedRows.map((row) => row.userId),

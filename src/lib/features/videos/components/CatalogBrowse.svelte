@@ -42,39 +42,47 @@ import { useIntersectionObserver } from "runed";
   let redeemOpen = $state(false);
   let redeemTarget = $state<RedeemTarget | null>(null);
 
-  const macroflowVideos = $derived(
-    (data.macroflowVideos ?? []).map((video) =>
-      guest
+  function mapMacroflowVideos(videos: typeof data.macroflowVideos, isGuest: boolean): RowVideo[] {
+    return (videos ?? []).map((video) =>
+      isGuest
         ? { ...video, locked: true, owned: false, accessible: false }
         : video,
-    ) as RowVideo[],
-  );
+    ) as RowVideo[];
+  }
 
-  const categoryGroups = $derived(
-    (data.categoryGroups ?? []).map((group) => ({
+  function mapCategoryGroups(groups: typeof data.categoryGroups, isGuest: boolean): CategoryGroup[] {
+    return (groups ?? []).map((group) => ({
       ...group,
       items: (group.items ?? []).map((video) =>
-        guest
+        isGuest
           ? { ...video, locked: true, owned: false, accessible: false }
           : video,
       ) as RowVideo[],
-    })) as CategoryGroup[],
-  );
+    })) as CategoryGroup[];
+  }
 
-  const macroRows = $derived(chunkMacroflowRows(macroflowVideos));
-
-  const railCategories = $derived(
-    categoryGroups
+  function buildRailCategories(groups: CategoryGroup[]) {
+    return groups
       .filter((g) => g.items.length > 0)
       .map((g) => ({
         id: g.category._id,
         name: g.category.name,
-      })),
-  );
+      }));
+  }
 
-  const ownedMacroflowCount = $derived(
-    macroflowVideos.filter((video) => video.owned).length,
-  );
+  function countOwnedVideos(videos: RowVideo[]): number {
+    return videos.reduce((count, video) => count + (video.owned ? 1 : 0), 0);
+  }
+
+  const macroflowVideos = $derived(mapMacroflowVideos(data.macroflowVideos, guest));
+
+  const categoryGroups = $derived(mapCategoryGroups(data.categoryGroups, guest));
+
+  const macroRows = $derived(chunkMacroflowRows(macroflowVideos));
+
+  const railCategories = $derived(buildRailCategories(categoryGroups));
+
+  const ownedMacroflowCount = $derived(countOwnedVideos(macroflowVideos));
 
   const ownedHint = $derived(
     !guest && ownedMacroflowCount > 0
@@ -169,6 +177,18 @@ import { useIntersectionObserver } from "runed";
     } finally {
       pendingId = null;
     }
+  }
+
+  function handleVideoSelect(video: RowVideo) {
+    if (guest) {
+      openAuthForVideo(video._id);
+    } else {
+      handleSelect(video);
+    }
+  }
+
+  function handleConfirmRedeem() {
+    void confirmRedeem();
   }
 
   $effect(() => {
@@ -267,8 +287,7 @@ import { useIntersectionObserver } from "runed";
             hideStatus
             statusLabelFor={guest ? guestStatusLabel : memberStatusLabel}
             useLockGlyph={guest}
-            onSelect={(video) =>
-              guest ? openAuthForVideo(video._id) : handleSelect(video)}
+            onSelect={handleVideoSelect}
           />
         {/each}
       {/if}
@@ -297,8 +316,7 @@ import { useIntersectionObserver } from "runed";
               hideStatus
               statusLabelFor={guest ? guestStatusLabel : memberStatusLabel}
               useLockGlyph={guest}
-              onSelect={(video) =>
-                guest ? openAuthForVideo(video._id) : handleSelect(video)}
+              onSelect={handleVideoSelect}
             />
           </div>
         {/if}
@@ -315,8 +333,6 @@ import { useIntersectionObserver } from "runed";
     video={redeemTarget}
     creditsBalance={data.vodCredits ?? 0}
     pending={pendingId !== null}
-    onConfirm={() => {
-      void confirmRedeem();
-    }}
+    onConfirm={handleConfirmRedeem}
   />
 {/if}

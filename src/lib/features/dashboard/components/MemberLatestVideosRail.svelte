@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
 import { useIntersectionObserver } from "runed";
   import { api } from "$convex/_generated/api";
   import { useQuery } from "convex-svelte";
@@ -31,8 +30,7 @@ import { useIntersectionObserver } from "runed";
     canRunAuthenticatedQuery() && catalogEnabled ? { now: queryNow.nowMs } : "skip",
   );
 
-  const latestVideos = $derived.by((): RowVideo[] => {
-    const data = catalogQuery.data;
+  function buildLatestVideos(data: typeof catalogQuery.data): RowVideo[] {
     if (!data) return [];
 
     const micro = data.categoryGroups.flatMap((group) => group.items);
@@ -57,7 +55,9 @@ import { useIntersectionObserver } from "runed";
         accessible: video.accessible,
         accessKind: video.accessKind,
       }));
-  });
+  }
+
+  const latestVideos = $derived(buildLatestVideos(catalogQuery.data));
 
   function openVideo(video: RowVideo) {
     if (!video.accessible && video.locked) {

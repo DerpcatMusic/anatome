@@ -10,10 +10,10 @@
 
 <MarketingNavbar />
 
-<main style="display:grid;place-items:center;min-height:60dvh;padding:2rem;text-align:center;direction:rtl">
-  <div style="max-width:32ch">
-    <h1 style="font-size:2rem;margin:0 0 0.5rem">משהו השתבש</h1>
-    <p style="color:var(--foreground-muted);margin:0">
+<main class="error-page">
+  <div class="error-page__inner">
+    <h1 class="error-page__title">משהו השתבש</h1>
+    <p class="error-page__message">
       {#if page.status === 404}
         העמוד לא נמצא.
       {:else}
@@ -24,3 +24,25 @@
 </main>
 
 <Footer />
+
+<style>
+  .error-page {
+    display: grid;
+    place-items: center;
+    min-height: 60dvh;
+    padding: 2rem;
+    text-align: center;
+    direction: rtl;
+  }
+  .error-page__inner {
+    max-width: 32ch;
+  }
+  .error-page__title {
+    font-size: 2rem;
+    margin: 0 0 0.5rem;
+  }
+  .error-page__message {
+    color: var(--foreground-muted);
+    margin: 0;
+  }
+</style>

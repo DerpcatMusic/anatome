@@ -25,6 +25,25 @@
   } from "$lib/features/credits/pricing";
   import "./credit-purchaser.css";
 
+  const DEFAULT_POOL_LABELS: Record<CreditPool, string> = {
+    vod: poolLabelHe("vod"),
+    live: poolLabelHe("live"),
+    oneOnOne: poolLabelHe("oneOnOne"),
+  };
+
+  function buildCartInputs(
+    pools: CreditPool[],
+    qty: Record<CreditPool, number>,
+  ): Array<{ pool: CreditPool; quantity: number }> {
+    return pools
+      .filter((pool) => qty[pool] > 0)
+      .map((pool) => ({ pool, quantity: qty[pool] }));
+  }
+
+  function sumCartQuantities(inputs: Array<{ quantity: number }>): number {
+    return inputs.reduce((sum, row) => sum + row.quantity, 0);
+  }
+
   const POOLS: CreditPool[] = ["vod", "live", "oneOnOne"];
 
   const client = useConvexClient();
@@ -52,20 +71,9 @@
   const enabled = $derived(billing.creditsPurchaseEnabled && catalogQuery.data?.enabled !== false);
   const canBuy = $derived(enabled && access.canSubscribe);
 
-  const poolLabels = $derived(
-    catalogQuery.data?.poolLabelsHe ?? {
-      vod: poolLabelHe("vod"),
-      live: poolLabelHe("live"),
-      oneOnOne: poolLabelHe("oneOnOne"),
-    },
-  );
+  const poolLabels = $derived(catalogQuery.data?.poolLabelsHe ?? DEFAULT_POOL_LABELS);
 
-  const cartInputs = $derived(
-    POOLS.filter((pool) => cartQty[pool] > 0).map((pool) => ({
-      pool,
-      quantity: cartQty[pool],
-    })),
-  );
+  const cartInputs = $derived(buildCartInputs(POOLS, cartQty));
 
   const cart = $derived.by(() => {
     if (cartInputs.length === 0) return null;
@@ -76,7 +84,7 @@
     }
   });
 
-  const cartItemCount = $derived(cartInputs.reduce((sum, row) => sum + row.quantity, 0));
+  const cartItemCount = $derived(sumCartQuantities(cartInputs));
 
   function setPoolQty(pool: CreditPool, next: number) {
     const clamped = Math.max(0, Math.min(maxQuantity, Math.floor(next)));
@@ -89,6 +97,19 @@
     if (delta > 0 && next > 0) {
       fireCreditNudge(pool, next);
     }
+  }
+
+  const makeAdjustPoolHandler = (pool: CreditPool, delta: number) => () => adjustPool(pool, delta);
+
+  const makeQtyInputHandler = (pool: CreditPool) => (event: Event) => {
+    onQtyInput(pool, (event.currentTarget as HTMLInputElement).value);
+  };
+
+  function handleCloseCheckout() {
+    checkoutOpen = false;
+    checkoutUrl = null;
+    checkoutOrderId = null;
+    checkoutCart = null;
   }
 
   function onQtyInput(pool: CreditPool, raw: string) {
@@ -144,6 +165,26 @@
   }
 </script>
 
+{#snippet cartLines()}
+  {#if cart}
+    <ul class="credit-purchaser__lines">
+      {#each cart.lines as line (line.pool)}
+        <li class="credit-purchaser__line">
+          <span class="credit-purchaser__line-name">{poolLabels[line.pool]}</span>
+          <span class="credit-purchaser__line-qty">× {line.quantity}</span>
+          <span class="credit-purchaser__line-total">{formatIls(line.lineTotalIls)} ₪</span>
+        </li>
+        {#if line.discountIls > 0}
+          <li class="credit-purchaser__line credit-purchaser__line--discount">
+            <span>הנחה {line.discountPercent}%</span>
+            <span>−{formatIls(line.discountIls)} ₪</span>
+          </li>
+        {/if}
+      {/each}
+    </ul>
+  {/if}
+{/snippet}
+
 <section class="credit-purchaser" aria-label="בחירת קרדיטים לרכישה">
   {#if !enabled}
     <Notice tone="caution">רכישת קרדיטים אינה פעילה כרגע.</Notice>
@@ -170,7 +211,7 @@
                 class="hb-button hb-button--ghost hb-button--sm credit-type-row__step"
                 type="button"
                 disabled={qty <= 0}
-                onclick={() => adjustPool(pool, -1)}
+                onclick={makeAdjustPoolHandler(pool, -1)}
                 aria-label="הפחתה"
               >
                 −
@@ -184,13 +225,13 @@
                 step="1"
                 value={qty}
                 aria-label="כמות"
-                oninput={(event) => onQtyInput(pool, event.currentTarget.value)}
+                oninput={makeQtyInputHandler(pool)}
               />
               <Button.Root
                 class="hb-button hb-button--ghost hb-button--sm credit-type-row__step"
                 type="button"
                 disabled={qty >= maxQuantity}
-                onclick={() => adjustPool(pool, 1)}
+                onclick={makeAdjustPoolHandler(pool, 1)}
                 aria-label="הוספה"
               >
                 +
@@ -206,21 +247,7 @@
         {#if !cart}
           <p class="credit-purchaser__cart-empty">הזינו כמות לפחות לסוג אחד.</p>
         {:else}
-          <ul class="credit-purchaser__lines">
-            {#each cart.lines as line (line.pool)}
-              <li class="credit-purchaser__line">
-                <span class="credit-purchaser__line-name">{poolLabels[line.pool]}</span>
-                <span class="credit-purchaser__line-qty">× {line.quantity}</span>
-                <span class="credit-purchaser__line-total">{formatIls(line.lineTotalIls)} ₪</span>
-              </li>
-              {#if line.discountIls > 0}
-                <li class="credit-purchaser__line credit-purchaser__line--discount">
-                  <span>הנחה {line.discountPercent}%</span>
-                  <span>−{formatIls(line.discountIls)} ₪</span>
-                </li>
-              {/if}
-            {/each}
-          </ul>
+          {@render cartLines()}
 
           <dl class="credit-purchaser__math">
             <div>
@@ -281,12 +308,7 @@
   kind="credits"
   title="תשלום מאובטח"
   amountIls={checkoutCart?.totalIls}
-  onClose={() => {
-    checkoutOpen = false;
-    checkoutUrl = null;
-    checkoutOrderId = null;
-    checkoutCart = null;
-  }}
+  onClose={handleCloseCheckout}
 >
   {#if checkoutCart}
     <ul class="credit-checkout-recap">

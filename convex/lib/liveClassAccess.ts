@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { getAppProfile, isStaff } from "./authz";
 
 export function isValidLiveReservation(
   reservation: Doc<"liveReservations"> | null | undefined,
@@ -61,12 +62,7 @@ export async function viewerIsLiveStaff(
   ctx: QueryCtx | MutationCtx,
   userId: Id<"users">,
 ): Promise<boolean> {
-  const profiles = await ctx.db
-    .query("appProfiles")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
-  const profile = profiles[0] ?? null;
-  return profile !== null && (profile.role === "instructor" || profile.role === "admin");
+  return isStaff(await getAppProfile(ctx, userId));
 }
 
 export async function viewerCanSeeLiveClass(

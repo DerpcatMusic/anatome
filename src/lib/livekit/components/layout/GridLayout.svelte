@@ -19,7 +19,7 @@
 		class?: string;
 	} & Record<string, unknown> = $props();
 
-	let gridEl = $state<HTMLDivElement | null>(null);
+	let gridEl: HTMLDivElement | null = null;
 
 	const { layout } = useGridLayout(() => gridEl, () => tracks.length);
 	const pagination = usePagination(() => layout.maxTiles, () => tracks);

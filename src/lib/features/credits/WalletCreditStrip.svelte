@@ -25,7 +25,11 @@
 
   const { t } = useI18n();
 
-  const visiblePools = $derived(pools.filter(Boolean));
+  function getVisiblePools(pools: CreditPool[]): CreditPool[] {
+    return pools.filter(Boolean);
+  }
+
+  const visiblePools = $derived(getVisiblePools(pools));
 </script>
 
 {#if visiblePools.length > 0}

@@ -27,6 +27,10 @@
       void tick().then(() => session.refreshStreamStats());
     }
   });
+
+  function closeQualityPanel() {
+    session.showQualityPanel = false;
+  }
 </script>
 
 {#if session.isInstructorRoom && session.showQualityPanel}
@@ -36,7 +40,7 @@
       <Button.Root
         class="hb-button hb-button--close"
         type="button"
-        onclick={() => (session.showQualityPanel = false)}
+        onclick={closeQualityPanel}
         aria-label={t.live.room.close()}
       >
         <span class="material-symbols-rounded">close</span>

@@ -1,14 +1,7 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { Button } from "bits-ui";
   import { useI18n } from "$lib/i18n/runes";
   import { openAuthOverlay } from "$lib/auth/open-overlay";
-  import { LANDING_IMAGES } from "$lib/features/landing/images";
-  import { PLAN_DESCRIPTIONS } from "$lib/features/landing/landingPlans";
-  import { useActivePlans } from "$lib/features/subscriptions/activePlans.svelte";
-  import { openSubscriptionPicker } from "$lib/features/subscriptions/open-subscription-picker";
-  import { planTierTheme } from "$lib/features/subscriptions/planTierTheme";
-  import Notice from "$components/ui/Notice.svelte";
   import LandingFooter from "$lib/features/landing/components/LandingFooter.svelte";
   import "../concept.css";
   import {
@@ -19,6 +12,8 @@
   import SpineScrollBinder from "./SpineScrollBinder.svelte";
   import SpineConnector from "./SpineConnector.svelte";
   import StoryCard from "./StoryCard.svelte";
+  import ConceptAboutSection from "./ConceptAboutSection.svelte";
+  import ConceptPricingSection from "./ConceptPricingSection.svelte";
 
   const { t } = useI18n();
   const spine = createSpineLandingContext();
@@ -27,37 +22,41 @@
   let hydrate3d = $state(false);
   let ctaEmail = $state("");
 
-  const instructorStory = $derived(t.landing.instructor.storyClosing());
+  function buildFaqItems(
+    q1: string, a1: string,
+    q2: string, a2: string,
+    q3: string, a3: string,
+    q4: string, a4: string,
+    q5: string, a5: string,
+    q6: string, a6: string,
+    q7: string, a7: string,
+  ) {
+    return [
+      { question: q1, answer: a1 },
+      { question: q2, answer: a2 },
+      { question: q3, answer: a3 },
+      { question: q4, answer: a4 },
+      { question: q5, answer: a5 },
+      { question: q6, answer: a6 },
+      { question: q7, answer: a7 },
+    ];
+  }
 
-  const credentials = $derived([
-    {
-      title: t.landing.instructor.credTrainingTitle(),
-      body: t.landing.instructor.credTraining(),
-    },
-    {
-      title: t.landing.instructor.credExperienceTitle(),
-      body: t.landing.instructor.credExperience(),
-    },
-    {
-      title: t.landing.instructor.credMissionTitle(),
-      body: t.landing.instructor.credMission(),
-    },
-  ]);
+  const faqItems = $derived(buildFaqItems(
+    t.landing.faq.q1(), t.landing.faq.a1(),
+    t.landing.faq.q2(), t.landing.faq.a2(),
+    t.landing.faq.q3(), t.landing.faq.a3(),
+    t.landing.faq.q4(), t.landing.faq.a4(),
+    t.landing.faq.q5(), t.landing.faq.a5(),
+    t.landing.faq.q6(), t.landing.faq.a6(),
+    t.landing.faq.q7(), t.landing.faq.a7(),
+  ));
 
-  const faqItems = $derived([
-    { question: t.landing.faq.q1(), answer: t.landing.faq.a1() },
-    { question: t.landing.faq.q2(), answer: t.landing.faq.a2() },
-    { question: t.landing.faq.q3(), answer: t.landing.faq.a3() },
-    { question: t.landing.faq.q4(), answer: t.landing.faq.a4() },
-    { question: t.landing.faq.q5(), answer: t.landing.faq.a5() },
-    { question: t.landing.faq.q6(), answer: t.landing.faq.a6() },
-    { question: t.landing.faq.q7(), answer: t.landing.faq.a7() },
-  ]);
-
-  const activePlans = useActivePlans();
-
-  onMount(() => {
+  $effect(() => {
     hydrate3d = true;
+    return () => {
+      hydrate3d = false;
+    };
   });
 
   function openSignupAuth() {
@@ -67,6 +66,15 @@
       return;
     }
     openAuthOverlay({ email, autoSendCode: true });
+  }
+
+  function handleOpenAuthOverlay() {
+    openAuthOverlay();
+  }
+
+  function handleCtaSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    openSignupAuth();
   }
 </script>
 
@@ -82,8 +90,7 @@
 
       <StoryCard region="skull" sectionIndex={0} ariaLabel="ראשי">
         <h1 class="concept-hero__title">
-          {t.landing.hero.headlineBefore()}<span class="concept-hero__accent"
-            >{t.landing.hero.headlineAccent()}</span
+          {t.landing.hero.headlineBefore()}<span class="concept-hero__accent">{t.landing.hero.headlineAccent()}</span
           >{t.landing.hero.headlineAfter()}
         </h1>
         <p class="concept-hero__lead">{t.landing.hero.lead()}</p>
@@ -91,7 +98,7 @@
           <Button.Root
             class="hb-button hb-button--brand hb-button--pill"
             type="button"
-            onclick={() => openAuthOverlay()}
+            onclick={handleOpenAuthOverlay}
           >
             {t.landing.hero.ctaPrimary()}
           </Button.Root>
@@ -105,35 +112,7 @@
         <p class="concept-note">{t.landing.hero.note()}</p>
       </StoryCard>
 
-      <StoryCard region="cervical" sectionIndex={1} id="about" ariaLabel="על יובל">
-        <p class="concept-eyebrow">{t.landing.instructor.sectionEyebrow()}</p>
-        <h2 class="concept-section-title">{t.landing.instructor.sectionHeadline()}</h2>
-        <p class="concept-section-lead">{t.landing.instructor.subtitle()}</p>
-        <p class="concept-body">{t.landing.instructor.storyOrigin1()}</p>
-        <p class="concept-body">{t.landing.instructor.storyOrigin2()}</p>
-        <h3 class="concept-section-title" style="font-size: 1.25rem">
-          {t.landing.instructor.whyMeHeadline()}
-        </h3>
-        <div class="concept-cred-grid">
-          {#each credentials as cred (cred.title)}
-            <article class="concept-cred">
-              <h4>{cred.title}</h4>
-              <p>{cred.body}</p>
-            </article>
-          {/each}
-        </div>
-        <p class="concept-body"><strong>{instructorStory}</strong></p>
-        <figure class="concept-about__photo">
-          <img
-            src={LANDING_IMAGES.aboutInstructor.src}
-            alt={t.landing.images.aboutAlt()}
-            width={LANDING_IMAGES.aboutInstructor.width}
-            height={LANDING_IMAGES.aboutInstructor.height}
-            loading="lazy"
-            decoding="async"
-          />
-        </figure>
-      </StoryCard>
+      <ConceptAboutSection />
 
       <StoryCard region="thoracic" sectionIndex={2} ariaLabel="למה מהבית">
         <h2 class="concept-section-title">{t.landing.philosophy.headline()}</h2>
@@ -195,67 +174,12 @@
             <p>{t.landing.pillars.liveLead()} — {t.landing.pillars.liveBody()}</p>
           </article>
         </div>
-        <p class="concept-note" style="margin-top: 1rem">
+        <p class="concept-note concept-note--spaced">
           <a href="/library">{t.landing.preview.videoPlaceholderTitle()} →</a>
         </p>
       </StoryCard>
 
-      <StoryCard region="sacrum" sectionIndex={5} ariaLabel="מחירים">
-        <h2 class="concept-section-title">{t.landing.pricing.headline()}</h2>
-        <p class="concept-section-lead">{t.landing.pricing.lead()}</p>
-        {#if activePlans.error}
-          <Notice tone="danger">לא הצלחנו לטעון מחירים מהשרת.</Notice>
-        {:else if activePlans.usingFallback}
-          <Notice tone="caution">מחירים להמחשה — חיבור לשרת לא זמין כרגע.</Notice>
-        {/if}
-        {#if activePlans.isLoading}
-          <p class="concept-section-lead" aria-busy="true">טוענים מסלולים…</p>
-        {:else if activePlans.featured}
-          {@const featuredTheme = planTierTheme(activePlans.featured.slug)}
-          <div class="concept-pricing__featured {featuredTheme.cardClass}">
-            <div>
-              <p class="concept-pricing__badge">{t.landing.pricing.featuredBadge()}</p>
-              <h3>{activePlans.featured.nameHe}</h3>
-              <p class="concept-body">
-                {PLAN_DESCRIPTIONS[activePlans.featured.slug] ??
-                  t.landing.pricing.planNoteFallback()}
-              </p>
-            </div>
-            <div>
-              <p class="concept-pricing__price">
-                {activePlans.featured.monthlyPriceIls} {t.landing.pricing.perMonth()}
-              </p>
-              <Button.Root
-                class="hb-button hb-button--brand hb-button--pill"
-                type="button"
-                onclick={() => openSubscriptionPicker({ highlightSlug: activePlans.featured.slug })}
-              >
-                {t.landing.pricing.ctaButton()}
-              </Button.Root>
-            </div>
-          </div>
-        {/if}
-        <div class="concept-pricing__grid">
-          {#each activePlans.otherPlans as plan (plan.slug)}
-            {@const theme = planTierTheme(plan.slug)}
-            <button
-              type="button"
-              class="concept-pricing__card {theme.cardClass}"
-              onclick={() => openSubscriptionPicker({ highlightSlug: plan.slug })}
-            >
-              <h3>{plan.nameHe}</h3>
-              <p class="concept-pricing__price">
-                {plan.monthlyPriceIls} {t.landing.pricing.perMonth()}
-              </p>
-              <p class="concept-body">
-                {PLAN_DESCRIPTIONS[plan.slug] ?? t.landing.pricing.planNoteFallback()}
-              </p>
-              <span class="hb-button hb-button--paper hb-button--sm">{t.landing.pricing.ctaButton()}</span>
-            </button>
-          {/each}
-        </div>
-        <p class="concept-note">{t.landing.pricing.guarantee()}</p>
-      </StoryCard>
+      <ConceptPricingSection />
 
       <StoryCard region="coccyx" sectionIndex={6} ariaLabel="שאלות נפוצות">
         <h2 class="concept-section-title">{t.landing.faq.headline()}</h2>
@@ -276,10 +200,7 @@
         <p class="concept-section-lead">{t.landing.cta.subheadline()}</p>
         <form
           class="concept-cta__form"
-          onsubmit={(e) => {
-            e.preventDefault();
-            openSignupAuth();
-          }}
+          onsubmit={handleCtaSubmit}
         >
           <label class="visually-hidden" for="concept-cta-email">{t.auth.emailLabel()}</label>
           <input
@@ -314,3 +235,9 @@
 
   <LandingFooter />
 </div>
+
+<style>
+  .concept-note--spaced {
+    margin-top: 1rem;
+  }
+</style>

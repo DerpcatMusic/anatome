@@ -27,18 +27,31 @@
   let lastSavedAt = $state<string | null>(null);
   let mobileTab = $state<"before" | "edit" | "after">("edit");
   let copied = $state(false);
+  let beforeEl = $state<HTMLDivElement | null>(null);
+  let afterEl = $state<HTMLDivElement | null>(null);
 
   const debouncedValues = new Debounced(() => values, 450);
+
+  const BEFORE_VARIANT = { variant: "before" as const };
+  const AFTER_VARIANT = { variant: "after" as const };
 
   const baselineDoc = $derived(buildLandingCopyDocument(baseline));
   const doc = $derived(buildLandingCopyDocument(values));
   const beforePreviewHtml = $derived(
-    buildLandingCopyPreviewHtml(baselineDoc, { variant: "before" }),
+    buildLandingCopyPreviewHtml(baselineDoc, BEFORE_VARIANT),
   );
   const afterPreviewHtml = $derived(
-    buildLandingCopyPreviewHtml(doc, { variant: "after" }),
+    buildLandingCopyPreviewHtml(doc, AFTER_VARIANT),
   );
   const markdownExport = $derived(buildLandingCopyMarkdownFromValues(values));
+
+  $effect(() => {
+    if (beforeEl) beforeEl.innerHTML = beforePreviewHtml;
+  });
+
+  $effect(() => {
+    if (afterEl) afterEl.innerHTML = afterPreviewHtml;
+  });
 
   $effect(() => {
     if (!browser || hydrated) return;
@@ -116,6 +129,26 @@
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
+
+  function setMobileTabBefore() {
+    mobileTab = "before";
+  }
+
+  function setMobileTabEdit() {
+    mobileTab = "edit";
+  }
+
+  function setMobileTabAfter() {
+    mobileTab = "after";
+  }
+
+  const handleScrollToSection = (sectionId: string) => () => {
+    scrollPreviewsToSection(sectionId);
+  };
+
+  const handleFieldInput = (slug: string) => (event: Event) => {
+    updateField(slug, (event.currentTarget as HTMLTextAreaElement).value);
+  };
 </script>
 
 <div class="lcp">
@@ -141,7 +174,7 @@
           role="tab"
           class="lcp__mobile-tab"
           aria-selected={mobileTab === "before"}
-          onclick={() => (mobileTab = "before")}
+          onclick={setMobileTabBefore}
         >
           לפני
         </button>
@@ -150,7 +183,7 @@
           role="tab"
           class="lcp__mobile-tab"
           aria-selected={mobileTab === "edit"}
-          onclick={() => (mobileTab = "edit")}
+          onclick={setMobileTabEdit}
         >
           עריכה
         </button>
@@ -159,7 +192,7 @@
           role="tab"
           class="lcp__mobile-tab"
           aria-selected={mobileTab === "after"}
-          onclick={() => (mobileTab = "after")}
+          onclick={setMobileTabAfter}
         >
           אחרי
         </button>
@@ -191,7 +224,7 @@
         <span class="lcp__preview-badge lcp__preview-badge--before">לפני</span>
       </div>
       <div class="lcp__preview-inner" dir="rtl">
-        {@html beforePreviewHtml}
+        <div bind:this={beforeEl}></div>
       </div>
     </div>
 
@@ -206,32 +239,13 @@
       </div>
       <nav class="lcp__section-nav" aria-label="קפיצה למדור">
         {#each doc.sections as section (section.id)}
-          <a
-            class="lcp__section-link"
-            href="#edit-{section.id}"
-            onclick={() => scrollPreviewsToSection(section.id)}
-          >
-            {section.title}
-          </a>
+          {@render sectionNavLink(section)}
         {/each}
       </nav>
 
       <div class="lcp__sections">
         {#each doc.sections as section (section.id)}
-          <section class="lcp__section" id="edit-{section.id}">
-            <h2 class="lcp__section-title">{section.title}</h2>
-            {#each section.fields as field (field.slug)}
-              <label class="lcp__field">
-                <span class="lcp__field-label">{field.label}</span>
-                <textarea
-                  class="lcp__field-input"
-                  rows={Math.min(8, Math.max(2, (values[field.slug] ?? "").split("\n").length + 1))}
-                  value={values[field.slug] ?? ""}
-                  oninput={(e) => updateField(field.slug, e.currentTarget.value)}
-                ></textarea>
-              </label>
-            {/each}
-          </section>
+          {@render editSection(section)}
         {/each}
       </div>
     </div>
@@ -245,8 +259,35 @@
         <span class="lcp__preview-badge lcp__preview-badge--after">אחרי</span>
       </div>
       <div class="lcp__preview-inner" dir="rtl">
-        {@html afterPreviewHtml}
+        <div bind:this={afterEl}></div>
       </div>
     </div>
   </div>
 </div>
+
+{#snippet sectionNavLink(section: any)}
+  <a
+    class="lcp__section-link"
+    href="#edit-{section.id}"
+    onclick={handleScrollToSection(section.id)}
+  >
+    {section.title}
+  </a>
+{/snippet}
+
+{#snippet editSection(section: any)}
+  <section class="lcp__section" id="edit-{section.id}">
+    <h2 class="lcp__section-title">{section.title}</h2>
+    {#each section.fields as field (field.slug)}
+      <label class="lcp__field">
+        <span class="lcp__field-label">{field.label}</span>
+        <textarea
+          class="lcp__field-input"
+          rows={Math.min(8, Math.max(2, (values[field.slug] ?? "").split("\n").length + 1))}
+          value={values[field.slug] ?? ""}
+          oninput={handleFieldInput(field.slug)}
+        ></textarea>
+      </label>
+    {/each}
+  </section>
+{/snippet}

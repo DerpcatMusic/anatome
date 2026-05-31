@@ -21,7 +21,7 @@
   );
   const enabled = $derived(enabledProp ?? session?.selfAudioMonitorEnabled ?? false);
 
-  let audioEl = $state<HTMLAudioElement | null>(null);
+  let audioEl: HTMLAudioElement | null = null;
 
   $effect(() => {
     if (!enabled || !lkRoom) return;

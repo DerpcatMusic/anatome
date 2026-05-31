@@ -103,10 +103,10 @@
     );
   }
 
-  .celebration-burst :global(.confetti-holder.no-gravity .confetti) {
+  .celebration-burst :global(.confetti-holder.no-gravity .confetti.confetti) {
     --translate-x: calc(var(--confetti-reach-x) * var(--translate-x-multiplier));
     --translate-y: calc(-1 * var(--confetti-reach-y) * var(--translate-y-multiplier));
-    animation-timing-function: ease-out !important;
+    animation-timing-function: ease-out;
   }
 
   .celebration-burst__cannon {

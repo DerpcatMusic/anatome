@@ -1,11 +1,7 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
-
-export const profileRoleValidator = v.union(
-  v.literal("customer"),
-  v.literal("instructor"),
-  v.literal("admin"),
-);
+import { profileRoleValidator } from "../lib/domainValidators";
+export { profileRoleValidator };
 
 /** Client-safe profile row (no storage ids, no compliance blobs unless staff). */
 export const viewerProfileBaseValidator = v.object({

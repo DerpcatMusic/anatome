@@ -4,9 +4,9 @@
   import type { Id } from "$convex/_generated/dataModel";
   import { videoAccessLabel, type Equipment, type VideoAccessKind } from "$lib/labels";
   import { useConvexClient } from "convex-svelte";
-  import { Button, Checkbox, RadioGroup, Progress } from "bits-ui";
+  import { Button, Progress } from "bits-ui";
   import Notice from "$components/ui/Notice.svelte";
-  import EquipmentPicker from "$components/ui/EquipmentPicker.svelte";
+  import VideoUploadMetadata from "./VideoUploadMetadata.svelte";
 
   interface Props {
     categories: Array<{ _id: Id<"videoCategories">; name: string }>;
@@ -55,19 +55,6 @@
     return "";
   });
 
-  const accessOptions = [
-    {
-      value: "macroflow" as const,
-      label: videoAccessLabel("macroflow"),
-      description: "קרדיט — גישה לצמיתות.",
-    },
-    {
-      value: "microflow" as const,
-      label: videoAccessLabel("microflow"),
-      description: "למנויות פעילות.",
-    },
-  ];
-
   function validateMetadata(): boolean {
     titleError = title.trim().length >= 3 ? null : "כותרת קצרה מדי — לפחות 3 תווים.";
     categoryError = selectedCategoryIds.length > 0 ? null : "בחרי לפחות קטגוריה אחת.";
@@ -110,7 +97,8 @@
   });
 
   $effect(() => {
-    if (!muxUploader) return;
+    const uploader = muxUploader;
+    if (!uploader) return;
 
     const onProgress = (e: CustomEvent<number>) => {
       progress = typeof e.detail === "number" ? e.detail : 0;
@@ -149,33 +137,26 @@
       isOffline = false;
     };
 
-    muxUploader.addEventListener("progress", onProgress as EventListener);
-    muxUploader.addEventListener("file-ready", onFileReady as EventListener);
-    muxUploader.addEventListener("uploadstart", onUploadStart as EventListener);
-    muxUploader.addEventListener("success", onSuccess as EventListener);
-    muxUploader.addEventListener("uploaderror", onError as EventListener);
-    muxUploader.addEventListener("reset", onReset as EventListener);
-    muxUploader.addEventListener("offline", onOffline as EventListener);
-    muxUploader.addEventListener("online", onOnline as EventListener);
+    uploader.addEventListener("progress", onProgress as EventListener);
+    uploader.addEventListener("file-ready", onFileReady as EventListener);
+    uploader.addEventListener("uploadstart", onUploadStart as EventListener);
+    uploader.addEventListener("success", onSuccess as EventListener);
+    uploader.addEventListener("uploaderror", onError as EventListener);
+    uploader.addEventListener("reset", onReset as EventListener);
+    uploader.addEventListener("offline", onOffline as EventListener);
+    uploader.addEventListener("online", onOnline as EventListener);
 
     return () => {
-      muxUploader.removeEventListener("progress", onProgress as EventListener);
-      muxUploader.removeEventListener("file-ready", onFileReady as EventListener);
-      muxUploader.removeEventListener("uploadstart", onUploadStart as EventListener);
-      muxUploader.removeEventListener("success", onSuccess as EventListener);
-      muxUploader.removeEventListener("uploaderror", onError as EventListener);
-      muxUploader.removeEventListener("reset", onReset as EventListener);
-      muxUploader.removeEventListener("offline", onOffline as EventListener);
-      muxUploader.removeEventListener("online", onOnline as EventListener);
+      uploader.removeEventListener("progress", onProgress as EventListener);
+      uploader.removeEventListener("file-ready", onFileReady as EventListener);
+      uploader.removeEventListener("uploadstart", onUploadStart as EventListener);
+      uploader.removeEventListener("success", onSuccess as EventListener);
+      uploader.removeEventListener("uploaderror", onError as EventListener);
+      uploader.removeEventListener("reset", onReset as EventListener);
+      uploader.removeEventListener("offline", onOffline as EventListener);
+      uploader.removeEventListener("online", onOnline as EventListener);
     };
   });
-
-  function toggleCategory(id: Id<"videoCategories">) {
-    selectedCategoryIds = selectedCategoryIds.includes(id)
-      ? selectedCategoryIds.filter((c) => c !== id)
-      : [...selectedCategoryIds, id];
-    categoryError = null;
-  }
 
   function handleReset() {
     title = "";
@@ -212,82 +193,17 @@
 ></mux-uploader>
 
 <div class="upload-form">
-  <div class="upload-form__body">
-    <div class="upload-form__primary">
-      <label class="field" class:invalid={titleError !== null}>
-        <span class="field-label">כותרת השיעור <span class="required" aria-hidden="true">*</span></span>
-        <input
-          type="text"
-          bind:value={title}
-          placeholder="לדוגמה: יסודות רפורמר למתחילות"
-          maxlength="120"
-          disabled={isBusy}
-          autocomplete="off"
-        />
-        {#if titleError}
-          <span class="field-error" role="alert">{titleError}</span>
-        {/if}
-      </label>
-
-      <label class="field">
-        <span class="field-label">תיאור (אופציונלי)</span>
-        <textarea
-          bind:value={description}
-          placeholder="מה נעשה בשיעור? למי הוא מתאים?"
-          maxlength="500"
-          rows="3"
-          disabled={isBusy}
-        ></textarea>
-      </label>
-    </div>
-
-    <div class="upload-form__meta">
-      <div class="field-group access-grid">
-        <span class="field-label">איך לקוחות יגיעו לשיעור? <span class="required" aria-hidden="true">*</span></span>
-        <RadioGroup.Root bind:value={accessKind} orientation="horizontal" class="hb-choice-grid">
-          {#each accessOptions as option}
-            <RadioGroup.Item value={option.value} class="hb-choice" disabled={isBusy}>
-              <span class="hb-choice__title">{option.label}</span>
-              <span class="hb-choice__description">{option.description}</span>
-            </RadioGroup.Item>
-          {/each}
-        </RadioGroup.Root>
-      </div>
-
-      <div class="field-group" class:invalid={categoryError !== null}>
-        <span class="field-label">
-          קטגוריות
-          <span class="required" aria-hidden="true">*</span>
-          {#if selectedCategoryIds.length > 0}
-            <span class="count-pill">{selectedCategoryIds.length}</span>
-          {/if}
-        </span>
-        {#if categories.length === 0}
-          <Notice tone="neutral">עדיין אין קטגוריות במערכת. פני למנהלת להוספה.</Notice>
-        {:else}
-          <div class="category-grid">
-            {#each categories as cat (cat._id)}
-              <Checkbox.Root
-                class="hb-choice"
-                checked={selectedCategoryIds.includes(cat._id)}
-                onchange={() => toggleCategory(cat._id)}
-                disabled={isBusy}
-              >
-                <span class="hb-choice__title">{cat.name}</span>
-              </Checkbox.Root>
-            {/each}
-          </div>
-        {/if}
-        {#if categoryError}
-          <span class="field-error" role="alert">{categoryError}</span>
-        {/if}
-      </div>
-
-      <div class="field-group equipment-section">
-        <EquipmentPicker bind:selected={requiredEquipment} label="ציוד בשיעור" disabled={isBusy} />
-      </div>
-    </div>
-  </div>
+  <VideoUploadMetadata
+    bind:title
+    bind:description
+    bind:accessKind
+    bind:selectedCategoryIds
+    bind:requiredEquipment
+    {categories}
+    {isBusy}
+    {titleError}
+    {categoryError}
+  />
 
   {#if step !== "success"}
     <section

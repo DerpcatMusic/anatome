@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
-import type { Doc } from "../_generated/dataModel";
-import { isStaff, requireAppProfile, requireCustomer, requireUserId } from "../lib/authz";
+import { isStaff, requireAppProfile, requireUserId } from "../lib/authz";
 import type { Id } from "../_generated/dataModel";
 import { getActiveSubscription } from "./lib";
 import { getCreditAccess, ensureUserWallet } from "../credits/lib";
@@ -17,17 +16,19 @@ import {
 } from "../lib/featureFlags";
 import { isBillingSandboxEnabled } from "../lib/billingSandbox";
 import { beginCheckout } from "./checkout";
+import { requireSelfServeBillingCustomer } from "../lib/billingAuth";
+import { getActivePlanBySlug } from "./planLookup";
 
 async function assertSelfServeSubscriptionCustomer(
   ctx: MutationCtx,
   userId: Id<"users">,
 ) {
   assertSubscriptionsEnabled();
-  const profile = await requireAppProfile(ctx, userId);
-  if (isStaff(profile)) {
-    throw new Error("מנוי בתשלום זמין למנויות בלבד, לא למדריכות.");
-  }
-  requireCustomer(profile);
+  await requireSelfServeBillingCustomer(
+    ctx,
+    userId,
+    "מנוי בתשלום זמין למנויות בלבד, לא למדריכות.",
+  );
 }
 
 const PAID_CHECKOUT_REQUIRED =
@@ -103,17 +104,6 @@ export const getMine = query({
     return { subscription, plan, pendingPlan, wallet };
   },
 });
-
-async function getActivePlanBySlug(
-  ctx: MutationCtx,
-  slug: string,
-): Promise<Doc<"plans"> | null> {
-  const plans = await ctx.db
-    .query("plans")
-    .withIndex("by_slug", (q) => q.eq("slug", slug))
-    .take(10);
-  return plans.find((plan) => plan.isActive) ?? null;
-}
 
 export const activatePlan = mutation({
   args: {

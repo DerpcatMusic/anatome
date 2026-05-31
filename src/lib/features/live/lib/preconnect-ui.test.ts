@@ -10,12 +10,15 @@ const baseAccess: JoinAccessSnapshot = {
   joinOpensAt: 0,
   joinClosesAt: 10_000,
   startsAt: 5_000,
+  status: "scheduled",
   canEnter: true,
   minutesUntilOpen: null,
   minutesUntilClose: null,
   isInstructor: true,
   equipmentBlocked: false,
   isBroadcastLive: false,
+  instructorUserId: "users:test" as JoinAccessSnapshot["instructorUserId"],
+  instructorName: "Test Instructor",
   subscriberReceivePreset: "medium",
 };
 

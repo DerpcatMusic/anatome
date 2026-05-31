@@ -3,6 +3,7 @@
   import { useConvexClient } from "convex-svelte";
   import { api } from "$convex/_generated/api";
   import { processAvatarFile } from "$lib/media/processAvatar";
+  import { uploadAvatar } from "$lib/media/uploadAvatar";
 
   let {
     avatarUrl = null,
@@ -17,16 +18,22 @@
   const client = useConvexClient();
   let uploading = $state(false);
   let error = $state("");
-  let inputEl = $state<HTMLInputElement | null>(null);
+  let inputEl: HTMLInputElement | null = null;
 
-  const initials = $derived(
-    displayName
+  function deriveInitials(displayName: string) {
+    return displayName
       .trim()
       .split(/\s+/)
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "?",
-  );
+      .join("") || "?";
+  }
+
+  const initials = $derived(deriveInitials(displayName));
+
+  function triggerFileSelect() {
+    inputEl?.click();
+  }
 
   async function onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -40,15 +47,7 @@
       const { blob } = await processAvatarFile(file);
       const uploadUrl = await client.mutation(api.profiles.avatar.generateUploadUrl, {});
       const contentType = blob.type || "image/webp";
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": contentType },
-        body: blob,
-      });
-      if (!response.ok) {
-        throw new Error(`העלאת התמונה נכשלה (${response.status})`);
-      }
-      const { storageId } = (await response.json()) as { storageId: string };
+      const { storageId } = await uploadAvatar(uploadUrl, blob, contentType);
       await client.mutation(api.profiles.avatar.setFromStorage, {
         storageId: storageId as import("$convex/_generated/dataModel").Id<"_storage">,
       });
@@ -96,7 +95,7 @@
       class="hb-button hb-button--paper hb-button--sm"
       type="button"
       disabled={uploading}
-      onclick={() => inputEl?.click()}
+      onclick={triggerFileSelect}
     >
       {uploading ? "מעלה..." : avatarUrl ? "החלפת תמונה" : "העלאת תמונה"}
     </Button.Root>

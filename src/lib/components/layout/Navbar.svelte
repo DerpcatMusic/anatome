@@ -11,6 +11,13 @@
   function openAuth() {
     window.dispatchEvent(new CustomEvent("anatome:auth-open"));
   }
+
+  function handleThemeToggle() {
+    theme.toggle();
+  }
+  function goToDashboard() {
+    window.location.assign("/u/dashboard");
+  }
 </script>
 
 <nav class="navbar" aria-label="ניווט ראשי">
@@ -25,7 +32,7 @@
       <button
         type="button"
         class="navbar__theme"
-        onclick={() => theme.toggle()}
+        onclick={handleThemeToggle}
         title={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
         aria-label={theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
       >
@@ -37,7 +44,7 @@
       {#if auth.isLoading}
         <span class="navbar__status">טוען...</span>
       {:else if auth.isAuthenticated}
-        <Button.Root class="hb-button hb-button--secondary hb-button--sm" type="button" onclick={() => window.location.assign("/u/dashboard")}>אזור אישי</Button.Root>
+        <Button.Root class="hb-button hb-button--secondary hb-button--sm" type="button" onclick={goToDashboard}>אזור אישי</Button.Root>
         <Button.Root class="hb-button hb-button--paper hb-button--sm" type="button" onclick={signOut}>יציאה</Button.Root>
       {:else}
         <Button.Root class="hb-button hb-button--ink hb-button--sm" type="button" onclick={openAuth}>כניסה</Button.Root>

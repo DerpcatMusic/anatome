@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { page } from "$app/state";
   import { Tooltip } from "bits-ui";
   import { api } from "$convex/_generated/api";
@@ -39,7 +38,7 @@
   const profile = $derived(ctx.viewer);
 
   let subscriptionReady = $state(false);
-  onMount(() => {
+  $effect(() => {
     const stopRailQuery = sidebar.initRailQuery();
     const enable = () => {
       subscriptionReady = true;
@@ -90,12 +89,16 @@
   );
 
   const baseNav = $derived(baseAppNavItems(prefix));
+  function buildLiveNavConfig(enterRoom: string, preConnectTitle: string) {
+    return { enterRoom, preConnectTitle };
+  }
+
   const liveNavItem = $derived.by((): NavItem | null => {
     if (!nextLive) return null;
-    return buildLiveNavItem(nextLive, isInstructorPrefix, {
-      enterRoom: t.live.preConnect.enterRoom(),
-      preConnectTitle: t.live.preConnect.title(),
-    });
+    return buildLiveNavItem(nextLive, isInstructorPrefix, buildLiveNavConfig(
+      t.live.preConnect.enterRoom(),
+      t.live.preConnect.title(),
+    ));
   });
 
   const navItems = $derived(mergeAppNavItems(baseNav, liveNavItem));
@@ -104,6 +107,13 @@
 
   function isCurrent(href: string) {
     return isAppNavCurrent(currentPath, href);
+  }
+
+  function toggleSidebar() {
+    sidebar.toggle();
+  }
+  function toggleTheme() {
+    theme.toggle();
   }
 
   const themeLabel = $derived(theme.isDark ? "מעבר למצב בהיר" : "מעבר למצב כהה");
@@ -130,7 +140,7 @@
       <button
         type="button"
         class="sidebar__ghost-btn sidebar__ghost-btn--collapse"
-        onclick={() => sidebar.toggle()}
+        onclick={toggleSidebar}
         aria-expanded={!sidebar.isCollapsed}
         aria-label={collapseLabel}
         title={collapseHint}
@@ -210,7 +220,7 @@
                   {...props}
                   type="button"
                   class="sidebar__ghost-btn sidebar__ghost-btn--theme"
-                  onclick={() => theme.toggle()}
+                  onclick={toggleTheme}
                   aria-label={themeLabel}
                 >
                   <span class="material-symbols-rounded" aria-hidden="true">
@@ -249,7 +259,7 @@
           <button
             type="button"
             class="sidebar__ghost-btn sidebar__ghost-btn--theme"
-            onclick={() => theme.toggle()}
+            onclick={toggleTheme}
             title={themeLabel}
             aria-label={themeLabel}
           >

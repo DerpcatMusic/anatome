@@ -29,12 +29,16 @@
   );
   const nextLive = $derived(nextLiveQuery.data ?? null);
 
+  function buildLiveNavConfig(enterRoom: string, preConnectTitle: string) {
+    return { enterRoom, preConnectTitle };
+  }
+
   const liveNavItem = $derived.by((): AppNavItem | null => {
     if (!nextLive) return null;
-    return buildLiveNavItem(nextLive, isInstructorPrefix, {
-      enterRoom: t.live.preConnect.enterRoom(),
-      preConnectTitle: t.live.preConnect.title(),
-    });
+    return buildLiveNavItem(nextLive, isInstructorPrefix, buildLiveNavConfig(
+      t.live.preConnect.enterRoom(),
+      t.live.preConnect.title(),
+    ));
   });
 
   const tabItems = $derived(

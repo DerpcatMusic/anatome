@@ -53,10 +53,10 @@
     reservationStatus: "reserved" | "joined";
   };
 
-  const rosterAttendees = $derived.by((): RosterAttendee[] => {
-    if (instructorPanel === null) return [];
+  function buildRosterAttendees(panel: typeof instructorPanel): RosterAttendee[] {
+    if (panel === null) return [];
     const byUser = new Map<string, RosterAttendee>();
-    for (const member of instructorPanel.reserved) {
+    for (const member of panel.reserved) {
       byUser.set(member.userId as string, {
         userId: member.userId as string,
         displayName: member.displayName,
@@ -64,7 +64,7 @@
         reservationStatus: "reserved",
       });
     }
-    for (const member of instructorPanel.joined) {
+    for (const member of panel.joined) {
       byUser.set(member.userId as string, {
         userId: member.userId as string,
         displayName: member.displayName,
@@ -78,54 +78,84 @@
       if (joinedDelta !== 0) return joinedDelta;
       return a.displayName.localeCompare(b.displayName, "he");
     });
-  });
+  }
 
-  const liveKitByUserId = $derived.by(() => {
+  const rosterAttendees = $derived(buildRosterAttendees(instructorPanel));
+
+  function buildLiveKitByUserId(parts: typeof participants) {
     const map = new Map<string, (typeof participants)[number]>();
-    for (const participant of participants) {
+    for (const participant of parts) {
       const userId = userIdFromLiveKitIdentity(participant.identity);
       if (userId !== null) map.set(userId, participant);
     }
     return map;
-  });
+  }
 
-  const hostParticipant = $derived.by(() => {
-    if (hostUserId === null) {
+  const liveKitByUserId = $derived(buildLiveKitByUserId(participants));
+
+  function findHostParticipant(
+    parts: typeof participants,
+    huid: string | null,
+    bhuid: string | null,
+    uidMap: Map<string, (typeof participants)[number]>,
+  ) {
+    if (huid === null) {
       return (
-        participants.find((participant) =>
-          isClassHostParticipant(participant.identity, null, broadcastHostUserId),
+        parts.find((participant) =>
+          isClassHostParticipant(participant.identity, null, bhuid),
         ) ?? null
       );
     }
-    return liveKitByUserId.get(hostUserId) ?? null;
-  });
+    return uidMap.get(huid) ?? null;
+  }
 
-  const sortedParticipants = $derived(
-    [...participants].sort(
-      (a, b) =>
-        Number(isClassHostParticipant(b.identity, hostUserId, broadcastHostUserId)) -
-          Number(isClassHostParticipant(a.identity, hostUserId, broadcastHostUserId)) ||
-        (a.name || a.identity).localeCompare(b.name || b.identity),
-    ),
+  const hostParticipant = $derived(
+    findHostParticipant(participants, hostUserId, broadcastHostUserId, liveKitByUserId),
   );
+
+  function sortParticipants(
+    parts: typeof participants,
+    huid: string | null,
+    bhuid: string | null,
+  ) {
+    return [...parts].sort(
+      (a, b) =>
+        Number(isClassHostParticipant(b.identity, huid, bhuid)) -
+          Number(isClassHostParticipant(a.identity, huid, bhuid)) ||
+        (a.name || a.identity).localeCompare(b.name || b.identity),
+    );
+  }
+
+  const sortedParticipants = $derived(sortParticipants(participants, hostUserId, broadcastHostUserId));
 
   const useInstructorRosterList = $derived(showClassRoster && instructorPanel !== null);
   const useMemberRosterList = $derived(!showClassRoster && memberPanel !== null);
 
-  const memberAttendees = $derived(memberPanel?.attendees ?? []);
+  function getMemberAttendees<T>(panel: { attendees?: T[] } | null): T[] {
+    return panel?.attendees ?? [];
+  }
 
-  const extraLiveKitParticipants = $derived(
-    sortedParticipants.filter((participant) => {
+  const memberAttendees = $derived(getMemberAttendees(memberPanel));
+
+  function filterExtraParticipants(
+    parts: ReturnType<typeof sortParticipants>,
+    huid: string | null,
+    bhuid: string | null,
+    attendees: typeof memberAttendees,
+  ) {
+    return parts.filter((participant) => {
       if (participant.isLocal) return true;
-      if (
-        isClassHostParticipant(participant.identity, hostUserId, broadcastHostUserId)
-      ) {
+      if (isClassHostParticipant(participant.identity, huid, bhuid)) {
         return false;
       }
       const userId = userIdFromLiveKitIdentity(participant.identity);
       if (userId === null) return true;
-      return !memberAttendees.some((attendee) => attendee.userId === userId);
-    }),
+      return !attendees.some((attendee) => attendee.userId === userId);
+    });
+  }
+
+  const extraLiveKitParticipants = $derived(
+    filterExtraParticipants(sortedParticipants, hostUserId, broadcastHostUserId, memberAttendees),
   );
 </script>
 

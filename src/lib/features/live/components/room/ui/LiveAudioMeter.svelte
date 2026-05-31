@@ -7,6 +7,12 @@
 <div class="hb-meter">
   <span class="hb-meter__label">{label}</span>
   <Meter.Root class="hb-meter__track" value={Math.round(scale * 100)} max={100} aria-label={label}>
-    <div class="hb-meter__fill" style="transform: scaleX({scale})"></div>
+    <div class="hb-meter__fill" style:--meter-scale={scale}></div>
   </Meter.Root>
 </div>
+
+<style>
+  .hb-meter__fill {
+    transform: scaleX(var(--meter-scale, 0));
+  }
+</style>

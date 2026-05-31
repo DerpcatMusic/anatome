@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { paginationOptsValidator } from "convex/server";
-import { internal } from "../_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAppProfile, requireRole, requireUserId } from "../lib/authz";
@@ -18,15 +17,23 @@ import { hasLiveClassConflict } from "../lib/oneOnOne";
 import { releaseLiveReservationHoldIfStillReserved } from "../credits/lib";
 import { scheduleLiveClassLifecycle } from "./schedule";
 import { settleReservationsForClass } from "./settle";
-import { scheduleReminderEvent } from "../liveReminders/schedule";
 import { assertInLiveJoinWindow } from "../lib/liveJoin";
 import { joinAccessSnapshotValidator } from "./joinContract";
 import { resolveJoinAccess } from "./joinAccess";
 import { loadClassRosterSummary } from "./roster";
 import { viewerCanSeeLiveClass } from "../lib/liveClassAccess";
+import {
+  liveClassTypeValidator,
+  subscriberReceivePresetValidator,
+} from "../lib/domainValidators";
+import {
+  cancelPendingReminderEventsForClass,
+  endLiveRoomForClass,
+  requireLiveClassManager,
+  reschedulePendingReminderEventsForClass,
+} from "./management";
 
-const classType = v.union(v.literal("group_live"), v.literal("one_on_one"));
-const creditKind = v.union(v.literal("live"), v.literal("oneOnOne"));
+const classType = liveClassTypeValidator;
 
 function validateClassCreditModel(
   type: "group_live" | "one_on_one",
@@ -101,28 +108,14 @@ export const getJoinAccess = query({
   },
 });
 
-const subscriberReceivePreset = v.union(
-  v.literal("low"),
-  v.literal("medium"),
-  v.literal("high"),
-);
-
 export const setSubscriberReceivePreset = mutation({
   args: {
     liveClassId: v.id("liveClasses"),
-    preset: subscriberReceivePreset,
+    preset: subscriberReceivePresetValidator,
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
-    requireRole(profile, ["instructor", "admin"]);
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
-    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    const { liveClass } = await requireLiveClassManager(ctx, args.liveClassId);
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
       throw new Error("לא ניתן לעדכן איכות צפייה לשיעור בסטטוס זה");
     }
@@ -213,17 +206,9 @@ export const start = mutation({
     liveClassId: v.id("liveClasses"),
   },
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
-    requireRole(profile, ["instructor", "admin"]);
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("השיעור לא נמצא");
+    const { userId, liveClass } = await requireLiveClassManager(ctx, args.liveClassId);
     if (liveClass.type !== "group_live" && liveClass.type !== "one_on_one") {
       throw new Error("רק שיעורים חיים משתמשים ב-LiveKit");
-    }
-    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("אין הרשאה");
     }
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
       throw new Error("לא ניתן להתחיל את השיעור");
@@ -253,15 +238,7 @@ export const end = mutation({
     liveClassId: v.id("liveClasses"),
   },
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
-    requireRole(profile, ["instructor", "admin"]);
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
-    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    await requireLiveClassManager(ctx, args.liveClassId);
 
     const now = Date.now();
     await ctx.db.patch(args.liveClassId, {
@@ -269,25 +246,7 @@ export const end = mutation({
       updatedAt: now,
     });
 
-    const rooms = await ctx.db
-      .query("liveRooms")
-      .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .take(1);
-    const room = rooms[0] ?? null;
-
-    if (room !== null) {
-      await ctx.db.patch(room._id, {
-        status: "ended",
-        endedAt: now,
-        updatedAt: now,
-      });
-    }
-
-    if (room !== null) {
-      await ctx.scheduler.runAfter(0, internal.livekit.rooms.deleteRoomByName, {
-        roomName: room.roomName,
-      });
-    }
+    await endLiveRoomForClass(ctx, args.liveClassId, now);
 
     await settleReservationsForClass(ctx, args.liveClassId);
 
@@ -307,15 +266,7 @@ export const reschedule = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
-    requireRole(profile, ["instructor", "admin"]);
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
-    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    const { liveClass } = await requireLiveClassManager(ctx, args.liveClassId);
     if (liveClass.status !== "scheduled") {
       throw new Error("ניתן לתזמן מחדש רק שיעורים מתוזמנים");
     }
@@ -383,34 +334,7 @@ export const reschedule = mutation({
     );
     await ctx.db.patch(args.liveClassId, scheduled);
 
-    const reminders = await ctx.db
-      .query("liveReminderEvents")
-      .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .take(LIMITS.LIVE_PARTICIPANTS * 2);
-
-    for (const reminder of reminders) {
-      if (reminder.status !== "pending") continue;
-
-      let newSendAt = args.startsAt;
-      if (reminder.kind === "day_before") {
-        newSendAt = args.startsAt - MS.DAY;
-      } else if (reminder.kind === "thirty_minutes") {
-        newSendAt = args.startsAt - MS.THIRTY_MINUTES;
-      }
-
-      if (newSendAt <= now) {
-        await ctx.db.patch(reminder._id, {
-          status: "skipped",
-          processedAt: now,
-        });
-      } else {
-        const scheduledFunctionId = await scheduleReminderEvent(ctx, reminder._id, newSendAt);
-        await ctx.db.patch(reminder._id, {
-          sendAt: newSendAt,
-          scheduledFunctionId,
-        });
-      }
-    }
+    await reschedulePendingReminderEventsForClass(ctx, args.liveClassId, args.startsAt, now);
 
     return args.liveClassId;
   },
@@ -421,15 +345,7 @@ export const cancel = mutation({
     liveClassId: v.id("liveClasses"),
   },
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx);
-    const profile = await requireAppProfile(ctx, userId);
-    requireRole(profile, ["instructor", "admin"]);
-
-    const liveClass = await ctx.db.get(args.liveClassId);
-    if (liveClass === null) throw new Error("Class not found");
-    if (profile.role !== "admin" && liveClass.instructorUserId !== userId) {
-      throw new Error("Unauthorized");
-    }
+    const { liveClass } = await requireLiveClassManager(ctx, args.liveClassId);
     if (liveClass.status !== "scheduled" && liveClass.status !== "live") {
       throw new Error("לא ניתן לבטל שיעור בסטטוס זה");
     }
@@ -443,21 +359,7 @@ export const cancel = mutation({
     });
 
     if (wasLive) {
-      const rooms = await ctx.db
-        .query("liveRooms")
-        .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-        .take(1);
-      const room = rooms[0] ?? null;
-      if (room !== null) {
-        await ctx.db.patch(room._id, {
-          status: "ended",
-          endedAt: now,
-          updatedAt: now,
-        });
-        await ctx.scheduler.runAfter(0, internal.livekit.rooms.deleteRoomByName, {
-          roomName: room.roomName,
-        });
-      }
+      await endLiveRoomForClass(ctx, args.liveClassId, now);
     }
 
     const activeStatuses = ["reserved", "joined"] as const;
@@ -485,19 +387,7 @@ export const cancel = mutation({
       updatedAt: now,
     });
 
-    const reminders = await ctx.db
-      .query("liveReminderEvents")
-      .withIndex("by_liveClassId", (q) => q.eq("liveClassId", args.liveClassId))
-      .take(LIMITS.LIVE_PARTICIPANTS * 2);
-
-    for (const reminder of reminders) {
-      if (reminder.status === "pending") {
-        await ctx.db.patch(reminder._id, {
-          status: "cancelled",
-          processedAt: now,
-        });
-      }
-    }
+    await cancelPendingReminderEventsForClass(ctx, args.liveClassId, now);
 
     return args.liveClassId;
   },

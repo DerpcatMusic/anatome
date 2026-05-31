@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from "svelte";
+  import { tick } from "svelte";
   import {
     loadEventCalendar,
     type EventCalendarModule,
@@ -49,10 +49,10 @@
   };
 
   let eventCalendar = $state<EventCalendarModule | null>(null);
-  let calendarRef = $state<CalendarHandle | undefined>();
+  let calendarRef: CalendarHandle | undefined = undefined;
   let calendarMounted = $state(false);
 
-  onMount(() => {
+  $effect(() => {
     void loadEventCalendar().then((mod) => {
       eventCalendar = mod;
     });
@@ -137,100 +137,107 @@
 
   const calendarEvents = $derived(buildEvents());
 
-  function handleDatesSet(info: { start: Date; end: Date }) {
-    onRangeChange(info.start.getTime(), info.end.getTime());
+  function resolvePlugins(eventCalendar: EventCalendarModule | null, view: CalendarView): unknown[] {
+    if (!eventCalendar) return [];
+    return view === "month" ? [eventCalendar.DayGrid] : [eventCalendar.TimeGrid];
   }
 
-  const plugins = $derived(
-    !eventCalendar
-      ? []
-      : view === "month"
-        ? [eventCalendar.DayGrid]
-        : [eventCalendar.TimeGrid],
-  );
+  function buildCalendarOptions(
+    view: CalendarView,
+    weekScrollTime: string | undefined,
+    onClassClick: ((item: CalendarClass) => void) | undefined,
+    onDayClick: ((dayStart: number) => void) | undefined,
+    onRangeChange: ((from: number, to: number) => void) | undefined,
+  ) {
+    return {
+      view: view === "month" ? "dayGridMonth" : "timeGridWeek",
+      locale: "he",
+      direction: "rtl" as const,
+      firstDay: 0,
+      height: "auto",
+      contentHeight: view === "month" ? 520 : 640,
 
-  const calendarOptions = $derived({
-    view: view === "month" ? "dayGridMonth" : "timeGridWeek",
-    locale: "he",
-    direction: "rtl" as const,
-    firstDay: 0,
-    height: "auto",
-    contentHeight: view === "month" ? 520 : 640,
+      slotDuration: "00:30:00",
+      slotLabelInterval: "01:00:00",
+      slotHeight: 36,
+      slotMinTime: "06:00:00",
+      slotMaxTime: "23:00:00",
+      ...(weekScrollTime !== undefined ? { scrollTime: weekScrollTime } : {}),
 
-    slotDuration: "00:30:00",
-    slotLabelInterval: "01:00:00",
-    slotHeight: 36,
-    slotMinTime: "06:00:00",
-    slotMaxTime: "23:00:00",
-    ...(weekScrollTime !== undefined ? { scrollTime: weekScrollTime } : {}),
+      selectable: false,
+      editable: false,
+      nowIndicator: true,
 
-    selectable: false,
-    editable: false,
-    nowIndicator: true,
+      headerToolbar: {
+        start: "",
+        center: "title",
+        end: "today prev,next",
+      },
+      buttonText: {
+        today: "היום",
+      },
 
-    headerToolbar: {
-      start: "",
-      center: "title",
-      end: "today prev,next",
-    },
-    buttonText: {
-      today: "היום",
-    },
+      events: [] as CalendarEventInput[],
 
-    events: [] as CalendarEventInput[],
+      datesSet: function (info: { start: Date; end: Date }) {
+        onRangeChange?.(info.start.getTime(), info.end.getTime());
+      },
 
-    datesSet: handleDatesSet,
-
-    eventClick: function (info: {
-      event: {
-        extendedProps?: {
-          kind?: string;
-          item?: CalendarClass;
-          dayStart?: number;
+      eventClick: function (info: {
+        event: {
+          extendedProps?: {
+            kind?: string;
+            item?: CalendarClass;
+            dayStart?: number;
+          };
         };
-      };
-    }) {
-      const kind = info.event.extendedProps?.kind;
-      if (kind === "class" && info.event.extendedProps?.item) {
-        onClassClick?.(info.event.extendedProps.item);
-      } else if (kind === "window" && info.event.extendedProps?.dayStart !== undefined) {
-        onDayClick?.(info.event.extendedProps.dayStart);
-      }
-    },
+      }) {
+        const kind = info.event.extendedProps?.kind;
+        if (kind === "class" && info.event.extendedProps?.item) {
+          onClassClick?.(info.event.extendedProps.item);
+        } else if (kind === "window" && info.event.extendedProps?.dayStart !== undefined) {
+          onDayClick?.(info.event.extendedProps.dayStart);
+        }
+      },
 
-    eventContent: function (info: {
-      event: {
-        title: string;
-        extendedProps?: { kind?: string; item?: CalendarClass };
-        start: Date;
-        end: Date;
-      };
-    }) {
-      const item = info.event.extendedProps?.item;
-      if (item) {
-        const formattedTime = `${formatAppTime(item.liveClass.startsAt)} – ${formatAppTime(item.liveClass.endsAt)}`;
-        return {
-          html: `
-            <div class="calendar-class-event-body status-${item.liveClass.status}" title="${escapeHtml(item.liveClass.title)} · ${formattedTime}">
-              <div class="event-title">${escapeHtml(item.liveClass.title)}</div>
-            </div>
-          `,
+      eventContent: function (info: {
+        event: {
+          title: string;
+          extendedProps?: { kind?: string; item?: CalendarClass };
+          start: Date;
+          end: Date;
         };
-      }
+      }) {
+        const item = info.event.extendedProps?.item;
+        if (item) {
+          const formattedTime = `${formatAppTime(item.liveClass.startsAt)} – ${formatAppTime(item.liveClass.endsAt)}`;
+          return {
+            html: `
+              <div class="calendar-class-event-body status-${item.liveClass.status}" title="${escapeHtml(item.liveClass.title)} · ${formattedTime}">
+                <div class="event-title">${escapeHtml(item.liveClass.title)}</div>
+              </div>
+            `,
+          };
+        }
 
-      if (info.event.extendedProps?.kind === "window") {
-        return {
-          html: `
-            <div class="calendar-class-event-body ec-event-type--one_on_one ec-event-type--availability-window" title="${escapeHtml(info.event.title)}">
-              <div class="event-title cal-time">${escapeHtml(info.event.title)}</div>
-            </div>
-          `,
-        };
-      }
+        if (info.event.extendedProps?.kind === "window") {
+          return {
+            html: `
+              <div class="calendar-class-event-body ec-event-type--one_on_one ec-event-type--availability-window" title="${escapeHtml(info.event.title)}">
+                <div class="event-title cal-time">${escapeHtml(info.event.title)}</div>
+              </div>
+            `,
+          };
+        }
 
-      return { html: `<div class="event-title">${escapeHtml(info.event.title)}</div>` };
-    },
-  });
+        return { html: `<div class="event-title">${escapeHtml(info.event.title)}</div>` };
+      },
+    };
+  }
+
+  const plugins = $derived(resolvePlugins(eventCalendar, view));
+
+  const calendarOptions = $derived(buildCalendarOptions(view, weekScrollTime, onClassClick, onDayClick, onRangeChange));
 
   $effect(() => {
     const cal = calendarRef;
@@ -259,16 +266,20 @@
   });
 </script>
 
+{#snippet calendarView()}
+  {#key view}
+    {@const EcCalendar = eventCalendar!.Calendar}
+    <EcCalendar bind:this={calendarRef} {plugins} options={calendarOptions} />
+  {/key}
+{/snippet}
+
 <div
   class="customer-booking-calendar"
   class:ec-dark={theme.isDark}
   data-view={view}
 >
   {#if calendarMounted && eventCalendar}
-    {#key view}
-      {@const EcCalendar = eventCalendar.Calendar}
-      <EcCalendar bind:this={calendarRef} {plugins} options={calendarOptions} />
-    {/key}
+    {@render calendarView()}
   {/if}
 </div>
 
@@ -283,10 +294,10 @@
     border-radius: 4px;
   }
 
-  :global(.customer-booking-calendar .ec-event-type--availability-window) {
-    border-style: dashed !important;
+  :global(.customer-booking-calendar .ec-event-type--availability-window.ec-event-type--availability-window) {
+    border-style: dashed;
     opacity: 0.88;
-    background: var(--accent-soft) !important;
+    background: var(--accent-soft);
   }
 
   :global(.customer-booking-calendar .ec-event--reserved) {

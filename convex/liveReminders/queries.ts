@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { internalQuery } from "../_generated/server";
 import { shouldSkipLiveReminderDelivery } from "../lib/liveReminderDelivery";
+import type { Doc } from "../_generated/dataModel";
+import { getAppProfile } from "../lib/authz";
 
 export const reminderContext = internalQuery({
   args: { reminderId: v.id("liveReminderEvents") },
@@ -31,18 +33,20 @@ export const reminderContext = internalQuery({
     const reminder = await ctx.db.get(args.reminderId);
     if (reminder === null) return null;
 
-    const [reservation, liveClass, user] = await Promise.all([
-      ctx.db.get(reminder.reservationId),
-      ctx.db.get(reminder.liveClassId),
-      ctx.db.get(reminder.userId),
-    ]);
+    const reservation: Doc<"liveReservations"> | null = await ctx.db.get(reminder.reservationId);
+    const liveClass: Doc<"liveClasses"> | null = await ctx.db.get(reminder.liveClassId);
+    const user: Doc<"users"> | null = await ctx.db.get(reminder.userId);
 
     const skipped = shouldSkipLiveReminderDelivery(reservation, liveClass);
 
-    const prefsRow = await ctx.db
+    const prefsRows = await ctx.db
       .query("notificationPreferences")
       .withIndex("by_userId", (q) => q.eq("userId", reminder.userId))
-      .unique();
+      .take(2);
+    if (prefsRows.length > 1) {
+      throw new Error("Duplicate notification preferences require repair");
+    }
+    const prefsRow = prefsRows[0] ?? null;
 
     const preferences = {
       liveRemindersPush: prefsRow?.liveRemindersPush ?? true,
@@ -54,10 +58,7 @@ export const reminderContext = internalQuery({
       .withIndex("by_userId", (q) => q.eq("userId", reminder.userId))
       .take(1);
 
-    const profile = await ctx.db
-      .query("appProfiles")
-      .withIndex("by_userId", (q) => q.eq("userId", reminder.userId))
-      .unique();
+    const profile = await getAppProfile(ctx, reminder.userId);
 
     const email =
       profile?.email ??

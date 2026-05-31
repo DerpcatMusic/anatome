@@ -60,15 +60,15 @@
                       <DatePicker.Grid class="hb-calendar__grid">
                         <DatePicker.GridHead>
                           <DatePicker.GridRow class="hb-calendar__row">
-                            {#each ["א", "ב", "ג", "ד", "ה", "ו", "ש"] as day}
+                            {#each ["א", "ב", "ג", "ד", "ה", "ו", "ש"] as day (day)}
                               <DatePicker.HeadCell class="hb-calendar__head-cell">{day}</DatePicker.HeadCell>
                             {/each}
                           </DatePicker.GridRow>
                         </DatePicker.GridHead>
                         <DatePicker.GridBody>
-                          {#each months[0].weeks as week}
+                          {#each months[0].weeks as week (week[0]?.toString())}
                             <DatePicker.GridRow class="hb-calendar__row">
-                              {#each week as date}
+                              {#each week as date (date.toString())}
                                 <DatePicker.Cell {date} month={months[0].value}>
                                   <DatePicker.Day class="hb-calendar__day" />
                                 </DatePicker.Cell>

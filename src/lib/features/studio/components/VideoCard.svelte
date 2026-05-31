@@ -25,6 +25,14 @@
     if (status === "failed") return "נכשל";
     return "בארכיון";
   }
+
+  function handleEdit() {
+    onEdit(video);
+  }
+
+  function handleArchive() {
+    onArchive(video._id);
+  }
 </script>
 
 <article
@@ -71,12 +79,12 @@
                 <a class="preview-link" href={watchHref}>תצוגה מקדימה</a>
               </DropdownMenu.Item>
             {/if}
-            <DropdownMenu.Item class="hb-dropdown-item" onclick={() => onEdit(video)}>
+            <DropdownMenu.Item class="hb-dropdown-item" onclick={handleEdit}>
               עריכת פרטים
             </DropdownMenu.Item>
             <DropdownMenu.Item
               class="hb-dropdown-item hb-dropdown-item--danger"
-              onclick={() => onArchive(video._id)}
+              onclick={handleArchive}
               disabled={isPending || video.status === "processing"}
             >
               העברה לארכיון
@@ -109,7 +117,7 @@
       >
         {videoAccessLabel(video.accessKind)}
       </span>
-      {#each video.requiredEquipment.slice(0, 3) as eq}
+      {#each video.requiredEquipment.slice(0, 3) as eq (eq)}
         <span class="meta-tag equipment">{equipmentLabel(eq)}</span>
       {/each}
       {#if video.requiredEquipment.length > 3}

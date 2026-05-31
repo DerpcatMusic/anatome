@@ -7,18 +7,19 @@ import { internal } from "../_generated/api";
 import { getMuxClient, getCorsOrigin } from "./provider/mux";
 import { equipmentListValidator } from "../lib/validators";
 import type { Id } from "../_generated/dataModel";
-
-const accessKindValidator = v.union(v.literal("macroflow"), v.literal("microflow"));
-const muxVideoQualityValidator = v.union(v.literal("basic"), v.literal("plus"), v.literal("premium"));
-const muxMaxResolutionTierValidator = v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p"));
-const staticRenditionValidator = v.union(v.literal("none"), v.literal("audio-only"), v.literal("720p"), v.literal("1080p"));
+import {
+  muxMaxResolutionTierValidator,
+  muxVideoQualityValidator,
+  staticRenditionValidator,
+  videoAccessKindValidator,
+} from "../lib/domainValidators";
 
 export const requestUpload = action({
   args: {
     title: v.string(),
     description: v.string(),
     requiredEquipment: equipmentListValidator,
-    accessKind: accessKindValidator,
+    accessKind: videoAccessKindValidator,
     categoryIds: v.array(v.id("videoCategories")),
     muxVideoQuality: muxVideoQualityValidator,
     muxMaxResolutionTier: muxMaxResolutionTierValidator,

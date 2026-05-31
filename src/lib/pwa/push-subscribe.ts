@@ -1,6 +1,6 @@
 import { api } from "$convex/_generated/api";
 import type { ConvexClient } from "convex/browser";
-import { PUBLIC_VAPID_PUBLIC_KEY } from "$env/static/public";
+import { PUBLIC_VAPID_PUBLIC_KEY } from "$lib/pwa/vapid-config";
 import { canPromptForPushOnThisPlatform } from "./platform";
 
 function urlBase64ToUint8Array(base64String: string): BufferSource {

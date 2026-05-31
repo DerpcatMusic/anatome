@@ -167,6 +167,13 @@
       pending = null;
     }
   }
+
+  function handleCardcomClose() {
+    cardcomOpen = false;
+    cardcomUrl = null;
+    cardcomOrderId = null;
+    cardcomAmountIls = undefined;
+  }
 </script>
 
 <Dialog.Root bind:open={pickerOpen}>
@@ -218,12 +225,7 @@
   planSlug={cardcomPlanSlug}
   kind="subscription"
   amountIls={cardcomAmountIls}
-  onClose={() => {
-    cardcomOpen = false;
-    cardcomUrl = null;
-    cardcomOrderId = null;
-    cardcomAmountIls = undefined;
-  }}
+  onClose={handleCardcomClose}
 />
 
 {#if error || success}

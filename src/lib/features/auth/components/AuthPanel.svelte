@@ -129,6 +129,11 @@
     code = "";
     status = "";
   }
+
+  function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    if (step === "verify" && method === "code") verifyCode();
+  }
 </script>
 
 {#if auth.isLoading}
@@ -138,7 +143,7 @@
 {:else if auth.isAuthenticated}
   <LoggedInState {signOut} {closeModal} />
 {:else}
-  <form class="auth-form" onsubmit={(e) => { e.preventDefault(); if (step === "verify" && method === "code") verifyCode(); }}>
+  <form class="auth-form" onsubmit={handleSubmit}>
     <div class="auth-form__header">
       <p class="kicker">{t.auth.title()}</p>
 

@@ -8,6 +8,34 @@ import {
   healthDeclarationAnswersValidator,
   pathologiesListValidator,
 } from "./lib/validators";
+import {
+  liveClassStatusValidator,
+  liveClassTypeValidator,
+  liveCreditKindValidator,
+  liveJoinResultValidator,
+  liveLobbyPhaseValidator,
+  liveReservationStatusValidator,
+  liveRoomStatusValidator,
+  muxMaxResolutionTierValidator,
+  muxVideoQualityValidator,
+  profileRoleValidator,
+  staticRenditionValidator,
+  subscriberReceivePresetValidator,
+  videoAccessKindValidator,
+  videoProviderValidator,
+  videoStatusValidator,
+} from "./lib/domainValidators";
+import {
+  buyerContactFields,
+  cardcomOrderFields,
+  creditGrantSnapshotValidator,
+  creditOrderLineValidator,
+  creditPoolValidator,
+  currencyIlsValidator,
+  orderStatusValidator,
+  subscriptionBuyerExtraFields,
+  subscriptionOrderKindValidator,
+} from "./lib/orderValidators";
 
 export default defineSchema({
   ...authTables,
@@ -28,7 +56,7 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_isActive_and_slug", ["isActive", "slug"]),
 
-  /** Persistent spendable balances (V-Bucks style). */
+  /** Singleton per user: application code must guard against duplicate inserts. */
   userWallets: defineTable({
     userId: v.id("users"),
     vodBalance: v.number(),
@@ -60,49 +88,17 @@ export default defineSchema({
   subscriptionOrders: defineTable({
     userId: v.id("users"),
     planId: v.id("plans"),
-    kind: v.union(
-      v.literal("subscribe"),
-      v.literal("renew"),
-      v.literal("upgrade"),
-    ),
+    kind: subscriptionOrderKindValidator,
     amountIls: v.number(),
-    currency: v.literal("ILS"),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("redirected"),
-      v.literal("paid"),
-      v.literal("failed_payment"),
-      v.literal("pending_charge"),
-      v.literal("refunded"),
-      v.literal("fulfilled"),
-    ),
+    currency: currencyIlsValidator,
+    status: orderStatusValidator,
     idempotencyKey: v.string(),
-    creditGrantSnapshot: v.object({
-      vod: v.number(),
-      live: v.number(),
-      oneOnOne: v.number(),
-    }),
+    creditGrantSnapshot: creditGrantSnapshotValidator,
     productDescription: v.string(),
-    buyerName: v.optional(v.string()),
-    buyerEmail: v.optional(v.string()),
-    buyerPhone: v.optional(v.string()),
-    buyerIdentityNumber: v.optional(v.string()),
+    ...buyerContactFields,
+    ...subscriptionBuyerExtraFields,
     subscriptionId: v.optional(v.id("userSubscriptions")),
-    redirectUrl: v.optional(v.string()),
-    cardcomLowProfileId: v.optional(v.string()),
-    cardcomOperation: v.optional(v.string()),
-    cardcomTranzactionId: v.optional(v.number()),
-    cardcomToken: v.optional(v.string()),
-    cardcomTokenCardYear: v.optional(v.number()),
-    cardcomTokenCardMonth: v.optional(v.number()),
-    cardcomTokenApprovalNumber: v.optional(v.string()),
-    cardcomTokenCardOwnerIdentityNumber: v.optional(v.string()),
-    cardcomResponseCode: v.optional(v.string()),
-    cardcomDescription: v.optional(v.string()),
-    cardcomDocumentType: v.optional(v.string()),
-    cardcomDocumentNumber: v.optional(v.number()),
-    fulfilledAt: v.optional(v.number()),
-    failedAt: v.optional(v.number()),
+    ...cardcomOrderFields,
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -114,56 +110,21 @@ export default defineSchema({
   /** CardCom checkout for à-la-carte credit packs. */
   creditOrders: defineTable({
     userId: v.id("users"),
-    pool: v.union(v.literal("vod"), v.literal("live"), v.literal("oneOnOne")),
+    pool: creditPoolValidator,
     quantity: v.number(),
     /** Multi-pool carts — source of truth when present. */
-    lines: v.optional(
-      v.array(
-        v.object({
-          pool: v.union(v.literal("vod"), v.literal("live"), v.literal("oneOnOne")),
-          quantity: v.number(),
-          unitListIls: v.number(),
-          unitEffectiveIls: v.number(),
-          discountPercent: v.number(),
-          discountIls: v.number(),
-          lineTotalIls: v.number(),
-        }),
-      ),
-    ),
+    lines: v.optional(v.array(creditOrderLineValidator)),
     unitListIls: v.number(),
     unitEffectiveIls: v.number(),
     discountPercent: v.number(),
     discountIls: v.number(),
     amountIls: v.number(),
-    currency: v.literal("ILS"),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("redirected"),
-      v.literal("paid"),
-      v.literal("failed_payment"),
-      v.literal("pending_charge"),
-      v.literal("refunded"),
-      v.literal("fulfilled"),
-    ),
+    currency: currencyIlsValidator,
+    status: orderStatusValidator,
     idempotencyKey: v.string(),
     productDescription: v.string(),
-    buyerName: v.optional(v.string()),
-    buyerEmail: v.optional(v.string()),
-    redirectUrl: v.optional(v.string()),
-    cardcomLowProfileId: v.optional(v.string()),
-    cardcomOperation: v.optional(v.string()),
-    cardcomTranzactionId: v.optional(v.number()),
-    cardcomToken: v.optional(v.string()),
-    cardcomTokenCardYear: v.optional(v.number()),
-    cardcomTokenCardMonth: v.optional(v.number()),
-    cardcomTokenApprovalNumber: v.optional(v.string()),
-    cardcomTokenCardOwnerIdentityNumber: v.optional(v.string()),
-    cardcomResponseCode: v.optional(v.string()),
-    cardcomDescription: v.optional(v.string()),
-    cardcomDocumentType: v.optional(v.string()),
-    cardcomDocumentNumber: v.optional(v.number()),
-    fulfilledAt: v.optional(v.number()),
-    failedAt: v.optional(v.number()),
+    ...buyerContactFields,
+    ...cardcomOrderFields,
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -209,7 +170,7 @@ export default defineSchema({
     userId: v.id("users"),
     email: v.string(),
     displayName: v.string(),
-    role: v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin")),
+    role: profileRoleValidator,
     instructorEnabledAt: v.optional(v.number()),
     instructorDisabledAt: v.optional(v.number()),
     credentials: v.optional(v.string()),
@@ -238,7 +199,7 @@ export default defineSchema({
   liveClasses: defineTable({
     title: v.string(),
     description: v.string(),
-    type: v.union(v.literal("group_live"), v.literal("one_on_one")),
+    type: liveClassTypeValidator,
     instructorUserId: v.id("users"),
     startsAt: v.number(),
     endsAt: v.number(),
@@ -246,24 +207,16 @@ export default defineSchema({
     joinClosesAt: v.number(),
     capacity: v.number(),
     requiredEquipment: equipmentListValidator,
-    creditKind: v.union(v.literal("live"), v.literal("oneOnOne")),
+    creditKind: liveCreditKindValidator,
     creditCost: v.number(),
-    status: v.union(
-      v.literal("draft"),
-      v.literal("scheduled"),
-      v.literal("live"),
-      v.literal("ended"),
-      v.literal("cancelled"),
-    ),
+    status: liveClassStatusValidator,
     createdAt: v.number(),
     updatedAt: v.number(),
     seatsTaken: v.optional(v.number()),
     startScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     endScheduledFunctionId: v.optional(v.id("_scheduled_functions")),
     /** Max simulcast layer customers pull for instructor video (bandwidth control). */
-    subscriberReceivePreset: v.optional(
-      v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
-    ),
+    subscriberReceivePreset: v.optional(subscriberReceivePresetValidator),
   })
     .index("by_startsAt", ["startsAt"])
     .index("by_status_and_startsAt", ["status", "startsAt"])
@@ -276,7 +229,7 @@ export default defineSchema({
     liveClassId: v.id("liveClasses"),
     provider: v.literal("livekit"),
     roomName: v.string(),
-    status: v.union(v.literal("pending"), v.literal("active"), v.literal("ended")),
+    status: liveRoomStatusValidator,
     startedAt: v.optional(v.number()),
     endedAt: v.optional(v.number()),
     startedByUserId: v.optional(v.id("users")),
@@ -290,14 +243,8 @@ export default defineSchema({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),
     walletId: v.id("userWallets"),
-    status: v.union(
-      v.literal("reserved"),
-      v.literal("joined"),
-      v.literal("cancelled"),
-      v.literal("refunded"),
-      v.literal("no_show"),
-    ),
-    creditKind: v.union(v.literal("live"), v.literal("oneOnOne")),
+    status: liveReservationStatusValidator,
+    creditKind: liveCreditKindValidator,
     creditsReserved: v.number(),
     reservedAt: v.number(),
     joinedAt: v.optional(v.number()),
@@ -314,7 +261,7 @@ export default defineSchema({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),
     displayName: v.string(),
-    phase: v.union(v.literal("waiting_broadcast"), v.literal("device_setup")),
+    phase: liveLobbyPhaseValidator,
     lastSeenAt: v.number(),
   })
     .index("by_liveClassId_and_userId", ["liveClassId", "userId"])
@@ -323,8 +270,8 @@ export default defineSchema({
   liveJoinEvents: defineTable({
     liveClassId: v.id("liveClasses"),
     userId: v.id("users"),
-    role: v.union(v.literal("customer"), v.literal("instructor"), v.literal("admin")),
-    result: v.union(v.literal("allowed"), v.literal("denied")),
+    role: profileRoleValidator,
+    result: liveJoinResultValidator,
     reason: v.string(),
     createdAt: v.number(),
   })
@@ -416,23 +363,18 @@ export default defineSchema({
   videos: defineTable({
     title: v.string(),
     description: v.string(),
-    provider: v.union(v.literal("cloudflare_stream"), v.literal("bunny_stream"), v.literal("mux")),
+    provider: videoProviderValidator,
+    muxUploadId: v.optional(v.string()),
     muxAssetId: v.optional(v.string()),
     playbackId: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
     requiredEquipment: equipmentListValidator,
-    accessKind: v.union(v.literal("macroflow"), v.literal("microflow")),
-    muxVideoQuality: v.union(v.literal("basic"), v.literal("plus"), v.literal("premium")),
-    muxMaxResolutionTier: v.union(v.literal("1080p"), v.literal("1440p"), v.literal("2160p")),
-    staticRendition: v.optional(v.union(v.literal("none"), v.literal("audio-only"), v.literal("720p"), v.literal("1080p"))),
-    status: v.union(
-      v.literal("draft"),
-      v.literal("processing"),
-      v.literal("published"),
-      v.literal("failed"),
-      v.literal("archived"),
-    ),
+    accessKind: videoAccessKindValidator,
+    muxVideoQuality: muxVideoQualityValidator,
+    muxMaxResolutionTier: muxMaxResolutionTierValidator,
+    staticRendition: v.optional(staticRenditionValidator),
+    status: videoStatusValidator,
     processingError: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -440,7 +382,8 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_status_and_createdAt", ["status", "createdAt"])
-    .index("by_instructorUserId_and_createdAt", ["instructorUserId", "createdAt"]),
+    .index("by_instructorUserId_and_createdAt", ["instructorUserId", "createdAt"])
+    .index("by_instructorUserId_and_status_and_createdAt", ["instructorUserId", "status", "createdAt"]),
 
 
 
@@ -454,6 +397,7 @@ export default defineSchema({
   })
     .index("by_userId_and_videoId", ["userId", "videoId"])
     .index("by_userId_and_kind", ["userId", "kind"])
+    .index("by_videoId", ["videoId"])
     .index("by_walletId", ["walletId"]),
 
   videoCategories: defineTable({
@@ -481,6 +425,29 @@ export default defineSchema({
     .index("by_categoryId_and_videoId", ["categoryId", "videoId"])
     .index("by_videoId", ["videoId"]),
 
+  videoTags: defineTable({
+    categoryId: v.id("videoCategories"),
+    slug: v.string(),
+    name: v.string(),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_isActive_and_sortOrder", ["isActive", "sortOrder"])
+    .index("by_categoryId_and_isActive_and_sortOrder", ["categoryId", "isActive", "sortOrder"]),
+
+  videoTagVideos: defineTable({
+    tagId: v.id("videoTags"),
+    videoId: v.id("videos"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tagId_and_videoId", ["tagId", "videoId"])
+    .index("by_videoId", ["videoId"]),
+
   videoProgress: defineTable({
     videoId: v.id("videos"),
     userId: v.id("users"),
@@ -491,6 +458,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_userId_and_videoId", ["userId", "videoId"])
+    .index("by_videoId", ["videoId"])
     .index("by_userId_and_updatedAt", ["userId", "updatedAt"]),
 
   rateLimits: defineTable({
@@ -516,6 +484,7 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_endpoint", ["endpoint"]),
 
+  /** Singleton per user: application code must guard against duplicate inserts. */
   notificationPreferences: defineTable({
     userId: v.id("users"),
     liveRemindersPush: v.boolean(),
@@ -523,6 +492,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_userId", ["userId"]),
 
+  /** Singleton per user: application code must guard against duplicate inserts. */
   memberProfiles: defineTable({
     userId: v.id("users"),
     equipment: equipmentListValidator,

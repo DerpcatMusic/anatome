@@ -34,6 +34,14 @@
       (Array.isArray(data.macroflowVideos) ||
         Array.isArray((data as { videos?: unknown }).videos)),
   );
+
+  function handleRefetch() {
+    void libraryResource.refetch();
+  }
+
+  async function handleOnRefetch() {
+    await libraryResource.refetch();
+  }
 </script>
 
 {#if auth.isLoading}
@@ -65,16 +73,14 @@
 {:else if libraryResource.error}
   <div class="videos-state-card">
     <Notice tone="danger">{libraryResource.error?.message ?? "שגיאה בטעינת הספרייה"}</Notice>
-    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={() => { void libraryResource.refetch(); }}>
+    <Button.Root class="hb-button hb-button--ghost" type="button" onclick={handleRefetch}>
       לנסות שוב
     </Button.Root>
   </div>
 {:else if libraryReady && data}
   <VideoLibraryShell
     {data}
-    onRefetch={async () => {
-      await libraryResource.refetch();
-    }}
+    onRefetch={handleOnRefetch}
   />
 {:else}
   <div class="videos-skeleton-shell">

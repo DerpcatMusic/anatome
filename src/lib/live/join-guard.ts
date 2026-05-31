@@ -36,9 +36,6 @@ export function assertIssueJoinMatchesClass(
   }
 
   if (join.liveClassId === undefined) {
-    console.warn(
-      "[LiveKit] issueJoin missing liveClassId; could not verify room name — deploy latest Convex",
-    );
     return;
   }
 

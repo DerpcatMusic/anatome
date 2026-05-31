@@ -12,7 +12,11 @@
 
   const safeCapacity = $derived(Math.max(0, Math.min(capacity, maxVisible)));
   const taken = $derived(Math.max(0, Math.min(seatsTaken, safeCapacity)));
-  const slots = $derived(Array.from({ length: safeCapacity }, (_, index) => index < taken));
+  function buildSlots(safeCapacity: number, taken: number): boolean[] {
+    return Array.from({ length: safeCapacity }, (_, index) => index < taken);
+  }
+
+  const slots = $derived(buildSlots(safeCapacity, taken));
   const overflow = $derived(capacity > maxVisible ? capacity - maxVisible : 0);
 </script>
 

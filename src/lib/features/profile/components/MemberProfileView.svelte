@@ -29,13 +29,19 @@
     };
   } = $props();
 
-  const healthFlags = $derived(
-    profile.healthDeclarationAnswers
-      ? healthDeclarationQuestionIds
-          .filter((id) => profile.healthDeclarationAnswers?.[id] === "yes")
-          .map((id) => t.onboarding.healthDeclaration.questions[id]())
-      : [],
-  );
+  const EMPTY_ARRAY: string[] = [];
+
+  function deriveHealthFlags(
+    answers: HealthDeclarationAnswers | Record<string, "yes" | "no"> | undefined,
+    t: ReturnType<typeof useI18n>["t"],
+  ) {
+    if (!answers) return EMPTY_ARRAY;
+    return healthDeclarationQuestionIds
+      .filter((id) => answers[id] === "yes")
+      .map((id) => t.onboarding.healthDeclaration.questions[id]());
+  }
+
+  const healthFlags = $derived(deriveHealthFlags(profile.healthDeclarationAnswers, t));
 </script>
 
 <section class="profile-view" aria-label="פרטי פרופיל פילאטיס">

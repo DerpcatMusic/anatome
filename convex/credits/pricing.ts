@@ -19,6 +19,7 @@ export const CREDIT_VOLUME_TIERS = [
 
 export const CREDIT_PURCHASE_QUANTITY_PRESETS = [1, 3, 5, 10, 20] as const;
 export const CREDIT_PURCHASE_MAX_QUANTITY = 50;
+export const CREDIT_CART_MAX_LINES = 3;
 
 export function roundMoneyIls(value: number): number {
   return Math.round(value * 100) / 100;
@@ -103,6 +104,9 @@ export function quoteCreditCart(inputs: CreditCartLineInput[]): CreditCartQuote 
   const merged = mergeCartLines(inputs);
   if (merged.length === 0) {
     throw new Error("בחרו לפחות קרדיט אחד לרכישה");
+  }
+  if (merged.length > CREDIT_CART_MAX_LINES) {
+    throw new Error("סל קרדיטים יכול לכלול עד שלושה סוגי קרדיטים");
   }
 
   const lines: CreditCartLineQuote[] = merged.map((row) => {

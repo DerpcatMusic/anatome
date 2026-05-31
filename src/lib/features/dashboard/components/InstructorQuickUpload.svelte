@@ -22,11 +22,20 @@
     { initialValue: [] },
   );
 
-  const categories = $derived(categoriesResource.current ?? []);
+  const EMPTY_ARRAY: any[] = [];
+  const categories = $derived(categoriesResource.current ?? EMPTY_ARRAY);
 
   function handleComplete() {
     expanded = false;
     window.location.assign(routePath("iVideos"));
+  }
+
+  function toggleExpanded() {
+    expanded = !expanded;
+  }
+
+  function handleCancel() {
+    expanded = false;
   }
 </script>
 
@@ -41,9 +50,7 @@
         class="hb-button hb-button--ink hb-button--sm"
         type="button"
         aria-expanded={expanded}
-        onclick={() => {
-          expanded = !expanded;
-        }}
+        onclick={toggleExpanded}
       >
         {expanded ? t.dashboard.instructor.uploadClose() : t.dashboard.instructor.uploadOpen()}
       </Button.Root>
@@ -62,9 +69,7 @@
         <VideoUploadForm
           {categories}
           onComplete={handleComplete}
-          onCancel={() => {
-            expanded = false;
-          }}
+          onCancel={handleCancel}
         />
       </div>
     {/if}

@@ -59,6 +59,7 @@ import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as lib_videoOwnership from "../lib/videoOwnership.js";
 import type * as lib_videoStatus from "../lib/videoStatus.js";
+import type * as lib_videoTaxonomy from "../lib/videoTaxonomy.js";
 import type * as lifecycle_repair from "../lifecycle/repair.js";
 import type * as live_calendar from "../live/calendar.js";
 import type * as live_capacity from "../live/capacity.js";
@@ -142,12 +143,16 @@ import type * as video_entitlements from "../video/entitlements.js";
 import type * as video_migrations from "../video/migrations.js";
 import type * as video_playback from "../video/playback.js";
 import type * as video_playbackToken from "../video/playbackToken.js";
+import type * as video_processing from "../video/processing.js";
 import type * as video_provider_mux from "../video/provider/mux.js";
+import type * as video_tags from "../video/tags.js";
 import type * as video_uploads from "../video/uploads.js";
+import type * as videoInternal_admin from "../videoInternal/admin.js";
 import type * as videoInternal_draft from "../videoInternal/draft.js";
 import type * as videoInternal_muxAssetAction from "../videoInternal/muxAssetAction.js";
 import type * as videoInternal_muxAssetMutations from "../videoInternal/muxAssetMutations.js";
 import type * as videoInternal_playback from "../videoInternal/playback.js";
+import type * as videoInternal_processing from "../videoInternal/processing.js";
 import type * as videoInternal_profile from "../videoInternal/profile.js";
 
 import type {
@@ -208,6 +213,7 @@ declare const fullApi: ApiFromModules<{
   "lib/validators": typeof lib_validators;
   "lib/videoOwnership": typeof lib_videoOwnership;
   "lib/videoStatus": typeof lib_videoStatus;
+  "lib/videoTaxonomy": typeof lib_videoTaxonomy;
   "lifecycle/repair": typeof lifecycle_repair;
   "live/calendar": typeof live_calendar;
   "live/capacity": typeof live_capacity;
@@ -291,12 +297,16 @@ declare const fullApi: ApiFromModules<{
   "video/migrations": typeof video_migrations;
   "video/playback": typeof video_playback;
   "video/playbackToken": typeof video_playbackToken;
+  "video/processing": typeof video_processing;
   "video/provider/mux": typeof video_provider_mux;
+  "video/tags": typeof video_tags;
   "video/uploads": typeof video_uploads;
+  "videoInternal/admin": typeof videoInternal_admin;
   "videoInternal/draft": typeof videoInternal_draft;
   "videoInternal/muxAssetAction": typeof videoInternal_muxAssetAction;
   "videoInternal/muxAssetMutations": typeof videoInternal_muxAssetMutations;
   "videoInternal/playback": typeof videoInternal_playback;
+  "videoInternal/processing": typeof videoInternal_processing;
   "videoInternal/profile": typeof videoInternal_profile;
 }>;
 

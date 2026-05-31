@@ -86,6 +86,34 @@
     }
   }
 
+  function handleExitAfterDisconnect() {
+    session.exitAfterDisconnect();
+  }
+
+  function handleEndLive() {
+    void dock.endLive();
+  }
+
+  function handleDismissJoinExpiry() {
+    session.dismissJoinExpiryModal();
+  }
+
+  function handleLeave() {
+    session.leave();
+  }
+
+  function handleDismissMediaError() {
+    session.dismissMediaError();
+  }
+
+  function handleReconnect() {
+    session.reconnect();
+  }
+
+  function handleParticipantCount(n: number) {
+    participantCount = n;
+  }
+
   useEventListener(window, "keydown", onKeyDown);
   useEventListener(window, "beforeunload", onBeforeUnload);
 </script>
@@ -93,21 +121,21 @@
 {#if session.sessionEndedByHost}
   <SessionEndedOverlay
     isInstructorRoom={session.isInstructorRoom}
-    onExit={() => session.exitAfterDisconnect()}
+    onExit={handleExitAfterDisconnect}
   />
 {:else if !session.inRoom}
   <PreConnectOverlay
     {session}
     {joinLoading}
-    onEndLive={session.isInstructorRoom ? () => dock.endLive() : undefined}
+    onEndLive={session.isInstructorRoom ? handleEndLive : undefined}
   />
 {:else}
   <div class="live-room-shell">
     <JoinExpiryModal
       bind:open={session.showJoinExpiryModal}
       minutesRemaining={joinExpiryMinutes}
-      onStay={() => session.dismissJoinExpiryModal()}
-      onLeave={() => session.exitAfterDisconnect()}
+      onStay={handleDismissJoinExpiry}
+      onLeave={handleExitAfterDisconnect}
     />
 
     <Tooltip.Provider delayDuration={160}>
@@ -142,8 +170,8 @@
                 classTitle={session.joinInfo?.classTitle ?? ""}
                 {participantCount}
                 isInstructorRoom={session.isInstructorRoom}
-                onLeave={() => session.leave()}
-                onEndLive={session.isInstructorRoom ? () => void dock.endLive() : undefined}
+                onLeave={handleLeave}
+                onEndLive={session.isInstructorRoom ? handleEndLive : undefined}
               />
             </div>
 
@@ -174,7 +202,7 @@
                     <button
                       type="button"
                       class="lr-toast__dismiss"
-                      onclick={() => session.dismissMediaError()}
+                      onclick={handleDismissMediaError}
                     >
                       {t.live.room.mediaErrorDismiss()}
                     </button>
@@ -186,7 +214,7 @@
             <LiveControlBar {session} />
 
             <SelfAudioMonitor room={session.liveKitRoom!} enabled={session.selfAudioMonitorEnabled} />
-            <RoomContextMetrics onParticipantCount={(n) => (participantCount = n)} />
+            <RoomContextMetrics onParticipantCount={handleParticipantCount} />
           </div>
         </div>
       </LiveKitRoom>
@@ -201,9 +229,9 @@
       hint={t.live.room.networkHelp()}
       tone="warning"
       primaryLabel={t.live.room.reconnectAction()}
-      onPrimary={() => session.reconnect()}
+      onPrimary={handleReconnect}
       secondaryLabel={t.live.room.reconnectExit()}
-      onSecondary={() => session.exitAfterDisconnect()}
+      onSecondary={handleExitAfterDisconnect}
     />
   {/if}
 {/if}

@@ -17,6 +17,10 @@
   function toggle<T extends string>(list: T[], value: T) {
     return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   }
+
+  const makeToggleHandler = (value: string) => () => {
+    goals = toggle(goals, value);
+  };
 </script>
 
 <div class="goals-wrap">
@@ -24,9 +28,7 @@
     <Checkbox.Root
       class="hb-choice goal-choice"
       checked={goals.includes(value)}
-      onCheckedChange={() => {
-        goals = toggle(goals, value);
-      }}
+      onCheckedChange={makeToggleHandler(value)}
     >
       <span>{label}</span>
     </Checkbox.Root>

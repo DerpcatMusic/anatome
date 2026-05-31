@@ -4,6 +4,10 @@
   let { name, size = 48 }: { name: string; size?: number } = $props();
 
   const svgContent = $derived(equipmentIconPath(name));
+  let gEl: SVGGElement | null = null;
+  $effect(() => {
+    if (gEl) gEl.innerHTML = svgContent;
+  });
 </script>
 
 <svg
@@ -14,5 +18,5 @@
   xmlns="http://www.w3.org/2000/svg"
   aria-hidden="true"
 >
-  {@html svgContent}
+  <g bind:this={gEl}></g>
 </svg>

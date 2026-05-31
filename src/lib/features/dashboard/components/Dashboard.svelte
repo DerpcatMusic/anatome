@@ -15,6 +15,31 @@
 
   type DashboardData = NonNullable<FunctionReturnType<typeof api.users.dashboard.get>>;
 
+  function buildDashboardPayload(
+    profile: DashboardData["profile"],
+    liveAlert: DashboardData["liveAlert"],
+    role: "customer" | "instructor" | "admin" | null | undefined,
+    appProfile: DashboardData["appProfile"],
+    subscription: DashboardData["subscription"] | undefined,
+    subscriptionPlan: DashboardData["subscriptionPlan"] | undefined,
+    pendingSubscriptionPlan: DashboardData["pendingSubscriptionPlan"] | undefined,
+    wallet: DashboardData["wallet"] | undefined,
+    user: DashboardData["user"] | undefined,
+  ): DashboardData {
+    return {
+      profile,
+      liveAlert,
+      role: role ?? null,
+      appProfile,
+      subscription: subscription ?? null,
+      subscriptionPlan: subscriptionPlan ?? null,
+      pendingSubscriptionPlan: pendingSubscriptionPlan ?? null,
+      wallet: wallet ?? null,
+      user: user ?? null,
+      needsOnboarding: false,
+    } as DashboardData;
+  }
+
   let {
     profile,
     liveAlert,
@@ -45,24 +70,21 @@
     user?.name?.trim() || appProfile?.displayName?.trim() || null,
   );
 
-  let accountOpen = $state(false);
+  let accountOpen = $state(page.url.searchParams.get("panel") === "account");
 
-  $effect(() => {
-    accountOpen = page.url.searchParams.get("panel") === "account";
-  });
-
-  const dashboardPayload = $derived({
-    profile,
-    liveAlert,
-    role: role ?? null,
-    appProfile,
-    subscription: subscription ?? null,
-    subscriptionPlan: subscriptionPlan ?? null,
-    pendingSubscriptionPlan: pendingSubscriptionPlan ?? null,
-    wallet: wallet ?? null,
-    user: user ?? null,
-    needsOnboarding: false,
-  } as DashboardData);
+  const dashboardPayload = $derived(
+    buildDashboardPayload(
+      profile,
+      liveAlert,
+      role,
+      appProfile,
+      subscription,
+      subscriptionPlan,
+      pendingSubscriptionPlan,
+      wallet,
+      user,
+    ),
+  );
 </script>
 
 <PageShell title={isStaff ? t.dashboard.titleStaff() : t.dashboard.title()}>

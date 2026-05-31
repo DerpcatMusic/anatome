@@ -12,7 +12,7 @@
   } from "$lib/pwa/push-subscribe";
   import { browser } from "$app/environment";
   import { canPromptForPushOnThisPlatform, isIosSafari, isStandaloneDisplayMode } from "$lib/pwa/platform";
-  import { PUBLIC_VAPID_PUBLIC_KEY } from "$env/static/public";
+  import { PUBLIC_VAPID_PUBLIC_KEY } from "$lib/pwa/vapid-config";
 
   const client = useConvexClient();
 
@@ -101,6 +101,16 @@
       saveBusy = false;
     }
   }
+
+  function handleEmailChange(e: Event) {
+    const checked = (e.currentTarget as HTMLInputElement).checked;
+    void savePreferences(prefsQuery.data?.liveRemindersPush ?? true, checked);
+  }
+
+  function handlePushChange(e: Event) {
+    const checked = (e.currentTarget as HTMLInputElement).checked;
+    void savePreferences(checked, prefsQuery.data?.liveRemindersEmail ?? true);
+  }
 </script>
 
 <section class="notification-settings" aria-labelledby="notification-settings-title">
@@ -129,11 +139,7 @@
           type="checkbox"
           checked={prefsQuery.data.liveRemindersEmail}
           disabled={saveBusy}
-          onchange={(e) =>
-            void savePreferences(
-              prefsQuery.data?.liveRemindersPush ?? true,
-              e.currentTarget.checked,
-            )}
+          onchange={handleEmailChange}
         />
         <span>אימייל</span>
       </label>
@@ -143,11 +149,7 @@
           type="checkbox"
           checked={prefsQuery.data.liveRemindersPush}
           disabled={saveBusy || !vapidConfigured}
-          onchange={(e) =>
-            void savePreferences(
-              e.currentTarget.checked,
-              prefsQuery.data?.liveRemindersEmail ?? true,
-            )}
+          onchange={handlePushChange}
         />
         <span>התראות דחיפה (מכשיר)</span>
       </label>

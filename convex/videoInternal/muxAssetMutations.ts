@@ -22,6 +22,19 @@ export const publish = internalMutation({
   },
 });
 
+export const linkMuxAsset = internalMutation({
+  args: {
+    videoId: v.id("videos"),
+    muxAssetId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.videoId, {
+      muxAssetId: args.muxAssetId,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 export const markErrored = internalMutation({
   args: {
     videoId: v.id("videos"),

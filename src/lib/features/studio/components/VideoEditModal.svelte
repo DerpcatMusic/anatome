@@ -26,7 +26,7 @@
 
   let title = $state("");
   let description = $state("");
-  let descEl = $state<HTMLTextAreaElement | null>(null);
+  let descEl: HTMLTextAreaElement | null = null;
   const descAutosize = new TextareaAutosize({ element: () => descEl ?? undefined, input: () => description });
   let isSaving = $state(false);
 
@@ -53,9 +53,13 @@
       isSaving = false;
     }
   }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) onClose();
+  }
 </script>
 
-<Dialog.Root open={video !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
+<Dialog.Root open={video !== null} onOpenChange={handleOpenChange}>
   <Dialog.Portal>
     <Dialog.Overlay class="edit-modal-backdrop" />
     <Dialog.Content class="edit-modal-card" aria-label="עריכת פרטי שיעור">

@@ -23,12 +23,14 @@ async function listOwnedByStatus(
   instructorUserId: Id<"users">,
   status: VideoStatus,
 ) {
-  const rows = await ctx.db
-    .query("videos")
-    .withIndex("by_instructorUserId_and_createdAt", (q) => q.eq("instructorUserId", instructorUserId))
-    .order("desc")
-    .take(LIMITS.ADMIN_VIDEO_PAGE * 3);
-  return rows.filter((video) => video.status === status).map(toAdminVideoRow);
+    const rows = await ctx.db
+      .query("videos")
+      .withIndex("by_instructorUserId_and_status_and_createdAt", (q) =>
+        q.eq("instructorUserId", instructorUserId).eq("status", status),
+      )
+      .order("desc")
+      .take(LIMITS.ADMIN_VIDEO_PAGE);
+  return rows.map(toAdminVideoRow);
 }
 
 export const listAll = query({
@@ -64,14 +66,14 @@ export const listByStatusPaginated = query({
 
     const page = await ctx.db
       .query("videos")
-      .withIndex("by_instructorUserId_and_createdAt", (q) => q.eq("instructorUserId", userId))
+      .withIndex("by_instructorUserId_and_status_and_createdAt", (q) =>
+        q.eq("instructorUserId", userId).eq("status", args.status),
+      )
       .order("desc")
       .paginate(args.paginationOpts);
 
-    const filtered = page.page.filter((video) => video.status === args.status);
-
     return {
-      page: filtered.map(toAdminVideoRow),
+      page: page.page.map(toAdminVideoRow),
       isDone: page.isDone,
       continueCursor: page.continueCursor,
     };

@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { missingRequiredEquipment } from "../lib/equipment";
 import { equipmentDisplayLabel } from "../lib/equipmentCatalog";
 import { assertInLiveJoinWindow } from "../lib/liveJoin";
+import { getAppProfile as getStoredAppProfile } from "../lib/authz";
 
 import type { LiveParticipantRole } from "./joinContract";
 
@@ -31,16 +32,7 @@ export function parseLiveKitIdentity(identity: string):
   };
 }
 
-export async function getAppProfile(
-  ctx: MutationCtx,
-  userId: Id<"users">,
-): Promise<Doc<"appProfiles"> | null> {
-  const profiles = await ctx.db
-    .query("appProfiles")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
-    .take(1);
-  return profiles[0] ?? null;
-}
+export const getAppProfile = getStoredAppProfile;
 
 export function getParticipantRole({
   userId,

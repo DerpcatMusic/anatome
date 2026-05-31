@@ -16,11 +16,13 @@ const config = {
 				'/concept',
 				'/sitemap.xml',
 				'/robots.txt',
+				'/llms.txt',
 				'/legal/terms',
 				'/legal/privacy',
 				'/legal/cancellations',
 				'/legal/accessibility',
-				'/legal/health'
+				'/legal/health',
+				'/פילאטיס-אונליין',
 			]
 		},
 		alias: {

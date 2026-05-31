@@ -36,10 +36,11 @@
     });
   }
 
-  const filteredPublished = $derived(library ? filterVideos(library.published) : []);
-  const filteredProcessing = $derived(library ? filterVideos(library.processing) : []);
-  const filteredDrafts = $derived(library ? filterVideos(library.drafts) : []);
-  const filteredFailed = $derived(library ? filterVideos(library.failed) : []);
+  const EMPTY_ARRAY: Video[] = [];
+  const filteredPublished = $derived(library ? filterVideos(library.published) : EMPTY_ARRAY);
+  const filteredProcessing = $derived(library ? filterVideos(library.processing) : EMPTY_ARRAY);
+  const filteredDrafts = $derived(library ? filterVideos(library.drafts) : EMPTY_ARRAY);
+  const filteredFailed = $derived(library ? filterVideos(library.failed) : EMPTY_ARRAY);
 
   const totalCount = $derived(
     library
@@ -63,6 +64,16 @@
     { id: "macroflow" as const, label: "בקרדיט", ariaLabel: "רכישה חד-פעמית בקרדיט" },
     { id: "microflow" as const, label: "מנוי", ariaLabel: "מנוי בלבד" },
   ];
+
+  function clearSearch() {
+    searchQuery = "";
+  }
+
+  function selectAccessFilter(id: "all" | AccessKind) {
+    selectedAccessFilter = id;
+  }
+
+  const makeAccessFilterHandler = (id: "all" | AccessKind) => () => selectAccessFilter(id);
 </script>
 
 <div class="library-toolbar">
@@ -79,7 +90,7 @@
       <button
         type="button"
         class="library-search__clear"
-        onclick={() => (searchQuery = "")}
+        onclick={clearSearch}
         aria-label="ניקוי חיפוש"
       >
         <span class="material-symbols-rounded">close</span>
@@ -88,14 +99,14 @@
   </div>
 
   <div class="access-segment" role="group" aria-label="סינון לפי מודל גישה">
-    {#each accessFilters as filter}
+    {#each accessFilters as filter (filter.id)}
       <button
         type="button"
         class="access-segment__btn"
         class:is-active={selectedAccessFilter === filter.id}
         data-kind={filter.id === "all" ? undefined : filter.id}
         aria-label={filter.ariaLabel}
-        onclick={() => (selectedAccessFilter = filter.id)}
+        onclick={makeAccessFilterHandler(filter.id)}
       >
         {filter.label}
       </button>

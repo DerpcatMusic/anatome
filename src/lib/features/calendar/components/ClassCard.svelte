@@ -37,6 +37,10 @@
 
   const { t } = useI18n();
 
+  const handleCancel = () => onCancel(item);
+  const handleBuyCredits = () => onBuyCredits?.("live");
+  const handleReserve = () => onReserve(item.liveClass._id);
+
   const timeFormatter = new Intl.DateTimeFormat("he-IL", {
     hour: "2-digit",
     minute: "2-digit",
@@ -78,11 +82,18 @@
   const status = $derived(statusInfo(item));
   const rsvp = $derived(rsvpText(item, nowMs));
   const showStatusBadge = $derived(status !== null && (status.emphasis || status.live));
+  function makeEquipmentHint(items: string) {
+    return { items };
+  }
+  function formatEquipmentItems(items: string[]) {
+    return items.map(equipmentLabel).join(", ");
+  }
+
   const equipmentJoinHint = $derived(
     item.viewerMissingEquipment.length > 0 && !item.viewerCanJoin
-      ? t.calendar.class.missingEquipment({
-          items: item.viewerMissingEquipment.map(equipmentLabel).join(", "),
-        })
+      ? t.calendar.class.missingEquipment(
+          makeEquipmentHint(formatEquipmentItems(item.viewerMissingEquipment)),
+        )
       : null,
   );
 
@@ -190,7 +201,7 @@
         <Button.Root
           class="hb-button hb-button--paper hb-button--sm"
           type="button"
-          onclick={() => onCancel(item)}
+          onclick={handleCancel}
           disabled={actionId === item.liveClass._id}
         >
           {t.calendar.class.cancel()}
@@ -199,7 +210,7 @@
         <Button.Root
           class="hb-button hb-button--ink hb-button--sm"
           type="button"
-          onclick={() => onBuyCredits?.("live")}
+          onclick={handleBuyCredits}
         >
           רכישת קרדיטים
         </Button.Root>
@@ -219,7 +230,7 @@
               {...props}
               class="hb-button hb-button--sm {isPrivate ? 'hb-button--primary' : 'hb-button--secondary'}"
               type="button"
-              onclick={() => onReserve(item.liveClass._id)}
+              onclick={handleReserve}
               disabled={!item.viewerCanReserve || actionId === item.liveClass._id}
             >
               {t.calendar.class.reserve()}

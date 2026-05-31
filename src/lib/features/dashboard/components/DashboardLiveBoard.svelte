@@ -28,13 +28,19 @@
 
   let range = $state<"week" | "month">("week");
 
-  const filteredLives = $derived.by(() => {
+  function filterUpcomingLives(
+    lives: DashboardLiveItem[],
+    range: "week" | "month",
+    nowMs: number,
+  ): DashboardLiveItem[] {
     const horizon = range === "week" ? WEEK_MS : MONTH_MS;
     const end = nowMs + horizon;
     return lives
       .filter((item) => item.startsAt >= nowMs && item.startsAt <= end)
       .sort((a, b) => a.startsAt - b.startsAt);
-  });
+  }
+
+  const filteredLives = $derived(filterUpcomingLives(lives, range, nowMs));
 
   function itemHref(item: DashboardLiveItem): string {
     if (item.href) return item.href;
@@ -47,6 +53,10 @@
     if (item.type === "one_on_one") return t.dashboard.liveStatus.oneOnOne();
     return t.dashboard.liveStatus.scheduled();
   }
+
+  function handleRangeChange(value: string | undefined) {
+    if (value === "week" || value === "month") range = value;
+  }
 </script>
 
 <section class="live-board dashboard-panel" aria-labelledby="live-board-title">
@@ -58,9 +68,7 @@
   <ToggleGroup.Root
     type="single"
     value={range}
-    onValueChange={(value) => {
-      if (value === "week" || value === "month") range = value;
-    }}
+    onValueChange={handleRangeChange}
     class="live-board__range"
     aria-label="טווח תאריכים"
   >

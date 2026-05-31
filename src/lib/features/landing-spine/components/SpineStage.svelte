@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+
   import { LANDING_IMAGES } from "$lib/features/landing/images";
   import { useSpineLanding } from "../spine-context.svelte";
   import SpineHotspot from "./SpineHotspot.svelte";
@@ -22,7 +22,7 @@
     browser && hydrate3d && spine.webglEnabled && !spine.reducedMotion && CanvasComponent && SceneComponent,
   );
 
-  onMount(() => {
+  $effect(() => {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     if (spine.reducedMotion) return;

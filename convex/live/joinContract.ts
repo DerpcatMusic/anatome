@@ -1,19 +1,18 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
+import {
+  liveClassStatusValidator,
+  liveClassTypeValidator,
+  profileRoleValidator,
+  subscriberReceivePresetValidator,
+} from "../lib/domainValidators";
 
 /** Client-visible role from `issueJoin` / LiveKit identity prefix. */
-export const liveParticipantRoleValidator = v.union(
-  v.literal("instructor"),
-  v.literal("customer"),
-  v.literal("admin"),
-);
+export const liveParticipantRoleValidator = profileRoleValidator;
 
 export type LiveParticipantRole = Infer<typeof liveParticipantRoleValidator>;
 
-export const liveRoomClassTypeValidator = v.union(
-  v.literal("group_live"),
-  v.literal("one_on_one"),
-);
+export const liveRoomClassTypeValidator = liveClassTypeValidator;
 
 export type LiveRoomClassType = Infer<typeof liveRoomClassTypeValidator>;
 
@@ -61,13 +60,7 @@ export const joinAccessSnapshotValidator = v.object({
   joinOpensAt: v.number(),
   joinClosesAt: v.number(),
   startsAt: v.number(),
-  status: v.union(
-    v.literal("draft"),
-    v.literal("scheduled"),
-    v.literal("live"),
-    v.literal("ended"),
-    v.literal("cancelled"),
-  ),
+  status: liveClassStatusValidator,
   canEnter: v.boolean(),
   minutesUntilOpen: v.union(v.number(), v.null()),
   minutesUntilClose: v.union(v.number(), v.null()),
@@ -77,11 +70,7 @@ export const joinAccessSnapshotValidator = v.object({
   broadcastStartedByUserId: v.optional(v.id("users")),
   instructorUserId: v.id("users"),
   instructorName: v.string(),
-  subscriberReceivePreset: v.union(
-    v.literal("low"),
-    v.literal("medium"),
-    v.literal("high"),
-  ),
+  subscriberReceivePreset: subscriberReceivePresetValidator,
 });
 
 export type JoinAccessSnapshot = Infer<typeof joinAccessSnapshotValidator>;

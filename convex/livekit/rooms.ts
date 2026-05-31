@@ -38,8 +38,8 @@ export const expireDue = internalAction({
       try {
         await roomClient.deleteRoom(roomName);
         deletedRooms += 1;
-      } catch (reason) {
-        console.warn(`[LiveKit] Failed to delete expired room ${roomName}:`, reason);
+      } catch {
+        /* ignore */
       }
     }
 
@@ -64,8 +64,7 @@ export const deleteRoomByName = internalAction({
     try {
       await roomClient.deleteRoom(args.roomName);
       return { deleted: true };
-    } catch (reason) {
-      console.warn(`[LiveKit] Failed to delete ended room ${args.roomName}:`, reason);
+    } catch {
       return { deleted: false };
     }
   },

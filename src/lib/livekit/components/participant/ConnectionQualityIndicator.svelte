@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Participant } from 'livekit-client';
 	import { ConnectionQuality } from 'livekit-client';
-	import { useConnectionQualityIndicator } from '../../hooks/useConnectionQualityIndicator';
+	import { useConnectionQualityIndicator } from '../../hooks/useConnectionQualityIndicator.svelte';
 
 	let {
 		participant,

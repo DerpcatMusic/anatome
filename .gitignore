@@ -48,8 +48,12 @@ check-output.txt
 .agent-plans/
 reference/
 
+# SEO agent secrets
+seo-agent/.keys/
+seo-agent/.env
+
 # Svelte tooling diagnostics (local only)
-.svelte-doctor/
+.svelte-doctor/*
 
 # TypeScript incremental
 *.tsbuildinfo

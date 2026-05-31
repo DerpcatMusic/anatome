@@ -5,6 +5,13 @@
   const spine = useSpineLanding();
 
   const fillHeight = $derived(`${spine.activeSection.anchorY * 100}%`);
+
+  const makeScrollHandler = (i: number) => () => {
+    const el = document.querySelector<HTMLElement>(
+      `[data-spine-section="${i}"]`,
+    );
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 </script>
 
 <div class="concept-spine-rail" aria-hidden="true">
@@ -18,12 +25,7 @@
       class:concept-spine-rail__dot--active={spine.activeSectionIndex === i}
       class:concept-spine-rail__dot--passed={spine.activeSectionIndex > i}
       style:top="{section.anchorY * 100}%"
-      onclick={() => {
-        const el = document.querySelector<HTMLElement>(
-          `[data-spine-section="${i}"]`,
-        );
-        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }}
+      onclick={makeScrollHandler(i)}
       tabindex="-1"
       aria-hidden="true"
     ></button>

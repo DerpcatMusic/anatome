@@ -39,7 +39,7 @@ export function registerCardcomHttpRoutes(http: ReturnType<typeof httpRouter>) {
         return new Response("OK", { status: result.httpStatus });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("[CardCom Webhook]", message);
+        void message;
         return new Response(message, { status: 500 });
       }
     }),

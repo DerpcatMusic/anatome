@@ -16,20 +16,22 @@
 
   let { lowProfileId, amountIls, onSubmit, disabled = false }: Props = $props();
 
+  const ilsFormatter = new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" });
+
   const amountLabel = $derived(
-    amountIls !== undefined
-      ? new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amountIls)
-      : null,
+    amountIls !== undefined ? ilsFormatter.format(amountIls) : null,
   );
+
+  function handleSubmit(event: Event) {
+    event.preventDefault();
+    onSubmit();
+  }
 </script>
 
 {#if CARDCOM_OPEN_FIELDS_ENABLED && lowProfileId}
   <form
     class="cardcom-open-fields"
-    onsubmit={(event) => {
-      event.preventDefault();
-      onSubmit();
-    }}
+    onsubmit={handleSubmit}
   >
     <p class="cardcom-open-fields__note">
       מצב Open Fields פעיל — ממתין ל-URLs מ-CardCom (מספר כרטיס / תוקף / CVV + manager iframe).

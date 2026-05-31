@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { page } from "$app/state";
   import AppSidebar from "./AppSidebar.svelte";
   import AppBottomNav from "./AppBottomNav.svelte";
@@ -21,7 +20,7 @@
       isLiveRoomPath(pathname),
   );
 
-  onMount(() => {
+  $effect(() => {
     clearStuckPageSurfaceStyles();
 
     const onKeyDown = (event: KeyboardEvent) => {

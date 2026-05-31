@@ -22,11 +22,12 @@
 
   const now = $derived(queryNow.nowMs);
 
-  const upcoming = $derived.by((): DashboardLiveItem[] => {
-    const rows = classesQuery.data ?? [];
+  const EMPTY_ARRAY: LiveClass[] = [];
+
+  function buildUpcomingAgenda(rows: LiveClass[], now: number): DashboardLiveItem[] {
     return rows
       .filter(
-        (row: LiveClass) =>
+        (row) =>
           (row.status === "scheduled" || row.status === "live") && row.startsAt >= now - 30 * 60 * 1000,
       )
       .sort((a, b) => a.startsAt - b.startsAt)
@@ -42,7 +43,13 @@
             ? liveRoomHref(row._id)
             : `${routePath("iCalendar")}?classId=${row._id}`,
       }));
-  });
+  }
+
+  const upcoming = $derived(buildUpcomingAgenda(classesQuery.data ?? EMPTY_ARRAY, now));
+
+  function reloadPage() {
+    window.location.reload();
+  }
 </script>
 
 <section class="dashboard-panel instructor-agenda" aria-labelledby="instructor-agenda-title">
@@ -64,7 +71,7 @@
     <Button.Root
       class="hb-button hb-button--paper hb-button--sm"
       type="button"
-      onclick={() => window.location.reload()}
+      onclick={reloadPage}
     >
       {t.dashboard.retry()}
     </Button.Root>

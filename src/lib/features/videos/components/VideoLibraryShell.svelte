@@ -35,22 +35,25 @@
   let redeemOpen = $state(false);
   let redeemTarget = $state<RedeemTarget | null>(null);
 
-  const library = $derived.by((): {
+  const EMPTY_ARRAY_V: RowVideo[] = [];
+  const EMPTY_ARRAY_G: CategoryGroup[] = [];
+
+  function deriveLibrary(data: LegacyLibraryData): {
     vodCredits: number;
     hasActiveSubscription: boolean;
     macroflowVideos: RowVideo[];
     categoryGroups: CategoryGroup[];
-  } => {
+  } {
     const macroflowVideos = Array.isArray(data.macroflowVideos)
       ? data.macroflowVideos
       : Array.isArray(data.videos)
         ? data.videos.filter((video) => video.accessKind === "macroflow")
-        : [];
+        : EMPTY_ARRAY_V;
 
-    const categoryGroups = (Array.isArray(data.categoryGroups) ? data.categoryGroups : []).map(
+    const categoryGroups = (Array.isArray(data.categoryGroups) ? data.categoryGroups : EMPTY_ARRAY_G).map(
       (group) => ({
         ...group,
-        items: Array.isArray(group.items) ? group.items : [],
+        items: Array.isArray(group.items) ? group.items : EMPTY_ARRAY_V,
       }),
     );
 
@@ -60,11 +63,15 @@
       macroflowVideos,
       categoryGroups,
     };
-  });
+  }
 
-  const ownedMacroflowCount = $derived(
-    library.macroflowVideos.filter((video) => video.owned).length,
-  );
+  const library = $derived(deriveLibrary(data));
+
+  function countOwned(videos: RowVideo[]) {
+    return videos.filter((video) => video.owned).length;
+  }
+
+  const ownedMacroflowCount = $derived(countOwned(library.macroflowVideos));
 
   function goWatch(videoId: string) {
     void goto(`/watch?videoId=${videoId}`);
@@ -119,6 +126,10 @@
       pendingId = null;
     }
   }
+
+  function handleConfirmRedeem() {
+    void confirmRedeem();
+  }
 </script>
 
 <PageShell title="ספריית שיעורים">
@@ -159,7 +170,5 @@
   video={redeemTarget}
   creditsBalance={library.vodCredits}
   pending={pendingId !== null}
-  onConfirm={() => {
-    void confirmRedeem();
-  }}
+  onConfirm={handleConfirmRedeem}
 />
